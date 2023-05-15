@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>一个简单强大的Python天气预报库pyweathercn | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="今天向大家介绍一款可以用来查询国内绝大部分城市天气预报的Python库pyweathercn，网上搜到的基本都不能用啦…… pyweathercn的作者正是大名鼎鼎的本人。 好吧，其实这个库我早在5月份的时候就写好了，但是由于太忙一直忘了这回事…… demo: https:&#x2F;&#x2F;weather.bennythink.com 特色用法简洁 支持开启REST API风格的服务器，一库多用，异步非阻塞支持">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一个简单强大的Python天气预报库pyweathercn">
+<meta property="og:url" content="http://example.com/2018/08/18/pyweathercn/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="今天向大家介绍一款可以用来查询国内绝大部分城市天气预报的Python库pyweathercn，网上搜到的基本都不能用啦…… pyweathercn的作者正是大名鼎鼎的本人。 好吧，其实这个库我早在5月份的时候就写好了，但是由于太忙一直忘了这回事…… demo: https:&#x2F;&#x2F;weather.bennythink.com 特色用法简洁 支持开启REST API风格的服务器，一库多用，异步非阻塞支持">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2018081808175847.png">
+<meta property="og:image" content="http://example.com/images/2018081808175971.png">
+<meta property="og:image" content="http://example.com/images/2018081808180288.png">
+<meta property="article:published_time" content="2018-08-18T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:50.069Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2018081808175847.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-pyweathercn/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/08/18/pyweathercn/index/" class="article-date">
+  <time class="dt-published" datetime="2018-08-18T00:00:00.000Z" itemprop="datePublished">2018-08-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      一个简单强大的Python天气预报库pyweathercn
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天向大家介绍一款可以用来查询国内绝大部分城市天气预报的Python库pyweathercn，网上搜到的基本都不能用啦……</p>
+<p>pyweathercn的作者正是大名鼎鼎的本人。</p>
+<p>好吧，其实这个库我早在5月份的时候就写好了，但是由于太忙一直忘了这回事……</p>
+<p>demo: <a target="_blank" rel="noopener" href="https://weather.bennythink.com/">https://weather.bennythink.com</a></p>
+<h2 id="特色"><a href="#特色" class="headerlink" title="特色"></a>特色</h2><p>用法简洁</p>
+<p>支持开启REST API风格的服务器，一库多用，异步非阻塞支持高并发，支持https</p>
+<h2 id="为啥要开发这个"><a href="#为啥要开发这个" class="headerlink" title="为啥要开发这个"></a>为啥要开发这个</h2><p>因为我需要啊！上网搜罗了一波，各种天气预报API基本上都得注册，可能还得要钱，或者限制访问频率，这就让我非常不开心了。那么既然没人写过，那咱就只好自己写一个了啊。</p>
+<p>不过需要注意的是，这个原理是爬虫并解析<a target="_blank" rel="noopener" href="http://www.weather.com.cn/">www.weather.com.cn</a>，所以如果某天不好用了，很有可能就是人家网站改版了……</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>需要注意的是，这个库并不支持Python 2，所以请使用Python 3</p>
+<p>pip install pyweathercn</p>
+<p>如果需要请自行替换为<code>pip3</code></p>
+<p>另外，如果你使用国内的PyPi源，可能现在还没更新到1.0.3呢……</p>
+<p>其实这个库本应该是支持Python 2的，因为也没用什么Python 3才有的特性和语法用了一些的，但是我就是不想支持Python 2，不爽你来打我啊。不过非得想支持Python 2 的话，你可以下载tar包解压缩到site-packages啊</p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><h3 id="普通模式"><a href="#普通模式" class="headerlink" title="普通模式"></a>普通模式</h3><p>非常简单，支持chain call和实例模式，来几个例子：</p>
+<p>&gt;&gt;&gt; import pyweathercn</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>pyweathercn.Weather(‘重庆’).temp()</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>‘重庆：20’</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>w &#x3D; pyweathercn.Weather(‘北京’)</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>w.data</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>{‘data’: {‘city’: ‘北京’, ‘aqi’: ‘159’, ‘tip’: ‘紫外线指数很强涂擦SPF20以上，PA++护肤品，避强光。穿衣指数热适合穿T恤、短薄外套等夏季服装。’, ‘temp’: ‘20’, ‘forecast’: [{‘date’: ‘23日（今天）’, ‘type’: ‘晴’, ‘temp’: ‘15℃’, ‘wind’: ‘西南风 3-4级’}, {‘date’: ‘24日（明天）’, ‘type’: ‘晴’, ‘temp’: ‘31℃&#x2F;17℃’, ‘wind’: ‘南风 3-4级’}, {‘date’: ‘25日（后天）’, ‘type’: ‘晴转多云’, ‘temp’: ‘31℃&#x2F;19℃’, ‘wind’: ‘西南风 &lt;3级’}, {‘date’: ‘26日（周六）’, ‘type’: ‘阴转多云’, ‘temp’: ‘30℃&#x2F;16℃’, ‘wind’: ‘西风 &lt;3级’}, {‘date’: ‘27日（周日）’, ‘type’: ‘多云’, ‘temp’: ‘29℃&#x2F;15℃’, ‘wind’: ‘南风 &lt;3级’}, {‘date’: ‘28日（周一）’, ‘type’: ‘多云’, ‘temp’: ‘25℃&#x2F;15℃’, ‘wind’: ‘东北风 &lt;3级’}, {‘date’: ‘29日（周二）’, ‘type’: ‘晴’, ‘temp’: ‘29℃&#x2F;15℃’, ‘wind’: ‘西南风 &lt;3级’}]}, ‘status’: 0, ‘message’: ‘success’}</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>w.today()</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>‘北京：23日（今天）晴15℃西南风 3-4级’</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>w.tomorrow(True)</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>{‘date’: ‘24日（明天）’, ‘type’: ‘晴’, ‘temp’: ‘31℃&#x2F;17℃’, ‘wind’: ‘南风 3-4级’}</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>w.tip()</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>‘北京温馨提示：紫外线指数很强涂擦SPF20以上，PA++护肤品，避强光。穿衣指数热适合穿T恤、短薄外套等夏季服装。’</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>w.forecast(False,5)</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>‘北京：28日（周一）多云25℃&#x2F;15℃东北风 &lt;3级’</p>
+<p>其中tomorrow 等类方法的参数如果传布尔真值的话，将会显示原始json响应，不传或者传布尔假值会显示易于阅读的字符串。</p>
+<p>其他的一些类方法，咱的IDE都有提示，我注释写的还算简单易懂，这里就不细说了</p>
+<h3 id="服务器模式"><a href="#服务器模式" class="headerlink" title="服务器模式"></a>服务器模式</h3><p>import pyweather</p>
+<h1 id="running-on-http-127-0-0-1-8888"><a href="#running-on-http-127-0-0-1-8888" class="headerlink" title="running on http://127.0.0.1:8888"></a>running on <a target="_blank" rel="noopener" href="http://127.0.0.1:8888/">http://127.0.0.1:8888</a></h1><p>pyweathercn.server(host&#x3D;’127.0.0.1’)</p>
+<h1 id="running-on-http-0-0-0-0-3333"><a href="#running-on-http-0-0-0-0-3333" class="headerlink" title="running on http://0.0.0.0:3333"></a>running on <a target="_blank" rel="noopener" href="http://0.0.0.0:3333/">http://0.0.0.0:3333</a></h1><p>pyweathercn.server(3333)</p>
+<h1 id="support-ssl-https-www-example-com-8888"><a href="#support-ssl-https-www-example-com-8888" class="headerlink" title="support ssl: https://www.example.com:8888"></a>support ssl: <a target="_blank" rel="noopener" href="https://www.example.com:8888/">https://www.example.com:8888</a></h1><p>pyweathercn.server(‘8888’, ‘<a target="_blank" rel="noopener" href="http://www.example.com/">www.example.com</a>‘, ssl_options&#x3D;{<br>“certfile”: “fullchain.pem”,<br>“keyfile”: “privkey.pem”})</p>
+<p>哪位好心人我啊可以开放一个<a target="_blank" rel="noopener" href="https://weather.bennythink.com/">公开的API</a>给大家用，哈哈。</p>
+<p>在服务器模式下的调用方法，需要请求<code>/weather</code>路由，必须参数为city，可选参数为day，使用get方法的url参数或者post方法的url-encode form，目前还不支持post json。</p>
+<p> </p>
+<h4 id="Nginx-反向代理"><a href="#Nginx-反向代理" class="headerlink" title="Nginx 反向代理"></a>Nginx 反向代理</h4><p>服务器用systemd等运行一个监听127.0.0.1的服务器模式python脚本，server块如下配置：</p>
+<p>server {<br>listen 80;<br>server_name <a target="_blank" rel="noopener" href="http://www.siteone.com/">www.siteone.com</a>; # 你的域名<br>location &#x2F; {<br>proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:8888/">http://127.0.0.1:8888</a>;<br>}</p>
+<p>如果需要https支持，可以参考<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/blob/master/weather.conf">这个配置文件</a></p>
+<h4 id="例子1-GET：呃请原谅我的pangu把url搞成了带空格的……"><a href="#例子1-GET：呃请原谅我的pangu把url搞成了带空格的……" class="headerlink" title="例子1 GET：呃请原谅我的pangu把url搞成了带空格的……"></a>例子1 GET：呃请原谅我的pangu把url搞成了带空格的……</h4><p><a target="_blank" rel="noopener" href="http://127.0.0.1:8888/weather?city=%E4%B8%8A%E6%B5%B7">http://127.0.0.1:8888/weather?city=上海</a></p>
+<p><img src="/images/2018081808175847.png"></p>
+<h4 id="例子2-GET："><a href="#例子2-GET：" class="headerlink" title="例子2 GET："></a>例子2 GET：</h4><p><a target="_blank" rel="noopener" href="http://127.0.0.1:8888/weather?city=%E4%B8%8A%E6%B5%B7&day=3">http://127.0.0.1:8888/weather?city=上海&amp;day=3</a></p>
+<p><img src="/images/2018081808175971.png"></p>
+<h4 id="例子3-POST："><a href="#例子3-POST：" class="headerlink" title="例子3 POST："></a>例子3 POST：</h4><p><img src="/images/2018081808180288.png"></p>
+<h2 id="PyPi仓库地址"><a href="#PyPi仓库地址" class="headerlink" title="PyPi仓库地址"></a>PyPi仓库地址</h2><p><a target="_blank" rel="noopener" href="https://pypi.org/project/pyweathercn/">https://pypi.org/project/pyweathercn/</a></p>
+<h2 id="GitHub源代码"><a href="#GitHub源代码" class="headerlink" title="GitHub源代码"></a>GitHub源代码</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/pyweathercn'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/pyweathercn&#39;\]开源地址\[/gt\]</a> 欢迎star、fork、PR</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/08/18/pyweathercn/index/" data-id="clhp6he1e006lezqreyn3ff9w" data-title="一个简单强大的Python天气预报库pyweathercn" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/08/27/purpose-of-life/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          生活啊，究竟是为了什么呢
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/08/09/x1c-hdmi/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">X1 Carbon的HDMI不好用了怎么办</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Python程序员的Golang学习笔记 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="之前在Cisco的时候，我是一名披着网络工程师头衔的后端程序员，一直使用的主力语言是Python。然后在春节前后开始学习Go，?了一年多的想法终于付出了行动，也终于努力取得了一些小成果——和Nova大佬?‍♂️一起创造了WebP Server Go 下面的内容就以一个Python程序员的观点与视角去介绍、了解Golang，某些地方可能描述不准确或有错误，还望纠正。内容可能并无法方方面面的覆盖Gol">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python程序员的Golang学习笔记">
+<meta property="og:url" content="http://example.com/2020/03/08/from-pyhon-to-go/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="之前在Cisco的时候，我是一名披着网络工程师头衔的后端程序员，一直使用的主力语言是Python。然后在春节前后开始学习Go，?了一年多的想法终于付出了行动，也终于努力取得了一些小成果——和Nova大佬?‍♂️一起创造了WebP Server Go 下面的内容就以一个Python程序员的观点与视角去介绍、了解Golang，某些地方可能描述不准确或有错误，还望纠正。内容可能并无法方方面面的覆盖Gol">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2020030819595467.png">
+<meta property="og:image" content="http://example.com/images/2020030819595599.png">
+<meta property="article:published_time" content="2020-03-08T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:30:28.617Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2020030819595467.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-from-pyhon-to-go/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/03/08/from-pyhon-to-go/index/" class="article-date">
+  <time class="dt-published" datetime="2020-03-08T00:00:00.000Z" itemprop="datePublished">2020-03-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Python程序员的Golang学习笔记
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>之前在Cisco的时候，我是一名披着网络工程师头衔的后端程序员，一直使用的主力语言是Python。然后在春节前后开始学习Go，?了一年多的想法终于付出了行动，也终于努力取得了一些小成果——和<a target="_blank" rel="noopener" href="https://nova.moe/">Nova大佬?‍♂️</a>一起创造了<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go">WebP Server Go</a></p>
+<p>下面的内容就以一个Python程序员的观点与视角去介绍、了解Golang，某些地方可能描述不准确或有错误，还望纠正。内容可能并无法方方面面的覆盖Golang的各种细节，只是方便从Python过来的程序员迅速上手Go。</p>
+<h2 id="为啥要学习Golang，Golang与Python有何不同"><a href="#为啥要学习Golang，Golang与Python有何不同" class="headerlink" title="为啥要学习Golang，Golang与Python有何不同"></a>为啥要学习Golang，Golang与Python有何不同</h2><p>每个人学习某种语言都有自己的一些原因，对于我本人而言，一个非常重要的原因是，如果只会一门语言，那是不是说出去有点太寒碜了？JavaScript的话，其实也算会，但是毕竟是做后端的，NodeJS还真就不太行，各种前端框架也不太熟悉。</p>
+<p>那既然想多学一门语言，为什么又偏偏选择Go，而不是Java，C&#x2F;C++等久经沙场的语言呢？</p>
+<p>我的一个考量因素是，Golang拥有比较强的交叉编译能力，性能要好一些。尽管它还很年轻，2009年才正式发行，但是看看出身吧。出身豪门，还努力，这真是励志呢。</p>
+<p>好吧，废话少说，先说Python吧。Python是一门动态的、强类型的脚本语言；Golang是一门静态的、强类型的编译语言，Golang天生支持并发，没有GIL锁</p>
+<p>编程语言的基础都是数据类型，就像人类语言的基础是词汇一样。下面就从数据类型开始说起吧。</p>
+<h2 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h2><h3 id="数值类型"><a href="#数值类型" class="headerlink" title="数值类型"></a>数值类型</h3><p>Python的数值类型就太简单了，直接一个int和float，长度什么的完全看内存。</p>
+<p>Gol就有些不同，数字、浮点，包含有符号和无符号两种类型，同时可选不同大小，如int8，int16等，是不是有点回想起了上学时试卷上C语言溢出的问题？</p>
+<p>Int32就是rune，rune就是utf-8的code point</p>
+<h3 id="字符串类型"><a href="#字符串类型" class="headerlink" title="字符串类型"></a>字符串类型</h3><p>Python的字符串用单引号、双引号、三单、三双都可以表示，从含义上来说是没有区别的。</p>
+<p>Go的字符串要复杂一些，有以下情况：</p>
+<p>使用双引号表示，<code>\n</code>等字符会被解释为换行符；</p>
+<p>原生字符串，使用反引号``表示，类似Python中的<code>r</code>前缀，其中的<code>\n</code>等字符就是表示该字符，而不是换行符，并且反引号表示的字符串可以任意换行；</p>
+<p>单引号表示rune literal，和C语言中的char基本差不多（比如A就是65，还记得吧）</p>
+<p>观察以下代码</p>
+<p>var eng &#x3D; “abc”<br>var chs &#x3D; “你好吗”</p>
+<p>fmt.Println(len(eng))<br>fmt.Println(len(chs))</p>
+<p>输出分别为3和9。</p>
+<p>不同于Python，python中这两者返回值都会是3，因为一共就3个字符嘛，管你中文英文的；golang中<code>len</code>表示字节数，由于在UTF-8中文使用三子节表示，所以三个汉字对应为9。</p>
+<p>如要实现类似Python中的len，那么需要使用<code>utf8.RuneCountInString(eng)</code></p>
+<p>由于这一点的不同，在遍历时也会有类似的问题。一个需要注意的事情就是，遍历的核心是要准确的“切割”每个字，所以在<code>chs</code>这个字符串中，要遍历三次。</p>
+<p>遍历字符串，用range循环的话</p>
+<p>for k, v :&#x3D; range chs {<br>fmt.Println( k, v)<br>}</p>
+<p>循环会进行3次，因为一共时三个字；k表示索引，v的值实际上是“一串数字“，而不是我们预期的单个字符“你”。可以用string转换，或者<code>%c</code>量词</p>
+<p>用下标的话，按照常规的想法，我们会这样做</p>
+<p>for i :&#x3D; 0; i &lt; len(chs); i++ {<br>fmt.Println( chs[i])<br>}</p>
+<p>❌❌❌实际上循环会进行9次，这就错了</p>
+<p>正确的姿势应该是转换为rune数组</p>
+<p>var c &#x3D; []rune(chs)<br>for i :&#x3D; 0; i &lt; len(c); i++ {<br>fmt.Println(c[i])<br>}</p>
+<p>这样就是三次循环了。或者这样做切片</p>
+<p>for i :&#x3D; 0; i &lt; len(chs); {<br>r, size :&#x3D; utf8.DecodeRuneInString(chs[i:])<br>i +&#x3D; size<br>fmt.Println(string(r))<br>}</p>
+<p><code>DecodeRuneInString</code>会把字符串解码成“数字”。</p>
+<p>是不是觉得很懵圈，这是什么垃圾玩意！哎，反正用<code>range</code>就没毛病了。</p>
+<p>如果要取第一个字“你”，用<code>chs[0]</code>是错误的，用<code>chs[0]</code>实际上访问的是前8个字节，对于ASCII字符来说自然没问题，但是其他字符就有问题了。</p>
+<p>所以要取第一个字符咋办啊？转换为rune数组啊</p>
+<p>var c &#x3D; []rune(chs)<br>fmt.Println(c[0])</p>
+<p>如果要取最后一个字符，不可以像Python一样用-1，要用<code>c[len(c)-1]</code></p>
+<p>参考阅读 <a target="_blank" rel="noopener" href="https://berryjam.github.io/2018/03/%E4%BB%8Egolang%E5%AD%97%E7%AC%A6%E4%B8%B2string%E9%81%8D%E5%8E%86%E8%AF%B4%E8%B5%B7/">《从golang字符串string遍历说起：聊聊go语言的Strings、bytes、runes和字符》</a></p>
+<p>字符串常见操作，如搜索、替换、比较基本上都包含在了strings包中；</p>
+<p>类型转换，包含在<code>strconv</code>中，如：</p>
+<p><code>Atoi</code> 字符串转数字，<code>Itoa</code>数字转字符串</p>
+<p>或者更通用，用Format数字转字符串、Parse字符串转数字类型，举例如下，注意返回两个制，第二个是err</p>
+<p>fmt.Println(strconv.ParseInt(“4567”,10,0))<br>fmt.Println(strconv.ParseInt(“10”,2,0))<br>fmt.Println(strconv.FormatInt(1234,10))</p>
+<p>第二个参数<code>base</code>为进制，</p>
+<p>一般的，<code>base</code> 的取值为 2~36，如果 <code>base</code> 的值为 0，则会根据字符串的前缀来确定 <code>base</code> 的值：”0x” 表示 16 进制； “0” 表示 8 进制；否则就是 10 进制。</p>
+<p>第三个参数<code>bitSize</code> 表示结果的位宽（包括符号位），0 表示最大位宽。8就是int8</p>
+<p>转个类型都要这么多参数，记不住咋办！，知道自己在干嘛的话，无脑00吧（(￣◇￣;)既然都无脑了，可能也不知道自己在干嘛……</p>
+<p>同理，也有<code>ParseFloat</code>，用法与这个基本一致。</p>
+<h3 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h3><p>Python中没有常量的概念，我们一般用大写表示“常量”。</p>
+<p>Golang中使用<code>const</code>定义常量，如 <code>const pi = 3.14</code>，定义多个常量可以这样</p>
+<p>const (<br>  a &#x3D; 1<br>  b<br>  c &#x3D; 3<br>  d<br>)</p>
+<p>b和d留空，意味着会取它上面的那个常量的值，也就是1和3</p>
+<p>使用常量生成器iota可以生成相关值的常量，如下代码</p>
+<p>const (<br>  a &#x3D; iota<br>  b<br>  c<br>  d<br>)</p>
+<p>值分别为0123</p>
+<p>甚至还可以这么玩，这就是有点神仙操作了</p>
+<p>const (<br>  _ &#x3D; 1 &lt;&lt; (iota * 10)<br>  KiB<br>  MiB<br>  GiB<br>)</p>
+<p>顺便说一句，定义变量的时候，<code>a:=3</code>,  <code>var a=3</code>, <code>var a int</code>的区别咱就不说了。</p>
+<h2 id="复合数据类型"><a href="#复合数据类型" class="headerlink" title="复合数据类型"></a>复合数据类型</h2><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><p>Python中，其实也是有array这种类型的，类型都是固定的，而且还可变</p>
+<p>from array import array</p>
+<p>a &#x3D; array(‘l’, [1, 2, 3, 4, 5])<br>a.append(5)<br>a[3] &#x3D; 999</p>
+<p>在上述代码中，每一个元素都要是整型。一般来说，我们会用list来表示数组，只不过list的元素可以是不同类型。</p>
+<p>Golang中，数组可以这么用，基本上看下就明白</p>
+<p>var arr1 &#x3D; [3]int{1, 2, 3}<br>var arr2 &#x3D; […]string{“a”, “b”, “c”}<br>var arr3 &#x3D; [10]int{4: -1, 3: 5}</p>
+<p>第三个声明表示，第5个元素，值是-1，第4个元素，值是5，剩下的都是0</p>
+<p>注意，数组长度也是类型的一部分，也就是说<code>[3]int</code>和<code>[4]int</code>是不同的类型。数组的长度必须在编译时就可以确定，比如说是常量（不能是变量）</p>
+<p>数组长度是不可变的。所以别想着append了，不行的?</p>
+<h3 id="切片slice"><a href="#切片slice" class="headerlink" title="切片slice"></a>切片slice</h3><p>如果想要一种长度可变的“数组”，我们就需要slice了。Slice这玩意才有点像Python的列表，只不过Slice的元素类型也要保持一致的。</p>
+<p>那么如何创建slice呢？一般来说有这么几种做法：</p>
+<ol>
+<li>从已有数组做切片，比如说<code>var s1 = arr2[:2]</code> 需要注意的是，创建一个数组的slice，就相当于创建了一个别名，改掉slice，arr也会变。</li>
+<li>用make <code>make([]int, 3, 40)</code> 3是len，40是容量。容量这个概念很容易混淆，这个切片难道塞满了40个元素就不能再塞吗？其实是能的，这个40只是为了方便内存分配和优化的。</li>
+<li>用定义创建 <code>var slice = []int&#123;1, 2, 3&#125;</code>，空slice可以<code>var sli []int</code></li>
+</ol>
+<h3 id="Slice的copy"><a href="#Slice的copy" class="headerlink" title="Slice的copy"></a>Slice的copy</h3><p>Slice的copy很魔性，究竟有多魔性呢？我们正常以为的copy，就是取而代之。但是slice的copy不是，copy会<strong>把dst的元素依顺序复制到src中，覆盖src原有元素</strong>（如果长度够的话），<strong>剩下元素保持不变</strong>。</p>
+<p>关于slice的容量，如果通过make函数创建Slice的时候指定了容量参数，那内存管理器会根据指定的容量的值先划分一块内存空间，然后才在其中存放有数组元素，多余部分处于空闲状态，在Slice上追加元素的时候，首先会放到这块空闲的内存中，如果添加的参数个数超过了容量值，内存管理器会重新划分一块容量值为原容量值*2大小的内存空间，依次类推。这个机制的好处在能够提升运算性能，因为内存的重新划分会降低性能。</p>
+<p>Slice不可以做比较。</p>
+<h3 id="字典"><a href="#字典" class="headerlink" title="字典"></a>字典</h3><p>Python中键值对的结构被称作字典dictionary，类似的数据类型还有PHP中的关联数组，实现方式为散列表，是一种用空间换时间的方便高效率查找的数据结构。</p>
+<p>Go中对应的数据结构叫做map。</p>
+<p>Python字典的键类型必须是hashable的，但是类型可以不同；值的没有限制，是啥都行。</p>
+<p>Go中map的键值需要是同一类型的，我们如下定义，就意味着key是字符串，value是整型数字</p>
+<p>var m1 &#x3D; make(map[string]int)</p>
+<p>或者直接这么用</p>
+<p>var m2 &#x3D; map[string]int{<br>  “test1”: 1,<br>  “test2”: 2,<br>}</p>
+<p>可以这么访问<code>m1[&quot;test&quot;] = 3</code>，这个方法是安全的，不会报错。这里和Python的快速失败就不一样了。</p>
+<p>如果key不在，那么会返回value的类型的默认值，对于int来说就是0，对于string来说就是””</p>
+<p>这就让人纠结了，真是的，如果要看Key在不在map中，就要多值返回，看第二个变量</p>
+<p>if _, ok :&#x3D; m2[“key”]; ok {<br>&#x2F;&#x2F;存在<br>}</p>
+<p>遍历map可以这么玩</p>
+<p>for k, v :&#x3D; range m2 {<br>  fmt.Printf(“%s -&gt; %d\n”, k, v)<br>}</p>
+<p>map不可以用&#x3D;&#x3D;做比较</p>
+<h3 id="结构体"><a href="#结构体" class="headerlink" title="结构体"></a>结构体</h3><p>和C语言的差不多，不过遵循大写导出的规则。在进行序列话、反序列化的时候要注意</p>
+<p>type Emp struct {<br>  ID int<br>  Name string<br>}</p>
+<p>这么用</p>
+<p>e1 :&#x3D; Emp{<br>  ID: 0,<br>  Name: “11a”,<br>}</p>
+<p>结构体也可以嵌套，元素可以匿名（只有类型没有变量名）</p>
+<h2 id="JSON序列化、反序列化"><a href="#JSON序列化、反序列化" class="headerlink" title="JSON序列化、反序列化"></a>JSON序列化、反序列化</h2><p>Python中，将object转换成字符串的使用<code>json.dumps</code>，称作序列化；将字符串转换为object的使用<code>json.loads</code>，称作反序列化。另外，Python还提供了两个类似的方法，分别为<code>json.dump</code>和json.load，只不过操作对象是文件。</p>
+<p>Go中，如果想要序列化、反序列化，对应的操作分别为<code>json.Marshal()</code>和<code>json.Unmarshal()</code></p>
+<p>另外，struct中只有大写的列才可以被序列化，也就是大写导出的原则</p>
+<p>type Message struct {<br>  Name string<br>  Body string<br>  Time int64<br>}<br>m :&#x3D; Message{“Alice”, “Hello”, 1294706395881547000}<br>b, _ :&#x3D; json.Marshal(m)<br>fmt.Println(b)</p>
+<p>反序列化，需要先根据json的格式，定义好相应的struct</p>
+<p>json_str :&#x3D; `{“Name”:”Alice”,”Body”:”Hello”,”Time”:123}`<br>j :&#x3D; []byte(json_str)<br>var m Message<br>err :&#x3D; json.Unmarshal(j, &amp;m)<br>fmt.Println(m)</p>
+<p>但是序列化和反序列化，要求struct为大写，那到json里的key就大写了，有的时候我们不希望这样，这时可以使用struct tags</p>
+<p>type Message struct {<br>  Name string `json:”name”` &#x2F;&#x2F;自定义字段名称<br>  Body string `json:”body,omitempty”` &#x2F;&#x2F;当值为空时，不序列化这个字段<br>  Time int64 `json:”-“` &#x2F;&#x2F;跳过这个字段<br>}</p>
+<p>m :&#x3D; Message{“Alice”, “Hello”, 1234}<br>b, _ :&#x3D; json.Marshal(m)<br>fmt.Println(string(b))</p>
+<p>假如想反序列化任意数据，那么只能用接口了。毕竟是静态语言，不能在运行时才确定嘛。</p>
+<p>b :&#x3D; []byte(`{“Name”:”Wednesday”,”Age”:6,”Parents”:[“Gomez”,”Morticia”]}`)<br>var f interface{}<br>err :&#x3D; json.Unmarshal(b, &amp;f)<br>m :&#x3D; f.(map[string]interface{})<br>k :&#x3D; m[“Parents”].([]interface{})<br>fmt.Println(m)<br>fmt.Println(k[0])</p>
+<p>同样的，如果要用文件进行序列化、反序列化操作，需要用<code>Decoder</code>和<code>Encoder</code></p>
+<p>type Post struct {<br>  Name string `json:”name”`<br>  Age int `json:”age”`<br>}<br>jsonFile, err :&#x3D; os.Open(“post.json”)<br>if err !&#x3D; nil {<br>  fmt.Println(“Error opening json file:”, err)<br>  return<br>}</p>
+<p>defer jsonFile.Close()<br>decoder :&#x3D; json.NewDecoder(jsonFile)</p>
+<p>var post Post<br>err &#x3D; decoder.Decode(&amp;post)</p>
+<p>fmt.Println(post)</p>
+<p>参考阅读</p>
+<p><a target="_blank" rel="noopener" href="https://sanyuesha.com/2018/05/07/go-json/">https://sanyuesha.com/2018/05/07/go-json/</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.im/post/5d2eb9ae518825451f65f751">https://juejin.im/post/5d2eb9ae518825451f65f751</a></p>
+<h2 id="输入输出"><a href="#输入输出" class="headerlink" title="输入输出"></a>输入输出</h2><p>Python的cli输入输出用的是<code>input</code>和<code>print</code>，golang用输出用的是<code>fmt.Print</code>等系列，输入要复杂点，有这些方法</p>
+<p>reader :&#x3D; bufio.NewReader(os.Stdin)<br>line, _, _ :&#x3D; reader.ReadLine()<br>&#x2F;&#x2F;或者ReadString<br>text, _ :&#x3D; reader.ReadString(‘\n’)</p>
+<p>简单点直接用<code>fmt.Scan</code>也可以。</p>
+<p>读取单个字符可以用<code>reader.ReadRune()</code></p>
+<p>或者可以用scanner</p>
+<p>scanner :&#x3D; bufio.NewScanner(os.Stdin)<br>scanner.Scan()<br>fmt.Println(scanner.Text())</p>
+<p>哎妈呀太多了，反正我是记不住……估计是用的少吧</p>
+<h2 id="第三方扩展的使用"><a href="#第三方扩展的使用" class="headerlink" title="第三方扩展的使用"></a>第三方扩展的使用</h2><h3 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h3><p>在Python中，使用pip来安装标准库中没有的扩展，基本语法就是<code>pip install package_name</code>，基本上不需要操心什么。就这么一句话，就完事，就够了，嗯，简单……</p>
+<h3 id="Golang"><a href="#Golang" class="headerlink" title="Golang"></a>Golang</h3><p>在golang中，使用go get来安装第三方扩展，但是情况要特殊一些。</p>
+<p>Golang依赖一个名为<code>GOPATH</code>的环境变量，默认<code>GOPATH</code>是<code>~/go</code>。</p>
+<ul>
+<li>未使用go module</li>
+</ul>
+<p>在未使用go module的情况下，go get会把扩展下载到<code>~/go/src</code>下</p>
+<ul>
+<li>使用go module</li>
+</ul>
+<p>在1.11之后才开始支持gomodule，同时需要设置<code>GO111MODULE=on</code>或<code>auto</code></p>
+<p>在开启并使用gomodule的情况下，扩展会被下载到<code>~/go/pkg/mod</code>下；</p>
+<p>同时，你的项目需要一个<code>go.mod</code>文件来指明需要哪些扩展。</p>
+<p>如果使用GoLand的话，preferences-go-go modules即可开启。</p>
+<p>与Python类似，golang的import查找路径也是系统标准库-<code>GOPATH/src</code>或<code>pkg/mod</code>，当前工作目录。</p>
+<p>使用的话</p>
+<p>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize">https://github.com/360EntSecGroup-Skylar/excelize</a></p>
+<p>#如果需要特定版本<br>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize/v2">https://github.com/360EntSecGroup-Skylar/excelize/v2</a><br>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1">https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1</a></p>
+<p>#甚至可以特定commit<br>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1@e3702bed2">https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1@e3702bed2</a></p>
+<p>前几天GO发布了1.14，go module终于被扶正了。</p>
+<p>另外，对于中国程序员来说，弄个Go Proxy还是很有必要的，毕竟都是折翼天使啊</p>
+<p>export GOPROXY&#x3D;<a target="_blank" rel="noopener" href="https://goproxy.cn/">https://goproxy.cn</a></p>
+<h2 id="包的概念"><a href="#包的概念" class="headerlink" title="包的概念"></a>包的概念</h2><h3 id="Python-1"><a href="#Python-1" class="headerlink" title="Python"></a>Python</h3><p>Python中，一个目录就是一个包，Python 3的导入使用absolute import，基本语法如下</p>
+<p>import os, platform<br>import os as myos<br>from os import *<br>from os import uname, path as path2</p>
+<p>Python中，包的名字就是目录+文件名，按照层级依次导入。比较无脑，不用思考，就是和常识相符的</p>
+<h3 id="Golang-1"><a href="#Golang-1" class="headerlink" title="Golang"></a>Golang</h3><p>import “fmt”<br>import “os”<br>import mybytes “bytes”</p>
+<p>import (<br>  “strings”<br>  “strconv”<br>)</p>
+<p>能被import的必须是可导出的，换句话说，首字母为大写</p>
+<p>Golang中，包的名字是由package关键字声明的，与文件名、路径名无关。</p>
+<p>目录的名字只与import时相关，package的名字与调用时有关。文件名与什么都无关。</p>
+<p>同一个包的话，直接写里面大写的函数就能导入进来了，不需要傻乎乎的再<code>import xxx</code></p>
+<p>另外，注意下<code>go run xxx.go</code> 、<code>go run a.go b.go</code>和<code>go run .</code>哦</p>
+<h2 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h2><p>由于Python是动态语言，所以函数参数可以不指定类型，返回值也可以不指定类型。想怎么返回就怎么返回，Type Annotation也只是警告，实际上并没有强制报错的机制。</p>
+<p>Golang是静态语言，变量的类型要在编译时就确认，因此参数和返回值是要写在原型中的，错了直接编译都过不去。</p>
+<p>最简单的示例</p>
+<p>func fun(p1, p2 int, p3 string) (string, bool) {<br>  fmt.Println(p1, p2, p3)<br>  return p3, true<br>}</p>
+<p>p1和p2都是int，p3是string，返回值为string和bool。无参和无返回值自己脑补吧。另外返回值也可以带参数哦，直接空return就行了</p>
+<p>func fun(p1, p2 int) (r1, r2 int) {<br>  r1 &#x3D; p1 * 10<br>  r2 &#x3D; p2*10 + r1<br>  return<br>}</p>
+<p>golang的函数参数既不支持默认参数，也不支持位置参数。但是可以用变长参数</p>
+<p>func fun(p1 int, p2 …int)</p>
+<p>调用时形如<code>fun(1, 2, 3, 4, 5)</code>，2345都是p2的，p2是个int的slice</p>
+<p>Golang的参数都是传值的。</p>
+<p>数字、字符串、数组、struct是非引用类型，所以函数中修改不会把原有值给改掉；指针、slice、map、chan是引用类型的，你改了，那就跟着变了。</p>
+<p>为了避免slice和map的这个特性，只能想办法做浅拷贝或深拷贝了。当然最好还是避免吧</p>
+<h2 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h2><h3 id="Python-2"><a href="#Python-2" class="headerlink" title="Python"></a>Python</h3><p>Python的异常机制就是大家都会的<code>try…except…finally</code>，可能有的时候还需要else，里面配合着if-else, for-else,while-else，简直完美啊哈哈哈?。这个很简单，人人都会……</p>
+<h3 id="Golang-2"><a href="#Golang-2" class="headerlink" title="Golang"></a>Golang</h3><p>可惜的是，golang中并没有如此明确的异常捕获机制。</p>
+<p>在golang中，有很多函数调用都会返回两个值，第一个是期待的结果，第二个是<code>err</code>，如果<code>err==nil</code>，则说明没有发生错误。</p>
+<p>类似的，golang中有一个<code>defer</code>、<code>panic</code>、<code>recover</code>，倒是有点像传统上的<code>try…except…finally</code>。</p>
+<p>go 的 defer 语句是用来延迟执行函数的，而且延迟发生在调用函数 return 之后，比如</p>
+<p>func a() int {<br>  defer b()<br>  return 0<br>}</p>
+<p><code>return 0</code>执行完了之后，b才执行。</p>
+<p><code>defer</code>一般用于清理资源，功能上Python里的<code>with</code></p>
+<p><code>recover</code>则更像是Python中的<code>except</code>，<code>panic</code>则是<code>raise</code></p>
+<p>func fun() {<br>  if ok :&#x3D; recover(); ok !&#x3D; nil {<br>    fmt.Println(“recover”)<br>  }<br>}</p>
+<p>func main() {<br>  defer fun()<br>  panic(“error”)<br>}</p>
+<p>多个defer，defer从下到上执行。</p>
+<p>这玩意到底咋用，反正记住了，defer是这个函数执行完了，再走的它。recover举一个例子</p>
+<p><img src="/images/2020030819595467.png"></p>
+<p>Panic就不说了。</p>
+<h2 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h2><p>Python中如果要进行并发操作，我们一般会根据情况应用多进程、多线程，甚至会用上celery这类。Golang中，我们用go routine，用起来很简单，函数前加一个go关键字就可以了。</p>
+<p>func compute(value int) {<br>  for i :&#x3D; 0; i &lt; value; i++ {<br>    time.Sleep(time.Second)<br>    fmt.Println(i)<br>  }<br>}</p>
+<p>func main() {<br>  fmt.Println(“Goroutine Tutorial”)</p>
+<p>  go compute(3)<br>  go compute(3)</p>
+<p>  fmt.Scanln()<br>}</p>
+<p>当然，并发之后的这些goroutine如何控制，那就是context的事情了。咱也暂时不明白</p>
+<h3 id="通道channel"><a href="#通道channel" class="headerlink" title="通道channel"></a>通道channel</h3><p>如果goroutine想要通信，那么就要用channel啦。</p>
+<p>func CalculateValue(values chan int) {<br>  value :&#x3D; rand.Intn(10)<br>  fmt.Println(“Calculated Random Value: {}”, value)<br>  values &lt;- value<br>}</p>
+<p>func main() {<br>  fmt.Println(“Go Channel Tutorial”)</p>
+<p>  values :&#x3D; make(chan int)<br>  defer close(values)</p>
+<p>  go CalculateValue(values)</p>
+<p>  value :&#x3D; &lt;-values<br>  fmt.Println(value)<br>}</p>
+<p>总结下</p>
+<p>&#x2F;&#x2F; 创建int类型的通道<br>myChannel :&#x3D; make(chan int)</p>
+<p>&#x2F;&#x2F;把通道作为参数调用<br>go CalculateValue(myChannel)</p>
+<p>&#x2F;&#x2F; 把value变量的值送给chan<br>channel &lt;- value</p>
+<p>&#x2F;&#x2F;取值，复制给value变量<br>value :&#x3D; &lt;- channel</p>
+<p>需要注意的是，这种channel是阻塞的，被称作“无缓冲通道”。解释一下，默认的无缓冲通道，一个go routine向通道中发送了数据，那么这个goroutine就会被阻塞，下面的代码都会等待执行，直到另外一个goroutine从通道中取值为止。同理，如果一方先收了，那么也会阻塞直到另外的goroutine发送，因此无缓冲通道也可以称作同步通道。</p>
+<p>那咋办啊，假如还想射后不理，那就需要用到缓冲通道。</p>
+<p>bufferedChannel :&#x3D; make(chan int, 3)</p>
+<p>满了之后，当然就是继续阻塞啦。</p>
+<p>巧妙的，我利用了通道的阻塞的这个特性，为WebP Server增加Prefetch使用CPU核心数的限制，注意看23、24和42行，也不知道这算不算是正经的用法</p>
+<p><img src="/images/2020030819595599.png"></p>
+<h2 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h2><p>Go 语言提供了另外一种数据类型即接口，它把所有的具有共性的方法定义在一起，任何其他类型只要实现了这些方法就是实现了这个接口。</p>
+<p>反正我是没怎么看懂……</p>
+<p>package main</p>
+<p>import “fmt”</p>
+<p>&#x2F;&#x2F; 实现一个鸭子<br>type Duck interface {<br>  Swim() &#x2F;&#x2F; 游泳<br>  Feathers() &#x2F;&#x2F; 羽毛<br>}</p>
+<p>&#x2F;&#x2F; 实现一个会叫的鸭子，因为嵌入了Duck，所以也有swim和feathers方法<br>type QuackDuck interface {<br>  Quack() &#x2F;&#x2F; 嘎嘎叫<br>  Duck &#x2F;&#x2F; 嵌入接口<br>}</p>
+<p>&#x2F;&#x2F;真实鸭子的实现<br>type RealDuck struct{}</p>
+<p>func (RealDuck) Swim() {<br>  fmt.Println(“用鸭璞向后划水”)<br>}</p>
+<p>func (RealDuck) Feathers() {<br>  fmt.Println(“遇到水也不会湿的羽毛”)<br>}</p>
+<p>func (RealDuck) Quack() {<br>  fmt.Println(“嘎~ 嘎~ 嘎~”)<br>}</p>
+<p>&#x2F;&#x2F; 玩具鸭的实现<br>type ToyDuck struct{}</p>
+<p>func (ToyDuck) Swim() {<br>  fmt.Println(“以固定的速度向前移动”)<br>}</p>
+<p>func (ToyDuck) Feathers() {<br>  fmt.Println(“白色的固定的塑料羽毛”)<br>}</p>
+<p>func main() {<br>var duck1 Duck<br>duck1 &#x3D; RealDuck{}<br>duck1.Swim()<br>duck1.Feathers()</p>
+<p>&#x2F;&#x2F;duck1.Quack() &#x2F;&#x2F;报错，Duck没有Quack方法</p>
+<p>var duck2 Duck<br>duck2 &#x3D; ToyDuck{}<br>duck2.Swim()<br>duck2.Feathers()<br>&#x2F;&#x2F;duck2.Quack() &#x2F;&#x2F;报错，Duck没有Quack方法</p>
+<p>var duck3 QuackDuck<br>duck3 &#x3D; RealDuck{}<br>duck3.Swim()<br>duck3.Feathers()<br>duck3.Quack()</p>
+<p>var duck4 QuackDuck<br>duck4 &#x3D; ToyDuck{} &#x2F;&#x2F;类型错误<br>duck4.Swim()<br>duck4.Feathers()<br>duck4.Quack()<br>}</p>
+<p><a target="_blank" rel="noopener" href="https://blog.biezhi.me/2019/01/learn-golang-interfaces.html">https://blog.biezhi.me/2019/01/learn-golang-interfaces.html</a></p>
+<h2 id="OOP"><a href="#OOP" class="headerlink" title="OOP"></a>OOP</h2><p>Golang其实并不是那么严格的面向对象的语言，不过struct中嵌入其他struct，就很接近class这个概念了。准确的来说，这种特性是组合，而不是继承。</p>
+<p>定义方法时，格式是这样的 func (结构体名) 方法名{}，比如<code>func (c Cat) sleep()</code></p>
+<p>package main</p>
+<p>import (<br>  “fmt”<br>  “strconv”<br>)</p>
+<p>&#x2F;&#x2F; 动物类<br>type Animal struct {<br>  name string<br>  subject string<br>}</p>
+<p>&#x2F;&#x2F; 动物的公共方法<br>func (a *Animal) eat(food string) {<br>  fmt.Println(a.name + “喜欢吃：” + food + “,它属于:” + a.subject)<br>}</p>
+<p>&#x2F;&#x2F; 猫类，继承动物类<br>type Cat struct {<br>  &#x2F;&#x2F; 继承动物的属性和方法<br>  Animal<br>  &#x2F;&#x2F; 猫自己的属性<br>  age int<br>}</p>
+<p>&#x2F;&#x2F; 猫类独有的方法<br>func (c Cat) sleep() {<br>  fmt.Println(c.name + “ 今年” + strconv.Itoa(c.age) + “岁了,特别喜欢睡觉”)<br>}</p>
+<p>func main() {<br>  &#x2F;&#x2F; 创建一个动物类<br>  animal :&#x3D; Animal{name: “动物”, subject: “动物科”}<br>  animal.eat(“肉”)</p>
+<p>  &#x2F;&#x2F; 创建一个猫类<br>  cat :&#x3D; Cat{Animal: Animal{name: “咪咪”, subject: “猫科”}, age: 1}<br>  cat.eat(“鱼”)<br>  cat.sleep()<br>}</p>
+<p>反正我也没咋弄明白……参考阅读</p>
+<p><a target="_blank" rel="noopener" href="https://learnku.com/articles/32295">https://learnku.com/articles/32295</a></p>
+<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><p>Python中，对文件进行操作，使用open打开，配合不同的操作模式，然后使用read、write方法进行读写。</p>
+<p>Golang中，对文件操作最简单的可以使用io&#x2F;ioutil</p>
+<p>&#x2F;&#x2F;读：<br>data, _ :&#x3D; ioutil.ReadFile(“test.txt”)<br>&#x2F;&#x2F;写：<br>content :&#x3D; []byte(“hello word 你好真好”)<br>err :&#x3D; ioutil.WriteFile(“test.txt”, content, 0755)<br>if err !&#x3D; nil {<br>  fmt.Println(err)<br>}</p>
+<p>文件不存在，会创建；存在，覆盖。</p>
+<p>如果我们想追加的话，可以这样</p>
+<p>f, _ :&#x3D; os.OpenFile(“test.txt”, os.O_APPEND|os.O_WRONLY, 0777)<br>f.WriteString(“hello1234”)<br>f.Close()</p>
+<p>第二个参数指定文件模式。想要一行一行的读，那么用bufio里的Read系列（<code>ReadBytes</code>、<code>ReadString</code> 和 <code>ReadLine</code>）就可以了，不过要特别注意换行符的问题</p>
+<p>f, _ :&#x3D; os.Open(“test.txt”)<br>b:&#x3D;bufio.NewReader(f)<br>for {<br>  a, _, c :&#x3D; b.ReadLine()<br>  if c &#x3D;&#x3D; io.EOF {<br>    break<br>  }<br>fmt.Println(string(a))<br>}</p>
+<p>当然了， 有一个非常严重的问题：golang假定所读的文件都是UTF-8编码的，所以在windows下如果这么读一个记事本创建的文本文档，那自然就乱码了。</p>
+<p>需要这几个库</p>
+<p>golang.org&#x2F;x&#x2F;text&#x2F;transform</p>
+<p>golang.org&#x2F;x&#x2F;text&#x2F;encoding&#x2F;simplifiedchines</p>
+<p>可以用<code>transform.NewReader</code>进行操作</p>
+<p>f, _ :&#x3D; os.Open(“test.txt”)<br>r :&#x3D; transform.NewReader(f, simplifiedchinese.GBK.NewDecoder())<br>d, _ :&#x3D; ioutil.ReadAll(r)<br>fmt.Println(string(d))</p>
+<p>也可以这样先读成bytes，然后再转</p>
+<p>b, _ :&#x3D; ioutil.ReadFile(“test.txt”)<br>reader :&#x3D; transform.NewReader(bytes.NewReader(b), simplifiedchinese.GBK.NewDecoder())<br>d, _ :&#x3D; ioutil.ReadAll(reader)<br>fmt.Println(string(d))</p>
+<h2 id="目录操作"><a href="#目录操作" class="headerlink" title="目录操作"></a>目录操作</h2><p>Python中，目录操作，包括创建，重命名，改变权限等可以用os模块，路径相关操作可以用<code>os.path</code>或者是<code>pathlib</code>。</p>
+<p>Golang中，对目录操作，基本上也可以应用os模块。</p>
+<p>对路径操作，基本上用<code>path/filepath</code>就差不多了</p>
+<p>基本上看到就能猜到什么意思。</p>
+<p><code>Dir</code>获取目录名，<code>base</code>获取文件名，<code>Join</code>拼接路径，<code>filepath.Separator</code>是换行符，<code>Split</code>把路径分割成文件和目录，<code>Clean</code>规范化路径，去掉多余的&#x2F;什么的</p>
+<p>咋获取当前目录啊？<code>os.Args</code>里就有啦。f<code>ilepath.Abs(filepath.Dir(os.Args[0]))</code>就成。</p>
+<h2 id="时间日期标准库"><a href="#时间日期标准库" class="headerlink" title="时间日期标准库"></a>时间日期标准库</h2><p>Python中，如果要进行时间相关的操作，一般会应用time标准库。基本上常用的操作就是字符串-时间互相转换，获取当前时间戳，把时间戳转换成日期，把日期转换为时间戳。</p>
+<p>Golang中也有一个time库，基本用法总结下</p>
+<p>&#x2F;&#x2F;显示当前时间戳<br>time.Now().Unix()</p>
+<p>&#x2F;&#x2F;时间戳转换成time结构<br>time.Unix(10,0)</p>
+<p>&#x2F;&#x2F;字符串转日期，需要注意Parse在缺少时区信息时，会默认0时区，所以会差8小时<br>time.Parse(“2006-01-02 15:04:05”, “2020-02-01 14:08:00”)</p>
+<p>&#x2F;&#x2F;要想不差8小时，那咱就<br>time.ParseInLocation(“2006-01-02 15:04:05”, “2020-02-01 14:08:00”,time.Local)</p>
+<p>这就没问题了。<code>2006-01-02 15:04:05</code>是固定格式，类似传统的ymdhms，记不住啊记不住啊！</p>
+<p>日期转换为字符串</p>
+<p>t.Format(“今天是2006年”)</p>
+<p>附带功能</p>
+<p><code>time.Now()</code>附带了<code>After</code>、<code>Before</code>、<code>Sub</code>、<code>Add</code>等方法，方便时间运算</p>
+<h2 id="执行系统命令"><a href="#执行系统命令" class="headerlink" title="执行系统命令"></a>执行系统命令</h2><p>Python里这个方法很多，<code>os.system()</code>，<code>subprocess</code>等等。Golang有一个<code>exec</code></p>
+<p>out, _ :&#x3D; exec.Command(“ls”).Output()<br>fmt.Println(string(out))</p>
+<h2 id="Web框架"><a href="#Web框架" class="headerlink" title="Web框架"></a>Web框架</h2><p>在用Python的时候，我一般会选择tornado作为web框架，主要原因就是tornado的性能比较好，支持异步非阻塞，并且可以很方便的通过self来进行各种操作。Golang的web框架也很多，比如说beego，echo，gin。</p>
+<p>当然了，golang自带的<code>net/http</code>模块本身本身提供了很多功能，我们可以应用它创建一个web服务器，如下代码即可</p>
+<p>func IndexHandler(w http.ResponseWriter, r *http.Request) {<br>  fmt.Fprintln(w, “hello world”)<br>}</p>
+<p>func main() {<br>  http.HandleFunc(“&#x2F;“, IndexHandler)<br>  err :&#x3D; http.ListenAndServe(“127.0.0.1:8000”, nil)<br>  fmt.Println(err)<br>}</p>
+<p>经过一些纠结，我选择了gin……</p>
+<h3 id="基础用法"><a href="#基础用法" class="headerlink" title="基础用法"></a>基础用法</h3><p>package main</p>
+<p>import “github.com&#x2F;gin-gonic&#x2F;gin”</p>
+<p>func main() {<br>  r :&#x3D; gin.Default()<br>  r.GET(“&#x2F;ping”, func(c *gin.Context) {<br>    c.JSON(200, gin.H{<br>        “message”: “pong”,<br>  })<br> })</p>
+<p>  r.Run() &#x2F;&#x2F; listen and serve on 0.0.0.0:8080 (for windows “localhost:8080”)<br>}</p>
+<p>这里r.GET就是路由，后面这里用了匿名函数，当然不想用匿名函数也成。</p>
+<p>如果要支持其他http方法，那就这样</p>
+<p>r.POST(“&#x2F;ping”,ping)</p>
+<h3 id="返回数据"><a href="#返回数据" class="headerlink" title="返回数据"></a>返回数据</h3><p><code>c.String, c.JSON等</code></p>
+<h3 id="获取url参数"><a href="#获取url参数" class="headerlink" title="获取url参数"></a>获取url参数</h3><ul>
+<li>Get参数</li>
+</ul>
+<p>c.Query(key)</p>
+<ul>
+<li>post参数</li>
+</ul>
+<p>c.PostForm(“name”)</p>
+<ul>
+<li>上传文件</li>
+</ul>
+<p>file, _ :&#x3D; c.FormFile(“file”)<br>err :&#x3D; c.SaveUploadedFile(file, file.Filename)</p>
+<ul>
+<li>获取raw body</li>
+</ul>
+<p>c.GetRawData()</p>
+<ul>
+<li>静态文件</li>
+</ul>
+<p>router.Static(“&#x2F;assets”, “.&#x2F;assets”)<br>router.StaticFS(“&#x2F;more_static”, http.Dir(“my_file_system”))<br>router.StaticFile(“&#x2F;favicon.ico”, “.&#x2F;resources&#x2F;favicon.ico”)</p>
+<ul>
+<li>http重定向</li>
+</ul>
+<p>c.Redirect(http.StatusMovedPermanently, “<a target="_blank" rel="noopener" href="http://www.google.com/">http://www.google.com/</a>“)</p>
+<ul>
+<li>路由重定向</li>
+</ul>
+<p>c.Request.URL.Path &#x3D; “&#x2F;test2”<br>r.HandleContext(c)</p>
+<ul>
+<li>cookie</li>
+</ul>
+<p>cookie, err :&#x3D; c.Cookie(“gin_cookie”)<br>c.SetCookie(“gin_cookie”, “test”, 3600, “&#x2F;“, “localhost”, http.SameSiteLaxMode, false, true)</p>
+<h2 id="Requests"><a href="#Requests" class="headerlink" title="Requests"></a>Requests</h2><p>Python中，我们一般使用requests获取http资源，当然用urllib也可以，只不过稍微有些繁琐</p>
+<p>同理，golang的net&#x2F;http库已经提供了最基础的操作。</p>
+<p>resp, _ :&#x3D; http.Get(“<a href="http://example.com/">http://example.com/</a>“)<br>data, _ :&#x3D; ioutil.ReadAll(resp.Body)<br>fmt.Println(string(data))<br>resp.Body.Close()</p>
+<p>啊对了，如果返回的是json的话，<code>resp.Body</code>可以直接被<code>Unmarshal</code>的哦</p>
+<p>还有一个人封装的grequests，用起来也不错</p>
+<p>&#x2F;&#x2F;发get<br>resp, err :&#x3D; grequests.Get(“<a target="_blank" rel="noopener" href="http://httpbin.org/get">http://httpbin.org/get</a>“, nil)<br>if err !&#x3D; nil {<br>  log.Fatalln(“Unable to make request: “, err)<br>}</p>
+<p>fmt.Println(resp.String())</p>
+<p>&#x2F;&#x2F;发post<br>d :&#x3D; grequests.RequestOptions{<br>Data: map[string]string{“hello”: “world”},<br>}<br>resp, err :&#x3D; grequests.Post(“<a target="_blank" rel="noopener" href="http://httpbin.org/post">http://httpbin.org/post</a>“, &amp;d)<br>if err !&#x3D; nil {<br>  log.Fatalln(“Unable to make request: “, err)<br>}</p>
+<p>fmt.Println(resp.String())</p>
+<p>文档<a target="_blank" rel="noopener" href="https://pkg.go.dev/github.com/levigross/grequests">https://pkg.go.dev/github.com/levigross/grequests</a></p>
+<h2 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h2><p>Python连接MySQL我们一般用pymysql，建立连接，获取游标，执行查询。Golang也基本差不多，需要提前安装这个模块<code>go get -u github.com/go-sql-driver/mysql</code></p>
+<p>import (<br>“database&#x2F;sql”<br>“fmt”</p>
+<p>_ “github.com&#x2F;go-sql-driver&#x2F;mysql”<br>)</p>
+<p>建立连接，典型的连接是这样的，当然有些参数是可以省略的。</p>
+<p>db, _ :&#x3D; sql.Open(“mysql”, “root:root@tcp(127.0.0.1:3306)&#x2F;test?charset&#x3D;utf8mb4”)<br>defer db.Close()</p>
+<p>&#x2F;&#x2F;插入，直接这样参数化查询，返回一个result，一个error<br>db.Exec(“INSERT INTO user VALUES (?,?)”, “Benny”, 18)<br>&#x2F;&#x2F;或者下面这这样用prepare，没啥区别<br>stmt, _ :&#x3D; db.Prepare(“INSERT INTO user VALUES (?,?)”)<br>stmt.Exec(“Amy”, 19)</p>
+<p>&#x2F;&#x2F; 删除，可以这么玩<br>db.Exec(“DELETE FROM user WHERE name&#x3D;?”, “Amy”)<br>&#x2F;&#x2F; 修改，我猜你已经猜到了吧<br>db.Exec(“UPDATE user SET age&#x3D;? WHERE name&#x3D;?”, 19, “Benny”)</p>
+<p>&#x2F;&#x2F; 查询，Query用于返回结果集，上面的Exec就不能在这里用了，可以想象成Python的execute之后再fetch<br>data, _ :&#x3D; db.Query(“select version();”)<br>for data.Next() {<br>  var v string<br>  data.Scan(&amp;v)<br>  fmt.Println(v)<br>}</p>
+<p>&#x2F;&#x2F; 再举一个例子?，查询一个表的数据，这个时候我们如果定义struct就更好了是吧<br>type User struct {<br>  name string<br>  age int<br>}<br>data, _ :&#x3D; db.Query(“SELECT * FROM user”)<br>var s []User<br>for data.Next() {<br>  var user User<br>  data.Scan(&amp;user.name, &amp;user.age)<br>  s &#x3D; append(s, user)<br>}<br>fmt.Println(s)</p>
+<p>插入的时候想要用类似pymysql的<code>executemany</code>？不好意思，得自己实现了</p>
+<p>如果需要事务，那么可以这样</p>
+<p>tx, _ :&#x3D; db.Begin()<br>tx.Exec(“INSERT INTO image VALUES (?,?)”, “abc”, “def”)</p>
+<p>tx.Commit()<br>tx.Rollback()</p>
+<h2 id="MongoDB"><a href="#MongoDB" class="headerlink" title="MongoDB"></a>MongoDB</h2><p>MongoDB官方维护了一个mongo-go-driver，使用<code>go get go.mongodb.org/mongo-driver</code>即可安装</p>
+<p>Golang毕竟还是静态类型的语言，因此用mongodb还是有点折磨人的?</p>
+<h3 id="连接数据库"><a href="#连接数据库" class="headerlink" title="连接数据库"></a>连接数据库</h3><p>用起来，这样就建立了到数据库的连接</p>
+<p>ctx, _ :&#x3D; context.WithTimeout(context.Background(), 2*time.Second)<br>client, err :&#x3D; mongo.Connect(ctx, options.Client().ApplyURI(“mongodb:&#x2F;&#x2F;localhost:27017”))<br>if err !&#x3D; nil {<br>  fmt.Println(err)<br>}</p>
+<p>defer client.Disconnect(ctx)</p>
+<p>这个URI，实际上就是mongodb的<a target="_blank" rel="noopener" href="https://docs.mongodb.com/manual/reference/connection-string/">连接字符串</a>，定义如下</p>
+<p>mongodb:&#x2F;&#x2F;[username:password@]host1[:port1][,…hostN[:portN]][&#x2F;[database][?options]]</p>
+<p>举例如下，如果数据库带认证，那么就要选择2和3了。</p>
+<p>mongodb:&#x2F;&#x2F;mongodb0.example.com:27017&#x2F;admin<br>mongodb:&#x2F;&#x2F;myDBReader:D1fficultP%<a href="mailto:&#x34;&#48;&#x73;&#x73;&#x77;&#x30;&#x72;&#x64;&#x40;&#109;&#x6f;&#x6e;&#103;&#x6f;&#100;&#98;&#48;&#46;&#x65;&#120;&#97;&#x6d;&#x70;&#x6c;&#101;&#46;&#x63;&#111;&#109;">&#x34;&#48;&#x73;&#x73;&#x77;&#x30;&#x72;&#x64;&#x40;&#109;&#x6f;&#x6e;&#103;&#x6f;&#100;&#98;&#48;&#46;&#x65;&#120;&#97;&#x6d;&#x70;&#x6c;&#101;&#46;&#x63;&#111;&#109;</a>:27017&#x2F;admin<br>mongodb:&#x2F;&#x2F;user:<a href="mailto:&#x70;&#x61;&#x73;&#x73;&#119;&#111;&#x72;&#x64;&#x40;&#101;&#120;&#97;&#x6d;&#112;&#x6c;&#101;&#46;&#x63;&#111;&#109;">&#x70;&#x61;&#x73;&#x73;&#119;&#111;&#x72;&#x64;&#x40;&#101;&#120;&#97;&#x6d;&#112;&#x6c;&#101;&#46;&#x63;&#111;&#109;</a>&#x2F;?authSource&#x3D;the_database&amp;authMechanism&#x3D;SCRAM-SHA-1”</p>
+<p>连接成功之后，我们需要选择数据库，选择集合</p>
+<p>db:&#x3D;client.Database(“go”)<br>accountCol:&#x3D;db.Collection(“account”)</p>
+<h3 id="bson"><a href="#bson" class="headerlink" title="bson"></a>bson</h3><p>之后这个col就可以让我们操作数据库了，但是我们需要提前熟悉一下golang中的bson</p>
+<p>总共有4种类型，分别为DMAE</p>
+<p>D表示BSON文档，有序kv</p>
+<p>M与D相同，只是无序</p>
+<p>A数组</p>
+<p>E单个文档，只能有一对kv</p>
+<p>d :&#x3D; bson.D{<br>  {“Name”, “mark”},<br>  {“Age”, 12},<br>}<br>fmt.Println(d)</p>
+<p>&#x2F;&#x2F; bson.M是一个map 无序的key-value集合，在不要求顺序的情况下可以替代bson.D<br>m :&#x3D; bson.M{<br>  “name”: “mark”,<br>  “age”: 12,<br>}<br>fmt.Println(m)</p>
+<p>&#x2F;&#x2F; bson.A 是一个数组<br>a :&#x3D; bson.A{<br>  “jack”, “rose”, “jobs”,<br>}<br>fmt.Println(a)</p>
+<p>&#x2F;&#x2F; bson.E是只能包含一个key-value的map<br>e :&#x3D; bson.E{<br>  “name”, “mark”,<br>}<br>fmt.Println(e)</p>
+<h3 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h3><p>查找一个，用<code>FindOne</code>就够了，第二个参数是查询条件，当然了我们要decode给一个定义好的变量</p>
+<p>var result Account<br>col.FindOne(ctx, bson.D{}).Decode(&amp;result)<br>fmt.Println(result)</p>
+<h3 id="查询多个"><a href="#查询多个" class="headerlink" title="查询多个"></a>查询多个</h3><p>var results []Account<br>cur, _ :&#x3D; col.Find(ctx, bson.D{})<br>for cur.Next(ctx) {<br>  var result Account<br>  cur.Decode(&amp;result)<br>  results &#x3D; append(results, result)<br>}<br>cur.Close(ctx)<br>fmt.Println(results)</p>
+<h3 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h3><p>var data&#x3D;Account{<br>  Name: “Sally”,<br>  Age: 12,<br>  Gender: “female”,<br>}<br>col.InsertOne(ctx,data)</p>
+<h3 id="插入多个"><a href="#插入多个" class="headerlink" title="插入多个"></a>插入多个</h3><p>var data &#x3D; []interface{}{<br>  Account{<br>    Name: “Benny2”,<br>    Age: 10,<br>    Gender: “1”,<br>  },<br>  Account{<br>    Name: “Benny3”,<br>    Age: 40,<br>    Gender: “12”,<br>  },<br>}<br>col.InsertMany(ctx, data)</p>
+<h3 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h3><p>col.UpdateOne(ctx,<br>  bson.M{“name”: “Benny”},<br>  bson.M{“$set”: bson.M{“name”: “Benny!”}},<br>)</p>
+<p>col.UpdateMany(ctx,<br>  bson.M{“name”: “Benny!”},<br> bson.M{“$set”: bson.M{“age”: 14}},<br>)</p>
+<h3 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h3><p>col.ReplaceOne(ctx,<br>  bson.M{“name”: “Sally”},<br>  bson.D</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/03/08/from-pyhon-to-go/index/" data-id="clhp6hdzk002vezqr2o20c2j1" data-title="Python程序员的Golang学习笔记" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/04/22/no-can-do/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          无法改变的人
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/03/01/flying-webp/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">个人网站无缝切换图片到webp</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

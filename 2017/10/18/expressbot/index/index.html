@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="大家好，小土豆我又来水贴了。 这是一个能够帮你查快递、追踪快递状态的Telegram机器人。当然，还能陪聊，你跟他说语音也能听懂，什么都能聊，查个天气什么的也不在话下~~ 功能查询快递接口来自于快递100，差不多能查个七八百家的样子？ 查询历史反正是都能看到的啦，也可以删除的 追踪快递状态只要是未妥投的，都会十分钟查询一次，如有更新会发消息给你~好像就这一个亮点了。 截图随意的截几个好了~">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot">
+<meta property="og:url" content="http://example.com/2017/10/18/expressbot/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="大家好，小土豆我又来水贴了。 这是一个能够帮你查快递、追踪快递状态的Telegram机器人。当然，还能陪聊，你跟他说语音也能听懂，什么都能聊，查个天气什么的也不在话下~~ 功能查询快递接口来自于快递100，差不多能查个七八百家的样子？ 查询历史反正是都能看到的啦，也可以删除的 追踪快递状态只要是未妥投的，都会十分钟查询一次，如有更新会发消息给你~好像就这一个亮点了。 截图随意的截几个好了~">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/101817_0558_ExpressBot1.png">
+<meta property="og:image" content="http://example.com/images/101817_0558_ExpressBot2.png">
+<meta property="og:image" content="http://example.com/images/101817_0558_ExpressBot3.png">
+<meta property="article:published_time" content="2017-10-18T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:49.573Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/101817_0558_ExpressBot1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-expressbot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/10/18/expressbot/index/" class="article-date">
+  <time class="dt-published" datetime="2017-10-18T00:00:00.000Z" itemprop="datePublished">2017-10-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>大家好，小土豆我又来水贴了。</p>
+<p>这是一个能够帮你查快递、追踪快递状态的Telegram机器人。当然，还能陪聊，你跟他说语音也能听懂，什么都能聊，查个天气什么的也不在话下~~</p>
+<h2 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h2><h3 id="查询快递"><a href="#查询快递" class="headerlink" title="查询快递"></a>查询快递</h3><p>接口来自于快递100，差不多能查个七八百家的样子？</p>
+<h3 id="查询历史"><a href="#查询历史" class="headerlink" title="查询历史"></a>查询历史</h3><p>反正是都能看到的啦，也可以删除的</p>
+<h3 id="追踪快递状态"><a href="#追踪快递状态" class="headerlink" title="追踪快递状态"></a>追踪快递状态</h3><p>只要是未妥投的，都会十分钟查询一次，如有更新会发消息给你~好像就这一个亮点了。</p>
+<h2 id="截图"><a href="#截图" class="headerlink" title="截图"></a>截图</h2><p>随意的截几个好了~</p>
+<p><img src="/images/101817_0558_ExpressBot1.png"></p>
+<p><img src="/images/101817_0558_ExpressBot2.png"></p>
+<p><img src="/images/101817_0558_ExpressBot3.png"></p>
+<p>估计bug多多，被<a target="_blank" rel="noopener" href="https://blog.yandere.moe/">Yandere@萌</a>调戏炸了好几次</p>
+<h2 id="以后打算干嘛"><a href="#以后打算干嘛" class="headerlink" title="以后打算干嘛"></a>以后打算干嘛</h2><p>让这个bot来跟人扯淡闲聊呗~</p>
+<h2 id="开源地址及部署方法"><a href="#开源地址及部署方法" class="headerlink" title="开源地址及部署方法"></a>开源地址及部署方法</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/ExpressBot&#39;\]开源地址\[/gt\]</a> 初学Python，还望多多指教；欢迎star、fork、PR；还望有能力的大神能够帮我进行安全审计和健壮性测试</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/10/18/expressbot/index/" data-id="clhp6hdyv0029ezqr5hxcf4f5" data-title="ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/10/20/tgbot0/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          [Telegram bot系列]0：用Python写一个Telegram Bot 简单的回话bot
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/10/17/krack/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

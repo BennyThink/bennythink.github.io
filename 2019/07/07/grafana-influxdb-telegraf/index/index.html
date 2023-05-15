@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用grafana+influxdb+telegraf安全的搭建一个监控平台 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="作为一只有很多服务器的萌新，实时掌握服务器的状态是非常必须的。 前段时间，由于NodeQuery出问题了，于是就想着换一个监控平台。当然在移除nq-agent的时候就手抖给&#x2F;etc删除了。 那么今天就来记录一下如何搭建一个中心化的监控平台。 一些概念的明确既然要监控服务器，那么必然要有一个程序运行在服务器上，这个我们一般称作agent，在我们这里就是telegraf；另外一个负责解析，存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用grafana+influxdb+telegraf安全的搭建一个监控平台">
+<meta property="og:url" content="http://example.com/2019/07/07/grafana-influxdb-telegraf/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="作为一只有很多服务器的萌新，实时掌握服务器的状态是非常必须的。 前段时间，由于NodeQuery出问题了，于是就想着换一个监控平台。当然在移除nq-agent的时候就手抖给&#x2F;etc删除了。 那么今天就来记录一下如何搭建一个中心化的监控平台。 一些概念的明确既然要监控服务器，那么必然要有一个程序运行在服务器上，这个我们一般称作agent，在我们这里就是telegraf；另外一个负责解析，存">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2019070704385117.png">
+<meta property="og:image" content="http://example.com/images/2019070704385269.png">
+<meta property="og:image" content="http://example.com/images/2019070704385387.png">
+<meta property="article:published_time" content="2019-07-07T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:50.445Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2019070704385117.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-grafana-influxdb-telegraf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/07/07/grafana-influxdb-telegraf/index/" class="article-date">
+  <time class="dt-published" datetime="2019-07-07T00:00:00.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用grafana+influxdb+telegraf安全的搭建一个监控平台
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>作为一只有很多服务器的萌新，实时掌握服务器的状态是非常必须的。</p>
+<p>前段时间，由于<a target="_blank" rel="noopener" href="https://nodequery.com/">NodeQuery</a>出问题了，于是就想着换一个监控平台。当然在移除nq-agent的时候<a target="_blank" rel="noopener" href="https://dmesg.app/rm-etc.html">就手抖给&#x2F;etc删除了</a>。</p>
+<p>那么今天就来记录一下如何搭建一个中心化的监控平台。</p>
+<h2 id="一些概念的明确"><a href="#一些概念的明确" class="headerlink" title="一些概念的明确"></a>一些概念的明确</h2><p>既然要监控服务器，那么必然要有一个程序运行在服务器上，这个我们一般称作agent，在我们这里就是telegraf；另外一个负责解析，存储，展示数据的，在我们这里就是InfluxDB存储，grafana展示解析数据。</p>
+<p>如果使用zabbix的话，那么zabbix-agent就充当了采集器，zabbix-server和zabbix-frontend就充当了解析展示数据的。（zabbix太丑了，模板不会配……）</p>
+<h2 id="架构的设计"><a href="#架构的设计" class="headerlink" title="架构的设计"></a>架构的设计</h2><p>由于需要监控多台服务器，那么架构的设计也是一个问题，对于需要跨公网而不是全内网的情况来说，有这样两种思路：</p>
+<ul>
+<li>被动模式：采集器收集数据，发送给server，这种架构要求server必须有公网IP</li>
+<li>主动模式：采集器只是运行，由server主动访问采集器获得数据，这就需要所有的agent必须有公网IP</li>
+</ul>
+<p>对于被动模式，使用Telegraf+InfluxDB+Grafana是比较好的选择，只需要将InfluxDB部署在具有公网IP的服务器上就可以了，其他服务器是否具有公网IP并不重要。</p>
+<p>对于主动模式，使用node exporter+Prometheus+Grafana是比较合适的。</p>
+<p>对于两种都想要的呢！zabbix啊，主动被动都支持，就是有点丑(′д｀ )…彡…彡</p>
+<p>所以总体的架构就是：</p>
+<p>Telegraf –&gt; InfluxDB &lt;–&gt; Grafana</p>
+<h2 id="安全性的考虑"><a href="#安全性的考虑" class="headerlink" title="安全性的考虑"></a>安全性的考虑</h2><p>由于数据需要跨公网传输，那么安全性上的考虑就是必不可少的了。那么这个问题怎么解决呢？</p>
+<h3 id="加密，认证，授权"><a href="#加密，认证，授权" class="headerlink" title="加密，认证，授权"></a>加密，认证，授权</h3><p>在我们这种情景下，与InfluxDB之间的通信至少也要实现加密、认证的。</p>
+<p>加密意味着与InfluxDB之间的通信是安全的，其他人无法解密，<strong>这一点在跨公网传输的时候是必不可少的</strong>；</p>
+<p>认证意味着只有特定身份的用户才可以访问数据，比如输入了正确的用户名和密码才可以访问；</p>
+<p>授权意味着，你这个用户可以干什么事情，是只能查询还是什么都能干。</p>
+<p>为了实现加密，我们可以使用TLS那一套，这一点就很好理解了，TLS就是天生干这事的嘛。</p>
+<p>为了实现认证与授权，我们可以使用HTTP Basic Auth，创建一套用户名密码。</p>
+<h3 id="防火墙的保护"><a href="#防火墙的保护" class="headerlink" title="防火墙的保护"></a>防火墙的保护</h3><p>除了以上操作之外，使用防火墙限制访问数据库的源IP也是一种补充方法。当然了加密是必不可少的。除此之外，还有一些方法，比如TLS客户端证书等等。</p>
+<h3 id="大内网"><a href="#大内网" class="headerlink" title="大内网"></a>大内网</h3><p>有些时候配置上面这些太麻烦了，那么还有一个思路就是组建大内网！可以考虑用WireGuard、OpenVPN甚至是SSH隧道试试看。</p>
+<p>不过也有缺点，一是如果服务器是海外的，那么由于GFW的存在，可能有点不太友好；二是可能不太好配，尤其是OpenVPN，一不小心就全局了。</p>
+<h2 id="部署与配置"><a href="#部署与配置" class="headerlink" title="部署与配置"></a>部署与配置</h2><p>下面就简单说说如何安全的配置这么一套平台</p>
+<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
+<p>从页面上选择适合你的操作系统的版本，对于我使用的Ubuntu来说，使用这个就可以了</p>
+<p>wget <a target="_blank" rel="noopener" href="https://dl.influxdata.com/influxdb/releases/influxdb/_1.7.7/_amd64.deb">https://dl.influxdata.com/influxdb/releases/influxdb\_1.7.7\_amd64.deb</a><br>sudo dpkg -i influxdb_1.7.7_amd64.deb</p>
+<h3 id="配置SSL"><a href="#配置SSL" class="headerlink" title="配置SSL"></a>配置SSL</h3><p>这一步我们可以使用openssl自签名的证书，也可以使用Let’s Encrypt申请一个真正的证书（这就需要弄个域名啦）</p>
+<p>以自签名证书来说</p>
+<p>sudo openssl req -x509 -nodes -newkey rsa:2048 -keyout &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key -out &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt -days 3650<br>chown influxdb:influxdb &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.*</p>
+<p>修改配置文件 <code>/etc/influxdb/influxdb.conf</code>，需要更改三处</p>
+<p>https-enabled &#x3D; true</p>
+<p>https-certificate &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt”<br>https-private-key &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key”</p>
+<p>如果使用Let’s Encrypt的话，<code>https-certificate</code>改为<code>fullchain.pem</code>的路径，<code>https-private-key</code>改为<code>privkey.key</code>的路径，注意下权限就可以了。</p>
+<p>然后重启</p>
+<p>sudo systemctl restart influxdb</p>
+<p>验证</p>
+<p>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</p>
+<h3 id="配置认证与授权"><a href="#配置认证与授权" class="headerlink" title="配置认证与授权"></a>配置认证与授权</h3><p>创建一个管理员用户</p>
+<p>使用上述<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器</p>
+<p>CREATE USER paul WITH PASSWORD ‘timeseries4days’ WITH ALL PRIVILEGES</p>
+<p>开启认证</p>
+<p>修改配置文件<code>/etc/influxdb/influxdb.conf</code></p>
+<p>auth-enabled &#x3D; true</p>
+<p>重启进程</p>
+<p>sudo systemctl restart influxdb</p>
+<p>此时再使用<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器，<code>show databases</code>就会报错，只有auth之后才可以</p>
+<h2 id="Telegraf"><a href="#Telegraf" class="headerlink" title="Telegraf"></a>Telegraf</h2><p><a target="_blank" rel="noopener" href="https://github.com/influxdata/telegraf/releases">https://github.com/influxdata/telegraf/releases</a></p>
+<p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
+<p>从以上网址下载对应你的操作系统版本的Telegraf，然后安装（armhf对应树莓派）</p>
+<h3 id="配置数据库服务器"><a href="#配置数据库服务器" class="headerlink" title="配置数据库服务器"></a>配置数据库服务器</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code>，找到urls&#x3D;…，改成https就好了</p>
+<p>urls &#x3D; [“https:&#x2F;&#x2F;&lt;domain_name&gt;.com:8086”]<br>database &#x3D; “telegraf”</p>
+<p>需要注意的是，如果使用的是自签名证书，那么<code>insecure_skip_verify = true</code>也要配置</p>
+<h3 id="配置认证"><a href="#配置认证" class="headerlink" title="配置认证"></a>配置认证</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code></p>
+<p>根据上面配置的进行适当更改</p>
+<p>timeout &#x3D; “5s”</p>
+<p>username &#x3D; “telegraf” #?<br>password &#x3D; “metricsmetricsmetricsmetrics” #?</p>
+<h3 id="配置采集内容"><a href="#配置采集内容" class="headerlink" title="配置采集内容"></a>配置采集内容</h3><p>把这些追加到telegraf.conf末尾就可以了</p>
+<p>[[inputs.cpu]]<br>percpu &#x3D; true<br>totalcpu &#x3D; true<br>collect_cpu_time &#x3D; false<br>report_active &#x3D; false<br>[[inputs.disk]]<br>ignore_fs &#x3D; [“tmpfs”, “devtmpfs”, “devfs”]<br>[[inputs.io]]<br>[[inputs.mem]]<br>[[inputs.net]]<br>[[inputs.system]]<br>[[inputs.swap]]<br>[[inputs.netstat]]<br>[[inputs.processes]]<br>[[inputs.kernel]]</p>
+<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><p><a target="_blank" rel="noopener" href="https://grafana.com/grafana/download">https://grafana.com/grafana/download</a></p>
+<p>同样下载安装适合自己平台的程序</p>
+<p>然后<a target="_blank" rel="noopener" href="http://ip:3000/">http://ip:3000</a></p>
+<p>默认的用户名密码是admin、admin</p>
+<p>Add datasource选择influxdb，按照如下图所示配置</p>
+<p><img src="/images/2019070704385117.png"></p>
+<h3 id="导入dashboard"><a href="#导入dashboard" class="headerlink" title="导入dashboard"></a>导入dashboard</h3><p>导入这个dashboard</p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
+<p><img src="/images/2019070704385269.png"></p>
+<p>之后保存就可以看到结果啦！</p>
+<p><img src="/images/2019070704385387.png"></p>
+<h2 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h2><h3 id="配置防火墙"><a href="#配置防火墙" class="headerlink" title="配置防火墙"></a>配置防火墙</h3><p>只允许某个IP访问8086</p>
+<p>ufw allow from xx.xx.xx.xx to any port 8086</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/https_setup/">https://docs.influxdata.com/influxdb/v1.7/administration/https_setup&#x2F;</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization/">https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization&#x2F;</a></p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dfd329d30891">https://www.jianshu.com/p/dfd329d30891</a></p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/docs/installation/behind_proxy/">https://grafana.com/docs/installation/behind_proxy&#x2F;</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/07/07/grafana-influxdb-telegraf/index/" data-id="clhp6hdzn0031ezqrdtdj89v7" data-title="使用grafana+influxdb+telegraf安全的搭建一个监控平台" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/08/09/vbox-ping/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          VirtualBox上的虚拟机无法被ping
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/06/27/rm-etc/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">手一抖，我删除了etc目录</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

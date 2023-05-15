@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="这篇差不多是翻译和一些补充以及一些很多人容易误解的地方，欢迎各路英语、信息安全、密码学大神斧正。（反正我翻译的也够仓促的，基本上等于没校对。有一些术语可能翻译的不准确，还望指正。文章内容略有删节） TL;DR太长不看版本WPA&#x2F;WPA2（包括Personal和Enterprise以及使用各种加密套件）协议本身被发现存在一些漏洞，更具体的说也就是四路握手中客户端可以被诱导重装密钥（甚至是全">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么">
+<meta property="og:url" content="http://example.com/2017/10/17/krack/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="这篇差不多是翻译和一些补充以及一些很多人容易误解的地方，欢迎各路英语、信息安全、密码学大神斧正。（反正我翻译的也够仓促的，基本上等于没校对。有一些术语可能翻译的不准确，还望指正。文章内容略有删节） TL;DR太长不看版本WPA&#x2F;WPA2（包括Personal和Enterprise以及使用各种加密套件）协议本身被发现存在一些漏洞，更具体的说也就是四路握手中客户端可以被诱导重装密钥（甚至是全">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/101717_0548_WPA2KRAC1.png">
+<meta property="article:published_time" content="2017-10-17T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:49.545Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/101717_0548_WPA2KRAC1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-krack/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/10/17/krack/index/" class="article-date">
+  <time class="dt-published" datetime="2017-10-17T00:00:00.000Z" itemprop="datePublished">2017-10-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>►<a class="article-category-link" href="/categories/security/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>这篇差不多是翻译和一些补充以及一些很多人容易误解的地方，欢迎各路英语、信息安全、密码学大神斧正。（反正我翻译的也够仓促的，基本上等于没校对。有一些术语可能翻译的不准确，还望指正。文章内容略有删节）</p>
+<h2 id="TL-DR太长不看版本"><a href="#TL-DR太长不看版本" class="headerlink" title="TL;DR太长不看版本"></a>TL;DR太长不看版本</h2><p>WPA&#x2F;WPA2（包括Personal和Enterprise以及使用各种加密套件）协议本身被发现存在一些漏洞，更具体的说也就是四路握手中客户端可以被诱导重装密钥（甚至是全零密钥）导致客户端发送的报文可以被解密的漏洞。</p>
+<p>注意的是，需要<strong>客户端打安全补丁</strong>来确保不会重装相同密钥。估计大部分Android设备都完蛋了（亲儿子祖国放心系列除外），Linux发行版、Apple的产品和Windows基本上都已经释出了安全更新。</p>
+<p>别一天天瞎说什么WPA2加密协议已遭破解，Wi-Fi不再安全已经沦陷了，形如虚设什么的。破解破解破解，听起来真是骇人耸听，不了解细节就瞎说那怎么能行。想要抓到四路握手包还得信号足够强呢，这信号也得足够强啊，是吧。</p>
+<p>所以啊，说了这么多，只有HTTPS是不够的，<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/HTTP%E4%B8%A5%E6%A0%BC%E4%BC%A0%E8%BE%93%E5%AE%89%E5%85%A8">HSTS</a>和HSTS Preload List更是刚需啊；别SSH的时候忽略警告啊，警告啊警告啊，另一边是悬崖啊，警告是不能忽视的啊。</p>
+<p>哦对了，<strong>搞不到Wi-Fi密码的</strong>，搞不到的（但是说不定能搞到更有价值的东西啊），想要搞Wi-Fi密码，抓四路握手然后跑字典吧。</p>
+<p>PS，今早RSA也被曝出现问题，<a target="_blank" rel="noopener" href="https://crocs.fi.muni.cz/public/papers/rsa_ccs17">ROCA: Vulnerable RSA generation</a>，其实这个是英飞凌的实现问题。英飞凌的某些产品中使用了不够健壮的伪随机数，导致可以快速进行质因数分解。RSA本身是没有问题的啦。</p>
+<h2 id="本文来源"><a href="#本文来源" class="headerlink" title="本文来源"></a>本文来源</h2><p>KRACK Attacks</p>
+<p><a target="_blank" rel="noopener" href="https://www.krackattacks.com/">https://www.krackattacks.com/</a></p>
+<p>KRACK：<strong>K</strong>ey <strong>R</strong>einstallation <strong>A</strong>tta<strong>ck</strong>s 密钥重装攻击</p>
+<p>Breaking WPA2 by forcing nonce reuse 通过强制重复使用nonce来破解WPA2</p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>我们在大多数现代保护Wi-FI网络的WPA2协议中发现了严重的安全漏洞。在受害者范围之内，攻击者可以以”密钥重装攻击”的方式利用这些漏洞。更进一步的说，攻击者可以利用这种新奇的攻击方式在之前被认为是安全的加密的网络中获取信息。这种方式可以用于窃取敏感信息，比如说信用卡卡号，密码，聊天信息，电子邮件，照片等等。<strong>这种攻击方式适用于所有受保护的（译者注：WPA2&#x2F;WPA）Wi-Fi网络。</strong>根据不同的网络配置，也可能注入、操纵数据，比如说攻击者可能会把勒索软件、恶意软件注入到网站之中（译者注：HTTP网站）。</p>
+<p>漏洞的成因在于Wi-Fi标准自身，而不是产品或者实现的设计缺陷。因此，任何对WPA2协议的正确实现均很有可能收到影响。为防止此种攻击，用户必须尽快在安全补丁发布之后升级受影响的设备。注意，<strong>如果你的设备支持Wi-Fi，那么很有可能会受到此漏洞的影响</strong>。在我们最初的研究中，我们发现Android，Linux，Apple，Windows，OpenBSD，MediaTek，Linksys和其他的一些全部都到此漏洞的变种攻击。</p>
+<h2 id="演示"><a href="#演示" class="headerlink" title="演示"></a>演示</h2><p>我们在一部Android手机上执行了一次KRACK攻击。在这次演示中，攻击者可以解密受害者传输的所有数据。对于攻击者来说，这样的攻击很容易实现，因为KRACK攻击在Linux和Android 6.0及更高版本特别有效。这是因为<strong>Android和Linux可以被诱发到安装（重装）全零加密密钥</strong>（all-zero encryption key）。在攻击其他设备时，尽管能够解密大量数据，但是也很难解密全部数据。无论如何，下面的演示将在受保护的Wi-Fi中进行KRACK攻击时可以获取到的信息进行了高亮显示。</p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?time%5C_continue=265&v=Oh4WURZoR98">https://www.youtube.com/watch?time\_continue=265&amp;v=Oh4WURZoR98</a></p>
+<p>视频来源<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?time_continue=265&v=Oh4WURZoR98">YouTube</a>，需要翻墙 译者注：视频中使用了SSL降级攻击，这说明，HSTS和HSTS Preload是非常重要的。</p>
+<p>我们的攻击并不被限制于获取登录信息。通常来说，受害者传输的任何数据均可被解密。另外，依赖于使用的设备和网络设置，也有可能解密发送给受害者的数据（比如说网站内容）。尽管网站和应用可能会使用HTTPS作为额外的保护措施，我们要警告在多种情况下，这种附加的保护依旧可以被绕过。比如说，在之前HTTPS可以以多种方式绕过，包括<a target="_blank" rel="noopener" href="https://pdfs.semanticscholar.org/48fc/8f1aa0b6d1e4266b8017820ff8770fb67b6f.pdf">非浏览器应用</a>，<a target="_blank" rel="noopener" href="https://www.imperialviolet.org/2014/02/22/applebug.html">Apple的iOS和macOS</a>，Android的应用（<a target="_blank" rel="noopener" href="https://arstechnica.com/information-technology/2015/04/android-apps-still-suffer-game-over-https-defects-7-months-later/">例1</a>，<a target="_blank" rel="noopener" href="https://arxiv.org/ftp/arxiv/papers/1505/1505.00589.pdf">例2</a>），<a target="_blank" rel="noopener" href="http://blog.ioactive.com/2014/01/personal-banking-apps-leak-info-through.html">银行应用</a>甚至是<a target="_blank" rel="noopener" href="https://arstechnica.com/information-technology/2017/01/majority-of-android-vpns-cant-be-trusted-to-make-users-more-secure/">VPN应用</a>。</p>
+<h2 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h2><p><img src="/images/101717_0548_WPA2KRAC1.png"></p>
+<p>图片来源于维基百科，按照CC协议授权。漏洞发生在第三步GTK+MIC中。</p>
+<p>我们主要攻击WPA2协议的四路握手。当客户端想要加入受保护的Wi-Fi网络时将会使用四路握手，并使用四路握手来确认客户端与接入点持有正确的认证信息（也就是PSK，俗称Wi-Fi密码）。同时，四路握手也会协商出来一个用户加密随后通信的全新的加密密钥。目前，所有的现代受保护的Wi-Fi网络均使用这种四路握手的机制。这也就是说这些网络都会收到我们的攻击（和一些变种）的影响。比如说，攻击可以针对个人和企业Wi-Fi，可以针对更古老的WPA标准，也可以针对最新的WPA2标准，甚至是只是用AES的网络。<strong>我们的所有攻击方式均使用了一种新颖的、被称作KRACK（密钥重装攻击）的手段。</strong></p>
+<h3 id="密钥重装攻击：高级描述"><a href="#密钥重装攻击：高级描述" class="headerlink" title="密钥重装攻击：高级描述"></a>密钥重装攻击：高级描述</h3><p>在密钥重装攻击中，攻击者诱导受害者重装一个已使用密钥。<strong>这由操纵和重放密码握手信息（cryptographic handshake messages）实现。</strong>受害者重装密钥时，像是自增传输分组序号（incremental transmit packet number，也就是nonce）、重放计数器（replay counter）这类参数会被重置到初始值。本质上来说，为了保证安全，密钥应该只被安装并使用一次。不幸的是，我们发现WPA2协议并没有强制要求这一点。通过操纵密码握手信息，我们可以在实践中利用这一弱点。</p>
+<h3 id="密钥重装攻击：四路握手的实际攻击案例"><a href="#密钥重装攻击：四路握手的实际攻击案例" class="headerlink" title="密钥重装攻击：四路握手的实际攻击案例"></a>密钥重装攻击：四路握手的实际攻击案例</h3><p>如在研究中提出的，密钥重装攻击的思路可以被总结为如下步骤：</p>
+<p>客户端链接到网络时，它会执行四路握手并协商一个全新的加密密钥。它会在四路握手的第三步的报文安装这个密钥。当密钥安装之后，设备会使用加密协议和此密钥来加密正常的数据帧。然而，由于报文可能会丢失或者丢弃，无线接入点（AP）在没有收到合适的响应时会重传第三段报文。因此，客户端可能会收到多个第三段报文，每次收到这个报文，客户端都会重新安装相同的密钥，然后重置自增传输分组序号（incremental transmit packet number，nonce）和重放计数器（replay counter）。我们已经演示了<strong>攻击者可以通过收集、重放四路握手的第三个报文（Message 3）来强制重置nonce。</strong>通过如此强制重置nonce，加密协议便可遭受攻击，比如：分组可以被重放、解密或者伪造。同样的攻击手段也可以被用于攻击组密钥（group key），PeerKey，通道直接链路建立（Tunneled Direct Link Setup，TDLS），快速基本服务设置转换(fast BSS transition)握手。</p>
+<h3 id="实际影响"><a href="#实际影响" class="headerlink" title="实际影响"></a>实际影响</h3><p>我们认为，传播广泛、影响最大的攻击手段是针对四路握手的密钥重装攻击。我们在两种观察情况下做出这个判断。一是，在我们的研究中，我们发现大多数客户端都受此影响；二是，攻击者可以通过这种手段来解密客户端发送的报文，允许他们截获如密码、cookies在内的敏感信息。由于密钥重装攻击会促使传输nonces（有时会被称为报文分组或者初始化向量）被设置为0，因此解密通信变得可能。因此，<strong>使用了以前使用过的同样的nonce的加密密钥（the same encryption key is used with nonce values that have already been used in the past）。</strong>随后，这就导致WPA2所有的加密协议重复使用密钥流来解密分组。如果一段已知信息重复使用了加密，提取出已使用的加密流就很容易了（In case a message that reuses keystream has known content, it becomes trivial to derive the used keystream.）。之后，这个密钥流就可以用来解密同样nonce值的通信。当没有已知内容（known content）时，很难解密通信，尽管在某些案例下（比如说英文文档还是可以被解密的）。实际中，找到已知内容（known content）的分组并不是什么问题，所以可以假设任何报文均可以被解密。</p>
+<p>这种解密报文的能力可以用于解密TCP的SYN握手包。这会使得攻击者获取到一个TCP连接的序号，劫持TCP通信。因此，即使是使用了WPA2，攻击者也可以像开放式网络做出最常见的攻击：在未加密的HTTP中注入恶意信息。比如说，攻击者可以利用此手段在受害者访问的网站中加入勒索软件、恶意软件。</p>
+<p>如果受害者使用WPA-TKIP（译者注：临时密钥完整性协议，已被弃用）和GCMP而不是AES-CCMP（译者注：CCMP 计数器模式密码块链消息完整码协议），影响就更惨烈了：在这些加密协议上，重用nonce不仅可以使攻击者解密通信，还可以使攻击者伪造、注入通信。而且，由于GCMP在通信的双向都是用同样的认证密钥，如果重用nonce，那么这个密钥也可以被获知。需要注意的是， WiGig（无线千兆联盟）已经不再支持GCMP。</p>
+<p>报文能够被解密（以及伪造）的方向取决于握手包被攻击。简单的说，攻击四路握手的时候，我们可以解密（伪造）客户端发送的报文；攻击Fast BSS transition（快速基本服务设置转换）握手时，我们可以解密（伪造）发送给客户端的报文。最终，多数的攻击行为都能允许重放单播、广播、多播帧。</p>
+<p>需要注意的是，<strong>这种攻击方式并不会窃取到Wi-Fi密码</strong>，也不会窃取到四路握手过程中全新加密密钥（以及它的任何一部分）</p>
+<h3 id="Android-和Linux"><a href="#Android-和Linux" class="headerlink" title="Android 和Linux"></a>Android 和Linux</h3><p>攻击在wpa_suplicant版本号为2.4以上特别有效。wpa_suplicant是一个广泛被Linux使用的应用程序。在这里，客户端会安装全零加密密钥（all-zero encryption key）而不是重装真正的密钥。此漏洞貌似是因为Wi-Fi标准建议在第一次安装密钥之后从内存中清除加密密钥。当客户端接收到重传的第三段报文时，它会重装已清除的加密密钥，也就是全零密钥。因为Andorid使用wpa_suplicant，所以Android 6.0及以上也包含此漏洞。这使得<strong>截获、操纵由此类Linux和Android设备发送的报文变得非常容易。</strong>注意，现在大概有一半的Android设备受到此漏洞的影响。</p>
+<p>译者注：标准建议在第一次安装密钥之后在对应的内存区域中清除加密密钥，所以再次收到重传的时候可能会诱导安装全零密钥；但是Windows的实现是拒绝重传，尽管没符合标准的建议，但是却巧妙的绕开了这个漏洞。不过别大意，10个CVE呢……</p>
+<p>标准：怪我咯。</p>
+<h2 id="论文"><a href="#论文" class="headerlink" title="论文"></a>论文</h2><p>略……</p>
+<p>论文已经发布很久啦，我们也研究了更容易的执行KRACK攻击的手段。攻击macOS和OpenBSD也比论文中讨论的容易多啦。</p>
+<h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><p>略……</p>
+<p>我们制作了几个脚本来检测你是否会受到KRACK攻击。</p>
+<p>我们也有PoC……但是我先不发。</p>
+<h2 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><h3 id="我们需要WPA3吗"><a href="#我们需要WPA3吗" class="headerlink" title="我们需要WPA3吗"></a>我们需要WPA3吗</h3><p>不需要！幸运的是实现可以以向后兼容的方式打补丁。就是说，打了补丁的客户端可以连接到未打补丁的无线接入点，反过来也行。换句话说，打补丁的客户端还像以前那样四路握手，只不过会保证只会安装一次密钥。</p>
+<p>译者注：根本就没有WPA3好不好，TLS1.3好歹也是草案呢！</p>
+<h3 id="我需要改Wi-Fi密码吗"><a href="#我需要改Wi-Fi密码吗" class="headerlink" title="我需要改Wi-Fi密码吗"></a>我需要改Wi-Fi密码吗</h3><p>改Wi-Fi密码也没办法阻止、减轻此种攻击，所以没必要改了。反之，你需要确保你的设备进行安全更新。不过，把客户端设备和路由器都更新了之后，改Wi-Fi密码也从来不会是坏主意。</p>
+<h3 id="我只使用WPA2-AES，这是易受攻击的吗"><a href="#我只使用WPA2-AES，这是易受攻击的吗" class="headerlink" title="我只使用WPA2-AES，这是易受攻击的吗"></a>我只使用WPA2-AES，这是易受攻击的吗</h3><p>是，依然易受攻击。KRACK可以攻击WPA1和WPA2，Personal和Enterprise，任何加密套件（WPA-TKIP，AES-CCMP，GCMP）。所以大家都需要更新设备来阻止攻击。</p>
+<h3 id="我的设备易受攻击吗？"><a href="#我的设备易受攻击吗？" class="headerlink" title="我的设备易受攻击吗？"></a>我的设备易受攻击吗？</h3><p>可能。使用Wi-Fi的设备均可能易受攻击。</p>
+<h3 id="如果我的路由器没有安全更新，怎么办？"><a href="#如果我的路由器没有安全更新，怎么办？" class="headerlink" title="如果我的路由器没有安全更新，怎么办？"></a>如果我的路由器没有安全更新，怎么办？</h3><p>我们主要是攻击四路握手包，也就是客户端，而不是无线接入点。所以可能你的路由器不需要安全更新。我们强烈建议你联系厂商来获得更多细节。通常来说，你应该尝试关闭客户功能（中继模式，译者注：无线桥接时会用到），禁用802.11r（快速漫游）来减轻攻击。对于一般的家庭用户，你的首要任务是更新笔记本、手机等客户端。</p>
+<p>译者注：如果你的路由器是用来无线桥接的话，也就是Client+AP模式，那么还是会受到此漏洞的影响。</p>
+<h3 id="四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？"><a href="#四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？" class="headerlink" title="四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？"></a>四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？</h3><p>简短的回答是，这个攻击和之前证明的并不矛盾，之前的证明默认密钥之被安装一次。相反，它只保证协商密钥不被其他人知道，这也意味着握手报文不会被伪造。</p>
+<p>长篇大论……略</p>
+<h3 id="如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？"><a href="#如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？" class="headerlink" title="如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？"></a>如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？</h3><p>在演示中我们已经提及了，攻击者首先在受害者和真正的Wi-Fi网络中获得中间人攻击的位置。然而，这种MITM不会让攻击者解密报文。此种MITM只能让攻击者稳定可靠的延迟、重放、阻断加密报文。所以自然是不行的啦……实际上，这种延迟、阻断报文的技术被用来执行密钥重装攻击。执行成功，之后，报文可以被解密。</p>
+<h3 id="有人在搞这个漏洞吗？"><a href="#有人在搞这个漏洞吗？" class="headerlink" title="有人在搞这个漏洞吗？"></a>有人在搞这个漏洞吗？</h3><p>咱不知道是不是已经有人利用了这个漏洞了……反正我们暂时还没发PoC和Exploit。</p>
+<h3 id="我是不是应该临时使用WEP协议，直到我的设备收到补丁？"><a href="#我是不是应该临时使用WEP协议，直到我的设备收到补丁？" class="headerlink" title="我是不是应该临时使用WEP协议，直到我的设备收到补丁？"></a>我是不是应该临时使用WEP协议，直到我的设备收到补丁？</h3><p>不！继续使用WPA2</p>
+<p>译者注：用WEP就等着被十分钟破解吧。</p>
+<h3 id="和其他针对WPA2的攻击相比，此方式有何不同？"><a href="#和其他针对WPA2的攻击相比，此方式有何不同？" class="headerlink" title="和其他针对WPA2的攻击相比，此方式有何不同？"></a>和其他针对WPA2的攻击相比，此方式有何不同？</h3><p>这是第一个针对Wi-Fi协议、不依赖猜测密码的攻击。实际上其他针对WPA2的攻击方式，比如说WPS，或者更古老的WPA-TKIP都是靠猜测密码（暴力破解的）</p>
+<p>反正你就记住这是搞四路握手包的啦，是协议本身的问题啦。</p>
+<h2 id="一些从其他地方看到的不准确的说法"><a href="#一些从其他地方看到的不准确的说法" class="headerlink" title="一些从其他地方看到的不准确的说法"></a>一些从其他地方看到的不准确的说法</h2><h3 id="路由器被破解被入侵"><a href="#路由器被破解被入侵" class="headerlink" title="路由器被破解被入侵"></a>路由器被破解被入侵</h3><p>都说了，这玩意是针对客户端进行的，而且攻击者没办法拿到你的Wi-Fi密码，充其量也就是会拿到解密通信。当然了，人品足够好，可能就解密了客户端登录路由器时的账号和密码。</p>
+<h3 id="更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤"><a href="#更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤" class="headerlink" title="更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤"></a>更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤</h3><p>这些统统都是无法减缓这个漏洞的（这四个小伎俩只能用来防小白，遇到懂行的人开airmon-ng就搞定了），只要你用了WPA&#x2F;WPA2，这就是无解的，要是用了WEP，那更是五分钟解决啦。</p>
+<p>求大家不要再说WPA&#x2F;WPA2协议被破解了，给人的感觉好像是随意一个脚本小子都能够拿个东西搞定，实际上这只是一个比较容易堵上的安全漏洞啦……（比较容易堵并不等于厂商们会屁颠屁颠的给你发补丁哦）</p>
+<h2 id="总结：一般人该怎么做"><a href="#总结：一般人该怎么做" class="headerlink" title="总结：一般人该怎么做"></a>总结：一般人该怎么做</h2><p>一般来说，咱身边是很少有这种类型的变态的吧（估计抓握手包的人可能都不太多，遇见我，算你倒霉嗯~ o(*￣▽￣*)o）。再加上现在没有PoC也没有Exploit，还需要比较高级的手段而不是像EternalBlue那样一键完成。与其担心这个漏洞，还不如先把自己的Wi-Fi密码从12345678改成比较复杂的密码来抵抗抓四路握手包然后跑字典（哦对了当然还有拒绝使用Wi-Fi万能钥匙什么的0</p>
+<p>当然是等厂商的更新了，还有就是大力推广HTTPS+HSTS，视频中很明显被降级了，要是有HSTS那么就可以在很大程度上抵抗降级攻击。要是实在不放心，咱开个VPN好吧。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/10/17/krack/index/" data-id="clhp6he0b003zezqrbet363d1" data-title="WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/10/18/expressbot/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/27/mssql-mysql/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">从SQL Server导出海量数据到MySQL的新思路</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

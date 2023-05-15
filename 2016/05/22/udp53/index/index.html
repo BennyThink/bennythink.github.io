@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>UDP 53免费上网、DNS隧道经验谈 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="[v_error]郑重声明： 本文仅供研究学习技术交流，请勿用于商业及非法用途。如产生任何纠纷，与本人无关。[&#x2F;v_error]  这是一篇回炉重炒的福利文 本文将介绍一种绕过Web认证来免费上网的姿势，不敢保证在所有网络环境下都好用，但是至少我已经享受一段时间免费的待遇了。 一. 原理简介在连接到某个需要Web认证的热点之前，我们已经获得了一个内网IP，此时，如果我们访问某个HTTP网">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UDP 53免费上网、DNS隧道经验谈">
+<meta property="og:url" content="http://example.com/2016/05/22/udp53/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="[v_error]郑重声明： 本文仅供研究学习技术交流，请勿用于商业及非法用途。如产生任何纠纷，与本人无关。[&#x2F;v_error]  这是一篇回炉重炒的福利文 本文将介绍一种绕过Web认证来免费上网的姿势，不敢保证在所有网络环境下都好用，但是至少我已经享受一段时间免费的待遇了。 一. 原理简介在连接到某个需要Web认证的热点之前，我们已经获得了一个内网IP，此时，如果我们访问某个HTTP网">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/052216_0640_UDP53DNS1.png">
+<meta property="og:image" content="http://example.com/images/2016091006202571.png">
+<meta property="og:image" content="http://example.com/images/052216_0640_UDP53DNS2.png">
+<meta property="og:image" content="http://example.com/images/052216_0640_UDP53DNS3.png">
+<meta property="og:image" content="http://example.com/images/052216_0640_UDP53DNS4.png">
+<meta property="og:image" content="http://example.com/images/052216_0640_UDP53DNS6.png">
+<meta property="og:image" content="http://example.com/images/052216_0640_UDP53DNS7.png">
+<meta property="article:published_time" content="2016-05-22T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:48.169Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/052216_0640_UDP53DNS1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-udp53/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/22/udp53/index/" class="article-date">
+  <time class="dt-published" datetime="2016-05-22T00:00:00.000Z" itemprop="datePublished">2016-05-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      UDP 53免费上网、DNS隧道经验谈
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]郑重声明： 本文仅供研究学习技术交流，请勿用于商业及非法用途。如产生任何纠纷，与本人无关。[&#x2F;v_error]</p>
+<hr>
+<p>这是一篇回炉重炒的福利文</p>
+<p>本文将介绍一种绕过Web认证来免费上网的姿势，不敢保证在所有网络环境下都好用，但是至少我已经享受一段时间免费的待遇了。</p>
+<h2 id="一-原理简介"><a href="#一-原理简介" class="headerlink" title="一. 原理简介"></a>一. 原理简介</h2><p>在连接到某个需要Web认证的热点之前，我们已经获得了一个内网IP，此时，如果我们访问某个HTTP网站，网关会对这个HTTP响应报文劫持并篡改，302重定向给我们一个web认证界面（所以点HTTPS的网站是不可能跳转到web认证页面的）。详细原理可以<a target="_blank" rel="noopener" href="http://www.ruijie.com.cn/fw/wt/36502">戳这里</a></p>
+<p>我们看到了，网关（或者说交换机）都默认放行DHCP 和DNS报文，也就是UDP53与UDP 67。有些网关甚至不会报文进行检查，这也就意味着任何形式的数据包都可以顺畅通过。</p>
+<p>既然如此，我们就可以在公网搞一台服务器，然后借此来免费上网，顺便还能<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">防止网络审计</a>——再一次画了删除线的”免费”，其实只是把钱花在服务器上了。我们这次免费上网的主要突破点就是UDP 53，当然了，据一位朋友实践，UDP 67也可以绕过Web认证，甚至是那些UDP 53无法绕过的热点。当然啦，TCP 53也行，毕竟DNS也有TCP的。</p>
+<h2 id="二-环境检测"><a href="#二-环境检测" class="headerlink" title="二. 环境检测"></a>二. 环境检测</h2><p>废话不多说了，连上热点并且不要进行认证，打开cmd（或者GNU&#x2F;Linux的终端），输入如下内容</p>
+<p>nslookup <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a></p>
+<p>这是我的结果</p>
+<p><img src="/images/052216_0640_UDP53DNS1.png"></p>
+<p>我在没有进行Web认证的情况下成功查询到的IP地址，但是我们并无法确定网关是放行了UDP 53的<strong>所有数据包</strong>还是只放行了<strong>DNS报文</strong>。所以我们要进一步测试下！如果连这都过不了，那还是洗洗睡吧。好吧，说实话，脚本其实是测试TCP的53。 [v_blue]2016年9月10日更新：用我的这个小工具试试吧（此工具测试的其实是TCP53，但是如果允许TCP，那么UDP也肯定没问题） [&#x2F;v_blue] [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/UDP53-Filter-Type'/]%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/UDP53-Filter-Type&#39;\]项目地址\[/gt\]</a> 去Git仓库下载源码，之后Linux用户运行</p>
+<p>python UDP53.py</p>
+<p>Windows用户直接双击dist下的udp.exe吧！</p>
+<p>下图是Windows下的运行结果<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/05/2016091006202571.png"><img src="/images/2016091006202571.png" alt="41212"></a></p>
+<p>[v_blue]有人会问，为何你两次nslookup得到的IP不同呢？想都不用想，百度肯定是在全国各地都部署了内容分发节点，就近访问啊。[&#x2F;v_blue]</p>
+<h2 id="三-实战：允许任何类型数据包通过的网关（提示congratulations）"><a href="#三-实战：允许任何类型数据包通过的网关（提示congratulations）" class="headerlink" title="三. 实战：允许任何类型数据包通过的网关（提示congratulations）"></a>三. 实战：允许任何类型数据包通过的网关（提示congratulations）</h2><p>遇到这种情况，那就是人生中最幸运的事情啦！想法很简单，既然允许任何类型是数据通过UDP 53，那我就在外网搭建一个UDP 53的服务，然后连接上就好了。</p>
+<h3 id="使用UDP-53的OpenVPN（UDP-67同理）"><a href="#使用UDP-53的OpenVPN（UDP-67同理）" class="headerlink" title="使用UDP 53的OpenVPN（UDP 67同理）"></a>使用UDP 53的OpenVPN（UDP 67同理）</h3><p>这种情况我选择搭建OpenVPN的UDP 53（或者也可以试试UDP 67），搭建方法我已经在半年前的博文<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">《SoftEther VPN Server安装手记+福利》</a>提到了，只需要最后开启UDP 53的OpenVPN即可。</p>
+<p><img src="/images/052216_0640_UDP53DNS2.png"></p>
+<p>PS，APP Store大陆区早就封杀了OpenVPN，我来给你们提供一个美国住址来注册美区账号吧</p>
+<p>5200 Zoo Dr，Los Angeles, CA 90027<br>(323) 668-0104</p>
+<p>其实，如果是完全放行53（TCP、UDP），那么弄个Shadowsocks也行，开个全局呗。 如果此时抓包，咱能发现，wireshark会告诉咱DNS协议下那些都是malformed packet，必然呐……</p>
+<h2 id="四-实战：仅允许DNS报文通过的网关（提示sad-face）"><a href="#四-实战：仅允许DNS报文通过的网关（提示sad-face）" class="headerlink" title="四. 实战：仅允许DNS报文通过的网关（提示sad face）"></a>四. 实战：仅允许DNS报文通过的网关（提示sad face）</h2><p>这种情况下，我劝你还是放弃吧。但是并不是不可以免费上网，有一种技术叫做DNS隧道，还有Ping隧道→_→人们为了免费上网还真是什么方法都用上了啊。 [v_tips]据称在某些情况下DNS隧道效果也很好，我没有测试过[&#x2F;v_tips] 万能的SoftEther VPN Server同样提供了这个略显鸡肋的功能</p>
+<p>加密与网络-VPN over ICMP &#x2F; DNS 设置</p>
+<p><img src="/images/052216_0640_UDP53DNS3.png"></p>
+<p>注意，需要使用SoftEther VPN Client 管理工具4.0以上，VPN over DNS不可以与OpenVPN with UDP 53共存。</p>
+<p>之后在SoftEther VPN Client 管理工具中新建连接，填入相关信息即可。</p>
+<p>这里我的测试不太多，我从国外论坛上找到这么一句话：</p>
+<blockquote>
+<p>Softether client got it’s TCP protocol on top of it’s priority as it’s the stable one, UDP on Nat-t comes next, then ICMP and then DNS. of all these protocol only the vpn over DNS did not work for me as it fails to retrieve the right ip and gateway.</p>
+</blockquote>
+<p>SoftEther VPN Client先尝试TCP协议，然后尝试UDP on Nat-t，然后再Ping隧道和DNS隧道。</p>
+<p>下图是勉强成功建立DNS隧道的截图。</p>
+<p><img src="/images/052216_0640_UDP53DNS4.png"></p>
+<h2 id="五-注意事项"><a href="#五-注意事项" class="headerlink" title="五. 注意事项"></a>五. 注意事项</h2><h3 id="1-速度"><a href="#1-速度" class="headerlink" title="1.速度"></a>1.速度</h3><p>允许所有数据包通过UDP 53的情况下，速度主要取决于你的服务器的<strong>出网带宽</strong>和<strong>热点本身的网速</strong>。</p>
+<h3 id="2-IP问题"><a href="#2-IP问题" class="headerlink" title="2.IP问题"></a>2.IP问题</h3><p>服务器在外地，所以淘宝支付宝之类的需要验证码之类的。以后如果申诉也要记得把登陆地区选上服务器所在地。</p>
+<h3 id="3-安全问题"><a href="#3-安全问题" class="headerlink" title="3.安全问题"></a>3.安全问题</h3><p>某些热点是公开的、没有密码保护的，所以可以很轻松的搞<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB">中间人攻击</a>——甚至是root的Android手机都可以做到。而OpenVPN可以防止中间人攻击（配置文件里有服务器的证书），同时我使用了AES-128-CBC加密，搞定网络审计简直是轻轻松松的。</p>
+<h2 id="六-服务器的选购"><a href="#六-服务器的选购" class="headerlink" title="六. 服务器的选购"></a>六. 服务器的选购</h2><p>国内VPS价格普遍离谱，恰巧我还是学生党，也算捡到了大便宜→_→不是学生党谁想着免费上网的心思啊？</p>
+<p>其实大部分人最关心的问题还是速度吧！</p>
+<p>UDP 53的OpenVPN速度主要限制就在<strong>热点本身的速度</strong>和服务器的<strong>出口带宽</strong>速度。腾讯云学生版带宽都是1Mbps，所以限制基本就是服务器出口带宽了……</p>
+<p>所以下面给大家贴出来我在腾讯云和阿里云撕逼的经验（传说七牛今年也会推出云主机，我很期待啊）</p>
+<h3 id="腾讯云："><a href="#腾讯云：" class="headerlink" title="腾讯云："></a>腾讯云：</h3><p>策略是，每个月赠送”满65元减64元”优惠券，包年包月1核1G内存1Mbps恰巧是65元。至于你怎么凑满那65元，是没有限制的。但说实话，要是选择按流量计费，那流量是很不耐用的…！</p>
+<h3 id="阿里云："><a href="#阿里云：" class="headerlink" title="阿里云："></a>阿里云：</h3><p>价格要比腾讯云稍微贵一点点（接近十块钱），但是可以在购买界面直接选择其他数值的峰值带宽，并且每月赠送15G出网流量。</p>
+<p>但是，他丫的要签到！自己看去……</p>
+<p><img src="/images/052216_0640_UDP53DNS6.png"></p>
+<p>国内学生云服务器优惠也就这两个马家了……</p>
+<h2 id="七-买不起服务器、不会搭建、网速太慢"><a href="#七-买不起服务器、不会搭建、网速太慢" class="headerlink" title="七.买不起服务器、不会搭建、网速太慢"></a>七.买不起服务器、不会搭建、网速太慢</h2><p>这你叫我咋办。</p>
+<h2 id="八-最后"><a href="#八-最后" class="headerlink" title="八. 最后"></a>八. 最后</h2><p>给大家看看百度的广告，或者是”推广”吧。</p>
+<p>TMD整个第一屏都是广告，没有一个字和学生二字贴边。</p>
+<p><img src="/images/052216_0640_UDP53DNS7.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/05/22/udp53/index/" data-id="clhp6he3800arezqr6ngsh9w1" data-title="UDP 53免费上网、DNS隧道经验谈" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/06/16/semi-auto-blacklist/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          利用ufw或者Nginx拉黑对xmlrpc.php的暴力破解
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/05/05/ubuntumate-raspberry2/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Ubuntu MATE 16.04 for Raspberry 2安装配置</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>花样玩：把闲置的VPS用起来 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="像我这种流量比较小的网站，往往服务器都一直是0负载，这样一天天过去总觉得是一种浪费。浪费可耻，浪费就是犯罪啊。于是咱就得琢磨琢磨，服务器通常CPU性能都很好（别看是单核，那也是志强啊），带宽也比较充足，还24小时开机，所以嘛….咱来点奇葩的玩法，像是建站、ss这种常见的玩法咱就不说啦。 [v_blue] 友情提示： 1.下文的一些思路仅供参考，各位各取所需 2.拿来做生产的服务器（比如跑我的网站的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="花样玩：把闲置的VPS用起来">
+<meta property="og:url" content="http://example.com/2016/11/25/play-vps/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="像我这种流量比较小的网站，往往服务器都一直是0负载，这样一天天过去总觉得是一种浪费。浪费可耻，浪费就是犯罪啊。于是咱就得琢磨琢磨，服务器通常CPU性能都很好（别看是单核，那也是志强啊），带宽也比较充足，还24小时开机，所以嘛….咱来点奇葩的玩法，像是建站、ss这种常见的玩法咱就不说啦。 [v_blue] 友情提示： 1.下文的一些思路仅供参考，各位各取所需 2.拿来做生产的服务器（比如跑我的网站的">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/112516_1014_VPS1.png">
+<meta property="og:image" content="http://example.com/images/112516_1014_VPS2.png">
+<meta property="og:image" content="http://example.com/images/112516_1014_VPS3.png">
+<meta property="article:published_time" content="2016-11-25T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:48.521Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/112516_1014_VPS1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-play-vps/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/11/25/play-vps/index/" class="article-date">
+  <time class="dt-published" datetime="2016-11-25T00:00:00.000Z" itemprop="datePublished">2016-11-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      花样玩：把闲置的VPS用起来
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>像我这种流量比较小的网站，往往服务器都一直是0负载，这样一天天过去总觉得是一种浪费。浪费可耻，浪费就是犯罪啊。于是咱就得琢磨琢磨，服务器通常CPU性能都很好（别看是单核，那也是志强啊），带宽也比较充足，还24小时开机，所以嘛….咱来点奇葩的玩法，像是建站、ss这种常见的玩法咱就不说啦。 [v_blue] 友情提示： 1.下文的一些思路<strong>仅供参考</strong>，各位各取所需 2.拿来做生产的服务器（比如跑我的网站的这个），尽量<strong>专机专用少折腾</strong>，比如说我的这个服务器只负责网站和中转文件… 3.请记得遵守主机商的ToS、服务器所在地的法律、主机商所属国的法律。 4.OpenVZ的VPS还是悠着点，用太多CPU可能会被封停哦；KVM和Xen的就不必太多考虑这点了，如果你不放心，ticket走起。 5.海外VPS请注意如果你做某些事情，可能会导致你的IP被墙或者被严重干扰。 6.那种超低价的超售狂，就别折腾啦，搭个ss偷着乐就好了。 [&#x2F;v_blue]</p>
+<hr>
+<h2 id="搭建Tor中继节点、网桥"><a href="#搭建Tor中继节点、网桥" class="headerlink" title="搭建Tor中继节点、网桥"></a>搭建Tor中继节点、网桥</h2><p><strong>仅限海外VPS</strong></p>
+<p>Tor是什么？是一个很厉害的匿名工具啦。如果你想为这个匿名网络做一些贡献，可以选择搭建Tor Relay（中继）、Tor Bridges（网桥），Exit Nodes（出口节点）还是别想啦。大部分主机商都允许搭建中继和网桥的。</p>
+<p>当然啦，本人是不建议在自己正在用的VPS上搭建的，万一要是被墙了，那就麻烦了。</p>
+<p>详细教程已经有人写了，戳<a target="_blank" rel="noopener" href="https://yepster.me/tor-deployment/">《关于搭建 Tor Relay 的一点胡扯——以及为什么现在 Tor Bridges 更好》</a></p>
+<h2 id="中转油管视频、Git仓库等（利用七牛）"><a href="#中转油管视频、Git仓库等（利用七牛）" class="headerlink" title="中转油管视频、Git仓库等（利用七牛）"></a>中转油管视频、Git仓库等（利用七牛）</h2><p><strong>推荐海外VPS</strong></p>
+<p>这里请一定要注意遵守服务器所在地的法律、主机商所属国的法律和主机商的ToS，被封不要赖我哦~~</p>
+<p>首先中转就要先下载回来，这里对待种子可以使用rtorrent，直链可以使用wget，Git仓库可以使用git clone，YouTube视频可以用youtube-dl。怎么下载回来就不用我说了吧，如果这个不会，那可没办法，没办法啊</p>
+<p>之后注册个七牛，去<a target="_blank" rel="noopener" href="http://developer.qiniu.com/code/v6/tool/qshell.html">开发者中心</a>自行读文档配置去吧~（或者参考我这篇<a target="_blank" rel="noopener" href="https://dmesg.app/vps-google-drive.html">《使用海外vps中转Google Drive文件》</a>） [v_tips] 友情提示： 1.我这人比较懒，所以我写了一个名为relay的脚本，给加了x权限然后丢到PATH下，之后任何目录都可以直接打relay来上传了。 2.在使用qshell的时候，有的时候上传会失败，我发现qshell是”同步”的模式，而我一般都是上传完就删除。所以我一般会选择把目录中隐藏的.qshell目录删掉再上传。 3.如果你中转一些可能被和谐的内容，那么建议你使用tar打个包，这样它的散列就会变了，机器审查是有点难啦；如果你中转的是危险的东西，那么用OpenSSL套件加密、或者是压缩工具的加密功能，这样对付人工也差不多足够啦（当然，请注意弱口令）。 4.视频、音乐、加密卷等高熵的文件，通常是很难压缩的，所以遇到视频建议打包而不是打包+压缩，使用类似</p>
+<p>tar cvf </p>
+<p>这样的命令而不是带j、J的选项。 [&#x2F;v_tips]</p>
+<h2 id="云存储OwnCloud"><a href="#云存储OwnCloud" class="headerlink" title="云存储OwnCloud"></a>云存储OwnCloud</h2><p><strong>推荐国内服务器</strong></p>
+<p>OwnCloud这东西，就像是你的私有云，再也不怕党妈妈以女神的理由封杀你网盘啦！</p>
+<p>这也有人写过类似教程，在这里<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/2007.html">《用 ownCloud 搭建个人私有云》</a></p>
+<h2 id="搭建UDP-53的OpenVPN-x2F-SS突破Web认证"><a href="#搭建UDP-53的OpenVPN-x2F-SS突破Web认证" class="headerlink" title="搭建UDP 53的OpenVPN&#x2F;SS突破Web认证"></a>搭建UDP 53的OpenVPN&#x2F;SS突破Web认证</h2><p><strong>推荐国内服务器</strong></p>
+<p>这个嘛……是真正非常有用的地方啊！我的马甲站就是这么玩的，结果导致服务器经常满载&#x2F;(ㄒoㄒ)&#x2F;~~</p>
+<p>详情戳我的博文<a target="_blank" rel="noopener" href="https://dmesg.app/udp53.html">《UDP 53 免费上网经验谈》</a></p>
+<p>很明显<strong>SS的性能要远远好过SoftEther只不过要开全局啦……</strong></p>
+<h2 id="编译服务器"><a href="#编译服务器" class="headerlink" title="编译服务器"></a>编译服务器</h2><p><strong>推荐海外服务器</strong></p>
+<p>有的时候，身处大陆的小盆友们在编译某些比较大的项目的时候，常常会被GFW折磨到疯：本身源码就挺大，各种依赖还都得下，GFW还超喜欢干扰。所以有些时候放弃编译往往不是因为CPU性能不足、硬盘太慢、内存太小而是因为网太渣……在大陆当程序员，真的都是折翼的天使啊。</p>
+<p>比如说那次我想编译个服务器版本的Lantern，需要下载Lantern定制版的Go，再下载Lantern源码，编译的时候还要下载很多……所以我就稍稍利用了下aws</p>
+<p><img src="/images/112516_1014_VPS1.png"></p>
+<p>没骗你，不小吧！</p>
+<h2 id="利用ffmpeg压制影片、转换格式等"><a href="#利用ffmpeg压制影片、转换格式等" class="headerlink" title="利用ffmpeg压制影片、转换格式等"></a>利用ffmpeg压制影片、转换格式等</h2><p><strong>国内海外均可</strong></p>
+<p>对于那些经常需要转换格式的、压制影片的人来说，好像这样做会很方便。如果开个按时的高性能实例，效果应该会好很多！</p>
+<p>这里如果你的服务器恰巧是Windows系统，那么人人影视曾经发过一个非常简单的压片工具，用起来很方便；至于使用Linux的嘛……<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html">使用ffmpeg，可以戳我哟</a>。 [v_blue] 友情提示： 1.大部分服务商都支持自定义镜像，所以咱……可以开一台新机器，编译好ffmpeg以及上传什么的，做一个镜像。之后要用的时候，开个高性能的机器，直接选择用这个镜像安装，转换，上传，销毁机器。省钱又方便。 2.我等穷人的单核心服务器，虽说CPU性能很强，但是……我相信现在大家的电脑通常都是四核八核十六核……所以要真的比起来速度，开个多线程，服务器估计就跪了…… 3.这个最好的应用场景就是，你发现一个10G+的片源，利用服务器高带宽的特点下载回来，之后压制成2G的720P再下载……在一些限制流量、限制上网时长的地方最划算了。 [&#x2F;v_blue]</p>
+<p>PS，七牛有个数据处理，用起来挺方便的，速度很快而且很便宜。</p>
+<p><img src="/images/112516_1014_VPS2.png"></p>
+<h2 id="搭建游戏服务器（MineCraft）"><a href="#搭建游戏服务器（MineCraft）" class="headerlink" title="搭建游戏服务器（MineCraft）"></a>搭建游戏服务器（MineCraft）</h2><p><strong>推荐国内服务器</strong></p>
+<p>大部分游戏都是Windows平台下的，相应的开服端也是Windows下居多的……所以比如说开个MineCraft？或者 steam家的l4d2、cs这种？别说，我还真有一个l4d2服务器。</p>
+<p>PS：游戏服务器一般对带宽的要求会比较高。</p>
+<p>这个，也有人写过<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/1693.html">《在 Ubuntu 中搭建 Minecraft 服务器并挂载 Mod》</a></p>
+<h2 id="挖矿"><a href="#挖矿" class="headerlink" title="挖矿"></a>挖矿</h2><p>╮(╯_╰)╭</p>
+<p>这个……大家伙悠着点，大部分主机商都是不允许挖矿的！而且挖矿的前途嘛……看着玩吧！</p>
+<h2 id="卖虚拟主机"><a href="#卖虚拟主机" class="headerlink" title="卖虚拟主机"></a>卖虚拟主机</h2><p><strong>国内海外均可</strong></p>
+<p>这是真正的赚钱之道啊，或者一个服务器跑三四个网站（还别说我的马甲站就是一个服务器跑了三个网站）。用过lnmp一键安装包的大概之道添加虚拟主机有多方便</p>
+<p><img src="/images/112516_1014_VPS3.png"></p>
+<h2 id="搭建自己的DNS"><a href="#搭建自己的DNS" class="headerlink" title="搭建自己的DNS"></a>搭建自己的DNS</h2><p><strong>国内海外均可。</strong></p>
+<p>为了嘛，解析到正确的IP而不是总跑到阿塞拜疆啊。</p>
+<p>这个，当然是要DNSCrypt啦！</p>
+<p>当然，也有人写过了，我只是搬运工<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/981.html">《编译安装 dnscrypt-wrapper 搭建防污染 DNS 服务器》</a></p>
+<h2 id="搭建Resilio-Sync（BT-Sync）节点"><a href="#搭建Resilio-Sync（BT-Sync）节点" class="headerlink" title="搭建Resilio Sync（BT Sync）节点"></a>搭建Resilio Sync（BT Sync）节点</h2><p><strong>仅限海外</strong></p>
+<p>做一个好人，提升大家的下载速度，哈哈哈。具体可以参考<a target="_blank" rel="noopener" href="https://help.getsync.com/hc/en-us/articles/204762449-Guide-to-Linux-and-Sync-peculiarities">官网文章</a></p>
+<h2 id="做Git服务器"><a href="#做Git服务器" class="headerlink" title="做Git服务器"></a>做Git服务器</h2><p>有些时候，我们可能需要私有的Git仓库，这个时候<a target="_blank" rel="noopener" href="https://about.gitlab.com/installation/">GitLab CE</a>就派上用场啦，有钱的也可以玩玩<a target="_blank" rel="noopener" href="https://enterprise.github.com/home">GitHub Enterprise</a></p>
+<p>我思路有限，大概就只能想到这么多比较花样的玩法了！有别的新奇玩法的，欢迎补充~~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/11/25/play-vps/index/" data-id="clhp6he170061ezqr4h1dbdjw" data-title="花样玩：把闲置的VPS用起来" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/12/15/compile-kernel/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          [备忘录]：Linux4.9内核的正确编译之路
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/11/10/ffmpeg/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

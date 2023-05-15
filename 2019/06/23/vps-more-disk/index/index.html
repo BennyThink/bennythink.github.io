@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>vps硬盘不够了怎么办 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="自从搭建了一个图床之后，我开始发现vps的硬盘空间开始慢慢不够用了。随着时间的增长，上传的图片也越来越多。贫穷总是会限制我的想象力，那么有哪些解决方案呢？ 世界加钱可及加钱升级配置加钱，去服务商那里升级配置就好了，好多钱钱~ 使用block storage有些服务商可能提供类似block storage这种存储服务（如vultr、DigitalOcean），那就花钱钱买点，然后挂载上就好了。假如不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vps硬盘不够了怎么办">
+<meta property="og:url" content="http://example.com/2019/06/23/vps-more-disk/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="自从搭建了一个图床之后，我开始发现vps的硬盘空间开始慢慢不够用了。随着时间的增长，上传的图片也越来越多。贫穷总是会限制我的想象力，那么有哪些解决方案呢？ 世界加钱可及加钱升级配置加钱，去服务商那里升级配置就好了，好多钱钱~ 使用block storage有些服务商可能提供类似block storage这种存储服务（如vultr、DigitalOcean），那就花钱钱买点，然后挂载上就好了。假如不">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2019062307425439.png">
+<meta property="og:image" content="http://example.com/images/2019062307425576.png">
+<meta property="og:image" content="http://example.com/images/2019062307425778.png">
+<meta property="og:image" content="http://example.com/images/2019062307425926.png">
+<meta property="article:published_time" content="2019-06-23T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:50.397Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2019062307425439.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-vps-more-disk/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/06/23/vps-more-disk/index/" class="article-date">
+  <time class="dt-published" datetime="2019-06-23T00:00:00.000Z" itemprop="datePublished">2019-06-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      vps硬盘不够了怎么办
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自从搭建了<a target="_blank" rel="noopener" href="https://gakki.photos/">一个图床</a>之后，我开始发现vps的硬盘空间开始慢慢不够用了。随着时间的增长，上传的图片也越来越多。贫穷总是会限制我的想象力，那么有哪些解决方案呢？</p>
+<h2 id="世界加钱可及"><a href="#世界加钱可及" class="headerlink" title="世界加钱可及"></a>世界加钱可及</h2><h3 id="加钱升级配置"><a href="#加钱升级配置" class="headerlink" title="加钱升级配置"></a>加钱升级配置</h3><p>加钱，去服务商那里升级配置就好了，好多钱钱~</p>
+<h3 id="使用block-storage"><a href="#使用block-storage" class="headerlink" title="使用block storage"></a>使用block storage</h3><p>有些服务商可能提供类似block storage这种存储服务（如vultr、DigitalOcean），那就花钱钱买点，然后挂载上就好了。假如不提供这些服务的话，可以考虑试试<a target="_blank" rel="noopener" href="https://cloud.google.com/storage/?hl=zh-cn">Google Cloud Storage</a>，然后挂载到本地，价格也还是可以接受的~</p>
+<h2 id="使用rclone挂载网络硬盘"><a href="#使用rclone挂载网络硬盘" class="headerlink" title="使用rclone挂载网络硬盘"></a>使用rclone挂载网络硬盘</h2><p>可是我是穷人唉，$1都出不起，那该怎么办呢……可不可以把Google Drive、OneDrive、Dropbox什么的挂载上呢？Google Drive有15G，Dropbox有2G，OneDrive有5G，这加起来就是22G，那就是$2.2呢！</p>
+<p>淘宝花个几块钱扩容什么的，那就是血赚啊！</p>
+<p>rclone挂载Google Drive什么的很容易，有很多人写文件介绍过，比如说<a target="_blank" rel="noopener" href="https://moonagic.com/mount-google-drive-with-rclone/">这篇</a>，只不过有两点需要注意的：</p>
+<p>使用mount挂载之后，这个程序会“阻塞”，另开一个窗口<code>df –h</code>就会发现有了</p>
+<p><img src="/images/2019062307425439.png"></p>
+<p>5T滑稽?</p>
+<p>但是咱也不能一直开着，跑个screen也不好，所以还是写个systemd单元文件吧</p>
+<p>[Unit]<br>Description&#x3D;Google Drive mounter<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
+<p>[Service]<br>Restart&#x3D;on-failure<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;rclone mount gdrive_goldstein:&#x2F; &#x2F;mnt&#x2F;gdrive&#x2F; –allow-non-empty –vfs-cache-mode writes –allow-other</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<p>非常需要注意这个<code>--allow-other</code>参数，如果没有的话，从nginx的webroot下做过来的符号链接www用户无权访问，那就403了哦</p>
+<h2 id="iSCSI"><a href="#iSCSI" class="headerlink" title="iSCSI"></a>iSCSI</h2><p>这网络存储有的时候可能也有点不太够（5T都不够吗？），那该怎么办呢？不如买个大硬盘的vps，然后试试iSCSI！（看来这RHCE是没白考啊ε&#x3D;ε&#x3D;ε&#x3D;(<del>￣▽￣)</del></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/ISCSI">iSCSI是个啥呢？Internet小型计算机系统接口</a>，简单理解就是客户端可以通过网络让自己有&#x2F;dev&#x2F;sd*这样的“真实”的物理设备，然后随便格式化挂载什么的。</p>
+<p>iSCSI一般来说是局域网使用的，一般不会跨公网玩，因为这东西对延迟丢包有点敏感。当然了用是能用的，只不过配置起来有点麻烦，而且传输过程是不加密的。(′д｀ )…彡…彡</p>
+<p>iSCSI传输不是加密的这个消息不太好，但是有一些解决方案的，比如套个IPSec啦，比如走个SSH隧道啦。</p>
+<p>本着灵活应用的道理，咱就来挂载个玩玩……</p>
+<h3 id="概念解析"><a href="#概念解析" class="headerlink" title="概念解析"></a>概念解析</h3><p>target – 理解成服务器；initiator – 理解成客户端</p>
+<h3 id="准备“硬盘”"><a href="#准备“硬盘”" class="headerlink" title="准备“硬盘”"></a>准备“硬盘”</h3><p>对于服务端来说，提供服务的“硬盘”可以选择块设备（硬盘啊，U盘啊什么的），也可以选择文件设备，甚至内存够大做ramdisk都是可以的~</p>
+<p>为了方便扩展，我们这里就做一个逻辑卷，这样以后也可以看心情随时扩容的。</p>
+<p>首先~登录到server，需要进行一下分区，总之就是搞出来一个sdb2这种分区做逻辑卷。使</p>
+<h4 id="分区"><a href="#分区" class="headerlink" title="分区"></a>分区</h4><p>用fdisk进行类似操作：</p>
+<p>root@server:~# fdisk &#x2F;dev&#x2F;sda<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.</p>
+<p>Command (m for help): p<br>Disk &#x2F;dev&#x2F;sda: 20 GiB, 21474836480 bytes, 41943040 sectors<br>Units: sectors of 1 * 512 &#x3D; 512 bytes<br>Sector size (logical&#x2F;physical): 512 bytes &#x2F; 512 bytes<br>I&#x2F;O size (minimum&#x2F;optimal): 512 bytes &#x2F; 512 bytes<br>Disklabel type: gpt<br>Disk identifier: DCBEF2AD-7269-4B63-BA34-AE2F15A6D9F7<br>Device Start End Sectors Size Type<br>&#x2F;dev&#x2F;sda1 2048 4095 2048 1M BIOS boot<br>&#x2F;dev&#x2F;sda2 4096 20975615 20971520 10G Linux filesystem</p>
+<p>Command (m for help): n</p>
+<p>Partition number (3-128, default 3):<br>First sector (20975616-41943006, default 20975616):<br>Last sector, +sectors or +size{K,M,G,T,P} (20975616-41943006, default 41943006):<br>Created a new partition 3 of type ‘Linux filesystem’ and of size 10 GiB.</p>
+<p>Command (m for help): w</p>
+<p>The partition table has been altered.<br>Syncing disks.</p>
+<p>输入<code>partprobe</code>更新分区表，这里新分区为sda3，大小10G</p>
+<h4 id="创建逻辑卷"><a href="#创建逻辑卷" class="headerlink" title="创建逻辑卷"></a>创建逻辑卷</h4><p>root@server:~# pvcreate &#x2F;dev&#x2F;sda3<br>Physical volume “&#x2F;dev&#x2F;sda3” successfully created.</p>
+<p>默认的Volume Group大小是4MiB，当然这个创建vg的时候可以改。</p>
+<p>root@server:~# vgcreate idata &#x2F;dev&#x2F;sda3<br>Volume group “idata” successfully created</p>
+<p>创建Logic Volume的时候，n表示名字；大小方面，可以指定是多少个PE，也可以直接写大小，使用l指定多少个PE，256个也就是1G了，L指定大小，</p>
+<p>root@server:~# lvcreate -n iscsi_data -l 256 idata<br>Logical volume “iscsi_data” created.</p>
+<h1 id="直接指定3G"><a href="#直接指定3G" class="headerlink" title="直接指定3G"></a>直接指定3G</h1><p>root@server:~# lvcreate -n test -L 3G idata<br>Logical volume “test” created.</p>
+<p>查看一下 确定信息无误</p>
+<p>root@server:~# lvdisplay</p>
+<p>— Logical volume —<br>LV Path &#x2F;dev&#x2F;idata&#x2F;iscsi_data<br>LV Name iscsi_data<br>VG Name idata<br>LV UUID ueP2uS-zEOG-6B1q-5GuD-9L5f-1ZyZ-86E4ee<br>LV Write Access read&#x2F;write<br>LV Creation host, time server, 2019-06-23 06:19:06 +0000<br>LV Status available</p>
+<h1 id="open-0"><a href="#open-0" class="headerlink" title="open 0"></a>open 0</h1><p>LV Size 1.00 GiB<br>Current LE 256<br>Segments 1<br>Allocation inherit<br>Read ahead sectors auto</p>
+<ul>
+<li>currently set to 256<br>Block device 253:0</li>
+</ul>
+<p>[v_blue]叮咚提示：</p>
+<p>有些vps上来就是一个&#x2F;，这种情况下根本用不了fdisk给分出来空间的。那咋办呢？有这么几种思路，fileio，livecd用gparted，手动重装系统[&#x2F;v_blue]</p>
+<h3 id="配置target"><a href="#配置target" class="headerlink" title="配置target"></a>配置target</h3><p>就假定服务端和客户端都是Ubuntu 啦，16.04之后应该操作都差不多的</p>
+<p>apt install targetcli-fb</p>
+<p>输入<code>targetcli</code>进入交互页面，输入ls可以看下大体情况</p>
+<p><img src="/images/2019062307425576.png"></p>
+<p>我们要做这么几件事情：创建backstore，给backstore增加LUNS，ACL，PORTAL</p>
+<h4 id="创建backstore"><a href="#创建backstore" class="headerlink" title="创建backstore"></a>创建backstore</h4><p>创建block设备</p>
+<p>&#x2F;backstores&#x2F;block create name&#x3D;client1_data dev&#x3D;&#x2F;dev&#x2F;idata&#x2F;iscsi_data</p>
+<p><code>/dev/idata/iscsi_data</code> 就是我们刚刚创建的逻辑卷，name 是名字</p>
+<p>创建iSCSI</p>
+<p>&#x2F;iscsi create wwn&#x3D;iqn.2019-06.com.bennythink:server</p>
+<p>回车之后会发现自动帮我们创建好了portal</p>
+<p>创建luns，这里的<code>client1_data</code>就是我们第一步创建的name</p>
+<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;luns create &#x2F;backstores&#x2F;block&#x2F;client1_data</p>
+<p>创建acl</p>
+<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;acls create wwn&#x3D;iqn.2019-06.com.bennythink:client1</p>
+<p>这几步都做完了之后，ls一下，大概的结构应该是这样的：</p>
+<p><img src="/images/2019062307425778.png"></p>
+<p><code>saveconfig</code>保存退出</p>
+<h3 id="配置客户端"><a href="#配置客户端" class="headerlink" title="配置客户端"></a>配置客户端</h3><p>客户端的配置相比之下就简单多了，只需要改下配置文件就好了</p>
+<h4 id="安装与修改配置"><a href="#安装与修改配置" class="headerlink" title="安装与修改配置"></a>安装与修改配置</h4><p>apt install open-iscsi</p>
+<h1 id="编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi"><a href="#编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi" class="headerlink" title="编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi"></a>编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</p>
+<h1 id="把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1"><a href="#把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1" class="headerlink" title="把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1"></a>把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1</h1><p>InitiatorName&#x3D;iqn.2019-06.com.bennythink:client1</p>
+<h1 id="设置自动login"><a href="#设置自动login" class="headerlink" title="设置自动login"></a>设置自动login</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;iscsid.conf</p>
+<h1 id="原来是manual"><a href="#原来是manual" class="headerlink" title="原来是manual"></a>原来是manual</h1><p>node.startup &#x3D; automatic</p>
+<h4 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h4><p>systemctl restart iscsi<br>systemctl restart iscsid<br>systemctl enable iscsid</p>
+<h4 id="发现与登录节点"><a href="#发现与登录节点" class="headerlink" title="发现与登录节点"></a>发现与登录节点</h4><p>server可以写服务端的域名，或者IP也可以</p>
+<p>root@client:~# iscsiadm –mode discoverydb –type sendtargets –portal server –discover<br>172.21.174.180:3260,1 iqn.2019-06.com.bennythink:server</p>
+<h1 id="把上一步拿到的iqn写到这里"><a href="#把上一步拿到的iqn写到这里" class="headerlink" title="把上一步拿到的iqn写到这里"></a>把上一步拿到的iqn写到这里</h1><p>root@client:~# iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal server:3260 –login<br>Logging in to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] (multiple)<br>Login to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] successful.</p>
+<p>此时就应该多出来一个<code>/dev/sdb</code>了</p>
+<h4 id="分区、格式化与挂载"><a href="#分区、格式化与挂载" class="headerlink" title="分区、格式化与挂载"></a>分区、格式化与挂载</h4><p>使用fdisk对sdb进行分区，这里想怎么分都行，我就直接都分一个主分区了</p>
+<p>root@client:~# fdisk &#x2F;dev&#x2F;sdb<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.<br>Device does not contain a recognized partition table.<br>Created a new DOS disklabel with disk identifier 0x2afb442f.</p>
+<p>Command (m for help): n<br>Partition type<br>p primary (0 primary, 0 extended, 4 free)<br>e extended (container for logical partitions)<br>Select (default p):<br>Using default response p.<br>Partition number (1-4, default 1):<br>First sector (8192-2097151, default 8192):<br>Last sector, +sectors or +size{K,M,G,T,P} (8192-2097151, default 2097151):<br>Created a new partition 1 of type ‘Linux’ and of size 1020 MiB.</p>
+<p>Command (m for help): w<br>The partition table has been altered.<br>Calling ioctl() to re-read partition table.<br>Syncing disks.</p>
+<p>进行格式化、挂载</p>
+<p>mkfs.ext4 &#x2F;dev&#x2F;sdb1<br>mount &#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data&#x2F;</p>
+<p><img src="/images/2019062307425926.png"></p>
+<h4 id="重启之后自动挂载"><a href="#重启之后自动挂载" class="headerlink" title="重启之后自动挂载"></a>重启之后自动挂载</h4><p>为了确保重启之后自动挂载，我们需要更改fstab</p>
+<p>&#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data ext4 defaults,_netdev 0 0</p>
+<h3 id="安全使用iSCSI"><a href="#安全使用iSCSI" class="headerlink" title="安全使用iSCSI"></a>安全使用iSCSI</h3><p>由于iSCSI的传输数据的过程并不是加密的，所以如果跨公网使用，给人的感觉总是不好。为了解决这一问题，我们可以在客户端挂个VPN到服务端，可以用SSH隧道，可以用IPSec保护iSCSI，也可以加密sdb（比如用LUKS、VeraCrypt等呗）</p>
+<p>咱这里就开个SSH隧道吧！要在<strong>配置客户端之前</strong>做好哦</p>
+<p>修改服务端配置<code>vim /etc/ssh/sshd_config</code>，修改如下配置</p>
+<p>PermitTunnel yes</p>
+<p>然后重启sshd</p>
+<p>systemctl restart sshd</p>
+<p>然后输入如下命令，其中<code>root@server</code>替换成自己的服务器</p>
+<p>sudo -E \<br>  ssh -F &#x2F;dev&#x2F;null \<br>  -o PermitLocalCommand&#x3D;yes \<br>  -o LocalCommand&#x3D;”ifconfig tun0 172.18.0.2 pointopoint 172.18.0.1 netmask 255.255.255.0” \<br>  -o ServerAliveInterval&#x3D;60 \<br>  -w 0:0 root@server \<br>  ‘sudo ifconfig tun0 172.18.0.1 pointopoint 172.18.0.2 netmask 255.255.255.0; hostname; echo tun0 ready’</p>
+<p>之后再开一个窗口，discover &amp; login</p>
+<p>iscsiadm –mode discoverydb –type sendtargets –portal 172.18.0.1 –discover<br>iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal 172.18.0.1:3260 –login</p>
+<p>当然理想方式是用key，然后systemd管这个SSH Tunnel啦！</p>
+<p>(′д｀ )…彡…彡还是<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">用wireguard</a>吧</p>
+<h3 id="iSCSI空间不够了怎么办"><a href="#iSCSI空间不够了怎么办" class="headerlink" title="iSCSI空间不够了怎么办"></a>iSCSI空间不够了怎么办</h3><p>还记得我们是使用的Logical Volume创建的吗！此时只需要<code>lvextend -L 10G /dev/idata/iscsi_data</code>就可以把分区调整为10G，然后客户端那边fdisk就能看见</p>
+<p> </p>
+<h2 id="其他类似技术"><a href="#其他类似技术" class="headerlink" title="其他类似技术"></a>其他类似技术</h2><h3 id="NFS、Samba"><a href="#NFS、Samba" class="headerlink" title="NFS、Samba"></a>NFS、Samba</h3><p>同理?</p>
+<h3 id="GlusterFS"><a href="#GlusterFS" class="headerlink" title="GlusterFS"></a>GlusterFS</h3><p>萌新不懂，萌新瑟瑟发抖</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>折腾一大圈，不还是得买大盘鸡吗?还不是贫穷限制了我的想象力</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/06/23/vps-more-disk/index/" data-id="clhp6he3i00b5ezqr3sv139c8" data-title="vps硬盘不够了怎么办" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/06/27/rm-etc/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          手一抖，我删除了etc目录
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/06/20/rhce-value/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">RHCE证书含金量高吗</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

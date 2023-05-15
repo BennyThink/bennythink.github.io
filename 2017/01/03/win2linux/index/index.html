@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>重装腾讯云的Windows Server 2012为Ubuntu 16.04 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="2018年5月10日更新 貌似现在这个方法不管用了，我测试中18.04无法检测到磁盘，16.04检测光盘的时候出错。 要是想全新安装18.04的话（腾讯云官方不给18.04的镜像，而且装了一大堆烂七八糟的东西，心烦），可以参考这篇文章 https:&#x2F;&#x2F;i-meto.com&#x2F;netboot-ubuntu-18-04&#x2F; 本文灵感源于此：https:&#x2F;&#x2F;blog.yoitsu.moe&#x2F;arch-linu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重装腾讯云的Windows Server 2012为Ubuntu 16.04">
+<meta property="og:url" content="http://example.com/2017/01/03/win2linux/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="2018年5月10日更新 貌似现在这个方法不管用了，我测试中18.04无法检测到磁盘，16.04检测光盘的时候出错。 要是想全新安装18.04的话（腾讯云官方不给18.04的镜像，而且装了一大堆烂七八糟的东西，心烦），可以参考这篇文章 https:&#x2F;&#x2F;i-meto.com&#x2F;netboot-ubuntu-18-04&#x2F; 本文灵感源于此：https:&#x2F;&#x2F;blog.yoitsu.moe&#x2F;arch-linu">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/010317_1141_1.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_2.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_3.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_4.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_5.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_6.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_7.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_8.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_9.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_10.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_11.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_12.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_13.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_14.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_15.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_16.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_17.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_18.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_19.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_20.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_21.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_22.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_23.png">
+<meta property="og:image" content="http://example.com/images/010317_1141_24.png">
+<meta property="article:published_time" content="2017-01-03T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:48.621Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/010317_1141_1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-win2linux/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/01/03/win2linux/index/" class="article-date">
+  <time class="dt-published" datetime="2017-01-03T00:00:00.000Z" itemprop="datePublished">2017-01-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      重装腾讯云的Windows Server 2012为Ubuntu 16.04
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>2018年5月10日更新 貌似现在这个方法不管用了，我测试中18.04无法检测到磁盘，16.04检测光盘的时候出错。</p>
+<p><strong>要是想全新安装18.04的话（腾讯云官方不给18.04的镜像，而且装了一大堆烂七八糟的东西，心烦），可以参考这篇文章 <a target="_blank" rel="noopener" href="https://i-meto.com/netboot-ubuntu-18-04/">https://i-meto.com/netboot-ubuntu-18-04/</a></strong></p>
+<p>本文灵感源于此：<a target="_blank" rel="noopener" href="https://blog.yoitsu.moe/arch-linux/cvm_with_arch_linux.html">https://blog.yoitsu.moe/arch-linux/cvm_with_arch_linux.html</a></p>
+<p>嘿嘿嘿</p>
+<p>本文就以Ubuntu 16.04做例子啦。首先需要安装<a target="_blank" rel="noopener" href="http://neosmart.net/Download/Register">EasyBCD</a>，下载好<a target="_blank" rel="noopener" href="http://mirrors.aliyun.com/ubuntu-releases/16.04.1/ubuntu-16.04.1-server-amd64.iso">Ubuntu 16.04</a>的ISO</p>
+<p>[v_blue]友情提示（这Comic Sans字体有点逗啊） 1.其他发行版不敢保证成功率哦。</p>
+<p>2.将Win改成Linux之后，在控制台关机重启会很慢……但是开机还是一如既往的快[&#x2F;v_blue]</p>
+<h2 id="压缩系统盘"><a href="#压缩系统盘" class="headerlink" title="压缩系统盘"></a>压缩系统盘</h2><p>为了方便，我们把50G的系统盘分成两部分，一部分用来存放安装镜像，一部分用于分给&#x2F;使用。首先要远程桌面连到服务器。然后呐，使用mmc.exe，文件-添加&#x2F;删除管理单元-添加磁盘管理</p>
+<p><img src="/images/010317_1141_1.png"></p>
+<p>之后在C盘上右键，选择压缩卷。</p>
+<p><img src="/images/010317_1141_2.png"></p>
+<p>不用太多，1G就够哦。</p>
+<p><img src="/images/010317_1141_3.png"></p>
+<p>哎嘿出现了未分配的空闲分区，右键，新建简单卷。一直下一步，选择文件系统的时候记得选择FAT32，保险起见顺便把卷标也清空了哈。</p>
+<p><img src="/images/010317_1141_4.png"></p>
+<h2 id="备份网络信息"><a href="#备份网络信息" class="headerlink" title="备份网络信息"></a>备份网络信息</h2><p>腾讯云不给DHCP用，所以咱就得备份下网络信息，谁希望安装一个不能联网的Ubuntu呀？</p>
+<p>方法就是网络和共享中心-更改适配器设置-属性-TCP&#x2F;IP v4，大概是酱紫</p>
+<p><img src="/images/010317_1141_5.png"></p>
+<p>截个图或者存记事本里吧。</p>
+<h2 id="挂载镜像、复制文件"><a href="#挂载镜像、复制文件" class="headerlink" title="挂载镜像、复制文件"></a>挂载镜像、复制文件</h2><p>此时我假设你的镜像已经下载好啦，本文以Ubuntu 16.04 server amd64为例（其他发行版是否能够成功我不清楚哟）</p>
+<p>你就直接双击那个镜像，把所有文件都复制到D盘（也就是刚刚压缩出来的1G的分区），请再次确认这个分区的文件系统是FAT32哟~</p>
+<h2 id="创建引导"><a href="#创建引导" class="headerlink" title="创建引导"></a>创建引导</h2><p>哎哟，复制完啦，咱就打开EasyBCD，定位到添加新条目-NeoGrub，下面选项卡切换到ISO</p>
+<p><img src="/images/010317_1141_6.png"></p>
+<p>保险起见，咱就把名称的中文去掉啦，然后路径<strong>指向你的iso文件</strong>，模式选择<strong>从磁盘运行</strong>，点击添加条目，稍等片刻~</p>
+<p>漫长的等待啊……</p>
+<p><img src="/images/010317_1141_7.png"> [v_tips]友情提示： 不用试从内存运行啦，会失败的哟~[&#x2F;v_tips]</p>
+<h2 id="重启并挂载vda3"><a href="#重启并挂载vda3" class="headerlink" title="重启并挂载vda3"></a>重启并挂载vda3</h2><p>EasyBCD完成任务之后，咱就可以重启服务器啦。</p>
+<p>之后眼疾手快的打开VNC哟。</p>
+<p>当然选择第二项然后回车啦</p>
+<p><img src="/images/010317_1141_8.png"></p>
+<p>然后就是选择语言，配置</p>
+<p><img src="/images/010317_1141_9.png"></p>
+<p>差不多一路回车，直到探测键盘之后</p>
+<p>也就是下图之后</p>
+<p><img src="/images/010317_1141_10.png"></p>
+<p>安装程序会告诉你找不到cdrom</p>
+<p>别急，咱在右上角切换到第二个tty呀</p>
+<p><img src="/images/010317_1141_11.png"></p>
+<p>手动挂载下vda3，执行如下命令</p>
+<p>mount -o ro &#x2F;dev&#x2F;vda3 &#x2F;cdrom</p>
+<p>咱可以切到<code>/cdrom</code>里ls下</p>
+<p>如果结果不像下图这样，那就重启检查下D盘（也就是vda3）是否为FAT32</p>
+<p><img src="/images/010317_1141_12.png"></p>
+<p>再回到tty1</p>
+<p>在挂载失败页面选择no，然后重新运行下这一项呐</p>
+<p><img src="/images/010317_1141_13.png"></p>
+<p>啊哈哈成功了。</p>
+<h2 id="配置系统"><a href="#配置系统" class="headerlink" title="配置系统"></a>配置系统</h2><p>之后就和正常的安装没什么两样啦，不过DHCP是不管用的哟，所以要自己手动按照保存的信息配置下系统哟。</p>
+<p><img src="/images/010317_1141_14.png"></p>
+<p>之后主机名随意设置，用户名自己取，密码自己选，主目录加密不加密随心情，时区呀什么的看着办，然后安装程序就告诉你了，不能碰vda3呀，确定不理他，直到选择安装磁盘的地方……</p>
+<p>咱选择2号，也就是vda2，Windows的C盘，不要选择错了哦。要是某些有强迫症的童鞋，可以把1#和2#删掉放一起。</p>
+<p><img src="/images/010317_1141_15.png"></p>
+<p>如下图设置，<strong>挂载点选择&#x2F;，文件系统选择Ext4，启动标志选择on</strong>，然后done</p>
+<p><img src="/images/010317_1141_16.png"></p>
+<p>之后选择finish……</p>
+<p><img src="/images/010317_1141_17.png"></p>
+<p>安装程序跟你要swap，先别管啦选择no（你要非得管，就把vda1分了，要么自己好好分得了），之后安装程序又问你一遍，你就yes确定写入硬盘。</p>
+<p><img src="/images/010317_1141_18.png"></p>
+<p>漫长的安装过程呀</p>
+<p><img src="/images/010317_1141_19.png"></p>
+<p>不要着急哟，安装程序看着好像是卡住了，其实活着呐~</p>
+<h2 id="配置软件包"><a href="#配置软件包" class="headerlink" title="配置软件包"></a>配置软件包</h2><p>这一步呐出现了一个比较严肃的问题，安装程序会跳出来，我们尝试选择select and install software，想要选择下安装哪些软件包，但是却总是跳回来。</p>
+<p><img src="/images/010317_1141_20.png"></p>
+<p>所以……跨到安装grub吧，安装个基本的系统又何妨，比busybox强、有dpkg就可以啊。</p>
+<h2 id="安装grub"><a href="#安装grub" class="headerlink" title="安装grub"></a>安装grub</h2><p>如果一切顺利的话，那么就得配置grub啦。</p>
+<p>选择install the grub boot loader on a hard disk，不要选错了哟。默认来说就是<code>/dev/vda</code>，直接回车就好了。</p>
+<p><img src="/images/010317_1141_21.png"></p>
+<p>估计接下来就没啥事了，然后重启吧~当前的VNC会挂掉，再开个新的VNC，就会发现Ubuntu已经在启动啦！</p>
+<p>啊哈哈哈</p>
+<p><img src="/images/010317_1141_22.png"></p>
+<p>输入你的账号密码，登录吧。</p>
+<p>df一个给你们看看哟。货真价实的50G呀。</p>
+<p><img src="/images/010317_1141_23.png"></p>
+<h2 id="一些后续问题和后遗症"><a href="#一些后续问题和后遗症" class="headerlink" title="一些后续问题和后遗症"></a>一些后续问题和后遗症</h2><h3 id="OpenSSH"><a href="#OpenSSH" class="headerlink" title="OpenSSH"></a>OpenSSH</h3><p>很遗憾咱无法选择软件包，所以就只能想办法用用光盘里的东西啦。</p>
+<p>sudo mount –o ro &#x2F;dev&#x2F;vda3 &#x2F;media&#x2F;cdrom<br>sudo apt update<br>sudo apt install openssh-server</p>
+<h3 id="软件源"><a href="#软件源" class="headerlink" title="软件源"></a>软件源</h3><p>既然咱已经装好了OpenSSH，那还怕啥，putty这类家伙连上，想要什么软件包不都是分分钟的事情吗。为了方便广大读者，直接粘贴这两句就可以啦。</p>
+<p>sudo mount –o ro &#x2F;dev&#x2F;vda3 &#x2F;media&#x2F;cdrom<br>sudo apt install curl<br>curl <a target="_blank" rel="noopener" href="https://repogen.simplylinux.ch/txt/xenial/sources/_431af76ab4c7ca7ccb02ff30ab7d58c6d5e60000.txt">https://repogen.simplylinux.ch/txt/xenial/sources\_431af76ab4c7ca7ccb02ff30ab7d58c6d5e60000.txt</a> | sudo tee &#x2F;etc&#x2F;apt&#x2F;sources.list</p>
+<p><img src="/images/010317_1141_24.png"></p>
+<p>很推荐<a target="_blank" rel="noopener" href="https://repogen.simplylinux.ch/index.php">Ubuntu Sources List Generator</a>这个网站！</p>
+<h3 id="1G的分区"><a href="#1G的分区" class="headerlink" title="1G的分区"></a>1G的分区</h3><p>童鞋们还记得最开始分的1G的分区吗？怎么处理他？哎，当然是做成Swap啦，或者闲着也可以啊。</p>
+<p>sudo mkswap &#x2F;dev&#x2F;vda3<br>sudo swapon &#x2F;dev&#x2F;vda3</p>
+<p>但是酱紫每次重启都得运行一遍，咱就修改&#x2F;etc&#x2F;fstab吧（我这里vi有点问题，就apt安装vim啦）。</p>
+<p>sudo mkswap &#x2F;dev&#x2F;vda3<br>sudo apt install vim<br>sudo vim &#x2F;etc&#x2F;fstab<br>#行尾添加如下内容<br>&#x2F;dev&#x2F;vda3    swap    swap defaults        0 0</p>
+<p>保存退出即可。</p>
+<h3 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h3><p>常在江湖走，哪敢不开防火墙？</p>
+<p>用ufw查查资料啦，懒得打字啦。</p>
+<h3 id="缺少众多软件包的后遗症"><a href="#缺少众多软件包的后遗症" class="headerlink" title="缺少众多软件包的后遗症"></a>缺少众多软件包的后遗症</h3><p>前面咱们不是select and install software失败了嘛，所以导致我们几乎安装成了一个最小化的Ubuntu，甚至连curl也没有，但是只要有apt、有网，还怕什么呢？</p>
+<p>下面的这条命令是安装vim、nano、build-essential、man手册、ppa支持、do-release upgrade、bash自动补全什么的，缺什么补什么吧，反正有apt超级牛力嘛~</p>
+<p>sudo apt install -y vim  nano build-essential  man-db python-software-properties  update-manager-core bash-completion dnsutils at locate software-properties-common</p>
+<p>注意，bash自动补全要编辑<code>/etc/bash.bashrc</code>文件，把 <code>enable bash completion in interactive shells</code>之后的一段全都取消注释</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>俺们技术宅就是这么坑蒙拐骗哒~</p>
+<p>50G硬盘到手，快去做个快照吧啊哈哈~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/01/03/win2linux/index/" data-id="clhp6he3q00bhezqr4pop4l27" data-title="重装腾讯云的Windows Server 2012为Ubuntu 16.04" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/01/03/miss-dong/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          怀念东东
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/12/19/fear-without-rules/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">没有规则才是最可怕的</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

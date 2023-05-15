@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>前卫一下：给你的网站开启QUIC | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="今天在推上偶然发现Google在自己的服务器上启用了QUIC，QUIC这东西嘛（发音同quick），就是Quick UDP Internet Connection，Google制定的一种基于UDP的低时延的互联网传输层协议。我觉得吧，Google率先在自家鼓捣部署的东西，那都是比较有前景的，比如说spdy（基本上成了http&#x2F;2的前身），比如说bbr，反正大概都是一些很牛的东西，我有信心">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前卫一下：给你的网站开启QUIC">
+<meta property="og:url" content="http://example.com/2017/04/06/quic/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="今天在推上偶然发现Google在自己的服务器上启用了QUIC，QUIC这东西嘛（发音同quick），就是Quick UDP Internet Connection，Google制定的一种基于UDP的低时延的互联网传输层协议。我觉得吧，Google率先在自家鼓捣部署的东西，那都是比较有前景的，比如说spdy（基本上成了http&#x2F;2的前身），比如说bbr，反正大概都是一些很牛的东西，我有信心">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/040617_1241_QUI1.png">
+<meta property="og:image" content="http://example.com/images/040617_1241_QUI2.png">
+<meta property="article:published_time" content="2017-04-06T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:48.993Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/040617_1241_QUI1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-quic/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/04/06/quic/index/" class="article-date">
+  <time class="dt-published" datetime="2017-04-06T00:00:00.000Z" itemprop="datePublished">2017-04-06</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      前卫一下：给你的网站开启QUIC
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天在推上偶然发现Google在自己的服务器上启用了<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/QUIC">QUIC</a>，QUIC这东西嘛（发音同quick），就是Quick UDP Internet Connection，Google制定的一种基于UDP的低时延的互联网传输层协议。我觉得吧，Google率先在自家鼓捣部署的东西，那都是比较有前景的，比如说<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/SPDY">spdy</a>（基本上成了<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/HTTP/2">http&#x2F;2</a>的前身），比如说bbr，反正大概都是一些很牛的东西，我有信心般<strong>盲目的相信</strong>QUIC也是挺有前景的！</p>
+<p>通常呐，咱们在访问一些HTTPS网站的时候，Chrome会告诉我们该连接使用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%82%B3%E8%BC%B8%E5%B1%A4%E5%AE%89%E5%85%A8%E5%8D%94%E8%AD%B0">TLS</a>1.2（好像Google也在自家的一些服务部署了TLS1.3，<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%82%B3%E8%BC%B8%E5%B1%A4%E5%AE%89%E5%85%A8%E5%8D%94%E8%AD%B0#TLS_1.3.EF.BC.88.E8.8D.89.E6.A1.88.EF.BC.89">TLS1.3还是草案呢吧</a>），使用XXX加密和身份验证，使用XXX作为密钥交换机制。咱都知道HTTP是基于TCP的应用层协议，而TLS就好似套在了应用层和传输层之间的东西一样。盗用别人的话，以前的HTTP就是塑料管，一捅就漏（被篡改、劫持等），但是TLS就像是个金属外壳，这么一包上啊，就没那么容易漏水了。</p>
+<p>而QUIC这玩意就更好玩了，它没管TCP的事，反而奇葩选择了UDP做为下一层协议，并且QUIC协议内置了TLS栈，实现了自己的传输加密层，等等等等我是说不明白了，反正我也不懂装懂呢嘛，盗用网上的图，QUIC的地位看起来是这样的：</p>
+<p><img src="/images/040617_1241_QUI1.png"></p>
+<p>反正嘛，这玩意就是看起来很厉害的样子，鉴于还没看到类似的中文教程，我就自己折腾下分享出来吧！请注意，这整篇文章都是<strong>实验性质</strong>的，想好了再折腾啊！出事了别怪我就好哦。</p>
+<h2 id="对QUIC的支持"><a href="#对QUIC的支持" class="headerlink" title="对QUIC的支持"></a>对QUIC的支持</h2><h3 id="支持QUIC的Web服务器"><a href="#支持QUIC的Web服务器" class="headerlink" title="支持QUIC的Web服务器"></a>支持QUIC的Web服务器</h3><p>目前支持QUIC的服务器不是那么多，在Chromium的源码中有一个测试服务器，GitHub上有几个从Chromium抠下来的项目，还有go quic，大概都是属于<strong>pre-alpha</strong>阶段。但是几经搜寻，我找到了一个名为<a target="_blank" rel="noopener" href="https://caddyserver.com/">caddy</a>的、用go写的Web服务器，这家伙提供<strong>实验性质的quic支持</strong>。</p>
+<p>话说这caddy有啥新特性呢？我去官网看了眼文档，给我的感觉是，caddy的目的是让网站变得<strong>更简单更易用</strong>，抢Nginx和Apache的饭碗并不是它的追求。而且这家伙配置文件很简洁，也没啥依赖，大概随用随走的意思！当然可能它也是为数不多的、开源的支持quic的Web服务器吧！</p>
+<p>最令人眼睛一亮的是，这家伙自己就支持https，能签证书、续期咱就输个邮箱啥的，它就能帮咱去Let’s Encrypt搞个证书回来，而且去SSLLabs还会得A，简直是神奇啊！而且这家伙还能直接从git push写博客，具体没仔细看</p>
+<p>[v_blue]有小伙伴可能会问了，那Nginx、Apache这俩是否支持QUIC呢？这个嘛……短时间之内应该还不会支持。毕竟这改动要好大的。GitHub上有个libquic，目前只有实验性质的<a target="_blank" rel="noopener" href="https://github.com/devsisters/goquic">goquic</a>能用这个库，别的还是等等吧。等到支持的时候，重新编译下就好啦。[&#x2F;v_blue]</p>
+<h3 id="支持QUIC的浏览器"><a href="#支持QUIC的浏览器" class="headerlink" title="支持QUIC的浏览器"></a>支持QUIC的浏览器</h3><p>呐……Chrome、Chromium都没问题的！只要你的版本比较新，基本上就已经支持并默认开启QUIC啦。咱可以到<code>chrome://net-internals/#quic</code>里看下，开头就会告知我们是否启用了QUIC的支持。如果没开启的话，就到<code>chrome://flags</code>开启下</p>
+<p>这么一看，那就是服务端的支持了，那咱咋开启啊……当然是去caddy官网下载，然后启动就好了。话说想要成功有挺多条件的，有一片不深不浅的水域，有一块不大不小的坑……啊不对，反正就是不是想象中的那么简单啦。</p>
+<p>咱来谈谈准备条件吧。</p>
+<p>首先，咱得有个域名，有个服务器，要是WordPress啥的还得准备好PHP、MySQL（MariaDB）啥的，对，最好再把证书也搞好（这一步不是必须的，因为Caddy可以为咱申请证书，但是我就当大家都搞好了）。我的运行环境是Ubuntu 16.04 64Bit，别的环境不敢保证。</p>
+<p>好，今天有点废话，那咱正式开始踩坑吧……</p>
+<p>咦？都有什么坑呀？我会告诉你，caddy官网下载的二进制如果开启quic会报错退出哟；我还会说，需要go1.8，包管理器的go1.6是不行滴！</p>
+<p>如果你太懒，懒得自己弄，并且相信我的话，那就<a target="_blank" rel="noopener" href="http://oks2t4o68.bkt.clouddn.com/caddy20170417.tar.bz2">戳我</a>下载我编译好的吧！</p>
+<h2 id="安装golang"><a href="#安装golang" class="headerlink" title="安装golang"></a>安装golang</h2><p>这golang啊，是C语言他爹、玩了<a target="_blank" rel="noopener" href="https://dmesg.app/reason-of-this-blog.html">Thompson Hack</a>的汤普森老爷子在Google搞的语言，据说很牛。怎奈Ubuntu 16.04的源里的go是1.6，然而caddy需要1.8，所以咱只能自己从官网搞个go回来了。为了偷懒，我们就不从源码编译了，直接下二进制就好了。想从源码编译golang的我不拦着哟！</p>
+<p>wget <a target="_blank" rel="noopener" href="https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz">https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz</a><br>sudo tar -C &#x2F;usr&#x2F;local -xzf go1.8.linux-amd64.tar.gz<br>#编辑bashrc<br>vim ~&#x2F;.bashrc<br>#文件最后加入这么一行，保存退出<br>export PATH&#x3D;$PATH:&#x2F;usr&#x2F;local&#x2F;go&#x2F;bin<br>#重新载入<br>source ~&#x2F;.bashrc<br>go version</p>
+<p>显示为go version go1.8 linux&#x2F;amd64就可以了</p>
+<p>注意：如果你安装了1.8以下的golang，需要卸载，包管理器的就用类似<code>apt remove golang-go</code>之类的命令卸载，编译的就直接<code>sudo rm –rf /usr/local/go</code>即可</p>
+<h2 id="准备并编译caddy"><a href="#准备并编译caddy" class="headerlink" title="准备并编译caddy"></a>准备并编译caddy</h2><p>啥gcc啊，make啊，源码啊啥的都得准备好，gcc之类的就不说了，包管理器就够了。咱从源码开始，我们就假设工作目录为<code>/home/test</code>了、并且你已经切换到这个目录啦。</p>
+<p>export GOPATH&#x3D;&#x2F;home&#x2F;test<br>go get github.com&#x2F;mholt&#x2F;caddy&#x2F;caddy<br>cd $GOPATH&#x2F;src&#x2F;github.com&#x2F;mholt&#x2F;caddy&#x2F;caddy<br>.&#x2F;build.bash</p>
+<p>我估计大家会在第二步的时候失败或者是太慢（尤其是当你的服务器在境内的时候），那么请跟我一起艹GFW吧；</p>
+<p>可以考虑使用下面这一堆命令</p>
+<p>export GOPATH&#x3D;&#x2F;home&#x2F;test<br>wget <a target="_blank" rel="noopener" href="http://7xvwrt.com1.z0.glb.clouddn.com/caddy170406.tar.bz2">http://7xvwrt.com1.z0.glb.clouddn.com/caddy170406.tar.bz2</a><br>tar xf caddy170406.tar.bz2<br>cd $GOPATH&#x2F;src&#x2F;github.com&#x2F;mholt&#x2F;caddy&#x2F;caddy<br>.&#x2F;build.bash</p>
+<p>在执行完最后一句的时候，咱应该会在当前目录下发现一个名为<code>caddy</code>的二进制程序。当然如果咱就想要个性，咱用<code>./build.bash fuckGFW</code>那生成的二进制就叫<code>fuckGFW</code>了。那些<code>./build.bash candy.exe</code>的人还是让我去撞墙吧\(^o^)&#x2F;~</p>
+<h2 id="配置CaddyFile"><a href="#配置CaddyFile" class="headerlink" title="配置CaddyFile"></a>配置CaddyFile</h2><p>假设咱把caddy放在了<code>/home/caddy</code>，反正放哪都行，随便啦。</p>
+<p>咱就大概编辑个这么模样的文件，名为Caddyfile</p>
+<p>:443 <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a> {<br>root &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a><br>fastcgi &#x2F; &#x2F;tmp&#x2F;php-cgi.sock php<br>log &#x2F;home&#x2F;wwwlogs&#x2F;caddy.<a target="_blank" rel="noopener" href="http://www.shemissed.me.log/">www.shemissed.me.log</a><br>tls &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/fullchain.pem">www.shemissed.me/fullchain.pem</a> &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/privkey.pem">www.shemissed.me/privkey.pem</a><br>}</p>
+<p>假如要是有多个虚拟主机（vhost），就接着写</p>
+<p>memory.shemissed.me {<br>root &#x2F;home&#x2F;wwwroot&#x2F;memory.shemissed.me<br>fastcgi &#x2F; &#x2F;tmp&#x2F;php-cgi.sock php<br>log &#x2F;home&#x2F;wwwlogs&#x2F;caddy.memory.shemissed.me.log<br>tls &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;memory.shemissed.me&#x2F;fullchain.pem &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;memory.shemissed.me&#x2F;privkey.pem<br>}</p>
+<p>类似这样的就行了。</p>
+<p>大家伙看着改咯。其中：</p>
+<p>如果你想开启HSTS，那就加个</p>
+<p>Strict-Transport-Security “max-age&#x3D;63072000; includeSubDomains; preload;”</p>
+<p>如果想自己设定cipher suite，那就看<a target="_blank" rel="noopener" href="https://caddyserver.com/docs">官网文档</a>去，剩下的更多的特性，什么rewrite就自己发挥吧。 [v_blue]注意： <code>/tmp/php-cgi.sock</code>是php-fpm的监听地址，去<code>php-fpm.conf</code>里看下listen写的是啥就行了，有的人可能会是<code>127.0.0.1:9000</code>。如果你后端使用的是jsp，也这样照猫画虎的改。[&#x2F;v_blue]</p>
+<h2 id="运行caddy"><a href="#运行caddy" class="headerlink" title="运行caddy"></a>运行caddy</h2><p>咱把上上一部编译出来的二进制拷贝到<code>/home/caddy</code>下，然后把这个路径加入到Path之中（<code>export PATH=$PATH:/home/caddy</code>），之后咱<code>caddy -conf /home/caddy/Caddyfile -port 443 -http2 –quic</code>，再去浏览器刷新几下看F12，就应该能看到QUIC了吧？</p>
+<p><img src="/images/040617_1241_QUI2.png"></p>
+<p>有的时候死活不出来QUIC（尤其是PC版哦），俺也不知道是为啥……PS，此网站不适合访问……！</p>
+<h2 id="等等，这就结束了吗？"><a href="#等等，这就结束了吗？" class="headerlink" title="等等，这就结束了吗？"></a>等等，这就结束了吗？</h2><p>当然不是，其实这坑还是非常多的，假如终端关掉了，那caddy不就被kill了嘛。咱可以加个&amp;给丢后台，再用pidof写个脚本加入crontab检查运行状态。尽管如此，这样用也不是最佳实践。</p>
+<p>那正确的应该咋用呢？</p>
+<p>把二进制放在<code>/usr/local/bin/caddy</code></p>
+<p>把SysV风格的启动脚本放在<code>/etc/init.d/caddy</code>（这个脚本可以在官网的二进制包里找到）</p>
+<p>配置文件目录放这<code>/etc/caddy</code>证书放在子目录ssl 并且属主是www啥的</p>
+<p>创建配置文件<code>/etc/caddy/Caddyfile</code></p>
+<p>用<code>service caddy start|stop|restart|reload|status</code> 管理服务（<code>/etc/init.d/candy restart</code>）</p>
+<p>还有啥，比如说</p>
+<p>别用root运行</p>
+<p>用non-login shell运行</p>
+<p>提高ulimit文件描述符限制（<code>ulimit -n 8192</code>，或者在<code>/etc/profile</code>中） 反正一堆咯，自己读readme咯</p>
+<h2 id="最后的注意事项"><a href="#最后的注意事项" class="headerlink" title="最后的注意事项"></a>最后的注意事项</h2><p>我没把这玩意部署在本站上，因为我目前也暂时把它当做<strong>experimental features &amp; I’m just boring</strong>，所以就搞到了马甲站上，也没做什么更多的测试……等个几年，等到TLS1.3正式公布、QUIC被更多的Web服务器支持，我再开……当然了，现在TCP_BBR已经在4.9内核里，我还是没开 :arrow: </p>
+<p>所以，那些想要折腾的、体验一下QUIC快感的人，不妨试试吧！走在世界的最前端~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/04/06/quic/index/" data-id="clhp6he1e006jezqrcd1f84oi" data-title="前卫一下：给你的网站开启QUIC" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/04/22/shadowbroker/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          [ShadowBroker]1：NSA工具集EternalBlue + Doublepulsar + meterpreter渗透Windows 7/2008，兼谈Windows Server 2003中文版渗透
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/04/05/no-more-maxiang/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">为了你的隐私考虑，别用马克飞象了</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

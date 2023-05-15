@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>从SQL Server导出海量数据到MySQL的新思路 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="话说，今天给自己找了个事，要把一个数据量比较大的巨硬的SQL Server中的数据导入到MySQL中。 话说这数据量有多大呢？bak备份文件就有187M，数据库的表有90万行的数据。 那导入就导入呗，怎么来呢…… 从MSSQL中导出sql脚本似乎这是个放之四海而皆准的原则，咱都这么干。于是…… 任务-生成脚本，高级中把“仅限架构”改成架构和数据。  嗯，静静等待导出……  唔，1.13G的脚本，估">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从SQL Server导出海量数据到MySQL的新思路">
+<meta property="og:url" content="http://example.com/2017/09/27/mssql-mysql/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="话说，今天给自己找了个事，要把一个数据量比较大的巨硬的SQL Server中的数据导入到MySQL中。 话说这数据量有多大呢？bak备份文件就有187M，数据库的表有90万行的数据。 那导入就导入呗，怎么来呢…… 从MSSQL中导出sql脚本似乎这是个放之四海而皆准的原则，咱都这么干。于是…… 任务-生成脚本，高级中把“仅限架构”改成架构和数据。  嗯，静静等待导出……  唔，1.13G的脚本，估">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer1.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer2.png">
+<meta property="og:image" content="http://example.com/images/201709271650335.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer4.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer5.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer6.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer7.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer8.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer9.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer10.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer11.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer12.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer13.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer14.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer15.png">
+<meta property="og:image" content="http://example.com/images/092717_1621_SQLServer16.png">
+<meta property="article:published_time" content="2017-09-27T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:49.521Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/092717_1621_SQLServer1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-mssql-mysql/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/09/27/mssql-mysql/index/" class="article-date">
+  <time class="dt-published" datetime="2017-09-27T00:00:00.000Z" itemprop="datePublished">2017-09-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      从SQL Server导出海量数据到MySQL的新思路
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>话说，今天给自己找了个事，要把一个数据量比较大的巨硬的SQL Server中的数据导入到MySQL中。</p>
+<p>话说这数据量有多大呢？bak备份文件就有187M，数据库的表有90万行的数据。</p>
+<p>那导入就导入呗，怎么来呢……</p>
+<h2 id="从MSSQL中导出sql脚本"><a href="#从MSSQL中导出sql脚本" class="headerlink" title="从MSSQL中导出sql脚本"></a>从MSSQL中导出sql脚本</h2><p>似乎这是个放之四海而皆准的原则，咱都这么干。于是……</p>
+<p>任务-生成脚本，高级中把“仅限架构”改成架构和数据。</p>
+<p><img src="/images/092717_1621_SQLServer1.png"></p>
+<p>嗯，静静等待导出……</p>
+<p><img src="/images/092717_1621_SQLServer2.png"></p>
+<p>唔，1.13G的脚本，估计导回到MySQL里……反正我做完饭刷完碗洗完澡了还没导完。别想了，数据量小的话还可以玩玩，这么大，放弃吧。</p>
+<h2 id="MySQL-Migration-Toolkit"><a href="#MySQL-Migration-Toolkit" class="headerlink" title="MySQL Migration Toolkit"></a>MySQL Migration Toolkit</h2><p>别想了，这玩意早就停止维护了。就算用的成也一堆bug的吧。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/09/201709271650335.png"><img src="/images/201709271650335.png"></a></p>
+<p>哥哥，我真的有JRE的……</p>
+<h2 id="导出成csv，用MySQL-Front导入"><a href="#导出成csv，用MySQL-Front导入" class="headerlink" title="导出成csv，用MySQL Front导入"></a>导出成csv，用MySQL Front导入</h2><p>任务-导出数据，目标选择”平面文件目标”，在第一行显示列名称</p>
+<p><img src="/images/092717_1621_SQLServer4.png"></p>
+<p>然后打开MySQL Front输入 - csv文件，飞快的导入，好像没什么问题？然而并没有。</p>
+<p><img src="/images/092717_1621_SQLServer5.png"></p>
+<p>用phpmyadmin？别想了，PHP默认有上传文件大小限制，phpmyadmin本身也有，就算这俩都不是问题，Nginx还不乐意给了5xx报错呢。</p>
+<p>别用MySQL Front试了，我改了各种编码格式，从utf-8到gbk到gb2312，全完蛋。</p>
+<h2 id="导出成Excel"><a href="#导出成Excel" class="headerlink" title="导出成Excel"></a>导出成Excel</h2><p>那试试导出成Excel？</p>
+<p>报错，一堆看不懂的错误提示。</p>
+<p><img src="/images/092717_1621_SQLServer6.png"></p>
+<p>打开Excel一看，65535……下一个应该溢出了啊，?回负数了啊</p>
+<p><img src="/images/092717_1621_SQLServer7.png"></p>
+<h2 id="SQL-Server直接导出到MySQL"><a href="#SQL-Server直接导出到MySQL" class="headerlink" title="SQL Server直接导出到MySQL"></a>SQL Server直接导出到MySQL</h2><p>看样子很牛逼哈，当然要先安装MySQL的.Net驱动程序哈。然后任务-导出，目标选择MySQL，大概像下图这样：</p>
+<p><img src="/images/092717_1621_SQLServer8.png"></p>
+<p>然后下一步……</p>
+<p><img src="/images/092717_1621_SQLServer9.png"></p>
+<p>巨硬你是我爹还不行嘛……</p>
+<h1 id="行了，我还是说两种可行的方案吧。"><a href="#行了，我还是说两种可行的方案吧。" class="headerlink" title="行了，我还是说两种可行的方案吧。"></a>行了，我还是说两种可行的方案吧。</h1><h2 id="方案一：MySQL-Workbench"><a href="#方案一：MySQL-Workbench" class="headerlink" title="方案一：MySQL Workbench"></a>方案一：MySQL Workbench</h2><p>下载MySQL Migration Toolkit的时候，官方告诉我，这玩意停止开发啦，去用MySQL Workbench吧。好，那好吧。当然要提前下载好MySQL的ODBC驱动啊。</p>
+<p>没错，Database – Migration Wizard，你是巫师也没用啊(☆-ｖ-)</p>
+<p>Source选择MS SQL，Connection Method选择ODBC(native)</p>
+<p><img src="/images/092717_1621_SQLServer10.png"></p>
+<p>目标就选择MySQL，很简单的设置。然后下一步选择数据库，一路下一步基本上……有的时候，你会卡在这：</p>
+<p><img src="/images/092717_1621_SQLServer11.png"></p>
+<p>不知道为啥这三个小圈圈都是空白的，没办法下一步。我保证test connection是没有问题的！（你信吗）</p>
+<p>有的时候通过了，下一步到某个步骤时……可能会报各种奇怪的错误！忘记截图了。至少我第一次的时候各种报错……</p>
+<p>好吧，其实我想说的是，这个Workbench其实是能用的，就是某一步不小心弄错了的话，就会失败，而且报错看不明白……</p>
+<p><img src="/images/092717_1621_SQLServer12.png"></p>
+<p>你看这不就在导入呢么……</p>
+<h2 id="用JetBrains全家桶的数据库工具导入csv文件"><a href="#用JetBrains全家桶的数据库工具导入csv文件" class="headerlink" title="用JetBrains全家桶的数据库工具导入csv文件"></a>用JetBrains全家桶的数据库工具导入csv文件</h2><p>打开一个JetBrains的IDE（要Professional的哦），view-toolbox-database，添加MySQL数据源。</p>
+<p>新建一个schema，右键-import data from file，选择我们的csv文件</p>
+<p><img src="/images/092717_1621_SQLServer13.png"></p>
+<p>之后出现窗口让我们定义这个表格的<strong>数据类型</strong>啊、<strong>列名</strong>什么的，列名双击可以更改数据类型，上下移动以及映射之后的列名。</p>
+<p><img src="/images/092717_1621_SQLServer14.png"></p>
+<p>推荐大家把write errors选中，这样如果出错，可以看日志。</p>
+<p>之后ok导入，速度还可以哈。</p>
+<p><img src="/images/092717_1621_SQLServer15.png"></p>
+<p>但是你看，最后我这里报错了，说这个类型无法转换成float，估计PyCharm是根据csv里第一列的数据来决定导入之后的每一列使用什么类型，于是就给某列判断成了float，没想到后面我的某个数据不是全数字的而带上了字母。</p>
+<p><img src="/images/092717_1621_SQLServer16.png">那就在上上个图里给Type改成Text或者varchar什么的就好啦（可以参考源数据库）</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>JetBrains的database工具真的是太好用了，支持很多数据库，功能也很强大，容错能力也很强。还要什么管理工具啊，有个它就完全足够了。</p>
+<p>如果你是学生有edu邮箱，快申请免费使用；</p>
+<p>如果你在大公司工作（尤其是外企），跟老板要去；</p>
+<p>如果你有钱，自己花钱订阅；</p>
+<p>如果你没有edu邮箱，老板不给买，还穷，那就<strong>很不地道</strong>的改时间骗骗JetBrains、用License Server激活吧。可不，我这一天都在尝试着把Java版的JetBrains License Server port到Python，然而怎奈学艺不精，原理都搞清楚了，就是跑不过测试用例……???</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/09/27/mssql-mysql/index/" data-id="clhp6he0k004jezqrhzpe64mf" data-title="从SQL Server导出海量数据到MySQL的新思路" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/10/17/krack/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/09/18/pixiv-gfw/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">别再对GFW抱有幻想了：写在pixiv被墙之际</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

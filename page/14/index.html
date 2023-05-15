@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="土豆不好吃">
+<meta property="og:url" content="http://example.com/page/14/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-nginx-jekyll-typecho/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/28/nginx-jekyll-typecho/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-28T00:00:00.000Z" itemprop="datePublished">2017-03-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/28/nginx-jekyll-typecho/index/">我和Nginx二级目录rewrite、Jekyll、Typecho的故事</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几天前<a target="_blank" rel="noopener" href="https://www.tougetu.com/">小蜗牛童鞋</a>决定从Jekyll回到Typecho，好像也没啥大不了的。好在这俩都是支持markdown的，笨方法就是复制粘贴手动处理下。 于是乎很快的上了HTTPS+HSTS+HSTS Preload List，随后不久发现问题来了。 在SEO上有这么个问题，原来的url都是形如<code>http://mingyueli.com/cn/2016/11/03/python-backup-script/</code>这样的，但是现在对应的URL却是<code>https://www.tougetu.com/2016/11/python-backup-script.html</code></p>
+<p>我们仔细观察下能发现，现在多了个<code>www</code>，少了个<code>cn</code>，少了个日期，最后少了个<code>/</code>多了个<code>.html</code> 原来的URL模式下Google已经收录了一些，现在的也收录了好些（好像是今天一天爬的），但是现在访问原来的URL会404，蜘蛛怎么会喜欢404呢？所以作为一个有灵性的码农，咱自然要处理下这个问题。我想了这么几个方案：</p>
+<p>1.原来的url管他什么的，就跳转到现在的主页； 2.对现在的永久链接格式进行一点修改，给加上日期这一行； 3.把原来的url完美跳转到现在的模式</p>
+<h2 id="1-直接跳转主页"><a href="#1-直接跳转主页" class="headerlink" title="1. 直接跳转主页"></a>1. 直接跳转主页</h2><p>第一个最简单了，直接在<code>mingyue.com.conf</code>中server段加个<code>rewrite ^/cn/(.*)/$ https://www.tougetu.com/;</code>就可以了。这样的话管他是啥样的，都给定向到首页了。 这样对搜索引擎倒是没太大事，但是访客们可能就懵逼了，我要看的博文咋变成首页了？通常来说大部分人在大部分情况下就会选择关闭了。</p>
+<h2 id="2-更改永久链接并跳转"><a href="#2-更改永久链接并跳转" class="headerlink" title="2.更改永久链接并跳转"></a>2.更改永久链接并跳转</h2><p>第二个方案需要进入Typecho后台，将永久链接（也就是固定链接啦）改成<code>/&#123;year&#125;/&#123;month&#125;/&#123;day&#125;/&#123;slug&#125;.html</code>，rewrite规则如下：</p>
+<p>rewrite ^&#x2F;cn&#x2F;(.*)&#x2F;$ <a target="_blank" rel="noopener" href="https://www.tougetu.com/">https://www.tougetu.com/</a>;</p>
+<p>访客们倒是能被重定向到对应的新博文，但是这样对SEO就有一些影响了，毕竟Google已经爬了好些，咱再改永久链接不好啊。</p>
+<h2 id="3-完美的解决方案"><a href="#3-完美的解决方案" class="headerlink" title="3.完美的解决方案"></a>3.完美的解决方案</h2><p>第三个方案则是最好的，rewrite规则如下：</p>
+<p>rewrite “^&#x2F;cn&#x2F;([0-9]{4})&#x2F;([0-9]{2})&#x2F;([0-9]{2})&#x2F;(.*)&#x2F;$” <a target="_blank" rel="noopener" href="https://www.tougetu.com/$1/$2/$4.html">https://www.tougetu.com/$1/$2/$4.html</a>;</p>
+<p>这样蜘蛛们也看不到404，访客们又能被重定向到新的正确的地址下。 头一次体验到了<code>/etc/init.d/nginx reload</code>是多么的有用</p>
+<h2 id="后续总结与思考"><a href="#后续总结与思考" class="headerlink" title="后续总结与思考"></a>后续总结与思考</h2><p>我对Nginx的了解也不多吧，但是通过这次，我至少知道了一点点rewrite的写法，下面总结一下备忘并分享给可能遇到了一样坑爹问题的童鞋们吧！ rewrite语法：rewrite regex replacement flag 第二个regex是正则表达式，第三个是替换之后，第四个是标志，有这么四个 1.last 相当于apache里面的[L]标记，表示rewrite。 2.break本条规则匹配完成后，终止匹配，不再匹配后面的规则。 3.redirect 返回302临时重定向，浏览器地址会显示跳转后的URL地址。 4.permanent 返回301永久重定向， 浏览器地址会显示跳转后的URL地址。</p>
+<p>在正则中如果需要使用{}则需要用双引号或者是单引号把正则扩起来（因为nginx中{}标志着块的结束和开始）</p>
+<hr>
+<p>所以，上面我这一串正则<code>^/cn/([0-9]&#123;4&#125;)/([0-9]&#123;2&#125;)/([0-9]&#123;2&#125;)/(.*)/$</code>含义就是： 匹配&#x2F;cn&#x2F;开头的、0到9数字出现四次、&#x2F;、0-9数字出现2次、&#x2F;、0-9数字出现两次、&#x2F;、任意字符、&#x2F;结尾 再看下我们原始的URL <code>http://mingyueli.com/cn/2016/11/03/python-backup-script/</code> 非常恰当的匹配上了，然后$1的含义就是第一对()中的内容，$2的含义就是第二对()，依此类推……所以$1&#x2F;$2&#x2F;$4也就对应这2016、11、 python-backup-script，组合起来也就是<code>2016/11/python-backup-script.html</code>，于是任务就结束咯。 当然这样也有一些还是无法处理，比如说后来自己改了url的……本大神虽说很厉害，但是这样也是很无奈的呀！</p>
+<p>所以说啊，学好正则简直太重要了嘛！正则表达式无处不在嘛！不会正则好意思说自己是用Linux的嘛，是吧。</p>
+<p>想当初我换域名和换二级目录的时候，我也是这么折腾过，只不过那时候不会用rewrite什么的。 所以总结就是，做好统筹规划工作，然后再干事吧！耶！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/28/nginx-jekyll-typecho/index/" data-id="clhp6he0t0059ezqradp59zjw" data-title="我和Nginx二级目录rewrite、Jekyll、Typecho的故事" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-encrypted-email/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/26/encrypted-email/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-26T00:00:00.000Z" itemprop="datePublished">2017-03-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/26/encrypted-email/index/">[新手向]使用Thunderbird + Enigmail 发送加密邮件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>这是一个为新手准备的从无到有的发送加密邮件的教程，老手请略过~</p>
+<p>我的公钥请戳导航栏</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/03/2017032611171183.jpg"><img src="/images/2017032611171183.jpg"></a></p>
+<h2 id="前言：为何要发送加密邮件"><a href="#前言：为何要发送加密邮件" class="headerlink" title="前言：为何要发送加密邮件"></a>前言：为何要发送加密邮件</h2><p>在电影《斯诺登》中，斯诺登就要求她的女朋友使用加密邮件和她通信，并且说，很简单，其实真的很简单。</p>
+<p>如今情况越来越变得严峻，加密邮件是保护隐私的重要手段之一。</p>
+<p>一些邮箱只提供不加密的SMTP&#x2F;IMAP&#x2F;POP3，这些通信过程无疑是具有被偷窥、劫持的风险的；有些提供了支持SSL&#x2F;TLS的SMTP，但是我们仍然无法保证服务器的偷窥、审查。</p>
+<p>保护隐私的理由大概不用说什么了。</p>
+<h2 id="第零步：使用条件、准备工具"><a href="#第零步：使用条件、准备工具" class="headerlink" title="第零步：使用条件、准备工具"></a>第零步：使用条件、准备工具</h2><p>考虑到广大读者都是使用Windows的，所以此次使用Windows下的Thunderbird + Enigmail作为示例。对于Linux、Mac OS，Thunderbird也是有的，基本操作也都是类似的。</p>
+<p>准备工具：<a target="_blank" rel="noopener" href="https://www.mozilla.org/zh-CN/thunderbird/">Mozilla Thunderbird</a></p>
+<p>没错就是小狐狸的那个Mozilla（不过Mozilla已经不再管Thunderbird了）</p>
+<p><img src="/images/firefoxdoge.gif"></p>
+<p>看我百变doge</p>
+<p>当然啦咱得准备个邮箱……</p>
+<p>为了方便起见，咱给Thunderbird的菜单添加出来。如图所示</p>
+<p><img src="/images/032617_1053_Thunderb1.png"></p>
+<h2 id="第一步：配置邮箱"><a href="#第一步：配置邮箱" class="headerlink" title="第一步：配置邮箱"></a>第一步：配置邮箱</h2><p>打开Thunderbird，在主页面选择创建新账户-电子邮件（或者右上角菜单-选项-账户设置-（左下角）添加邮件账户，会进入如图所示页面，我们输入自己的邮箱和密码</p>
+<p><img src="/images/032617_1053_Thunderb2.png"></p>
+<p>点击继续，有的时候Thunderbird无法找到正确的SMTP&#x2F;IMAP服务器，那咱就要手动配置下。具体的SMTP&#x2F;IMAP服务器，参考你的邮箱的帮助。</p>
+<p>[v_blue]腾讯企业邮是 smtp.exmail.qq.com 端口465 imap.exmail.qq.com 端口993 QQ邮箱是 smtp.qq.com端口465 imap.qq.com端口993[&#x2F;v_blue]</p>
+<p>正确填入信息之后，点击重新测试按钮。</p>
+<p><img src="/images/032617_1053_Thunderb3.png"></p>
+<p>之后点击完成，Thunderbird会验证密码</p>
+<p><img src="/images/032617_1053_Thunderb4.png"></p>
+<p>[v_tips]注意： 1.有些邮箱默认不开启SMTP、IMAP服务，有些邮箱默认需要一个特殊的动态密码才能够使用邮件客户端。遇到这种情况请查看对应邮箱的帮助和设置文档。 2.有时如果没有重新测试按钮，可能是因为启用了Enigmail扩展。请暂时将其禁用。 3.Thunderbird默认会把发送后的邮件保存到已发送文件夹，在某些邮件服务商下这一步骤可能会耗费很长时间，所以如果遇到类似问题，可以在账户设置中取消这个选项。 <img src="/images/032617_1053_Thunderb5.png">[&#x2F;v_tips]</p>
+<h2 id="第二步：安装Enigmail-扩展"><a href="#第二步：安装Enigmail-扩展" class="headerlink" title="第二步：安装Enigmail 扩展"></a>第二步：安装Enigmail 扩展</h2><p>在Thunderbird的菜单-附加组件中搜索Enigmail并安装。这一步大概是个人都会吧……</p>
+<h2 id="第三步：添加一对密钥"><a href="#第三步：添加一对密钥" class="headerlink" title="第三步：添加一对密钥"></a>第三步：添加一对密钥</h2><p>Enigmail-安装向导-我更喜欢扩展配置（其实普通的也行）。相信大部分用户都会有这么个提示：需要GnuPG什么的。</p>
+<p>咱就点上面的安装吧，之后他会为我们下载GnuPG并运行，咱只要无脑下一步就可以啦。</p>
+<p>之后，我们选择”我想为数字签名和加密邮件创建新的密钥对”，如下图所示</p>
+<p><img src="/images/032617_1053_Thunderb6.png"></p>
+<p>此时由于我们的Thunderbird只添加了一个邮箱，所以这里默认就是为这个邮箱创建密钥对。</p>
+<p><img src="/images/032617_1053_Thunderb7.png"></p>
+<p>这里需要输入一个密码，并且一定要牢记。</p>
+<p>点击下一步之后，就是等待。当进度条走到最后的时候，屏幕上会提示您的密钥已生成。此时如果不想生成证书废除，点取消-关闭就可以啦。</p>
+<p><img src="/images/032617_1053_Thunderb8.png"></p>
+<p>[v_blue]备注：无法下一步的原因是因为没有”创建证书废除”，所谓证书废除就是能够废除你的公钥的那个玩意，如果大家觉得有必要的话，生成也是可以的。[&#x2F;v_blue]</p>
+<h2 id="第三步：添加其他人公钥"><a href="#第三步：添加其他人公钥" class="headerlink" title="第三步：添加其他人公钥"></a>第三步：添加其他人公钥</h2><p>我们想要给其他人发邮件，必然要有其他人的公钥，所以这里大家得找个公钥，比如说我的公钥你可以<a target="_blank" rel="noopener" href="https://dmesg.app/my-gpg">这里下载</a></p>
+<p>下载完成之后，Enigmail-密钥管理-文件-从文件导入密钥，选择下载的公钥（通常扩展名是asc），之后在密钥管理器里面我们可以看见导入的公钥</p>
+<p><img src="/images/032617_1053_Thunderb9.png"></p>
+<h2 id="第四步：启用选定身份的邮件加密"><a href="#第四步：启用选定身份的邮件加密" class="headerlink" title="第四步：启用选定身份的邮件加密"></a>第四步：启用选定身份的邮件加密</h2><p>导入公钥之后，就可以发送加密邮件啦。这一步仅需要设置一次。点击新建消息，</p>
+<p>我们点击Enigmail的工具条中红框所示按钮，点击配置，</p>
+<p><img src="/images/032617_1053_Thunderb10.png"></p>
+<p>选择”为这个标识打开OpenPGP……”其他选项默认即可。</p>
+<p><img src="/images/032617_1053_Thunderb11.png"></p>
+<p>之后Enigmail会再次弹出来，问我们选择何种加密方式</p>
+<p><img src="/images/032617_1053_Thunderb12.png"></p>
+<p>我们确保勾选了”加密邮件”这个选项，其他默认不动，确定即可。</p>
+<p>[v_blue]注： 我们可以在选项-账户设置-OpenPGP中启用。操作方式是一样的。[&#x2F;v_blue]</p>
+<h2 id="第五步：附送公钥并发送邮件"><a href="#第五步：附送公钥并发送邮件" class="headerlink" title="第五步：附送公钥并发送邮件"></a>第五步：附送公钥并发送邮件</h2><p>在刚刚的新建消息页面，我们输入邮箱、主题、正文，确保工具栏中Enigmail提示已加密。然后菜单栏中选择Enigmail-附加公钥（或者直接点工具栏的附送我的公钥也可以），选择自己邮箱的公钥。之后发送即可。 [v_blue]注： 想要双向通信，就要让对方也持有你的公钥，否则这通信就会是单向的了。[&#x2F;v_blue]</p>
+<h2 id="第六步：查看加密邮件并回复"><a href="#第六步：查看加密邮件并回复" class="headerlink" title="第六步：查看加密邮件并回复"></a>第六步：查看加密邮件并回复</h2><p>我们打开Thunderbird并选择获取消息，会发现这么一个新的邮件</p>
+<p>我们只要点击标题，输入密码即可成功解密啦。</p>
+<p><img src="/images/032617_1053_Thunderb13.png"></p>
+<p>那么我们如何回复呢？简单的点击回复，输入正文，确保Enigmail提示此消息将被加密，发送即可。</p>
+<p><img src="/images/032617_1053_Thunderb14.png"></p>
+<h2 id="补遗和备注："><a href="#补遗和备注：" class="headerlink" title="补遗和备注："></a>补遗和备注：</h2><h3 id="我该如何导入别人的公钥呢？"><a href="#我该如何导入别人的公钥呢？" class="headerlink" title="我该如何导入别人的公钥呢？"></a>我该如何导入别人的公钥呢？</h3><p>我们可以从<strong>可信的地方</strong>（他的分享在HTTPS博客站上的公钥下载、密钥服务器、面交）、邮件附送的公钥<strong>确认这个公钥的合法性</strong>，之后在Enigmail的密钥管理中根据情况使用文件-从文件导入密钥、编辑-从剪贴板导入密钥、或者Thunderbird直接右键导入即可。</p>
+<h3 id="我该如何分享我的公钥"><a href="#我该如何分享我的公钥" class="headerlink" title="我该如何分享我的公钥"></a>我该如何分享我的公钥</h3><p>在Enigmail的密钥管理中，点击你的邮箱，选择导出密钥到文件，然后选择只导出公钥。之后你可以通过将这个文件贴到自己的博客上，存到U盘里等安全的方式来交换密钥。</p>
+<p><img src="/images/032617_1053_Thunderb15.png"></p>
+<p>[v_error]注： 可以将公钥的内容复制粘贴作为博文发布，但是WordPress处理五个-的时候会转义，敬请注意。[&#x2F;v_error]</p>
+<h3 id="密钥的信任是一个很重要的问题"><a href="#密钥的信任是一个很重要的问题" class="headerlink" title="密钥的信任是一个很重要的问题"></a>密钥的信任是一个很重要的问题</h3><p>这个可以算得上是社会学问题了，我们可以想象下如果用中间人劫持的手段对付公钥密码，将会是怎样的情景。</p>
+<h3 id="GnuPG能够保护的信息"><a href="#GnuPG能够保护的信息" class="headerlink" title="GnuPG能够保护的信息"></a>GnuPG能够保护的信息</h3><p>邮件正文以及附件。收件人、发件人、邮件主题都是<strong>无法被保护的</strong>。</p>
+<p>注意：只有PGP&#x2F;MIME才可以保护邮件附件（包括文件名）；内嵌PGP不可以。</p>
+<h3 id="Linux用户的另类方法"><a href="#Linux用户的另类方法" class="headerlink" title="Linux用户的另类方法"></a>Linux用户的另类方法</h3><p>使用Linux的用户，在导入了密钥之后，咱还可以用<code>gpg2 -d</code>来解密，<code>gpg2 –e -a</code>来加密。</p>
+<h2 id="在移动设备上的类似工具"><a href="#在移动设备上的类似工具" class="headerlink" title="在移动设备上的类似工具"></a>在移动设备上的类似工具</h2><p>这个……我只知道Android上有个APG可以用来解密、加密PGP Message……</p>
+<h2 id="备注……"><a href="#备注……" class="headerlink" title="备注……"></a>备注……</h2><p>如果你收到了enigmail发的邮件，但是自己只有cli的gpg，那么怎么办呢？直接把encrypt.asc解密了，扩展名改成eml，用任意的邮件客户端打开就可以啦</p>
+<h2 id="参考与其他"><a href="#参考与其他" class="headerlink" title="参考与其他"></a>参考与其他</h2><p>更多从参考资料，请阅读如下文章：</p>
+<p><a target="_blank" rel="noopener" href="https://securityinabox.org/zh/guide/thunderbird/windows/">https://securityinabox.org/zh/guide/thunderbird/windows/</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">https://dmesg.app/encryption-gpg-veracrypt.html</a> <a target="_blank" rel="noopener" href="https://getfreedom.life/191/">https://getfreedom.life/191/</a></p>
+<h2 id="最后的话"><a href="#最后的话" class="headerlink" title="最后的话"></a>最后的话</h2><p>大家快来给我发加密邮件吧！会发送加密邮件的都是大神哟！感谢某个可爱的小童鞋……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/26/encrypted-email/index/" data-id="clhp6hdyu0025ezqr05yhffsx" data-title="[新手向]使用Thunderbird + Enigmail 发送加密邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ssd/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/25/ssd/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-25T00:00:00.000Z" itemprop="datePublished">2017-03-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/25/ssd/index/">换固态的那点事</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>俗话说，前人种(wā)树(kēng)，后人乘(tiào)凉(kēng)。</p>
+<p>昨天下午的时候，有幸和<a target="_blank" rel="noopener" href="https://mingyueli.com/">小蜗牛</a>童鞋一起换了固态硬盘。俗话说得好，<strong>想要装逼的时候却总是失败</strong>。咱就把下午的事说一说，总结下吧</p>
+<p>俺呐，是双系统，已经用True Image备份了Windows和Ubuntu，放在了即将变成移动硬盘的那个硬盘里。（Ubuntu自带的备份工具简直狗屎，还不如我自己tar jcpvf呢）</p>
+<p>首先来看下我准备工具。</p>
+<p><img src="/images/032517_0253_1.jpg"> 哇，一整套螺丝刀，一个专门用来翘边的小东西（还有一张废弃的会员卡作为备用），移动硬盘盒。可谓装备齐全啊。</p>
+<p>哎小蜗牛童鞋你瞧哈。这个是硬盘，CPU，GPU（显卡），这个是无线网卡，这个是右侧坏掉的USB，始终没修好……这个是内存，两边往下一按就能弹出来了，下面的是4G的手里的是8G的（我的手那个抖啊太激动了），总之就是一顿介绍嘛。</p>
+<p><a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/motherboard.jpg"><img src="/images/motherboard.jpg"></a></p>
+<p>咱的目标就是，把主硬盘放到光驱位上，再把固态放到原来的硬盘上。为啥要这么折腾呢？因为华硕它抠门啊，光驱位就给3Gb&#x2F;s，硬盘位才是6Gb&#x2F;s，咱怎么能让传输速率称为性能的瓶颈呢？（麻利的拿起螺丝刀要去扭硬盘托盘的螺丝，越来越觉得不对劲，哎这玩意怎么这么难拧？后来发现太激动了应该拧右侧的固定螺丝）<img src="/images/032517_0253_3.jpg"></p>
+<p>好吧固态咱装完了，上盖开机恢复系统吧。咦？好像少了点什么？对，应该测试完再上盖的！<img src="/images/032517_0253_4.jpg"></p>
+<p>（“这手真嫩啊”，别看了就说你呢）</p>
+<p>滴滴滴！老司机竟然有报警声。什么情况？开盖！使用<strong>排除法</strong>，先拿了机械硬盘，再拿了固态，依旧滴滴滴。莫非…内存问题？把内存拔了重新插，哎嘿还真是。我……草泥马都hold不住了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/03/2017032503145693.png"><img src="/images/2017032503145693.png"></a></p>
+<p>然后咱只剩下两个任务了，恢复系统</p>
+<p>拿True Image恢复备份，咱得先把旧硬盘搞成移动硬盘啊。</p>
+<p>竟然没法扣盖（晚上才发现我正反面弄错了），插上USB口，竟然咔咔咔的不转！啥情况？换到USB2.0好了……敢情这丫是嫌弃我电压高啊？ 当然啦，EFI分区什么的咱都先创建好呢。</p>
+<h2 id="恢复Windows"><a href="#恢复Windows" class="headerlink" title="恢复Windows"></a>恢复Windows</h2><p>方法就是，用True Image恢复备份到固态硬盘，然后修复引导。</p>
+<p>不知为何竟然修复失败，固态硬盘里的文件也都没有权限。奇怪了我也没开EFS、BitLocker啊。</p>
+<p>那就重装Windows 10吧，然后再用True Image恢复。成功。</p>
+<h2 id="恢复Ubuntu"><a href="#恢复Ubuntu" class="headerlink" title="恢复Ubuntu"></a>恢复Ubuntu</h2><p>恢复Ubuntu的方法挺多的。仿造Windows，用U盘重装Ubuntu，然后True Image恢复。果不其然，grub rescue了。这就给我了一个学习的机会，咋应对grub rescue呢……</p>
+<p>咱Linux就是好玩，咱运行时就能备份，哪像瘟斗士嘛……</p>
+<p>[v_blue]“信不信我能把rm给rm了(<code>sudo rm /bin/rm</code>)？信不信我自杀给你看（<code>sudo rm –rf /</code>）？信不信我把你<a target="_blank" rel="noopener" href="https://www.reddit.com/r/linux/comments/43ls7j/no_post_after_rm_rf_systemd_uefi/">固件毁了？</a>“窝在角落里的Linux发行版说到。 “这不是我的锅，我不背”Systemd和MSI一同忧郁的说到。[&#x2F;v_blue]</p>
+<p>先说下我的环境吧。UEFI+GPT，SSD被Linux识别成sdb，sdb1是EFI分区，sdb2的Windows，sdb3是ext4的&#x2F;，所以咱grub rescue咱这么干呐</p>
+<p>set prefix&#x3D;(hd1,gpt3)&#x2F;boot&#x2F;grub&#x2F;<br>set root&#x3D;(hd1,gpt3)<br>insmod normal<br>normal</p>
+<p><img src="/images/032517_0253_5.jpg"></p>
+<p>这四句话的意思就是让grub知道该去哪里找各种启动过程中必须的文件，输入最后一个<code>normal</code>的时候，应该就见到了常见的grub引导界面，此时选择Ubuntu，等那么几分钟……哎嘿，<code>emergency mode</code>了。为啥呢？因为内核无法挂载文件系统啊。为啥无法挂载啊？因为……</p>
+<p>别说了咱看下<code>/etc/fstab</code>吧，果然啊……磁盘的UUID改了，知道病因那就好办了。要么用<code>blkid</code>看下新的UUID，把fstab改正确了，要么直接用<code>/dev/sdb1</code>这种形式</p>
+<p>看我改动的痕迹！</p>
+<p><img src="/images/032517_0253_6.png"></p>
+<p>然后就都正常啦。不过重启依旧会grub rescue。不怕，咱进Ubuntu装个boot-repair或者<code>grub-install</code>，就可以啦。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>感谢可爱的小蜗牛童鞋的拍照、看管螺丝和数不清的❤</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/25/ssd/index/" data-id="clhp6he220083ezqrbt25do4x" data-title="换固态的那点事" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-sheep-idiot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/10/sheep-idiot/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-10T00:00:00.000Z" itemprop="datePublished">2017-03-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/china/">china</a>►<a class="article-category-link" href="/categories/china/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/10/sheep-idiot/index/">拿破仑的羊</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在<a target="_blank" rel="noopener" href="https://dmesg.app/takedown-on-github.html">GitHub government takedown on programthink&#x2F;zhao</a>时，我曾经说自己有点过气。今天再次说自己过气，这事都过去了十几天了，我才开始写，要么就是反映迟钝，要么就是大器晚成吧，我觉得还是前者更好吧。</p>
+<h2 id="拿破仑"><a href="#拿破仑" class="headerlink" title="拿破仑"></a>拿破仑</h2><p>这个拿破仑啊，不是那个想当将军的士兵；这个拿破仑啊，来源于乔治奥威尔<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8A%A8%E7%89%A9%E5%BA%84%E5%9B%AD">《动物农场》</a>。</p>
+<p>动物农场的情节其实基本上可以说是在影射俄国十月革命至斯大林时代的苏联。 首先呐，动物们在人类的统治下生活苦不堪言，一头猪在提出了“人类剥削牲畜，牲畜须革命”的理论之后死去，若干年后农场里掀起了一场由猪领导的革命，原来的剥削者——农场主人被赶走，牲畜们实现了“当家作主”的愿望，尝到了革命的成果，农场更名为“动物庄园”并且制定了庄园的宪法——“七诫”。 但不久后领导革命的猪们发生了分裂，一头猪被宣布为革命的敌人。此后，获取了领导权的猪拥有了越来越大的权力和越来越多的优厚待遇，逐渐脱离了其他动物，最终变成和人类完全一样的牲畜剥削者，动物庄园的名字也被放弃。 在最后，其它的动物已经认为猪和原本的人类剥削者没有差别，分不清楚究竟哪个是人，哪个是猪了。</p>
+<h2 id="羊群"><a href="#羊群" class="headerlink" title="羊群"></a>羊群</h2><p>在《动物农场》中，有一个角色特别让人感到无奈与可笑，就是那群羊：他们盲目追随拿破仑，阻止反对拿破仑的声音。最开始一直在说“<strong>四条腿好，两条腿坏</strong>”后来变成了“<strong>四条腿好，两条腿更好</strong>”而丝毫不觉得矛盾。 羊群代表盲从政治宣传的无知民众。而今天我们要说的就是，羊群，生活在我们身边的羊群。</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>事情的起因也很简单，就是乐天把自家的地与韩国政府<strong>进行交换</strong>部署萨德，之后大陆官方和民众反韩、抵制乐天的行为便如“雨后春笋”般涌现出来。咱啊，不打算讨论萨德是个什么玩意，韩国为啥要部署萨德，为啥韩国民众游行抗议，为啥抵制韩国不抵制俄罗斯，为啥乐天和韩国政府是做交易而不是征地，金正男是咋死的，朝鲜又射了几枚导弹，是谁纵容朝鲜的，这些咱通通都不谈，这些咱留给那些热血青年们自己反思。咱今天只要谈谈脑残们的故事：过去了这么多年，脑残没变少反而<strong>变多、变得更严重</strong>了。</p>
+<h2 id="四年前的钓鱼岛"><a href="#四年前的钓鱼岛" class="headerlink" title="四年前的钓鱼岛"></a>四年前的钓鱼岛</h2><p>大概四年前，因为钓鱼岛而引发的<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/2012%E5%B9%B4%E4%B8%AD%E5%9B%BD%E5%8F%8D%E6%97%A5%E7%A4%BA%E5%A8%81%E6%B4%BB%E5%8A%A8">反日游行</a>大家应该还记得些吧。 如果大家回忆下，是否记得那个<a target="_blank" rel="noopener" href="https://theinitium.com/article/20161123-mainland-lijianli/">开丰田的至今生活不能自理</a>的可怜人？ 很抱歉这只不过是历史重演，是谁说的“历史总是惊人的相似”，是啊，<a target="_blank" rel="noopener" href="https://twitter.com/CorndogCN/status/811022925805424640">永远不知道吸取教训</a>历史不相似也只能全等了。</p>
+<h2 id="脑残的养成"><a href="#脑残的养成" class="headerlink" title="脑残的养成"></a>脑残的养成</h2><p>人民日益减弱的智商同先进的洗脑教材之间的矛盾</p>
+<h3 id="错误敏感的G点"><a href="#错误敏感的G点" class="headerlink" title="错误敏感的G点"></a>错误敏感的G点</h3><p>在春节期间，我曾写过一篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/gspot.html">《天朝民众的敏感G点》</a> 其中主要分析了G点的形成，提到了一些心理学概念。提到了洗脑教育、选择性失察、一致性原则等。但是……</p>
+<h3 id="双重思想"><a href="#双重思想" class="headerlink" title="双重思想"></a>双重思想</h3><p>除了G点的那些，还有一个非常著名的词语叫做“双重思想（Doublethink）”，别想了这话也是奥威尔首创的。双重思想是啥意思呢，就是同时接受两种相违背的信念的行为，然后内心还不觉得矛盾。好像是不是有些熟悉？比如说： 一边说中华民族是最伟大、最优秀的民族；一边说中国人的素质太低，不适合民主。 一边说人多力量大英雄母亲；一边说强制一胎严惩二胎。 再近一点，那些羊群们不就是先说“四条腿好，两条腿坏”而后说“四条腿好，两条腿更好”吗？还有数次改动的“七诫 ”。 用奥威尔的话说，对于统治阶层，双重思想也同样很重要：</p>
+<blockquote>
+<p>知与不知，知道全部真实情况而却扯些滴水不漏的谎话，同时持两种互相抵消的观点，明知它们互相矛盾而仍都相信，用逻辑来反逻辑，一边表示拥护道德一边又否定道德，一边相信民主是办不到的一边又相信党是民主的捍卫者，忘掉一切必须忘掉的东西而又在需要的时候想起它来，然后又马上忘掉它，而尤其是，把这样的做法应用到做法本身上面——这可谓绝妙透顶了：有意识地进入无意识，而后又并不意识到你刚才完成的催眠。即使要了解“双重思想”的含义你也得使用双重思想。</p>
+</blockquote>
+<h3 id="拿破仑的羊与天朝的脑残"><a href="#拿破仑的羊与天朝的脑残" class="headerlink" title="拿破仑的羊与天朝的脑残"></a>拿破仑的羊与天朝的脑残</h3><p>拿破仑手下的羊，倒是和脑残很多相似的地方，不会思考，盲从领导。每当有人试图抗议，他们都会大唱“四条腿好，两条腿坏”来阻碍他们；每当局势变化，他们总是坚定不移的占到拿破仑一边。别以为这样就能万事大吉了，该被拆还是被拆，棋子用完了就扔这个道理谁不懂。 历史总是惊人的相似，嘿嘿嘿……</p>
+<h2 id="避免成为脑残"><a href="#避免成为脑残" class="headerlink" title="避免成为脑残"></a>避免成为脑残</h2><p>至于成为脑残有何坏处，这大概不用说吧。<strong>丧失自己的思考能力</strong>，沦为附庸，被利用；恰如羊群只是拿破仑的棋子一样，作为脑残，也只是朝廷的工具，只不过是转移国内矛盾的工具而已。 如何避免成为脑残？其实说简单也简单，说复杂也复杂：<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">自由思想、独立思考、批判性思维</a></p>
+<h2 id="可笑的行为"><a href="#可笑的行为" class="headerlink" title="可笑的行为"></a>可笑的行为</h2><p>要么没人敢欺负我；要么你欺负我，我欺负你；要么你欺负我，我兄弟欺负你；最不济也是你欺负我，我欺负你兄弟；从来没听说过你欺负我，我欺负我兄弟这种模式。 这句话是几年前还在写博客的韩寒说的，这么多年过去了，看起来还是如此讽刺。</p>
+<h2 id="荒唐的抵制"><a href="#荒唐的抵制" class="headerlink" title="荒唐的抵制"></a>荒唐的抵制</h2><p>咱都是自私的，什么事肯定会下意识的本能的去保护自己，所以咱首先就要关心咱自己的利益和生命安全的问题。 你该抵制什么？很显然，雾霾要抵制，毒食品要抵制，污染要抵制，垃圾教育要抵制，医疗问题要抵制，天价房产要抵制。 可是脑残们并没有这么做，脑残们选择了去捏方便面、去砸车抢超市。<strong>选择性失察和双重思想</strong>再次发挥了无与伦比的作用。因为脑残们知道抵制雾霾等有危险。他妈的不敢！连个屁都不敢放！</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>本文篇章结构并不是很完整，逻辑性也略有欠缺，也许是因为：</p>
+<p>只是坐在窗前，搜寻你的身影。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/10/sheep-idiot/index/" data-id="clhp6he210081ezqra7sy9924" data-title="拿破仑的羊" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-vultr-change-plan/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/02/vultr-change-plan/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-02T00:00:00.000Z" itemprop="datePublished">2017-03-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/02/vultr-change-plan/index/">vultr大降价：论我是如何降配的</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨天<a target="_blank" rel="noopener" href="https://www.vultr.com/news/The-Vultr-Cloud-Is-More-Powerful-Than-Ever/">vultr降价</a>了，原来$5的768M、15G SSD变成了1024M、25G SSD，新增加了最低档的$2.5 512M、20G SSD，详情如下</p>
+<p><img src="/images/030217_0627_vultr1.png"></p>
+<p>作为一个穷人，咱自然是要选择最低档的啦，这样能省下来一半呢！遗憾的是vultr并<strong>不提供降配</strong>，而我又太喜欢目前的IP地址了，还懒得配置Nginx什么的，所以，咱要为了省钱而战斗！</p>
+<p>那些想选高档的，可以在Settings-Change plan中选择，多出来的硬盘和内存，不要白不要嘛。</p>
+<p>PS，如果想要注册vultr还不嫌弃我的ref的话，就戳这里吧<a target="_blank" rel="noopener" href="http://www.vultr.com/?ref=6864780">http://www.vultr.com/?ref=6864780</a></p>
+<h2 id="备份"><a href="#备份" class="headerlink" title="备份"></a>备份</h2><p>这一步不是必须的，但是，做一下备份又何妨，万一不小心弄错了数据丢了可就是哭爹也没用啦。</p>
+<p>我整理下我个人认为需要备份的东西，以Ubuntu为例：</p>
+<blockquote>
+<p>网站文件（我的存放在&#x2F;home下，使用tar –jcpvf保留权限）</p>
+<p>数据库备份</p>
+<p>Let’s Encrypt证书和配置</p>
+<p>Nginx配置文件</p>
+<p>crontab</p>
+<p>.bashrc</p>
+<p>update-motd.d（用于自定义SSH欢迎信息）</p>
+<p>authorized_keys（公钥）</p>
+</blockquote>
+<p>以及其他任何需要备份的文件。</p>
+<h2 id="做快照"><a href="#做快照" class="headerlink" title="做快照"></a>做快照</h2><p>咱要做个快照，因为在vultr上是可以用快照创建新实例的哦。</p>
+<h2 id="保留IP地址"><a href="#保留IP地址" class="headerlink" title="保留IP地址"></a>保留IP地址</h2><p>由于我对当前的IP地址情有独钟，于是就保留下。那些无所谓IP地址的人就不要管啦。</p>
+<p><a target="_blank" rel="noopener" href="https://my.vultr.com/ips/add/">https://my.vultr.com/ips/add/</a></p>
+<p>在页面下方点convert即可。</p>
+<p>好嘞，咱把旧的服务器destroy了吧，放心，快照还在的，哈哈。一定要确保备份都成功了哦，以防万一嘛。</p>
+<p>此刻，我的心有一种碎了的感觉。Blog is my life…</p>
+<h2 id="购买新实例"><a href="#购买新实例" class="headerlink" title="购买新实例"></a>购买新实例</h2><p>这部就不说了啊，去买个新的，对于我来说，也就是最便宜的那个。</p>
+<p>需要注意的是，在Server Type时记得选择你的快照，咱不能重新搭建各种环境吧，太费事啦。</p>
+<p><img src="/images/030217_0627_vultr2.png"></p>
+<p>之后Server Size选择最廉价的那款</p>
+<p>IP Address选择保留的那个。</p>
+<p>静静等待…这个过程有些漫长</p>
+<p>然后就可以了。好吧，完事了。复活了，就是这么简单。真是省心我还寻思着更改配置文件呢</p>
+<p>[v_error]注意： 如果你的快照特别大，大过了了你所选择的新实例的硬盘大小，可能会无法恢复。此时只能想办法把快照弄小点啦。[&#x2F;v_error]</p>
+<h2 id="后遗症"><a href="#后遗症" class="headerlink" title="后遗症"></a>后遗症</h2><h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><p>此时如果登录SSH，可能会有类似如下的警告：</p>
+<p><img src="/images/030217_0627_vultr3.png"></p>
+<p>都说了SSH把被中间人劫持的风险交给用户承担了嘛！</p>
+<h3 id="取消保留IP"><a href="#取消保留IP" class="headerlink" title="取消保留IP"></a>取消保留IP</h3><p>保留IP每个月要3块呢，这怎么行？</p>
+<p>咱点进去</p>
+<p><a target="_blank" rel="noopener" href="https://my.vultr.com/ips/">https://my.vultr.com/ips/</a></p>
+<p>点自己IP后面的铅笔，右上角的垃圾桶就可以啦。</p>
+<p>别急哦，24小时之后才能Un-reverse，所以咱就老老实实的花个7毛钱，设置个闹钟嘛，嘿嘿。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/02/vultr-change-plan/index/" data-id="clhp6he3h00b3ezqr735rc4rf" data-title="vultr大降价：论我是如何降配的" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-school-5/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/26/school-5/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-26T00:00:00.000Z" itemprop="datePublished">2017-02-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/26/school-5/index/">[学校上网系列]5.从设置密码中想到的：糟糕的密码</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>小葵花妈妈课堂开课啦，孩子什么老不好……这是本系列的第五篇文章，细心的朋友们可能发现，第四篇怎么被吃啦？噢其实<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">第四篇藏的比较深</a>，哈哈。</p>
+<p>今天我们主要讨论的问题是，密码：如何设置一个安全的、健壮的密码，以及一些保护账号安全的方式。</p>
+<p>[v_blue]小提示，这里说的密码，也就是口令，登录的时候输入的那个密码，不是公钥密码的那个密码，下面说密码、口令，都是指的这个，就不再赘述啦，嘿嘿嘿。[&#x2F;v_blue]</p>
+<p>六七年前，编程随想写过一篇<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2010/06/howto-prevent-hacker-attack-3.html">《如何防止黑客入侵[3]：如何构造安全的口令&#x2F;密码》</a>，尽管已经过去了这么多年，但他介绍的思路还是非常有参考价值的。</p>
+<p>在探讨怎么设置密码之前，咱必须得接近夸大其词般的给各位一个警告：大部分人所设置的密码，其实非常非常<strong>非常不安全</strong>；一部分公司&#x2F;网站的安全防护意识非常差。</p>
+<hr>
+<p>咱先大致说说，你的密码是怎么泄漏的吧！</p>
+<h1 id="你的密码是如何泄漏的？"><a href="#你的密码是如何泄漏的？" class="headerlink" title="你的密码是如何泄漏的？"></a>你的密码是如何泄漏的？</h1><h2 id="网站被黑、被拖库、SQL注入等"><a href="#网站被黑、被拖库、SQL注入等" class="headerlink" title="网站被黑、被拖库、SQL注入等"></a>网站被黑、被拖库、SQL注入等</h2><p>近几年来层出不穷的用户数据泄漏事件，估计大家可能有所耳闻吧。</p>
+<p>这一点最值得提出表扬的就是网易，要不怎么会被称作是”<strong>脱裤狂魔</strong>“呢。</p>
+<p>当然CSDN也一定要提一提，在<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/2011%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%AB%99%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%BA%8B%E4%BB%B6">2011年的泄密事件</a>中，CSDN那丫的可是明文密码啊，这好歹还是个技术社区呢…</p>
+<p>国外的公司也没少被爆，什么雅虎啊Dropbox啊都没少被黑。</p>
+<p>要是公司脑筋正常的话，再怎么也会比较有良心的把密码hash一下。但是，如果哪一天出了安全问题，数据库被拖下来，那么黑客可以对散列值运用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%BD%A9%E8%99%B9%E8%A1%A8">彩虹表</a>，对待大部分比较简单的密码，还是很容易就还原出来明文的。</p>
+<p>PS，仅仅hash是远远不够的，把散列值再hash再hash再hash也是不够的，因为大部分散列函数的运算速度往往是非常快的。安全性比较高的方式之一是使用随机盐配合安全的散列函数。</p>
+<p>近日看到一个新闻，Google找到了<a target="_blank" rel="noopener" href="http://www.solidot.org/story?sid=51474">有效碰撞SHA-1的方法</a>，足以载入史册的一次尝试，这么多年，SHA-1终于也要步入MD5的后尘啦。这不，写文章这功夫，<a target="_blank" rel="noopener" href="http://www.solidot.org/story?sid=51473">cloudflare也被干了</a>，<a target="_blank" rel="noopener" href="https://blog.cloudflare.com/incident-report-on-memory-leak-caused-by-cloudflare-parser-bug/">暴露了客户的机密信息</a>。 不得不说， 能够在第一时间把出现的问题公布出来，这种精神值得赞扬；而不像某些公司藏着掖着以为会有不透风的墙。</p>
+<h2 id="木马、后门"><a href="#木马、后门" class="headerlink" title="木马、后门"></a>木马、后门</h2><p>十几年前曾经流行QQ盗号木马，近几年甚至出来了<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/XcodeGhost%E9%A3%8E%E6%B3%A2">XcodeGhost</a>、<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2016/08/Trojan-Horse-DCM.html">黑暗幽灵</a>这种高级的后门、木马。真是应了范伟的那句话，防不胜防啊！</p>
+<p>不知道XcodeGhost是不是借鉴了C语言他爹们的设想。</p>
+<h2 id="不安全的传输"><a href="#不安全的传输" class="headerlink" title="不安全的传输"></a>不安全的传输</h2><p>假如网站在登录的时候，没有使用HTTPS，那么传输过程中就是<strong>明文</strong>的，<strong>中间人&#x2F;窃听者</strong>极有可能获取到用户输入的密码（即使是hash之后的也十分危险）；假如网站只在登录过程中使用HTTPS，其实也是很危险的，中间人&#x2F;窃听者如果获取到cookies，也就基本上等同于知道密码了；哪怕是一个纯静态的、没有HTTPS的网站，中间人也可以改掉网站的某部分内容（外观啊，链接啊什么的），将访问者引入钓鱼网站等等。</p>
+<p>这也是我一直极力推崇<strong>全站HTTPS</strong>的原因，<strong>无论敏感信息是否存在，哪怕是纯静态，也要使用HTTPS</strong>。使用HTTPS的价值不仅仅在于对访客负责这种责任感，还可以防止运营商薅羊毛等等。</p>
+<p>这一点不仅仅适用于网站，任何登陆场合，如果使用了不加密的、不安全的协议，那么都是非常危险的，比如说…<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Telnet">telnet</a></p>
+<p><img src="/images/022517_0411_51.png"></p>
+<p>网易，我干你全家</p>
+<h2 id="暴力破解"><a href="#暴力破解" class="headerlink" title="暴力破解"></a>暴力破解</h2><p>一些网站系统的后台提供的API或者是什么，并<strong>不限制登录尝试的次数</strong>，比如说WordPress有一个xmlrpc.php啦，早期某邮箱POP3随意暴力破解啊。</p>
+<h2 id="钓鱼"><a href="#钓鱼" class="headerlink" title="钓鱼"></a>钓鱼</h2><p>没有小锁头的地址栏是不可信的，I1l0oO是很难分清的，在本系列的前一篇文章《<a target="_blank" rel="noopener" href="https://dmesg.app/school-2.html">从钓鱼网站中想到的：不靠谱的域名》</a>已经比较完善的提到了这个问题，这就不说了。</p>
+<h2 id="一不小心说走嘴"><a href="#一不小心说走嘴" class="headerlink" title="一不小心说走嘴"></a>一不小心说走嘴</h2><p>这种事情一般来说比较罕见，但是对于程序员这圈，可能会比较常见。比如说我根据七牛的SDK写了个客户端，上传源代码的时候不小心忘记改掉API Key，比如说写博文发图的时候不小心泄露了MySQL的密码……反正我干过。</p>
+<p>这事，不想不知道，一想吓一跳吧！</p>
+<p>使用git以及其他版本控制的童鞋们要注意啦，假如你不小心泄漏了敏感信息，不要以为删除、修改、commit、push什么的万事大吉了，哪怕没人看过，这也是非常危险的(更何况在渗透的第一步搜集信息中，git可是重点关注对象，所以自然有大把的自动化工具)。为啥？版本控制啊，这玩意生来就是为了能够穿梭于每次历史记录啊…时光机一般的存在。办法之一是，就是尽快改掉对应的Key、密码什么的；办法之二是新建一个临时分支，始于敏感信息之前，然后切换到临时分支，把原来的master分支删掉，再从临时分支新建为master分支然后push修改过后的代码，基本就是这么个理论步骤吧；办法之三是用类似<code>git filter branch</code>或者是专用工具清除历史记录。</p>
+<hr>
+<p>还有一些非技术手段，比如说偷窥、欺骗、盗窃、内部泄露啊，这就太非主流了，不予详述，咱也不说怎么防范这种类型的泄露。</p>
+<p>说到偷窥，斯诺登输入密码的时候会用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%AC%AC%E5%9B%9B%E5%85%AC%E6%B0%91">布料给自己遮进去</a>。</p>
+<p>总之吧，我们要时刻记得，咱的密码，<strong>有可能正处在危险之中</strong>。既然服务商可能无法提供足够好的安全保障，即使咱们的某个密码不知道为何泄露了，我们也要保证其他账户是安全的（听着有点前向安全的感觉）、也就是抵抗撞库。</p>
+<hr>
+<p>下面我们就走入正题，谈谈不安全的密码使用方式、怎样设置安全的密码、怎样保护密码和设备。</p>
+<h1 id="不安全的密码使用方式"><a href="#不安全的密码使用方式" class="headerlink" title="不安全的密码使用方式"></a>不安全的密码使用方式</h1><p>由于咱们人类记忆力有限，还都喜欢偷懒，就总会喜欢设置种种简单到弱智的密码、或者是为了图方便使用了不安全的保存密码方式。这事啊，谁不曾年轻？下面的这些事，我基本上都干过、或者是看着别人干过，好吧。咱不能因为咱的账号没有价值、不值钱，就不去保护、甚至诋毁接近于给自己添堵的”设置安全密码的方式”，是吧。</p>
+<h2 id="弱密码（弱口令）"><a href="#弱密码（弱口令）" class="headerlink" title="弱密码（弱口令）"></a>弱密码（弱口令）</h2><p>尽管123456、888888、abc123、iloveyou、147258369、qazwsxedc（基于qwer键盘）的弱口令已经是要被说烂了，但是咱这还得说下，<strong>大部分情况下</strong>，弱口令是不可取滴….这种方法十分容易遭到字典攻击和暴力破解。</p>
+<h2 id="一个密码走天下"><a href="#一个密码走天下" class="headerlink" title="一个密码走天下"></a>一个密码走天下</h2><p>咱人类的记忆力远远比不上机器，所以很多人都习惯一个密码、或者是几个密码走天下，其实这样是<strong>非常危险</strong>的。假如某个密码被破解了，那么黑客就可以拿去撞库，这基本上意味着全线崩盘。</p>
+<h2 id="使用生日、手机号等作为密码"><a href="#使用生日、手机号等作为密码" class="headerlink" title="使用生日、手机号等作为密码"></a>使用生日、手机号等作为密码</h2><p>使用生日、手机号来设置纯数字密码也是<strong>非常不安全</strong>的，活着的人都差不多是近100年的，手机号也不过是11位，对于暴力破解程序来说，这都是没太大差别的，几乎就是不太长的时间问题。尤其是当数据库被拖下来之后，配合彩虹表简直不要太爽。</p>
+<p>值得一提的是，有的人认为，我在生日之后加个标识性的东西，就可以增加破解难度了，比如说我的手机号是10086，在微博注册，那么密码就是10086weibo。听着好像有点道理，但实际上这也是欠妥的，因为黑客只要破解掉一个，就能发现你的规律，那么他大概也就能猜到你的QQ密码是10086QQ，以此类推。</p>
+<h2 id="与用户名相同的密码"><a href="#与用户名相同的密码" class="headerlink" title="与用户名相同的密码"></a>与用户名相同的密码</h2><p>由于咱人类健忘，所以有些人就把用户名作为密码，这还用说嘛，太危险啦。</p>
+<p>值得称赞的是，有些公司已经禁止这样设置密码了（微软甚至禁止设置历史密码）。</p>
+<h2 id="在用户名中包含个人信息"><a href="#在用户名中包含个人信息" class="headerlink" title="在用户名中包含个人信息"></a>在用户名中包含个人信息</h2><p>有很多人习惯在用户名（或者是什么微信号啊微博啊什么的）添加上个人信息，比如说teddy930612，这样咱就知道了他的生日是93年6月12日，诸如此类。</p>
+<p>严格来讲，这一点可能会对密码安全造成一定的威胁，至少也会泄露一定量的个人隐私。有的时候咱后知后觉，没办法改用户名什么的，那也没办法啦，只能<strong>趁着羊还没死的时候补住漏洞</strong>咯。</p>
+<p>这一点有些说跑题了，很容易就提到了个人隐私、社会工程学的问题，现如今在网上，身份的耦合度有些太高了，很多情况下，给我一个账号，很容易找到他的几乎所有账号。假如此人恰巧一两个密码走天下，那你懂的。</p>
+<p>或许改天可以再开一贴谈谈社会工程学与隐私吧。</p>
+<h2 id="不安全的保存凭据"><a href="#不安全的保存凭据" class="headerlink" title="不安全的保存凭据"></a>不安全的保存凭据</h2><p>标题很难懂，我的意思是，很多人习惯把账号密码写到记事本上（手写），这样假如被盗、遗失，那所有的账号就都危险啦；</p>
+<p>有些人喜欢把密钥、登录凭证、甚至是升级版的”手写记事本”等东西存到U盘里，那U盘被借走、遗失的情况下，这些安全性也就跟着打水漂啦。</p>
+<h2 id="使用不安全的、有问题设备-x2F-软件"><a href="#使用不安全的、有问题设备-x2F-软件" class="headerlink" title="使用不安全的、有问题设备&#x2F;软件"></a>使用不安全的、有问题设备&#x2F;软件</h2><p>这一点似乎是最容易被忽视的，假如你使用的键盘，并不直接插到USB口的，而是有一个像是转接器一样的东西再插到USB上，那么就相当于有硬件”键盘记录器”了，所有的密码就拜拜啦；假如你使用的路由器会悄悄上传用户隐私、或者存在漏洞，或者是你使用的软件总是没事就扫描你的硬盘替你看看有没有老师们，再或者是没节操的输入法。隐私拜拜，也就意味着密码安全会受到一定的威胁。</p>
+<p>上面举的这三个栗子，都是真实存在的，好奇的猫咪们可以自己问问Google胡萝卜的事情（<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%B0%B7%E6%AD%8C%E4%B8%AD%E5%9B%BD#.E6.95.8F.E6.84.9F.E8.AF.8D.E6.8F.90.E7.A4.BA.E6.9C.8D.E5.8A.A1">g.cn和胡萝卜的故事</a>哈哈哈）。</p>
+<p>这一点我们似乎很难避免，因为我们总要跟各种硬件软件打招呼，但是至少我们可以采取多使用开源的东西、使用有骨气的大厂的产品来<strong>最大程度规避风险</strong>，比如说咱把路由器原厂固件刷成openwrt啦，换用nexus或者是刷成cm啦等等。</p>
+<p>停！跑个题，难道开源软件就没有危险了吗？难道你看到源代码、源代码经过安全审计就没有危险了吗？不，并不是这样的，使用开源会<strong>比较有效的降低风险。</strong>但是，汤普森老爷爷笑了笑，你们啊，图样图森破，听没听说过<a target="_blank" rel="noopener" href="http://ring0.me/2014/11/insert-backdoor-into-compiler/">Thompson hack</a>？想当初爷爷我可是能够毫无障碍登录贝尔实验室各种UNIX机器的，要问俺是谁，叫俺万能的天神就可以了….（此处鸟哥乱入）</p>
+<p>说句题外话：不得不说肯·汤普森和丹尼斯·里奇，毫不夸张的说这两位创造了整个计算机世界。令人难过的是，里奇于2011年去世；讽刺的是，有人听说C语言之父去世，惊呼，啥？谭浩强死了？</p>
+<p>提到汤普森，又得说，这老头子当年挺爱玩游戏，搞了个名为”星际旅行”的游戏，可是贝尔实验室撤走了Multics计划，没得玩了，于是艺高人胆大，自己写个系统玩呗…这都是为了玩个游戏啊，是吧。</p>
+<hr>
+<p>好了咱不怀念历史啦，来说正题。</p>
+<h1 id="怎样设置安全的密码"><a href="#怎样设置安全的密码" class="headerlink" title="怎样设置安全的密码"></a>怎样设置安全的密码</h1><p>如何设置密码，其实是非常深奥的，哪怕你现在没有死羊，想要全部改一圈密码，也是需要非常大的毅力和耐心的。</p>
+<p>咱先提一句，<strong>随机密码是最好的密码</strong>。</p>
+<p>假如我们的每个账号对应的密码都是随机的、没有任何规律的，那自然也就几乎不可能破解了，哪怕哪个傻逼网站明文存储，也只不过会影响到这组用户的安全性。恰如密码学中的”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%B8%80%E6%AC%A1%E6%80%A7%E5%AF%86%E7%A2%BC%E6%9C%AC">一次性密码本</a>“是无法被破解的一样，这种操作方式也是接近不现实的。咱人类咋能记住随机的玩意啊？比如说这玩意<code>yq0pkjQzBhHXewgPVkga</code>还有这玩意<code>2zG/LPTu1qRyikFCsCL3</code>，安全性倒是挺好，但是个人都记不下来嘛！（这俩是我使用openssl随机生成的）</p>
+<p>咱就想想别的办法。不知道大伙有没有看过一些电影，一些组织内部可能会存在分级管理的制度，那咱也可以对密码进行分级管理啊。咱要用<strong>最多的精力保护最重要的密码</strong>，二八原理嘛！</p>
+<ul>
+<li><em>一次性密码</em></li>
+</ul>
+<p>一次性密码就是用完就扔的意思，比如说有的时候得去那种必须回复才能下载附件坑爹论坛下载东西，随意注册一个，用完就扔，丢了被盗了忘记了也没什么损失。这个时候，也基本上不用考虑太大的安全性因素，随意设置个哪怕123456都是可以的。</p>
+<ul>
+<li><em>一般重要的密码</em></li>
+</ul>
+<p>这种密码，建议还要根据使用的程度来细分。有些密码可能重要，但是使用程度不太高；有些则恰恰相反。</p>
+<ul>
+<li><em>极其重要的密码</em></li>
+</ul>
+<p>这种密码，基本上就是一旦失窃、全线崩盘，比如说操作系统的密码啦，Google的密码啦等等。所以这类密码一定要用最强大的措施来保护。</p>
+<h2 id="构造复杂的密码"><a href="#构造复杂的密码" class="headerlink" title="构造复杂的密码"></a>构造复杂的密码</h2><p>咱暂且把分级制度抛在脑后，想想，如何构造一个安全的密码？</p>
+<p>包含数字、字母、特殊符号，这已经是老生常谈了。</p>
+<p>（以下前四个方法受启发于<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2010/06/howto-prevent-hacker-attack-3.html">编程随想</a>）</p>
+<h3 id="插入特殊字符"><a href="#插入特殊字符" class="headerlink" title="插入特殊字符"></a>插入特殊字符</h3><p>在密码中插入特殊字符将会提高暴力破解的难度，比如你原来的密码是<code>iloveyou</code>，那么插入之后就变成了<code>i-love-you</code></p>
+<h3 id="使用类似字符"><a href="#使用类似字符" class="headerlink" title="使用类似字符"></a>使用类似字符</h3><p>像a和@，9和g，1和!,0和o都是比较接近的字符，比如说我的密码是<code>gap100</code>，那么这么一转换就变成了<code>9@p!oo</code>，这密码强度还是不错的，就是不太好记。敬请注意，<code>p@ssword</code>是非常著名的弱口令哦。</p>
+<h3 id="数学等式和中英文转换"><a href="#数学等式和中英文转换" class="headerlink" title="数学等式和中英文转换"></a>数学等式和中英文转换</h3><p>比如说我的密码是<code>1023+1=1024</code>，强度本身就挺不错的，我转换成<code>1023+one=1024</code>，这样强度就更高了（这个…用英文拼写1024有点长）。</p>
+<h3 id="使用散列值"><a href="#使用散列值" class="headerlink" title="使用散列值"></a>使用散列值</h3><p>咱可以把某个至关重要的信息，比如说服务器的主机名叫做big，咱把big这个存到一个纯文本文档中（注意编码格式的各种坑啦），然后用散列函数hash下，然后取其中的前12位作为密码；另一个服务器叫做small，也是同理。当然啦，实际过程中这个字符串还是长点比较好。</p>
+<p>咱能发现，这两个散列值之间看不出来有什么联系，也没办再转换成明文。咱甚至可以给它迭代九九八十一回，是吧。</p>
+<p>需要注意的是<strong>尽量不要使用base64</strong>，因为base64的过程是可逆的。假如你要base64、base32来回四十九变，当我没说，在机器面前暴力破解这都是分分钟的事！</p>
+<h3 id="使用具有特殊意义的字符串"><a href="#使用具有特殊意义的字符串" class="headerlink" title="使用具有特殊意义的字符串"></a>使用具有特殊意义的字符串</h3><p>比如说，我和女友Marry相识于2016年12月9日北京天安门，咱就可以这么组合</p>
+<p><code>Benny+Marry==20161209+BeijingTAM</code></p>
+<p>各位就发挥想象力，搞个连Mary都猜不到的密码吧哈哈。</p>
+<p>构造了复杂的密码之后，咱们才能够使用更高级的方式呀！</p>
+<h2 id="使用密码管理器"><a href="#使用密码管理器" class="headerlink" title="使用密码管理器"></a>使用密码管理器</h2><p>顾名思义，密码管理器就是用来管理密码的一个东东啦。这有点像前面提到”把密码写到记事本上”，唯一不同的是密码管理器所存储的密码都是经过<strong>强加密</strong>的。</p>
+<p>所谓密码管理器，基本上就是使用一个主密码，然后使用它来<strong>生成、管理、保存</strong>足够强大的随机密码，所以我们只需要记住密码管理器的主密码并妥善保护，就够了。</p>
+<p>不过，值得注意的是，使用密码管理器，也就意味着把所有的鸡蛋都放到了”密码管理器”这一个篮子里，如果密码管理器的主密码被人破解了，服务器被人拖了，那么这些鸡蛋也就岌岌可危了。</p>
+<p>同时选择密码管理器也是一个学问，不仅仅要考虑到厂商的技术实力，还要考虑跨平台、费用等问题。口碑比较好的有1Password、LastPass等</p>
+<p><img src="/images/022517_0411_52.png"></p>
+<p>LastPass的随机密码生成</p>
+<p>[v_notice]</p>
+<p>注： 关于密码管理器，很多人都会有一些反对意见，是否使用密码管理器确实是个很纠结的问题。使用随机的安全，但是人记不住；使用密码管理器方便，但是还要担心“鸡蛋篮子”。</p>
+<p>就个人来说吧，我混合了这两种，并且全部启用了两步认证。</p>
+<p>[&#x2F;v_notice]</p>
+<hr>
+<h1 id="怎样保护密码和设备"><a href="#怎样保护密码和设备" class="headerlink" title="怎样保护密码和设备"></a>怎样保护密码和设备</h1><p>在构造了安全的密码之后，如果我们不费心思去保护它，那么恐怕效果是不太好的。</p>
+<p>移动设备这么流行，几乎人手必备，一部手机里所存储的隐私、机密信息已经远远超乎人们的想象了（这也是我支持苹果对着干FBI的原因之一）。毫不夸张的讲，<strong>给我他的手机，我能了解他的一切</strong>。而移动设备又往往很小，很容易失窃，这也往往会造成非常大的安全隐患。</p>
+<p>不得不说，iOS的安全性要比Android好多了。</p>
+<p>下面我就谈一谈，我是如何保护自己的密码和设备的。</p>
+<h2 id="开启两步验证"><a href="#开启两步验证" class="headerlink" title="开启两步验证"></a>开启两步验证</h2><p>所谓两步验证就是知道密码了还不够，还得需要另一种<strong>身份验证方式</strong>才能够成功授权登录，最常见的就是短信、语音验证码。在这里最值得推荐的就是Google Authenticator（身份验证器），每次登录都要打开验证器输入六位数字才可以成功登录。</p>
+<p>其实这也是一种”把鸡蛋都放在一个篮子里”，比较好的策略是把鸡蛋分配到多个篮子里，这需要自己找到一个篮子数量的平衡点。</p>
+<p><img src="/images/022517_0411_53.png"></p>
+<p>随时间随机变化的验证码</p>
+<p>注意：使用两步验证还是有一些坑的</p>
+<h3 id="1-保护好你的两步验证设备"><a href="#1-保护好你的两步验证设备" class="headerlink" title="1. 保护好你的两步验证设备"></a>1. 保护好你的两步验证设备</h3><p>如果我们的两步验证设备（通常是手机）丢了，那么别有用心的人就可以打开“身份验证器”，发现我们哪些设备开启了两步验证，然后尝试重置密码等。所以，两步验证设备必须要妥善保护，安全起见应该开启锁屏密码、存储加密、PIN码。</p>
+<h3 id="2-保护好随机码"><a href="#2-保护好随机码" class="headerlink" title="2. 保护好随机码"></a>2. 保护好随机码</h3><p>有些网站在你启用了两步认证之后，还会给你一组随机码（甚至只可以下载一次），这是用来在设备丢失之后恢复账户的。这个随机码和两步验证一样重要，一定要妥善保存。</p>
+<h3 id="3-可以考虑保存两步验证的二维码"><a href="#3-可以考虑保存两步验证的二维码" class="headerlink" title="3. 可以考虑保存两步验证的二维码"></a>3. 可以考虑保存两步验证的二维码</h3><p>在设备丢失之后，我们想要恢复两步验证可能比较麻烦。所谓未雨绸缪，我们可以在开启两步验证的时候将二维码图片保存下来并妥善保管，日后如果设备丢失，可以用另一个设备快速找回（此建议来自namesilo）；或者有多个手机可以考虑两个设备都扫描二维码（这同时也增大了保护设备安全的必要性）</p>
+<h2 id="锁屏密码"><a href="#锁屏密码" class="headerlink" title="锁屏密码"></a>锁屏密码</h2><p>锁屏密码就是顾名思义，好像没什么需要说的。锁屏密码是<strong>非常有必要的</strong>，因为在移动设备失窃的时候，锁屏密码就会成为<strong>第一道防线</strong>，有很多人会在记事本里记下很敏感的信息，有非分之想的人也可以轻松通过手机短信找回所有密码。如果想要清除锁屏密码，通常就需要恢复出厂设置，此时所有数据也被抹除了，虽说手机是别想找回来了，但是数据还是安全的嘛。</p>
+<p>“反正我的手机里也没什么隐私”的说法是不可接受的。人人都有隐私，你有不想让别人看到自己和闺蜜的照片、我有不想让别人看到我和学妹的聊天记录。这也是我们设置密码、发展密码学、支持强加密的原因；同理，”反正我也没有钱”的说法也是更难以接受的。</p>
+<p><img src="/images/022517_0411_54.png"></p>
+<p>撤销USB调试授权</p>
+<p>[v_blue]请注意：</p>
+<p>早期版本的Android如果开启USB调试，是可以通过adb工具清除锁屏密码的；最近版本的Android则需要解锁之后信任电脑，之后才会允许USB调试。既然不知道你的锁屏密码，也就无法使用USB调试清空掉锁屏密码，除非他把你电脑手机一起偷走、你还USB调试过。[&#x2F;v_blue]</p>
+<h2 id="SIM卡启用PIN码"><a href="#SIM卡启用PIN码" class="headerlink" title="SIM卡启用PIN码"></a>SIM卡启用PIN码</h2><p>这东西是啥，可能有些人不知道，以前功能机时代，这东西还是很流行的。SIM卡锁也就是PIN码，当手机向运营商鉴权的之后（通俗点将就是开机之后搜索信号的时候），将会要求用户输入一个4位的密码，输入正确才可以解锁并成功连接到移动网络；如果错误三次，SIM卡就会锁死，需要使用运营商提供的PUK码来解锁；如果PUK码再错10次，那这个SIM卡就会自毁，只能掏钱去补卡啦。当然啦，有些地方的营业厅，可能不会很仔细的鉴别客户身份…</p>
+<p>PIN码的特点就是，无论你把这张SIM卡插到哪部手机里，都是<strong>需要输入密码才能使用</strong>。</p>
+<p>很多人可能不理解这有什么用，有锁屏密码还不够吗？当然<strong>远远不够</strong>。</p>
+<p>假如你的手机丢了，我虽说解不开锁屏密码，但是我可以把SIM卡弹出来放到别的手机里，然后以此来一步一步收验证码重置支付宝密码啊什么的。</p>
+<p>不信吗？自己<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23100598">戳去看</a>咯</p>
+<h2 id="存储加密-x2F-全盘加密"><a href="#存储加密-x2F-全盘加密" class="headerlink" title="存储加密&#x2F;全盘加密"></a>存储加密&#x2F;全盘加密</h2><p>iOS用户可能要窃喜了，因为很早之前苹果就启用了<strong>全盘加密</strong>（估计是iOS 5左右吧）；而Google直到Android 6.0之后才强制要求厂商全盘加密，结果还是没太大效果。谁说跑分没用的！</p>
+<p>咱为啥要全盘加密呢，难道锁屏密码和PIN码还不够吗？当然不够了，假如有人把eMMC芯片抠出来、或者是使用某种技术克隆出来，那么手机里存储的东西自然也就跟着走啦。手机里的秘密那么多，是吧~</p>
+<p>开启全盘加密就可以对抗这种情况。</p>
+<p><img src="/images/022517_0411_55.png"></p>
+<p>一旦开启全盘加密，则无法关闭</p>
+<p> </p>
+<h2 id="其他注意事项"><a href="#其他注意事项" class="headerlink" title="其他注意事项"></a>其他注意事项</h2><p>许多人可能不理解，为什么我下载软件都会选择去官网？当然是怕XX管家给我加后门啦。假如我下载到了带后门的Chrome，那这也基本意味着全线崩盘。这也是为什么我使用Linux的原因，什么下载不下载的直接包管理器基本上就都解决了。</p>
+<p>当然，怎么下载软件、怎么判断自己是不是下载到了安全的软件、数字签名的知识等，这，咱留到下一篇《从下载软件中想到的：正确下载软件的姿势》再说啊~~</p>
+<h2 id="写后谈"><a href="#写后谈" class="headerlink" title="写后谈"></a>写后谈</h2><p>一不小心这篇就写了六七千字，估计可能是有史以来我写的最长的单篇原创博文吧。噢….白驹过隙，转眼已经加入<a target="_blank" rel="noopener" href="http://www.zmz2017.com/">人人影视</a>两年了…how time flies? </p>
+<p>咱毕竟不是一出生就知道这些，<strong>趁着羊没丢没死的时候，补住洞嘛</strong>。</p>
+<p>不知道读者有没有想改掉密码或者是增强保护的冲动？如果有，那敢情好，建议为自己<strong>创建一个密码分级管理机制，对不同等级密码使用不同的处理方式</strong>。</p>
+<p>或许有人会问，我给出了这么多思路建议，自己究竟做的如何呢？其实可能并不是固若金汤，但是重要的应用都已经开启了<strong>两步验证</strong>，比如说，微博你们就盗去吧，Twitter还是别想啦。</p>
+<p>最后，可能有些人会觉得，我有点想的太多，觉得我有<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%A2%AB%E5%AE%B3%E5%A6%84%E6%83%B3%E5%9E%8B">被害妄想症</a>，可能有人会质疑，你也不是坐拥百万的土豪，会有人来耗尽千辛万苦来偷你的密码吗？</p>
+<p>对待这种说法，我只能说，这种说法有点像”I have nothing to hide so I have nothing to fear”，呵呵。我没有钱并不能成为我不保护自己账号安全的理由。</p>
+<hr>
+<p>[v_notice]写完这篇博文的时候，突然听到一首歌，尽管我一个字都听不懂，但是听到他的声音和那种好似发自内心的呼唤的时候，感觉整个心都快碎了。这么多年了，听到他的声音，依旧还会为之颤动…[&#x2F;v_notice] <a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/Vitas%20-%20%D0%9F%D1%80%D0%BE%D1%81%D1%82%D0%B8,%20%D0%BF%D1%80%D0%BE%D1%89%D0%B0%D0%B9.mp3">https://o51bfbumd.qnssl.com/Vitas%20-%20%D0%9F%D1%80%D0%BE%D1%81%D1%82%D0%B8,%20%D0%BF%D1%80%D0%BE%D1%89%D0%B0%D0%B9.mp3</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/26/school-5/index/" data-id="clhp6he1w007lezqre86neekn" data-title="[学校上网系列]5.从设置密码中想到的：糟糕的密码" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-jekyll-nginx/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/19/jekyll-nginx/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-19T00:00:00.000Z" itemprop="datePublished">2017-02-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/19/jekyll-nginx/index/">Jekyll + Nginx 配置指南</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天突然心血来潮搞上了Jekyll，好吧，就是吃饱了撑的，只是花了一个多小时而已……使我异常惊奇的是，我这一搜啊，全都是怎么在GitHub Pages上玩Jekyll的，也没有找到在VPS上玩Jekyll的啊。真是哦！好吧，那咱就参考官方的文档，自己研究嘛！</p>
+<p>不过先解释下吧，为啥咱要在VPS上玩Jekyll啊？Pages不也很好吗？ 写博客和写代码是两种完全不同的创作，写代码往往需要耗费更多的精力与脑筋，而博客则不会这样… 重中之重是，自定义域名的情况下GitHub Pages<strong>不支持HTTPS</strong>（感谢评论区horo的指正<strong>）</strong>，Flexible SSL无异于掩耳盗铃。对于我来说，HTTPS是必须要有的，无论机密信息是否存在，我必须要对我的访客负责。而且我家这破网经常给我Reset！擦你丫的GFW啊。?? 其实我在<a target="_blank" rel="noopener" href="https://dmesg.app/reason-of-this-blog.html">《为什么我要写独立域名的博客》</a>中已经解释了大部分原因。这里也不多说啦。 [v_tips]关于“全站HTTPS”，我认为这是势在必行的，<a target="_blank" rel="noopener" href="https://fiveyellowmice.com/posts/2015/10/fight-a-peoples-war-for-https.html">《为 HTTPS 打一场人民战争》</a>[&#x2F;v_tips] 首先咱得先把Nginx啊，vhost啥的啊，都搞好，这个我就不说了，包管理器安装就可以，编译安装也可以，当然，我的小地方是支持HTTPS的，所以还需要配置SSL证书啊什么的。文末我会附上相关博文的。</p>
+<p>假定读者已经配置好了Nginx，那咱就开始玩玩《化身博士》吧！以Ubuntu 16.04为例，使用Jekyll 3.X</p>
+<h2 id="解决依赖问题"><a href="#解决依赖问题" class="headerlink" title="解决依赖问题"></a>解决依赖问题</h2><p>Jekyll需要这些环境：</p>
+<blockquote>
+<p>Ruby（including development headers, Jekyll 2 需要 v1.9.3 及以上版本，Jekyll 3 需要 v2 及以上版本） RubyGems Linux, Unix, or Mac OS X NodeJS, 或其他 JavaScript 运行环境（Jekyll 2 或更早版本需要 CoffeeScript 支持）。 Python 2.7（Jekyll 2 或更早版本）</p>
+</blockquote>
+<p>咱就挨个击破咯！</p>
+<p>sudo apt update<br>sudo apt install ruby-full<br>curl -sL <a target="_blank" rel="noopener" href="https://deb.nodesource.com/setup/_6.x">https://deb.nodesource.com/setup\_6.x</a> | sudo -E bash -<br>sudo apt install nodejs<br>gem install jekyll bundle</p>
+<p>好吧，这么简单的几步，Jekyll就好了。</p>
+<h2 id="创建Jekyll博客"><a href="#创建Jekyll博客" class="headerlink" title="创建Jekyll博客"></a>创建Jekyll博客</h2><p>之后咱们需要创建一个目录，用来存放Jekyll博客的目录，之后我们会让Jekyll build静态文件到webroot 简单起见，我们假设Jekyll博客存放在<code>/root/myblog</code>，webroot在<code>/home/wwwroot/example.com</code></p>
+<p>cd &#x2F;root<br>jekyll new myblog</p>
+<p>这样jekyll就会为你创建一个名为myblog的目录，这个目录里就有那些常规该有的<code>_site</code>啊，<code>_posts</code>啊等目录和文件了。怎么修改配置、增加插件、更换主题不在本文的讨论范围之内。 当然啦，咱也可以到GitHub上搜索一个用Pages的倒霉家伙，直接clone过来。 创建成功了之后，我们先build下试试，build是让jekyll根据设置生成静态的html等文件。</p>
+<h2 id="build到webroot"><a href="#build到webroot" class="headerlink" title="build到webroot"></a>build到webroot</h2><p>cd myblog<br>jekyll build</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/02/20170219100304100.png"><img src="/images/20170219100304100.png"></a></p>
+<p>通常来说这一步会顺利通过的，假如出现了报错，八成是少了这那的依赖，<code>gem install</code>吧。</p>
+<p>但是咱得把<code>_site</code>中的内容弄到webroot啊。来个cp或者mv？不是不行，就是太low</p>
+<p>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental</p>
+<p>参数<code>incremental</code>表示增量生成，这样万一哪一天有了百八篇，incremental会很省时间的。 然后大家就把写好的文章上传到_posts，来这么一句就行。 但是有没有一种感觉，还是太繁琐啊？不如试试下面这一句吧！</p>
+<p>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental –watch&amp;</p>
+<p>这样就把Jekyll丢后台并监视_posts的变化了，如果<code>_posts</code>中的内容改变，Jekyll就会自动build啦。甚至可以把这行加到<code>rc.local</code>中，这样重启也不怕了。 还等什么，按照</p>
+<p>年-月-日-标题.MARKUP</p>
+<p>比如说，</p>
+<p>2011-02-01-new-years-eve-is-awesome.md</p>
+<p>的形式上传文章到<code>_posts</code>里即可。</p>
+<p>当然，Jekyll也有很多自动化部署方式，除了上传文件这种，还有<code>Git post-update</code>钩子，<code>rsync</code>啥的，这里就不说了。</p>
+<hr>
+<p>当然啦，假如你要是想把某人的Pages克隆下来搞个马甲站（这样是非常不地道的行为，有节操的话还请把robots.txt设置成<code>disallow: /</code>)，咱可以写个极其简单的脚本这么玩</p>
+<p>再当然了，你能相信GitHub的服务吗？当然不能，万一哪天运维喝多了删库了遇上GitLab那样的事，波及到自己，就悲剧啦。备份不做，十恶不赦！</p>
+<p>#!&#x2F;bin&#x2F;bash<br>GIT_DIR&#x3D;&#x2F;root&#x2F;myblog&#x2F;.git git pull origin master<br>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental</p>
+<p>然后加入crontab即可。</p>
+<hr>
+<p>附：<a target="_blank" rel="noopener" href="https://dmesg.app/letsencrypt-nginx-subdomain.html">《Let’s Encrypt + Nginx&#x2F;Apache 配置指南》</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/19/jekyll-nginx/index/" data-id="clhp6he0a003vezqrah85ezih" data-title="Jekyll + Nginx 配置指南" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ubuntu-compile-vc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/10/ubuntu-compile-vc/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/10/ubuntu-compile-vc/index/">在Ubuntu下编译并使用VeraCrypt</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>VeraCrypt是个啥我就不说了，咱集中精力来谈谈如何在Ubuntu下编译并使用VeraCrypt [v_tips]提示： VeraCrypt有官方编译好的二进制包，可以自己下载。但是在这里为了练习编译软件的技巧，并使用最新版呢，我们选择手动编译。[&#x2F;v_tips] <a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/">VeraCrypt官网</a></p>
+<h2 id="一-下载源码"><a href="#一-下载源码" class="headerlink" title="一  下载源码"></a>一  下载源码</h2><p>有好几个地方可以下载源码</p>
+<p>[gb href&#x3D;’<a target="_blank" rel="noopener" href="https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt/_1.19/_Source.tar.gz'/]%E5%AE%98%E7%BD%91%E7%A8%B3%E5%AE%9A%E7%89%88%EF%BC%881.19%EF%BC%89/[/gb/]">https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt\_1.19\_Source.tar.gz&#39;\]官网稳定版（1.19）\[/gb\]</a></p>
+<p>[bb href&#x3D;’<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/SourceControl/latest#README.md'\]%E5%AE%98%E7%BD%91%E6%9C%80%E6%96%B0%E7%89%88%EF%BC%881.20%EF%BC%89\[/bb\]">https://VeraCrypt.codeplex.com/SourceControl/latest#README.md&#39;\]官网最新版（1.20）\[/bb\]</a></p>
+<p>[yb href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/VeraCrypt/VeraCrypt'/]GitHub">https://github.com/VeraCrypt/VeraCrypt&#39;\]GitHub</a> Repository[&#x2F;yb]</p>
+<p>[lhb href&#x3D;’<a target="_blank" rel="noopener" href="https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/'/]SourceForge/[/lhb/]">https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/&#39;\]SourceForge\[/lhb\]</a></p>
+<p>我就用官网的最新版为例了。</p>
+<p>然后给源码解压缩，切到对应的目录，这里就不多说了。</p>
+<h2 id="二-安装依赖"><a href="#二-安装依赖" class="headerlink" title="二  安装依赖"></a>二  安装依赖</h2><p>通过阅读readme，我们可以发现，在Linux下编译VeraCrypt需要这些依赖：</p>
+<blockquote>
+<p>GNU Make GNU C++ Compiler 4.0 or compatible NASM assembler 2.08 or compatible (x86&#x2F;x64 architecture only) pkg-config makeself (Linux only) wxWidgets 3.0 shared library and header files installed or wxWidgets 3.0 library source code FUSE library and header files</p>
+</blockquote>
+<p>想要使用VeraCrypt还需要dmsetup这个依赖，所以在这里直接安装了。</p>
+<p>sudo apt update<br>sudo apt install -y build-essential g++ nasm pkg-config makeself libwxgtk3.0-dev wx3.0-headers libfuse-dev fuse dmsetup</p>
+<p>反正是一个不差的安装了。PS，我是怎么知道这些软件包的名字的？<code>apt search</code>嘛…… [v_blue]请注意： 这些依赖在Ubuntu 16.04的源中都有，如果你选择的源有问题导致更新失败，可能导致一些依赖安装失败。[&#x2F;v_blue]</p>
+<h2 id="三-编译源码"><a href="#三-编译源码" class="headerlink" title="三  编译源码"></a>三  编译源码</h2><p>VeraCrypt的源码有<code>makefile</code>文件，所以我们直接<code>make</code>即可。</p>
+<p>切换到src目录，</p>
+<p>cd src<br>make</p>
+<p>提示：多核心处理器的用户，假如你是四核的，使用<code>make -j4</code>或者<code>make -j6</code>，选择一个恰当的并行数量并行编译会明显提高编译速度。但是请不要尝试使用<code>make -j10</code>——否则你的电脑会慢成狗。</p>
+<p>等待这功夫我讲个笑话吧：</p>
+<blockquote>
+<p>说有个施工队叫gcc，专门负责盖大楼。一天某开发商让他们盖个楼，盖完了之后开发商一看，说，一楼这大门的门把手图纸画错了，应该用圆的，怎么画成方的了？改了吧。施工队一听，赶紧下令：图纸画错啦，把楼炸了重新盖！虽说这样对于拉动GDP有很好的作用，但毕竟属于精神不正常的范畴。</p>
+<p>（摘自《笨兔兔的故事》，又名《Linux入门很简单》）</p>
+</blockquote>
+<p>估计你看完懂了啥意思，编译也差不多了</p>
+<h2 id="四-安装"><a href="#四-安装" class="headerlink" title="四  安装"></a>四  安装</h2><p>编译完成之后，屏幕上大概会有这样的输出结果</p>
+<p>self-extractable archive …..successfully created.</p>
+<p>之后我们就切到<code>src/setup/Linux</code>下，执行如下命令即可安装</p>
+<p>.&#x2F;VeraCrypt-1.20-BETA2-setup-gui-x64</p>
+<p>安装步骤很简单，依次选择<code>Install VeraCrypt，I accept，OK</code>,可能还需要你在新的窗口里输入密码，即可安装成功。</p>
+<p>在dash里直接打vera就能找到了（可能注销或者重启之后才有）</p>
+<p>之后VeraCrypt使用方法就和Windows下一样了，除了最后挂载的时候可能会让你输入当前用户的密码。</p>
+<p><img src="/images/021017_1318_UbuntuVe1.png"> [v_notice]友情提示： 我发现源码目录下有个Translations，我想把VeraCrypt汉化成中文版的，可以吗？ 非常抱歉的是，<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/wikipage?title=Language%20Packs">只有Windows版本的VeraCrypt才支持语言包</a>……[&#x2F;v_notice]</p>
+<h2 id="五-升级"><a href="#五-升级" class="headerlink" title="五  升级"></a>五  升级</h2><p>VeraCrypt的源码发出新版本了，我想升级，该怎么办呢？</p>
+<p>嗯……下载最新的源码，从步骤三开始。</p>
+<h2 id="六-使用方法与总结"><a href="#六-使用方法与总结" class="headerlink" title="六  使用方法与总结"></a>六  使用方法与总结</h2><p>关于VeraCrypt的使用方法，请戳很久之前写过的<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版密码学科普》</a>.</p>
+<p>下面我来总结一下在Linux编译软件的方法或者说是技巧吧！</p>
+<p>满足依赖，使用<code>configure</code>生成<code>makefile</code>（有些可能不是configure），执行<code>make</code>编译，然后<code>sudo make install</code>安装，基本上就是这么个步骤，如果还要更简洁，那么就是：</p>
+<p>读readme，根据readme里面的说明来。&#x2F;(ㄒoㄒ)&#x2F;~~ :arrow:</p>
+<h2 id="七-其他问题"><a href="#七-其他问题" class="headerlink" title="七  其他问题"></a>七  其他问题</h2><p>有童鞋可能想问了，对称密码的VeraCrypt我有了，那公钥密码在Linux下有好的选择吗？</p>
+<p>当然有啦！seahorse就是一个很好的选择</p>
+<p>sudo apt install seahorse-nautilus seahhorse</p>
+<p>注销后即可在鹦鹉螺右键看到哦！</p>
+<p>其他的GnuGPG前端，可以<a target="_blank" rel="noopener" href="https://www.gnupg.org/related_software/swlist.html">戳我参考这里</a></p>
+<p>[v_tips]提示： seahorse有个地方可能会让人感到困惑，当你用别人的公钥加密文件之后，你会发现自己双击也能打开。别担心，除了你和公钥持有者，别人都打不开的（会提示没有密钥）。[&#x2F;v_tips]</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/10/ubuntu-compile-vc/index/" data-id="clhp6he3600alezqrgyz192ai" data-title="在Ubuntu下编译并使用VeraCrypt" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ufw-iptables/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/10/ufw-iptables/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/10/ufw-iptables/index/">开启ufw导致断网不能ping? ufw和iptables的那些坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨晚不小心踩了一个坑，当开启ufw之后，电脑与外网的连接断开，明明ufw设置中incoming是allow、outgoing是deny，按理说应该能ping的…结果却全面断网，当然SSH也连不进来了…当把ufw禁用、或者把outgoing设置成allow，网络通信就恢复了，如动图所示。这是为啥捏？ 不好意思，动图被我删了，只能自己想象了? [v_blue]友情提示： 别说我”没加ping的allow规则”，我家ping是ICMP协议的，我家的ICMP协议是网络层的要比传输层的TCP、UDP低，所以我家ping是没有端口这一说法的。[&#x2F;v_blue]</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="我尝试的无效方案"><a href="#我尝试的无效方案" class="headerlink" title="我尝试的无效方案"></a>我尝试的无效方案</h3><p>我先尝试了<code>iptables -F</code>来”清空全部规则”，无效； 重启无效； 之后我尝试了<code>apt remove –-purge iptables ufw gufw</code>然后再安装，依旧无效。</p>
+<p>天呐purge都无效了？</p>
+<h3 id="真正的解决方案"><a href="#真正的解决方案" class="headerlink" title="真正的解决方案"></a>真正的解决方案</h3><p>我从DigitalOcean找到了解决方案</p>
+<p>首先，我们先把INPUT、FORWARD、OUTPUT这三个链的规则设置成ACCEPT免得把自己锁在门外：</p>
+<p>sudo iptables -P INPUT ACCEPT<br>sudo iptables -P FORWARD ACCEPT<br>sudo iptables -P OUTPUT ACCEPT</p>
+<p>然后，我们清除NAT、Mangle表，清除链，删除所有的非默认链</p>
+<p>sudo iptables -t nat -F        #清除NAT表<br>sudo iptables -t mangle -F    #清除mangle表<br>sudo iptables -F    #清除所有链的规则<br>sudo iptables -X    #删除非默认链</p>
+<p>此时如果我们<code>iptables -L</code>列出链和规则，会发现只剩下INPUT、FORWARD、OUTPUT这三个链了，如图：</p>
+<p><img src="/images/021017_0252_ufwping1.png"></p>
+<p>此时我们再<code>ufw enable</code>启用ufw，如果SSH请先<code>ufw allow 22</code>，就会发现没断网。</p>
+<p>如果这个时候<code>iptables -L</code>，会看到多出来很多链和规则</p>
+<p><img src="/images/021017_0252_ufwping2.png"></p>
+<p>童鞋们是不是觉得很奇怪，为啥这次就行了？我是咋重现的这个问题？</p>
+<p>在回答这个问题之前，我们首先要了解下ufw、iptables是什么，之后以及这二者之间的关系，简单的了解iptables的基本概念和基本运作原理。</p>
+<h2 id="ufw"><a href="#ufw" class="headerlink" title="ufw"></a>ufw</h2><p>Uncomplicated FireWall，不是Ubuntu FireWall哦，是debian系发行版中为了轻量化配置 iptables 而开发的一款工具。</p>
+<p>UFW和iptables一样都是<a target="_blank" rel="noopener" href="https://dmesg.app/semi-auto-blacklist.html">匹配原则</a>，匹配到了则忽略剩下的规则，这点就不废话了。</p>
+<h2 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h2><p>我们习惯性的会把iptables认为是Linux上的防火墙，自从Linux内核2.4之后就集成进主线内核。实际上准确是说，iptables是一个通过控制Linux内核的netfilter模块来<strong>管理网络数据包的流动与转送</strong>的应用软件，其功能包括不仅仅包括防火墙的控制出入流量，还有端口转发等等。</p>
+<p>iptables内部有<strong>表tables、链chains、规则rules</strong>这三种概念。</p>
+<p>iptables的每一个”表”都和不同的数据包处理有关、决定数据包是否可以穿越的是”链”、而一条”规则”在链里面则可以决定是否送往下一条链（或其它的动作）</p>
+<p>那一个包到达网卡的时候，Linux的如何处理的呢？</p>
+<p>我们提到了iptables是可以控制netfilter模块的，netfilter内部（主要、常用的）分为三个表，分别是 <strong>filter, nat, mangle</strong>，每个表又有不同的链（Chains），每个链下可以有不同的规则（rules）。</p>
+<h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><p>在filter（过滤）表中，也就是防火墙功能的表，定义了三个链。分别是<strong>INPUT, FORWARD, OUTPUT</strong>。也就是对包的<strong>入、转发、出</strong>进行定义的三个过滤链。对于这个filter表的操作和控制也是我们实现防火墙功能的一个重要手段；</p>
+<h3 id="nat"><a href="#nat" class="headerlink" title="nat"></a>nat</h3><p>在nat(网络地址转换)表中，也就是我们用以实现地址转换和端口转发功能的这个表，定义了PREROUTING, POSTROUTING,OUTPUT三个链；</p>
+<h3 id="mangle"><a href="#mangle" class="headerlink" title="mangle"></a>mangle</h3><p>netfilter的mangle表则是一个自定义表，里面包括上面 的filter以及nat表中的各种chains，它可以让我们进行一些自定义的操作，同时这个mangle表中的chains在netfilter对包 的处理流程中比较优先。</p>
+<h2 id="包在Linux中的前世今生"><a href="#包在Linux中的前世今生" class="headerlink" title="包在Linux中的前世今生"></a>包在Linux中的前世今生</h2><p><a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/Netfilter-packet-flow.png"><img src="/images/Netfilter-packet-flow.png"></a></p>
+<p>图片来自维基百科（太大了，戳大图吧）</p>
+<p>我们大致可以看出：包首先要由bridge check来判断属于链路层还是网络层，之后包都会遇到NAT或者mangle表的PREROUTING链，从这pre前缀咱能才出来，这是要在路由之前要过的链。</p>
+<p>接着当包通过了PREROUTING之后，便到了 decision这个分支点，这里有一个对目的地址的判断，如果包的目的地是本地,那么包向上走，走入INPUT链处理，然后进入LOCAL PROCESS，之后再进入对应的OUTPUT、POSTROUTING；</p>
+<p>如果非本地，那么就进入FORWARD链进行转发，之后再走POSTROUTING，我们在这里就不说FORWARD链的事了。</p>
+<p>我们可以看到，filter表在包的处理流程中，处于中间的位置，这部分也就是防火墙的主要功能所在。</p>
+<h2 id="ufw怎么和iptables一起合作的"><a href="#ufw怎么和iptables一起合作的" class="headerlink" title="ufw怎么和iptables一起合作的"></a>ufw怎么和iptables一起合作的</h2><p>在稍微理解了包是怎么走的之后，回到我们<code>iptables -L</code>的时候，我们看filter表，可以看到，ufw在<strong>INPUT、FORWARD、OUTPUT</strong>添加了好些自定义规则，并且添加了好些自己的链和链的规则，还把把INPUT、FORWARD默认策略设置成DROP <img src="/images/021017_0252_ufwping3.png"> 如图，当你有这些ufw定义的链的时候，是能够匹配到ufw链和规则，也就是正常入网的。</p>
+<p>当我们执行<code>iptables -F</code>的时候，会发生什么呢？</p>
+<p><strong>所有链的规则都被清空了</strong>！包括ufw的链！并且INPUT、FORWARD依旧是DROP</p>
+<p>再想想包的前世今生，OUTPUT我们发出了ping，但是却因为<strong>INPUT的DROP而永远无法收到ICMP echo</strong>，只能往出发包而不能接收任何类型的包，毫无疑问自然就断网了。</p>
+<p>此时<code>ufw status</code>还会告诉你在运行，但是当你使用<code>ufw disable</code>关闭ufw时，INPUT会被设置成ACCEPT，自然就恢复网络通信了；</p>
+<p>当你使用<code>ufw default allow</code>把默认出网规则设置成allow时，INPUT也会被设置成ACCEPT，当然网络通信恢复了。</p>
+<p>所以童鞋们自此应该理解了刚开始理解动图能够ping通和不通的原因吧！</p>
+<h2 id="使用ufw和iptables的警告"><a href="#使用ufw和iptables的警告" class="headerlink" title="使用ufw和iptables的警告"></a>使用ufw和iptables的警告</h2><p>最后给大家一个警告，当你使用了ufw这类前端时，就最好不要再碰iptables了，尤其要**慎重使用iptables -**来清空所有链的规则。在不了解iptables的表、链、规则之前，盲目的清空iptables”规则”就是耍流氓！</p>
+<p>试想，假如你在服务器上<code>ufw enable</code>，那么INPUT和FORWARD就是DROP，那么当你<code>iptables -F</code>时，不仅仅是SSH的例外规则没了，所有出网的包也都出不去了！此时唯一能做的事情就是去VNC、或者去机房插鼠标键盘显示器。</p>
+<p>假如你是买的服务器，为了安全考虑使用密钥认证，并且把用户名设置成了从openssl生成的随机密码，并且你是由Windows重装成的Linux，那么控制台也是没有用的……重装或者快照吧。</p>
+<p> </p>
+<p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules">https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules</a></p>
+<p><a target="_blank" rel="noopener" href="http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html">http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/10/ufw-iptables/index/" data-id="clhp6he3900atezqr8b8kdcum" data-title="开启ufw导致断网不能ping? ufw和iptables的那些坑" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-reason-of-this-blog/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/05/reason-of-this-blog/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-05T00:00:00.000Z" itemprop="datePublished">2017-02-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/05/reason-of-this-blog/index/">为什么我要写独立域名的博客</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>年前，<a target="_blank" rel="noopener" href="https://v2mm.tech/">自由职业者社区</a>发起了一场”博主交流会总结”，聊聊写博客有关的问题，邀请我进来一起讨论建国建博大业，我因为太害羞、不想多人视频给婉拒，嗯嗯~ o(<em>￣▽￣</em>)o。</p>
+<p>我为何要使用独立域名的博客，而不是使用CSDN、博客园、新浪博客甚至是BlogSpot等平台？</p>
+<p>要回答这个问题，首先要解决一个基础问题：</p>
+<p>我为何要写博客</p>
+<p>R0UTER曾经翻译过一篇文章，名为<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/836.html">《你应该写博客 —— Steve Yegge》</a></p>
+<p>作为一名非IT专业的民工（其实我是IT专业的，只是觉得自己太渣对不起这个专业，or&#x2F;and vice versa），我觉得写博客的过程完全就是一种最朴实的学习之路。</p>
+<h1 id="我为何要写博客？"><a href="#我为何要写博客？" class="headerlink" title="我为何要写博客？"></a>我为何要写博客？</h1><h2 id="写博客的动机"><a href="#写博客的动机" class="headerlink" title="写博客的动机"></a>写博客的动机</h2><p>某一年因失恋体验了”明朝散发弄扁舟”的感觉，后来，发现科学上网有点难哦，于是就去DigitalOcean买了个VPS，搭建起了Shadowsocks（不幸的是搭建完没几天clowwindy就被请走喝茶了）。搭建完了呢，觉得有些浪费唉，就又顺手搭建了一个博客玩玩，那时候我还在使用免费的cf域名。</p>
+<h2 id="写博客的过程"><a href="#写博客的过程" class="headerlink" title="写博客的过程"></a>写博客的过程</h2><p>最开始的时候，我以新用户的身份从阿里云免费领了一个15天的ECS，在那上开始真正接触到Linux命令。在此之前尽管我是双系统，但我的经验仅限于鼠标乱飘和不知道为何的<code>apt update</code>、<code>apt upgrade</code></p>
+<p>在真正开始动工搭建博客的时候，一切就都不同了——我不仅需要把储备的Linux知识全部拿出来用，还需要学习一些非常基础的网络知识，HTML，甚至需要知道如何利用终端来完成我的任务，哪怕是看《星球大战》。</p>
+<p>这就够了吗？不，我选择了一个 名为WordPress的CMS，选择这个CMS之后我花了好段时间对它的特性进行一些了解、选择了一个好看简洁的主题。</p>
+<p>或许这就够了？不，那时候我还没有统筹规划的想法，不知道自己内心在想什么，也不知道该如何像一国之君一样运营博客，也没给自己定下统一的排版标准——这直接导致了我后来花了很多时间重写甚至是删掉以前的博文。</p>
+<h2 id="写博客的结果"><a href="#写博客的结果" class="headerlink" title="写博客的结果"></a>写博客的结果</h2><p>转眼已经开博一年半了，我深深地认为：<strong>写文章本身就是对知识的一种梳理，在梳理的过程中更能学到更多的知识。</strong></p>
+<p>有的时候会有这样的感觉，你知道这种东西，但是让你用文字表达出来，你却写着写着就给自己说蒙圈了，甚至是噎住写不出来了。这是表达能力的欠缺。尽管一个人可能的表达能力可能不太好、技术水平很高，但是面试的时候，或者是一些不需要谦虚需要表现的时候，不表达出来不说出来，那可就是在说自己什么都不会呀。</p>
+<p>缺少历练，外加快餐文化、碎片式阅读乃至于封闭圈子（主要指微信）的恶劣影响—— 人们倾向于被那些可能居心叵测的大V们牵着鼻子走，人们倾向于groundless belief；人们越来越不会表达自己的想法，越来越不会给自己的想法找到可靠的根据，越来越被牢牢地拴在某个猪窝狗洞内。</p>
+<p>写博客的这一年半里，我越来越敢说出自己的想法，越来越敢立下flag，也因此而结实了一些志同道合的朋友、甚至是勾搭上了可能<strong>这辈子都无法忘记的那个人</strong> <strong>哦不是谁我不记得了</strong>。</p>
+<h2 id="写博客的目的"><a href="#写博客的目的" class="headerlink" title="写博客的目的"></a>写博客的目的</h2><p>如果有人要问，你写博客的目的是什么？其实总结起来还是很简单的，我希望能够在提升自己的知识水平的同时帮助到他人；我相信知识的自由与传播，我希望我能够变得更强。 但是写博客，在有些时候就好似信息的孤岛。如果没有评论系统，没有我和访客的交互，那么所有的一切真的就只是孤岛，只是留给我孤芳自赏。 而我，永远也无法忘记，我是因何认识了你。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>就目前为止，我是这个博客唯一的一名作者。尽管没什么名气，没什么访问量，也不是全职博主，我也依旧乐此不疲的写着博客。恰如博客曾经的副标题和footer所说，执着于心，谦和之中见卓越。</p>
+<p>为了历练自己、总结经验教训、做个记录、分享点经验、发点牢骚，可能还会装个逼、勾搭点妹子，我搭建了一个属于自己的自留地。</p>
+<p>可是问题是，为何我要选择独立域名的博客，而不是选择各种博客平台？为此我付出了时间、金钱和数不清的精力。</p>
+<hr>
+<h1 id="我为何要使用独立域名的博客"><a href="#我为何要使用独立域名的博客" class="headerlink" title="我为何要使用独立域名的博客"></a>我为何要使用独立域名的博客</h1><p>好吧，说了那么多”我为何要写博客”，下面咱来说说为啥我要选择独立域名的博客。</p>
+<p>最早的时候，大概四五年前，我还是一名 “能写出来深情文章的作者”，那时候还是高中，微信还没有这么火、微博也很少有人玩，那个时候韩寒还在写博客，我自然而然的就把QQ空间的日志作为了自己的”博客”，直到两年前，我还在QQ空间上发表一些所谓的”博文”。</p>
+<p> </p>
+<p>最终我还是放弃了它，并且也没有转入新浪博客、搜狐博客，技术性比较强的CSDN、博客园，甚至也没有转入现在大红大紫的微信公众号，而逆风选择了自己的独立域名博客。</p>
+<h2 id="为何我要选择独立域名？"><a href="#为何我要选择独立域名？" class="headerlink" title="为何我要选择独立域名？"></a>为何我要选择独立域名？</h2><p>所谓独立域名，就是形如example.com这样的，虽说俺不是很喜欢tk、cf、ml（啊好邪恶），但是好歹人家也算是独立域名，是吧…</p>
+<p>之所以选择独立域名，不仅仅是为了逼格…可玩性比较高，几乎没有限制。咱可以玩玩子域名，哪天搞出来一个love.bennythink.com表白多好玩嘛</p>
+<h2 id="为何选择VPS而不是GitHub-Pages"><a href="#为何选择VPS而不是GitHub-Pages" class="headerlink" title="为何选择VPS而不是GitHub Pages"></a>为何选择VPS而不是GitHub Pages</h2><p>提到独立域名，这里就要稍微<strong>跑题</strong>下，为何我选择VPS而不是GitHub Pages。</p>
+<p>原因其实很简单，我是一个追求个性的人，我希望我的发展不会被我使用的东西所限制：Pages上的限制稍微有一点多。</p>
+<p>诚然，GitHub Pages有很多优点，成本为零、博客是静态的，自带加速CDN，还能抗点DDoS，我无需去担忧数据库、安全、备份、维护等工作，我只管写，然后Push就好了。而且有了Git作为版本控制，我再也不用纠结于文章的历史等（当然别人也可以看到你所有写过的文章，包括自己嫌弃死的文章）</p>
+<p>同时Pages也有一些缺点，（对于大陆来说）访问可能不稳定CDN加成很厉害的哦、对搜索引擎不太友好、自定义程度偏低（Jekyll的插件需要做一些小工作才能在Pages上使用）、隐私保护略差（毕竟git 的历史记录）、评论有点困难。最重要的一点是，<strong>自定义域名</strong>的情况下，Pages不支持HTTPS哦不已经支持了。</p>
+<p>在这个<a target="_blank" rel="noopener" href="https://fiveyellowmice.com/posts/2015/10/fight-a-peoples-war-for-https.html">全站HTTPS的时代</a>，无论页面是否存在敏感信息，都应该不遗余力的使用HTTPS，这样不仅仅是对我的访客负责，也是对自己负责。HTTPS的目的不仅仅在于保护敏感信息的安全传输，还在于保护页面内容的完整性、避免运行商劫持加入广告。</p>
+<p>从某种程度上讲，Pages也好似另一种博客平台，只不过要比一般的平台的自定义程度要高一些（前提是你懂CSS和HTML等前端知识）。还有就是评论的问题，目前最好的解决方案就是disqus，然而disqus在大陆嘿嘿嘿了。所以嘛~~！</p>
+<p>当然啦，如果你爱死了静态博客、又无法忍受Pages的缺点，那最好的方案就是VPS上搞静态博客啊。</p>
+<h2 id="为何不选择博客平台而要搭建自己的博客"><a href="#为何不选择博客平台而要搭建自己的博客" class="headerlink" title="为何不选择博客平台而要搭建自己的博客"></a>为何不选择博客平台而要搭建自己的博客</h2><p>需要说明的是，博客平台也有着自己的一些优点，比如说访问比较快速、不用投资、几乎不用维护、SEO良好，对于很多人来说，博客平台就是很好的选择了，但这仍旧无法消除自建的博客对我的诱惑。</p>
+<p>[v_blue]友情提示：那些有着非常强的隐匿&#x2F;匿名需求的人，在你的技术水平不是那么强的前提下，最好还是使用比较靠谱的BlogSpot甚至是ZeroNet、deepweb吧。[&#x2F;v_blue]</p>
+<h3 id="博客平台可定制性太差"><a href="#博客平台可定制性太差" class="headerlink" title="博客平台可定制性太差"></a>博客平台可定制性太差</h3><p>早些年的时候，我曾经为QQ空间的装扮而烦恼，每个月都从我的某个土豪黄钻好友索要装扮，后来渐渐地发现，我再怎么选装扮，也是腾讯定好的模板，也不够有自己的个性。</p>
+<p>其他的平台也大抵如此，你跳不出公司给你的圈子，最多也只能做到把手臂放在围栏外面感受一下自由的气息（比如说编程随想大改BlogSpot评论区）。</p>
+<p>但是，如果我选择自己的博客，我将有权决定我的博客是什么样子的，我可以选择跳入WordPress这个围栏，还是Typecho，或者Jekyll、Hexo等静态博客，甚至是vim手写HTML都可以。</p>
+<p>我可以在footer中吐槽下备案制度，我可以选择自己的主题，哪怕是跳入了心甘情愿的围栏，我也可以在围栏上开门（修改、创建自己的主题，增加插件），大肆的自定义，而这些是博客平台比较难做到的。突然想说微信公众号的排版有多么复杂、规则有多么繁琐、内容有多么封闭了。</p>
+<p><a target="_blank" rel="noopener" href="https://www.eaimty.com/"><img src="/images/020517_0546_2.png"></a></p>
+<h3 id="审查严重"><a href="#审查严重" class="headerlink" title="审查严重"></a>审查严重</h3><p>在国内的这些平台上，你不能说党国的不好，甚至是因为<strong>一致性原则</strong>的影响，从内心里你开始反抗”党国不好”的这个想法，进而认为党国其实也没那么不好。</p>
+<p>再退一步，红色青年雷洋都不能再提、雾霾都成政治问题。作为搞IT的，你只懂技术是不行滴，同样还应该有很强的思辨能力，否则最终也就是沦落于给猪干活的马（<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8A%A8%E7%89%A9%E5%BA%84%E5%9B%AD">《动物农场》</a>）</p>
+<p>在自己的博客上，说出自己的想法而不用担心被和谐的可能性大大提高了。没错，这几年我们见证了<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8F%AF%E8%83%BD%E5%90%A7">可能吧</a>被墙，见证了月光博客被要求删帖，见证了无数个人网站被关闭，我们见证了越来越糟糕的网络环境和政治体制，但是至少我们不会自我阉割、不会自我审查，因为我们深知自由是天赋人权。</p>
+<h3 id="安全堪忧"><a href="#安全堪忧" class="headerlink" title="安全堪忧"></a>安全堪忧</h3><p>你放心把你的数据交给那些国内的土鳖公司吗？你知道他们是如何备份你的数据的吗？你如果想要一份你全部博文的副本，除了手动复制粘贴，还有别的方法吗？</p>
+<p>抛开这些fundamental concerns, 网易、<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/2011%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%AB%99%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%BA%8B%E4%BB%B6">CSDN被脱裤</a>（还丫的是明文密码，好歹hash一下啊），能忍？</p>
+<p>退一万步，没有全站HTTPS和HSTS的保障是万万不可以的。我很怕被劫持，很讨厌无耻运营商加上的广告，我希望小锁头能够给我的访客足够的安全感。</p>
+<p>在自己的博客上，你可以为自己的地盘负责，你可以HTTPS+HSTS，你可以对自己的数据负责。你认为WordPress只是把密码hash了下准备改造，结果发现是加了盐的——尽管这需要更多的知识，这不就是我们创建博客的目的吗？</p>
+<h3 id="抄袭泛滥"><a href="#抄袭泛滥" class="headerlink" title="抄袭泛滥"></a>抄袭泛滥</h3><p>文章被转载，这是在说明我的文章对别人也同样有用；但是如果不引用来源标明URL，那么就算是抄袭。抄袭这种情况，在中文圈里可以说得上是很常见了，这是不尊重知识的表现。大环境下的抄袭泛滥，无可奈何…</p>
+<p>不搜不知道，一搜吓一跳，很多在这种博客平台上发的文章都会被迅速转载（或者说是抄袭更合适）到各种采集站，哪怕你这个博客不是那么火（个人感觉这个情况在博客园上更明显）。</p>
+<p><img src="/images/020517_0546_3.png"></p>
+<p><img src="/images/020517_0546_4.png"></p>
+<p> </p>
+<p> </p>
+<p>在上图中，文章的内容几乎是完全一样的，对于用户来说想要找到真正的原创作者往往不是那么容易，有点良心的会告诉你作者是谁，没良心的直接成原创。</p>
+<p>相比之下，个人博客的抄袭往往要比平台慢一步，直接搜索关键字也往往会进入原创者的站点而不是采集站。为啥捏？没流量呗…</p>
+<p>再次的提下<a target="_blank" rel="noopener" href="https://dmesg.app/about-me">CC-BY-NC-SA协议</a>： 本博客所有原创文章，如未特殊声明，均采用知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议（CC-BY-NC-SA）进行许可，即： 这意味着，如果你转载，你： 需要保留我的署名（在正文中标注并保留原文、作者和原始链接)； 不得为商业目的而使用本作品； 若改变、转变或更改本作品，你需要同样使用CC-BY-NC-SA 4.0</p>
+<h3 id="学习到更多知识"><a href="#学习到更多知识" class="headerlink" title="学习到更多知识"></a>学习到更多知识</h3><p>在搭建博客的过程中，你需要了解基础的网络知识，知道什么是DNS、IP、HTTP，为此你需要去搜索，需要去学习。</p>
+<p>在你选好了域名之后，你需要去学习Linux的基础知识，再之后你可能需要学习node.js, python，或者是学习Nginx、MySQL、PHP的相关知识。</p>
+<p>如果你想全站HTTPS，那么你又要学习配置Nginx，需要学习如何找CA颁发证书。如果你有能力甚至会学习到HTTPS&#x2F;SSL&#x2F;TLS的设计历史与原理。</p>
+<p>可能你得需要学习markdown（好吧这东西几分钟就能学会），需要学习git。</p>
+<p>可能你的CMS没有邮件通知系统，于是你就用了前人的轮子甚至是自己用PHP造了一个。</p>
+<p>如果你想推广自己的网站，就要去学习一些SEO的知识，你知道该如何写robots.txt, 知道如何让蜘蛛多来爬。</p>
+<p>这个可能可以一直列下去，或许这样已经打消了很多人想要搭建博客的念头，但是：任务驱动式学习是最好的动力。</p>
+<p>而在一个博客平台上，你一般是不太容易学习到这些知识的——通常的模式是所见即所得，只管写，哪有那么多。</p>
+<h2 id="最后的总结"><a href="#最后的总结" class="headerlink" title="最后的总结"></a>最后的总结</h2><p>博客平台有很多好处，也有很多缺点；但是对我而言，博客平台的缺点是最致命的：我无法忍受审查（准确地说毫无理由的审查），我喜欢个性，讨厌抄袭，这些恰恰是博客平台不能提供给我的。</p>
+<p>回到文章的最开头，问题是，为什么我要写独立域名的博客？</p>
+<p>因为我爱得深沉呀❤</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/05/reason-of-this-blog/index/" data-id="clhp6he1f006nezqr7fyueq2o" data-title="为什么我要写独立域名的博客" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/13/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="page-number current">14</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/15/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

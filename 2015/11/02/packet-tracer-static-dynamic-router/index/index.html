@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[系列]1.Packet tracer6静态路由、动态路由的搭建 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="写这系列文章的并没有什么缘由，只是导员做任务，然后顺手写了个报告，发到这里。。 然后就顺手发到博客上。 才疏学浅，若有错误之处还望指出。    PS，突然发现，Word可以直接共享到wordpress，真是省的复制粘贴改格式了！    真是机智如我啊！        本系列的要解决的问题，如图：        看不清就看这个  左侧主机和右侧主机可以互相ping通、即为本实验的目的。   废话少说">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[系列]1.Packet tracer6静态路由、动态路由的搭建">
+<meta property="og:url" content="http://example.com/2015/11/02/packet-tracer-static-dynamic-router/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="写这系列文章的并没有什么缘由，只是导员做任务，然后顺手写了个报告，发到这里。。 然后就顺手发到博客上。 才疏学浅，若有错误之处还望指出。    PS，突然发现，Word可以直接共享到wordpress，真是省的复制粘贴改格式了！    真是机智如我啊！        本系列的要解决的问题，如图：        看不清就看这个  左侧主机和右侧主机可以互相ping通、即为本实验的目的。   废话少说">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/QQ%E6%88%AA%E5%9B%BE20151102221306-1024x503.png">
+<meta property="og:image" content="http://example.com/images/%E5%8F%82%E8%80%83-%E9%BB%91%E6%9D%BF%E5%9B%BE%E7%89%87-300x225.jpg">
+<meta property="og:image" content="http://example.com/images/QQ%E6%88%AA%E5%9B%BE20151102221912-1024x353.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace1.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace2.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace3.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace4.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace5.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace6.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace7.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace8.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace9.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace10.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace11.png">
+<meta property="og:image" content="http://example.com/images/110215_1406_Packettrace12.gif">
+<meta property="article:published_time" content="2015-11-02T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:47.194Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/QQ%E6%88%AA%E5%9B%BE20151102221306-1024x503.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-packet-tracer-static-dynamic-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/11/02/packet-tracer-static-dynamic-router/index/" class="article-date">
+  <time class="dt-published" datetime="2015-11-02T00:00:00.000Z" itemprop="datePublished">2015-11-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      [系列]1.Packet tracer6静态路由、动态路由的搭建
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>写这系列文章的并没有什么缘由，只是导员做任务，然后顺手写了个报告，发到这里。。</p>
+<p>然后就顺手发到博客上。</p>
+<p>才疏学浅，若有错误之处还望指出。</p>
+<p> </p>
+<blockquote>
+<p>PS，突然发现，Word可以直接共享到wordpress，真是省的复制粘贴改格式了！</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/QQ%E6%88%AA%E5%9B%BE20151102221306.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151102221306-1024x503.png" alt="QQ截图20151102221306"></a></p>
+<p> </p>
+<p>真是机智如我啊！</p>
+</blockquote>
+<p> </p>
+<p> </p>
+<p> </p>
+<h2 id="本系列的要解决的问题，如图："><a href="#本系列的要解决的问题，如图：" class="headerlink" title="本系列的要解决的问题，如图："></a><strong>本系列的要解决的问题，如图：</strong></h2><p> </p>
+<p> </p>
+<p> <a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/%E5%8F%82%E8%80%83-%E9%BB%91%E6%9D%BF%E5%9B%BE%E7%89%87.jpg"><img src="/images/%E5%8F%82%E8%80%83-%E9%BB%91%E6%9D%BF%E5%9B%BE%E7%89%87-300x225.jpg" alt="参考-黑板图片"></a></p>
+<p> </p>
+<p>看不清就看这个</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/QQ%E6%88%AA%E5%9B%BE20151102221912.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151102221912-1024x353.png" alt="QQ截图20151102221912"></a></p>
+<p><strong>左侧主机和右侧主机可以互相ping通、即为本实验的目的。</strong></p>
+<p> </p>
+<p>废话少说，来看下本系列的目录：</p>
+<p>1.如何做出来这样的拓扑图</p>
+<p>2.静态路由表的分析设置</p>
+<p>3.动态路由表的分析设置</p>
+<p> </p>
+<p>参考文章：<a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_684f326b0100nmh3.html">http://blog.sina.com.cn/s/blog_684f326b0100nmh3.html</a></p>
+<p>如果看懂了这篇文章、并且了解动态路由表、静态路由表的概念，那么做出来这么个东西还是不太复杂的！</p>
+<p>路由表的设置在说明2、3里，这里只说下怎么连接这些设备。</p>
+<p>首先，拖动出来这些东西！选择2811路由器就可以了。</p>
+<p><img src="/images/110215_1406_Packettrace1.png"></p>
+<p>鼠标 点击路由器</p>
+<p><img src="/images/110215_1406_Packettrace2.png"></p>
+<p>3.打开电源。</p>
+<p>剩下八个同理添加。但是要注意，这个模块只有两个接口，而且是用来连接路由和路由器的，所以R1、R2、R5要带两个这个模块！</p>
+<p>分配IP是个痛苦的过程。先把IP都写下来，然后再分配。<img src="/images/110215_1406_Packettrace3.png">用它哦</p>
+<p><img src="/images/110215_1406_Packettrace4.png"></p>
+<p>我是这样分配的。</p>
+<p>分配的原则大致如下：从左侧给主机一个192.168.1.2的IP，然后和它相连的路由器接口IP为192.168.1.1，另一个接口IP为192.168.2.1，之后下一个路由器用192.168.2.2和上一个相连。下一个再来两个1结尾作为”网关”给下一个路由器，下一个路由器的”入口”均为该网段的一个IP（直接最后一位加1就行，加2加3加到254都行。）</p>
+<p>左侧为入口的.2IP，右侧为出口的.1IP，记得提高网段（倒数第二段数字）</p>
+<p>IP都写完了，方便后续工作。</p>
+<p>因为端口太多了，先连线再分配端口可能会乱，所以一边连一边分配IP</p>
+<p>PC0这样，左下角闪电，选择交叉线，点击PC0和Router0，端口都选择FastEthernet0（只要自己记住这个端口就好。）</p>
+<p>分配PC0的IP如下：</p>
+<p><img src="/images/110215_1406_Packettrace5.png"></p>
+<p>点击Router0，找到刚才的FastEthernet0，开启并设置如下：</p>
+<p><img src="/images/110215_1406_Packettrace6.png"></p>
+<p>闪电选择DCE串口，勇敢的把Router0和Router1连起来，端口都选择serial0&#x2F;3&#x2F;0（其实只要自己记得别弄错了就可以）</p>
+<p><img src="/images/110215_1406_Packettrace7.png"></p>
+<p>点开Router0，看着下图和标注的IP设置对应端口的IP（一定不要设置错啦）</p>
+<p><img src="/images/110215_1406_Packettrace8.png"></p>
+<p>时钟要设置成64000，端口要开启（并不知道为什么是64000，先按着来吧）</p>
+<p>Router1找到刚才插进去的那个接口，继续设置……</p>
+<p><img src="/images/110215_1406_Packettrace9.png"></p>
+<p>就设置吧…道理是类似的！…路由器之间用DCE串口，路由器和PC之间用交叉线</p>
+<p>端口对应的IP别设置错了…………</p>
+<p>我速速滚去设置……</p>
+<p><img src="/images/110215_1406_Packettrace10.png"></p>
+<p>连接点都是绿色的，看样子是互相通了，但其实他们没有，还需要再设置路由表才能够实现通信。</p>
+<p>提一下右面的PC，要用交叉线，网关也要记得设置</p>
+<p>右侧PC类似如下：</p>
+<p><img src="/images/110215_1406_Packettrace11.png"></p>
+<p>喵了个咪累死</p>
+<p>请看下集分解…… <img src="/images/110215_1406_Packettrace12.gif"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/11/02/packet-tracer-static-dynamic-router/index/" data-id="clhp6he16005zezqrekke7d7q" data-title="[系列]1.Packet tracer6静态路由、动态路由的搭建" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/11/03/static-router/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          [系列]2.Packet Tracer6静态路由的分析
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/11/01/ibm-mainframe-keys/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">IBM大型机 Homework参考答案、cobol课件</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

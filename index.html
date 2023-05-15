@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   
   
-  <title>Hexo</title>
+  <title>土豆不好吃</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="土豆不好吃">
 <meta property="og:url" content="http://example.com/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="土豆不好吃">
 <meta property="og:locale" content="en_US">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="Benny小土豆">
 <meta name="twitter:card" content="summary">
   
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
   
   
     <link rel="shortcut icon" href="/favicon.png">
@@ -43,7 +43,7 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
+        <a href="/" id="logo">土豆不好吃</a>
       </h1>
       
     </div>
@@ -73,12 +73,16 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-hello-world" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <article id="post-zero-trust-private-dns/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
-    <a href="/2023/05/15/hello-world/" class="article-date">
-  <time class="dt-published" datetime="2023-05-15T17:44:59.899Z" itemprop="datePublished">2023-05-15</time>
+    <a href="/2023/05/01/zero-trust-private-dns/index/" class="article-date">
+  <time class="dt-published" datetime="2023-05-01T00:00:00.000Z" itemprop="datePublished">2023-05-01</time>
 </a>
     
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
   </div>
   <div class="article-inner">
     
@@ -87,7 +91,7 @@
         
   
     <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/05/15/hello-world/">Hello World</a>
+      <a class="p-name article-title" href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
     </h1>
   
 
@@ -95,24 +99,937 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+        <p>很多公司，尤其是跨国大公司，会要求员工连接VPN（或者到办公室）来进入到一个10段的大内网。在这个内网内方能访问各种公司内部的资源，比如GitLab、Confluence、Jira之类的。</p>
+<p>这种情况下就是做了私有DNS解析，这个解析记录并不会发布到公网上，就像你家路由器对于主机名为home这台设备的解析一样，只有进入了你家的网络才有。</p>
+<p>在使用Cloudflare Zero Trust的情况下，我们也可以做到私有DNS解析，并且完全免费！使用Cloudflare Zero Trust，零成本的创建你的工作网络环境，如此简单！</p>
+<h2 id="设置DNS服务器"><a href="#设置DNS服务器" class="headerlink" title="设置DNS服务器"></a>设置DNS服务器</h2><p>既然要设置私有DNS解析，那么毫无疑问需要设置一个由我们掌控的DNS服务器。简单起见，这里我直接在路由器上设置解析。如果你使用的也是LEDE&#x2F;OpenWRT，那么在 网络-DHCP&#x2F;DNS，最下面 「自定义域名挟持」中填入你的域名和解析到的IP地址。当然这个IPv4地址也可以写到公网IP，只不过这样有些搞笑🥸</p>
+<p><img src="/images/2023042200381642.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>添加保存之后，刷新一下本地的DNS缓存，就应该发现已经能ping通了</p>
+<p><img src="/images/2023042200381753.png" alt="文本 描述已自动生成"></p>
+<h2 id="注册WARP"><a href="#注册WARP" class="headerlink" title="注册WARP"></a>注册WARP</h2><p>具体可以参考这篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/cf-zero-trust.html">《使用Cloudflare Zero Trust创建大内网》</a>，简单的说就是配置Cloudflared Tunnel、创建WARP设备注册权限、创建WARP Profile、选择Split Tunnel的模式，然后下载WARP认证连接。这里WARP就相当于公司给你安装的VPN了。</p>
+<p>再提一下include和exclude这两种Split Tunnel的区别：</p>
+<ul>
+<li>Include：类似于WireGuard的<code>allowIP=192.168.7.0/24</code>, 其他非指定网段的流量会直接从你的网络出去，不走Cloudflare，可以理解成非全局VPN。此时你需要去include的规则中添加你的 <code>192.168.7.0/24</code></li>
+<li>Exclude：所有流量都要走Cloudflare，类似全局VPN。此时你需要去exclude的规则中删除你的<code>192.168.7.0/24</code></li>
+</ul>
+<p>无论你是选择include还是exclude，确保连接WARP后，能够ping通内网的IP就可以进行下一步了。</p>
+<h2 id="配置DNS-fallback"><a href="#配置DNS-fallback" class="headerlink" title="配置DNS fallback"></a>配置DNS fallback</h2><p>在Zero Trust网页上，进入到Profile配置页面，下拉能找到 Local Domain Fallback</p>
+<p><img src="/images/2023042200381896.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<p>点击Manage，左侧添加域名、DNS服务器和备注。这个DNS服务器就是上面配置好的那个。</p>
+<p><img src="/images/2023042200381969.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><h3 id="内网测试"><a href="#内网测试" class="headerlink" title="内网测试"></a>内网测试</h3><p>我现在连到了家里的网络，因此肯定能解析 <code>samba.dmesg.app</code> 这个域名的，此处没有任何问题</p>
+<h3 id="外网测试"><a href="#外网测试" class="headerlink" title="外网测试"></a>外网测试</h3><p>手机开个热点，电脑连接上</p>
+<p><img src="/images/2023042200382056.png" alt="文本 描述已自动生成"></p>
+<p>连接WARP！</p>
+<p><img src="/images/2023042200382134.png"></p>
+<p>私有解析完成！</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>感谢Cloudflare为我们提供了这么好用的网络服务。小公司可以直接用Cloudflare Zero Trust 组建自己的内网了，然后用Firewall Policies进行适当的权限控制。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2023/05/15/hello-world/" data-id="clhp4z1fv0000fzqrdcfnfxch" data-title="Hello World" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2023/05/01/zero-trust-private-dns/index/" data-id="clhp6he4100c9ezqr3b60804i" data-title="Cloudflare Zero Trust 添加私有解析DNS" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-cloudflare-access-gfwed-server/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/29/cloudflare-access-gfwed-server/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-29T00:00:00.000Z" itemprop="datePublished">2023-04-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>我有些服务器被墙了，除了通过跳板机连接，还有什么好的办法吗？当然有了，使用Cloudflare Zero Trust即可。我们不仅可以使用ssh客户端，甚至还可以通过浏览器访问。除了SSH协议之外，RDP、SMB甚至任何奇奇怪怪的协议都可以。</p>
+<h2 id="安装并连接cloudflared"><a href="#安装并连接cloudflared" class="headerlink" title="安装并连接cloudflared"></a>安装并连接cloudflared</h2><p>首先还是要想办法连接到被墙的机器，下载cloudflared</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/cloudflare/cloudflared/releases">https://github.com/cloudflare/cloudflared/releases</a></p>
+<p>在网页上Access – Tunnels中创建一个 Tunnel，然后按照提示安装。</p>
+<hr>
+<h1 id="连接到服务器"><a href="#连接到服务器" class="headerlink" title="连接到服务器"></a>连接到服务器</h1><p>Cloudflare提供了三种通过tunnel连接到服务器的方式，第一种是通过客户端安装WARP，第二种是通过客户端安装<code>cloudflared</code>，第三种是直接通过浏览器访问。</p>
+<h2 id="通过WARP连接服务器"><a href="#通过WARP连接服务器" class="headerlink" title="通过WARP连接服务器"></a>通过WARP连接服务器</h2><p>这种办法其实和<a target="_blank" rel="noopener" href="https://dmesg.app/cf-zero-trust.html">《使用Cloudflare Zero Trust创建大内网》</a>一样，区别只是创建大内网时，我们内网的设备写的是局域网IP，而这里则可能会写公网IP。但是本质上没有区别哒！</p>
+<p>在网页上Tunnel中，配置<strong>Private Network</strong>，填入服务器的IP。如果类似GCP那种分配的内网IP，直接写内网IP对应的段也可以；否则直接写公网IP也可以。</p>
+<p>老生常谈，创建Profile，表达式写比如说 <a href="mailto:ssh@dmesg.app">ssh@dmesg.app</a></p>
+<p><img src="/images/2023042202404060.png" alt="图形用户界面 描述已自动生成"></p>
+<p>Split Tunnel选择include，然后添加服务器的IP。</p>
+<p><img src="/images/2023042202404112.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>使用WARP连接，输入邮箱进行验证</p>
+<p>WARP连接成功之后，就会发现能SSH啦，再也不怕GFW了</p>
+<p><img src="/images/2023042202404290.png" alt="图形用户界面, 文本, 聊天或短信 描述已自动生成"></p>
+<h2 id="通过cloudflared-access连接"><a href="#通过cloudflared-access连接" class="headerlink" title="通过cloudflared access连接"></a>通过cloudflared access连接</h2><p>在网页上，配置<strong>Public Hostname</strong>，下面Service Type选择SSH，URL写<code>127.0.0.1:22</code>，如果你想通过这个跳到其他服务器，那么就写<code>IP:22</code></p>
+<p><img src="/images/2023042202404214.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>客户端需要安装cloudflared，先登录 <code>cloudflared login</code></p>
+<p>然后修改SSH配置文件 <code>~/.ssh/config</code></p>
+<p>Host ssh.dmesg.app</p>
+<h1 id="记得修改cloudflared路径"><a href="#记得修改cloudflared路径" class="headerlink" title="记得修改cloudflared路径"></a>记得修改cloudflared路径</h1><p>ProxyCommand &#x2F;opt&#x2F;homebrew&#x2F;bin&#x2F;cloudflared access ssh –hostname %h</p>
+<p>然后再<code>ssh username@ssh.dmesg.app</code> 就可以啦</p>
+<p>当然如果不想改config那么也可以</p>
+<p>cloudflared access ssh –hostname ssh.dmesg.app –url 127.0.0.1:10022</p>
+<p>然后另外一个窗口</p>
+<p>ssh <a href="mailto:&#x72;&#x6f;&#111;&#116;&#64;&#x31;&#x32;&#x37;&#46;&#48;&#x2e;&#48;&#x2e;&#49;">&#x72;&#x6f;&#111;&#116;&#64;&#x31;&#x32;&#x37;&#46;&#48;&#x2e;&#48;&#x2e;&#49;</a> -p 10022</p>
+<p>效果是一样的！</p>
+<p>只要你的脑洞足够大，甚至可以通过<code>cloudflared access</code> 去连接任意TCP协议，甚至连UNIX套接字都可以哦</p>
+<h2 id="使用浏览器连接"><a href="#使用浏览器连接" class="headerlink" title="使用浏览器连接"></a>使用浏览器连接</h2><p>同上，<strong>Public Hostname</strong>创建一个SSH服务，比如说域名叫 <code>browser.dmesg.app</code></p>
+<p>然后 Application – Add Application – Self-hosted，application sub domain 同样写 <code>browser.dmesg.app</code></p>
+<p>然后创建policies，和以前的方法一样，如果只是测试用甚至可以Everyone</p>
+<p>下一步Additional Settings中，选择SSH</p>
+<p><img src="/images/2023042202404319.png" alt="图形用户界面, 文本 描述已自动生成"></p>
+<p><img src="/images/2023042202404461.png" alt="图形用户界面 低可信度描述已自动生成"></p>
+<p>浏览器打开链接就可以了，注意这里的用户名是服务器的用户名，比如<code>root</code>，并不是进行邮箱验证的 <code>xxx@dmesg.app</code></p>
+<p><img src="/images/2023042202404579.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<p>下一步输入认证信息即可登录。根据服务器sshd配置不同，选择密码或者key登录即可。</p>
+<p><img src="/images/2023042202404680.png" alt="文本 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/29/cloudflare-access-gfwed-server/index/" data-id="clhp6hdyf000zezqrahs0ema6" data-title="使用Cloudflare Zero Trust连接被墙的服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-zero-trust-login-method/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/22/zero-trust-login-method/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-22T00:00:00.000Z" itemprop="datePublished">2023-04-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是App-Launcher"><a href="#什么是App-Launcher" class="headerlink" title="什么是App Launcher"></a>什么是App Launcher</h2><p>所谓App launcher，就是当用户登录之后，会显示一些应用，可以直接点击跳转过去。再也不用单独收藏每一个链接啦，只要收藏这个 App Launcher即可。长这样</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003361458.png"><img src="/images/2023042003361458.png"></a></p>
+<h2 id="添加新登录验证方式"><a href="#添加新登录验证方式" class="headerlink" title="添加新登录验证方式"></a>添加新登录验证方式</h2><p>通常来讲，我们是通过邮件的方式来进行验证的。非常简单，但是有时邮件可能会发送失败，比如说被Gmail拦截。那么有没有办法添加新的验证方式呢？答案当然是有的啦。Cloudflare继承了非常多的登录方式，如下图所示，甚至有一个通用的SAML：</p>
+<p><img src="/images/2023042003351149.png" alt="表格 描述已自动生成"></p>
+<p>下面就以配置GitHub登录来说，Google等同理基本没太大差别。</p>
+<h2 id="创建GitHub-App"><a href="#创建GitHub-App" class="headerlink" title="创建GitHub App"></a>创建GitHub App</h2><p>打开GitHub，进入Settings – Developer Settings – OAuth Apps，新建一个app</p>
+<ul>
+<li>Application name：随便写，自己记得就可以</li>
+<li>Homepage URL： 你的team url，比如说 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a></li>
+<li>Callback：同上，<a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback">https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback</a></li>
+</ul>
+<p>创建之后，复制 Client ID，然后点击Generate a new client secret 复制secret的值</p>
+<h2 id="创建GitHub-Organization"><a href="#创建GitHub-Organization" class="headerlink" title="创建GitHub Organization"></a>创建GitHub Organization</h2><p>创建一个GitHub Organization，后续做验证的时候要用这个。</p>
+<h2 id="配置Zero-Trust"><a href="#配置Zero-Trust" class="headerlink" title="配置Zero Trust"></a>配置Zero Trust</h2><p>回到Cloudflare Zero Trust，选择Settings – Authentication – Login Methods，右侧有一个Add new，然后选择GitHub</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003372621.png"><img src="/images/2023042003372621.png"></a></p>
+<p>填入刚刚复制的ID和secret，点击保存</p>
+<p> </p>
+<p>下面会弹出一个小的框框</p>
+<p><img src="/images/2023042003351386.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>点击finish setup或者复制链接到新窗口打开，在org中给我们新创建的org授权，点击Grant，然后authorize</p>
+<p><img src="/images/2023042003351323.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>此时回到Login Methods 就可以看到已经添加成功啦，点击 Test按钮可以看下Cloudflare从GitHub的API拿到的数据</p>
+<p><img src="/images/2023042003351481.png" alt="背景图案 描述已自动生成"></p>
+<h2 id="配置验证"><a href="#配置验证" class="headerlink" title="配置验证"></a>配置验证</h2><p>此时如果你打开 team url，比如 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a> 在Login就已经能看到GitHub了。</p>
+<p><img src="/images/202304200335155.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>当然这还没完，不能所有人都能通过GitHub OAuth进入App Launcher呀！因此我们还需要进一步配置</p>
+<p>点开Zero Trust – Settings – App Launcher – Manage</p>
+<p>首先确认一下Authentication页面已经选中了GitHub，默认应该是所有认证方式都可以，当然你也可以自定义</p>
+<p><img src="/images/2023042003351550.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>然后在Rules中，新建或者编辑已有规则，我们会发现有三种可以选择的模式： include、require和exclude</p>
+<p><img src="/images/2023042003351695.png" alt="图形用户界面 描述已自动生成"></p>
+<ul>
+<li>include：类似逻辑OR操作符，用户只要满足条件之一就可以</li>
+<li>require：类似逻辑AND操作符，用户要满足所有的条件</li>
+<li>exclude：类似逻辑NOT，排除条件</li>
+</ul>
+<p>[v_error] 添加require规则的时候要注意，是要满足所有条件才可以授权。比如我的require规则添加了两条，分别是County&#x3D;China &amp; Country&#x3D;US，那么没人可以通过，因为IP只能在一个国家而不是两个国家。 [&#x2F;v_error]</p>
+<p>这里我们的需求是，用户要么通过 dmesg.app 的邮箱验证，要么在新创建的那个Organization里，所以新添加一个include，Selector选择GitHub Organization，organization name写创建的name</p>
+<p><img src="/images/2023042003351779.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>如果我们的需求是，用户在org里，并且邮箱为 <a href="mailto:xxx@xxx.com">xxx@xxx.com</a>，那么就要一个include 邮箱规则，一个require GitHub organization规则。</p>
+<p>返回 team url就可以登录了。</p>
+<p>注意：配置 App Launcher的权限，并不等于拥有应用的权限，<strong>应用的权限是独立的</strong>。</p>
+<p>举个例子，我之前创建的redis，只能邮箱进行验证，并且放到了launcher之中，那么在App Launcher这里我通过GitHub OAuth后，并看不到那个redis。想要看到对应的应用，那只能去编辑对应应用的规则。</p>
+<h2 id="Access-Group"><a href="#Access-Group" class="headerlink" title="Access Group"></a>Access Group</h2><p>把一样的规则配置多次就显得很蠢，这个时候就要用Access Group。</p>
+<p>Access – Access Group，设置名称和配置和前面一样</p>
+<p><img src="/images/2023042003351846.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>在其他地方，添加策略的时候选择这个Group就可以了。甚至在WARP的Device enrollment permissions中也可以这样搞！</p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/policies/access/">https://developers.cloudflare.com/cloudflare-one/policies/access/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/22/zero-trust-login-method/index/" data-id="clhp6he4000c7ezqr07e3hmzy" data-title="Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-zero-trust-access-web/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/20/zero-trust-access-web/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-20T00:00:00.000Z" itemprop="datePublished">2023-04-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>有些时候我们跑一些web应用，想把他们放在公网上，但是又不能每个人都可以访问。如果这个程序不支持通过身份验证，那么之前的做法大概会前面套上一个nginx之类的反向代理，在反向代理中配置身份认证。</p>
+<p>这样……也不是不行，但是配置nginx就让人感觉很繁琐！在有了Cloudflare Zero Trust之后，我们可以利用Cloudflare做到这种身份认证的事情。</p>
+<p>我这刚好有一个redis insight，接下来就可以说一下这个东西怎么跑</p>
+<h2 id="Redis-Insight"><a href="#Redis-Insight" class="headerlink" title="Redis Insight"></a>Redis Insight</h2><p>Redis官方出的一个用户管理redis的工具，可以增删改查啦什么的。跑起来很容易，用docker跑是这样的：才不用那个electron套壳呢</p>
+<p>docker run -d –restart&#x3D;unless-stopped –name&#x3D;redisinsight \<br>    -v redisinsight:&#x2F;db -p 127.0.0.1:8001:8001 \<br>    -e RITRUSTEDORIGINS&#x3D;<a target="_blank" rel="noopener" href="https://redis.dmesg.app/">https://redis.dmesg.app</a> \<br>    redislabs&#x2F;redisinsight</p>
+<p>由于 Redis Insight有 CORS检查，因此这里要设置环境变量来控制，要记住不可以带 <code>/</code>哦</p>
+<p>然后把容器连接到网络，因为我的redis通过docker-compose跑了两个，因此要把容器和网络连接起来：</p>
+<p>docker network connect botsrunner_default redisinsight<br>docker network connect yyetsbot_default redisinsight</p>
+<h2 id="创建Argo-tunnel，添加Public-Hostname"><a href="#创建Argo-tunnel，添加Public-Hostname" class="headerlink" title="创建Argo tunnel，添加Public Hostname"></a>创建Argo tunnel，添加Public Hostname</h2><p>如下图所示。此时<code>redis.dmesg.app</code>应该可以访问了</p>
+<p><img src="/images/2023042003301977.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="开启access"><a href="#开启access" class="headerlink" title="开启access"></a>开启access</h2><p>Zero Trust – Access – Applications – Add Application – Self-hosted</p>
+<p>选择对应的会话有效期，对应的子域名</p>
+<p><img src="/images/2023042003302065.png" alt="图形用户界面 描述已自动生成"></p>
+<p>下一页configure rules选择最简单的email方式即可</p>
+<p><img src="/images/2023042003302199.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>此时打开对应的网站，就会发现已经进入了验证页面</p>
+<p><img src="/images/2023042003302235.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>输入邮箱验证之后就可以正常访问了。</p>
+<p>在Redis Insight中，添加连接的时候，用<code>redis.yyetsbot_default</code> 来表示<code>yyetsbot_default</code>这个网络的<code>redis</code> service。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003342554.png"><img src="/images/2023042003342554.png"></a></p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="收不到验证码"><a href="#收不到验证码" class="headerlink" title="收不到验证码"></a>收不到验证码</h3><p>别怕，可能是被拦截了，比如说Gmail……</p>
+<p><img src="/images/2023042003302348.png" alt="图形用户界面, 文本 中度可信度描述已自动生成"></p>
+<h3 id="Redis-Insight页面无法显示"><a href="#Redis-Insight页面无法显示" class="headerlink" title="Redis Insight页面无法显示"></a>Redis Insight页面无法显示</h3><p>应该是cache的问题，开development mode暂时绕过，验证通过之后再关掉好了</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/20/zero-trust-access-web/index/" data-id="clhp6he3z00c5ezqr1z886s46" data-title="使用Cloudflare Zero Trust保护你的Web应用" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-cf-zero-trust/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/01/cf-zero-trust/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-01T00:00:00.000Z" itemprop="datePublished">2023-04-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>创建大内网是一件非常重要的事情。一旦有了安全的内网环境之后，我的服务器之间就可以使用私有IP进行通信，不用再考虑这个协议是否适合暴露在公网上、是否会被MITM等问题了。管他什么协议的，telnet我都照样跑🤪！</p>
+<p>通常来说，我是<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">使用WireGuard来创建内网</a>的。选择一个机器作为“服务器”，其他的节点作为客户端加进来就好了。这也是业界最为成熟的方案了</p>
+<p>但是这样做仍有一些限制和缺陷，比如说：</p>
+<ul>
+<li>如何暴露整个家庭内网，如<code>192.168.7.0/24</code> 给出门在外的我，家里的每一个设备都要通过WireGuard加进来吗，或者写奇奇怪怪的iptables规则？</li>
+<li>所有的数据要通过“服务器”中转，两个美国的服务器明明直接就能沟通，50ms解决，如果WG服务器在亚洲，那么就基本上300ms左右了</li>
+<li>穷到买不起服务器，没有公网IP</li>
+</ul>
+<p>在这种情况下，最好的办法就是用Cloudflare Zero Trust中的tunnel啦！</p>
+<p>之前简单的提过我已经把<a target="_blank" rel="noopener" href="https://dmesg.app/argo-real-ip.html">所有的web服务都通过argo tunnel 暴露了</a>，拓扑图大概是这样，从Cloudflare那边偷过来的：</p>
+<p><img src="/images/2023040101321423.png"></p>
+<p>在我的服务器上安装<code>cloudflared</code>，然后添加Public Hostname，所有的访问直接从Cloudflare的网络来。安全且环保！</p>
+<p>那么Cloudflare tunnel还有那些有趣的用法呢？先从暴露整个家庭内网来说吧！同样的道理，我们需要在家里运行一个cloudflared connector，然后其他终端设备通过WARP连接到Cloudflare，然后把整个网络暴露给终端设备，拓扑图如下：</p>
+<p><img src="/images/2023040101323051.png"></p>
+<hr>
+<h1 id="暴露家庭内网"><a href="#暴露家庭内网" class="headerlink" title="暴露家庭内网"></a>暴露家庭内网</h1><h2 id="获取team-domain"><a href="#获取team-domain" class="headerlink" title="获取team domain"></a>获取team domain</h2><p>打开Cloudflare Zero Trust，设置里就可以看到你的team name，我这里就是<code>bennythink</code>啦</p>
+<p><img src="/images/202304010132311.png"></p>
+<h2 id="配置网络协议"><a href="#配置网络协议" class="headerlink" title="配置网络协议"></a>配置网络协议</h2><p>Settings-network，找到proxy，把TCP、UDP、ICMP和WARP to WARP都打开（这个后续要用）</p>
+<p><img src="/images/2023040101323257.png"></p>
+<h2 id="创建WARP-设备注册权限"><a href="#创建WARP-设备注册权限" class="headerlink" title="创建WARP 设备注册权限"></a>创建WARP 设备注册权限</h2><p>首先要定义如何注册设备，简单的来说通过邮箱就好了。比如说一个公司的人，用公司后缀的邮箱连接到同一个内网。在Zero Trust的面板中，Settings - WARP client - Dvice enrollment permission</p>
+<p><img src="/images/2023040101323341.png"></p>
+<p><img src="/images/2023040101323478.png"></p>
+<h2 id="创建-WARP-Profile"><a href="#创建-WARP-Profile" class="headerlink" title="创建 WARP Profile"></a>创建 WARP Profile</h2><p>所谓Profile，就是定义什么用户使用什么样的WARP的规则，规则包括用户能否断开，自动重连等，其中最重要的是路由规则。</p>
+<p>如图，在此我配置的<code>home@dmesg.app</code> 这个用户的规则</p>
+<p><img src="/images/2023040101323579.png"></p>
+<p>Split tunnel用来配置如何分发流量，分为两种模式，<strong>include和exclude</strong>，有点像黑名单白名单的概念。</p>
+<p><img src="/images/2023040101323644.png"></p>
+<ul>
+<li>Include，就像WireGuard <code>allowIP</code>配置为<code>192.168.6.0/24</code>一样，只有这个网段的流量会走WireGuard，其他流量会直接出去，不走cloudflare</li>
+<li>Exclude，就是所有流量都要走cloudflare，因此<code>192.168.7.0/24</code>走了cloudflare所以可以访问，列表中的直接连接</li>
+</ul>
+<p>说人话的话，比如你在外面，要访问家里<code>192.168.7.0/24</code>，并且<strong>所有其他流量要走cloudflare</strong>，那么你要用exclude模式；</p>
+<p>你在外面，要访问家里的<code>192.168.7.0/24</code>，<strong>其他流量直接出</strong> 以方便真人快打，那么就要用include模式。</p>
+<p>这里我就选择include模式，因此上图切换到include，然后添加IP段，CIDR表示法</p>
+<p><img src="/images/2023040101323785.png"></p>
+<p>同时在tunnel的Private Network也要创建一样的CIDR</p>
+<p><img src="/images/2023040101323865.png"></p>
+<p>看cloudflared日志可以看到已经自动更新了配置</p>
+<p><img src="/images/2023040101323951.png"></p>
+<h2 id="配置客户端连接"><a href="#配置客户端连接" class="headerlink" title="配置客户端连接"></a>配置客户端连接</h2><p>客户端需要下载WARP，然后  Login to Cloudflare Zero Trust，输入team name</p>
+<p><img src="/images/2023040101323984.png"></p>
+<p>进行邮件验证</p>
+<p><img src="/images/2023040101324032.png"></p>
+<p>然后你的warp就会接收到新的配置，连接起来，就会发现<code>192.168.7.0/24</code>已经通啦</p>
+<p><img src="/images/2023040101324165.png"></p>
+<p>并且路由器的管理界面是打得开的</p>
+<p><img src="/images/2023040101325018.png"></p>
+<hr>
+<h1 id="创建大内网"><a href="#创建大内网" class="headerlink" title="创建大内网"></a>创建大内网</h1><p>拓扑图如下，所有同一个organization（team）的WARP都有一个独立的内网，可以安全进行数据交换。还记得上面开的TCP、UDP、WARP to WRAP吗？这里用到的就是WARP to WARP</p>
+<p><img src="/images/2023040101325762.png" alt="图示 描述已自动生成"></p>
+<h2 id="创建profile"><a href="#创建profile" class="headerlink" title="创建profile"></a>创建profile</h2><p>同样创建一个新的profile</p>
+<p><img src="/images/2023040101330798.png"></p>
+<p>Split tunnel的原理相信大家已经懂了，简单起见，同样选择include，只不过IP段写<code>100.64.0.0/10</code>，这个是Cloudflare 默认的Virtual Network，使用了WARP的设备会被分配到这个IP段里。这里一共有400多万个可用的IP，沃尔玛员工人手2个WARP，或者克罗地亚人一人一个都足够🤣</p>
+<p><img src="/images/2023040101331898.png"></p>
+<h2 id="注册设备"><a href="#注册设备" class="headerlink" title="注册设备"></a>注册设备</h2><p>安装warp-cli，然后</p>
+<p>warp-cli teams-enroll bennythink</p>
+<p>在你的浏览器上打开链接，输入邮箱<code>wg@dmesg.app</code>验证，但是并没有任何信息告诉你怎么打开终端里的warp-cli，那怎么办呢？别怕，打开F12，找到Open Cloudflare WARP那个按钮的元素，找到<code>onclick</code>事件，复制从<code>com.cloudflare.warp</code>开始的信息到结尾的单引号</p>
+<p><img src="/images/2023040101333518.png"></p>
+<p>然后在终端中：</p>
+<p>warp-cli teams-enroll-token com.cloudflare.warp:&#x2F;&#x2F;bennythink.cloudflareaccess.com&#x2F;auth?token&#x3D;</p>
+<p>[v_error]警告： 如果你使用的是zsh，记得给那段token上用引号包起来 “your-token-with?weird&#x2F;&#x3D;+stuff”或者切换到bash[&#x2F;v_error]</p>
+<h2 id="连接设备"><a href="#连接设备" class="headerlink" title="连接设备"></a>连接设备</h2><p>λ maria-pl ~ → warp-cli status<br>Status update: Disconnected. Reason: Manual Disconnection<br>Success</p>
+<p>λ maria-pl ~ → warp-cli connect<br>Success</p>
+<p>在Zero Trust - My team - Devices中就可以看到你的这个设备的IP地址了！</p>
+<p><img src="/images/2023040101352637.png"></p>
+<p>同理，连接另外一个设备，同样的邮箱就可以。</p>
+<h2 id="测试内网互联"><a href="#测试内网互联" class="headerlink" title="测试内网互联"></a>测试内网互联</h2><p>直接ssh过去试试看</p>
+<p>λ maria-pl ~ → nc -v 100.96.0.14 22<br>Connection to 100.96.0.14 22 port [tcp&#x2F;ssh] succeeded!<br>SSH-2.0-OpenSSH_8.9p1 Ubuntu-3<br>^C</p>
+<p>λ maria-pl ~ → ssh 100.96.0.14<br>The authenticity of host ‘100.96.0.14 (100.96.0.14)’ can’t be established.<br>ED25519 key fingerprint is SHA256:Gffeu3+72Z9pwZDawOHGSN7M2JxrbBub1hZoueKGJ1o.<br>This key is not known by any other names<br>Are you sure you want to continue connecting (yes&#x2F;no&#x2F;[fingerprint])?</p>
+<p><img src="/images/2023040101352719.png"></p>
+<p>iperf3测试</p>
+<p>速度也还不错，本来带宽也是100Mbps</p>
+<p><img src="/images/2023040101352925.png"></p>
+<h2 id="延迟测试"><a href="#延迟测试" class="headerlink" title="延迟测试"></a>延迟测试</h2><p>延迟略有增大，可能是peer连接到了不同的数据中心导致的。但是肯定不会出现美国-日本-美国这种绕圈圈的模式了。</p>
+<p><img src="/images/202304010135315.png"></p>
+<h2 id="如何使用自定义的网段"><a href="#如何使用自定义的网段" class="headerlink" title="如何使用自定义的网段"></a>如何使用自定义的网段</h2><p>如果不喜欢上面的<code>100.96.0.0/10</code>网段，怎么切换到自己的网段呢，比如<code>192.168.6.0/24</code>？</p>
+<p>根据文档来说，似乎是可以通过创建自己的Virtual network（还不能在网页上创建），然后WARP连接的时候选择这个network，然后IP就应该是你定义的而不是<code>100.96</code>之类的了</p>
+<p>cloudflared tunnel vnet add private<br>cloudflared tunnel route ip add –vnet private 192.168.89.0&#x2F;24 home</p>
+<p>warp-cli get-virtual-networks<br>warp-cli set-virtual-network UUID<br>warp-cli connect</p>
+<p>但是我测试的时候，无论是CLI还是macOS WARP，即使选择了新建的网络，网页上看到的IP也始终是<code>100.96</code>，不知道为何，可能是他们的bug</p>
+<p><img src="/images/2023040101354065.png" alt="图形用户界面, 文本, 应用程序, 聊天或短信 描述已自动生成"></p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>Zero Trust还有很多好玩的玩法，比如可以给不同用户配置不同的网络访问规则，私有DNS，可控网络（就是在家里连到VPN，在公司直接走内网，不是根据SSID判断），以及大家都爱的中转梯子等等玩法。有空可以再探索探索。</p>
+<p>Cloudflare 的WARP直接用起来也不错，比如在公司、外面的公共Wi-Fi，我都是直接打开的，体验非常好，在不需要换IP的情况下，可比买的那个Surfshark VPN好多了🥸</p>
+<p>再次感叹，Cloudflare真是一家伟大的公司。<strong>Cloudflare 的使命是帮助建立一个更好的互联网</strong>👍</p>
+<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/private-net/create-private-networks/">https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/private-net/create-private-networks/</a></p>
+<p><a target="_blank" rel="noopener" href="https://help.teams.cloudflare.com/">https://help.teams.cloudflare.com/</a></p>
+<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/">https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/</a></p>
+<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/tutorials/warp-to-tunnel/">https://developers.cloudflare.com/cloudflare-one/tutorials/warp-to-tunnel/</a></p>
+<p><a target="_blank" rel="noopener" href="https://dash.cloudflare.com/argotunnel">https://dash.cloudflare.com/argotunnel</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/01/cf-zero-trust/index/" data-id="clhp6hdyb000vezqr3vu0gvpu" data-title="使用Cloudflare Zero Trust创建大内网" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-graylog-geo-ip/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/25/graylog-geo-ip/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-25T00:00:00.000Z" itemprop="datePublished">2023-03-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/25/graylog-geo-ip/index/">Graylog 显示Geo IP</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几周前不知道为什么，yyets的内存使用率暴涨，直接给我机器弄没了。</p>
+<p><img src="/images/2023032503200423.png" alt="图表 描述已自动生成"></p>
+<p>内核的OOM机制都没起作用，猜测可能是<code>dockerd</code>的默认的OOM score是-500，导致没人敢杀吧。最近这几天配置上了Graylog来收集日志，下次再出现问题可以看日志了，大概这样：</p>
+<p><img src="/images/2023032503200476.jpeg" alt="图片包含 人, 男人, 汽车, 前 描述已自动生成"></p>
+<h2 id="Graylog基础配置、收集docker日志"><a href="#Graylog基础配置、收集docker日志" class="headerlink" title="Graylog基础配置、收集docker日志"></a>Graylog基础配置、收集docker日志</h2><p>配置Graylog倒是很容易，<code>docker-compose</code>一把梭，docker也恰巧支持GELF协议。Graylog装好之后，配置一个GELF的input，如下图所示</p>
+<p><img src="/images/2023032503200540.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>小提示，如果你的Graylog是用docker起的，那么在publish port时要额外注意，docker默认只publish TCP，所以要 <code>-p 127.0.0.1:12201:12201/udp</code></p>
+<p>确认运行起来之后，可以开一个容器试试看，注意这里要写<code>127.0.0.1</code>，写<code>localhost</code>的话，dockerd可能会给搞很多幺蛾子(解析到IPv6给你颜色看看）。</p>
+<p>docker run –log-driver gelf –log-opt gelf-address&#x3D;udp:&#x2F;&#x2F;127.0.0.1:12201 alpine echo hello world</p>
+<p>也可以选择用<code>nc</code>发一条消息看看</p>
+<p>echo -n ‘{ “version”: “1.1”, “host”: “example.org”, “short_message”: “A short message again”, “level”: 5, “_some_info”: “foo” }’ | nc -w1 -u localhost 12201</p>
+<p>配置无误的话就应该已经能在搜索页面看到日志了</p>
+<p><img src="/images/2023032503200526.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h2 id="配置GeoIP"><a href="#配置GeoIP" class="headerlink" title="配置GeoIP"></a>配置GeoIP</h2><p>Graylog带有GeoIP的支持，可以自动通过MaxMind的数据库显示访客的IP地址。配置起来比较麻烦，并且文档非常模糊不清🤣</p>
+<h3 id="启用Geo-Location-Processor"><a href="#启用Geo-Location-Processor" class="headerlink" title="启用Geo-Location Processor"></a>启用Geo-Location Processor</h3><p>首先要启用这个模块，在System - Configurations最下面可以看到。需要自己去下载数据库</p>
+<p>懒得注册账号的可以去这里下载</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/P3TERX/GeoLite.mmdb">https://github.com/P3TERX/GeoLite.mmdb</a></p>
+<p>这里的City库比较新</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/wp-statistics/GeoLite2-City">https://github.com/wp-statistics/GeoLite2-City</a></p>
+<p>下载好之后放到某个目录，确保Graylog有权限访问，确认就行了，我就直接丢到了宿主机的volume的目录</p>
+<p><img src="/images/2023032503200693.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="调整处理顺序"><a href="#调整处理顺序" class="headerlink" title="调整处理顺序"></a>调整处理顺序</h3><p>System- Configurations，最上面看 Message Processors Configuration 确保GeoIP Resolve而已经启用，并且顺序正确，至少要放到pipeline后，我给放到最后了</p>
+<p><img src="/images/2023032503200764.png" alt="应用程序, Teams 描述已自动生成"></p>
+<h3 id="Lookup-Table-–-Adapters"><a href="#Lookup-Table-–-Adapters" class="headerlink" title="Lookup Table – Adapters"></a>Lookup Table – Adapters</h3><p>要创建Adapters，路径是 System- Lookup Tables- Data Adapters，Data Adapter Type选择 GeoIP的那个</p>
+<p><img src="/images/2023032503200763.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h3 id="Lookup-Table-–-Cache"><a href="#Lookup-Table-–-Cache" class="headerlink" title="Lookup Table – Cache"></a>Lookup Table – Cache</h3><p>中间的那个标签页，创建一个cache</p>
+<p><img src="/images/2023032503200910.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="Lookup-Tables"><a href="#Lookup-Tables" class="headerlink" title="Lookup Tables"></a>Lookup Tables</h3><p>终于可以创建Lookup Tables了，最左侧的标签页，选择刚刚创建好的adapter和cache。这个Name是唯一的，下一步要用，记下来哦。</p>
+<p><img src="/images/2023032503201012.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="创建Pipelines"><a href="#创建Pipelines" class="headerlink" title="创建Pipelines"></a>创建Pipelines</h2><p>😓还没完，还要创建<code>pipeline</code>去调用<code>Lookup Table</code></p>
+<h3 id="创建pipeline-rules"><a href="#创建pipeline-rules" class="headerlink" title="创建pipeline rules"></a>创建pipeline rules</h3><p>System - Pipelines - Manage rules - Create rule</p>
+<p>rule source是核心，定义了怎么取IP、解析后怎样呈现数据。拿我的一行log为例：</p>
+<p><img src="/images/2023032503201113.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>如果你的IP地址是单独的一个字段中，比如上面的<code>source</code>、<code>container_name</code>这种单独的一行，那么就很容易了，比如说你的字段叫 <code>src_ip</code></p>
+<p>rule “GeoIP lookup”<br>when<br>    has_field(“src_ip”)<br>then<br>    let geo &#x3D; lookup(“geoip”, $message.src_ip);<br>    set_field(“src_ip_geo_location”, geo[“coordinates”]);<br>    set_field(“src_ip_geo_country”, geo[“country”].iso_code);<br>    set_field(“src_ip_geo_city”, geo[“city”].names.en);<br>end</p>
+<p>很好理解，如果<code>src_ip</code> 字段存在，就用<code>geoip</code>这个Lookup Table查询，还记得吧，这个<code>geoip</code>是上一步Lookup Table的Name。</p>
+<p>如果你的日志是像我这种，IP记录在message中，那就这样，先用<code>grok</code>去提取IP地址，然后再进行查询</p>
+<p>rule “GeoIP lookup”<br>when<br>    has_field(“message”)<br>then<br>    let ipObj &#x3D; grok(pattern: “(%{IP})”, value: to_string($message.message));<br>    &#x2F;&#x2F; ipObj.IP 就是真正的IP地址，可能是IPv4 也可能是IPv6<br>    let geo &#x3D; lookup(“geoip”, ipObj.IP);<br>    set_field(“src_ip_geo_location”, geo[“coordinates”]);<br>    set_field(“src_ip_geo_country”, geo[“country”].iso_code);<br>    set_field(“src_ip_geo_city”, geo[“city”].names.en);<br>end</p>
+<p>但是这样还不是很完美，仔细观察，我的log的IP是在<code>()</code>包围中的，有些时候我也会用<code>logging.info</code>去记录IP，那么这样子就会重复了。想当然的，这东西看起来是正则表达式的样子，那么<code>(\(%&#123;IP&#125;\))</code>😎辣鸡Graylog会直接给你报错，无法保存</p>
+<p>这个时候要做的事情是创建一个新的 Grok规则，然后去应用，如图所示，Pattern为 <code>\(%&#123;IP&#125;\)</code>名字随便起一个</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/03/2023032519363232.png"><img src="/images/2023032519363232.png"></a></p>
+<p>然后规则里用<code>(%&#123;Tornado&#125;)</code>就可以了</p>
+<p>遇到问题可以用<code>debug(ip)</code>这种去排错，Graylog的log🤪会显示这个变量的内容</p>
+<h3 id="创建pipeline"><a href="#创建pipeline" class="headerlink" title="创建pipeline"></a>创建pipeline</h3><p>还没完，在Manage rules旁边有一个Manage pipelines，创建一个pipeline</p>
+<p>名字随便起，创建好之后 Edit Connections – Default Stream</p>
+<p><img src="/images/202303250320135.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<p>然后创建stage，rules选择刚刚弄好的rule</p>
+<p><img src="/images/2023032503201479.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>Stage 0没用可以删掉</p>
+<p>保存好，回到主界面应该能看到IP和地理位置了</p>
+<p><img src="/images/2023032503201563.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h2 id="添加Geo-Location-Map"><a href="#添加Geo-Location-Map" class="headerlink" title="添加Geo Location Map"></a>添加Geo Location Map</h2><p>Graylog有一个有点有趣的功能，可以根据log来做聚合查询，包括GeoIP的信息。在主界面的侧边可以看到aggregation</p>
+<p><img src="/images/2023032503201596.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>点进去这样配置</p>
+<p><img src="/images/202303250320151.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>Update widget 就有了，大概这样</p>
+<p><img src="/images/2023032503201693.png" alt="截图里有图片 描述已自动生成"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>log服务器和应用服务器不要在同一台机器上，否则到时候一起挂了，都没得看</li>
+<li>😏 <a target="_blank" rel="noopener" href="https://dmesg.app/yyets-hack.html">自从被打之后</a>，我再也不监听<code>0.0.0.0</code>了，一切全靠 Cloudflare Argo Tunnel 解决，连nginx都不需要</li>
+<li>新版本的docker（20.10起）也可以看GELF的log，但是<code>docker-compose</code>不可以</li>
+<li>这<a target="_blank" rel="noopener" href="https://www.graylog.org/post/how-to-set-up-graylog-geoip-configuration/">Graylog的文档</a>是真的绝，说得不明不白的，甚至还有全角引号</li>
+</ol>
+<p><img src="/images/2023032503201789.png" alt="文本, 信件 描述已自动生成"></p>
+<ol start="8">
+<li><p>没太多有用的资料，搜到的就是他们官方的论坛</p>
+</li>
+<li><p>🤡还有undefined的bug，后来到MongoDB里手动删除的</p>
+</li>
+</ol>
+<p><img src="/images/2023032503201861.jpeg" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/25/graylog-geo-ip/index/" data-id="clhp6hdzo0033ezqr397x35sp" data-title="Graylog 显示Geo IP" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-argo-real-ip/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/14/argo-real-ip/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-14T00:00:00.000Z" itemprop="datePublished">2023-03-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/14/argo-real-ip/index/">Nginx不显示Argo Tunnel后用户真实IP？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近由于人人影视被拒绝服务攻击，于是我把所有网站都改成了通过 Cloudflare Argo Tunnel访问。所有的应用只监听<code>127.0.0.1</code>，通过Argo去做隧道。这样比较不容易暴露源站IP，也不用管origin certificate这种乱七八糟的东西，要安全一些。</p>
+<p>具体使用方式可以参考这两篇，当然如果不想了解技术细节，那么就去 zero trust -&gt;access -&gt; tunnels中创建一个tunnel，安装好，add public hostname 就好。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/argo-tunnel.html">Cloudflare Argo Tunnel 小试：我终于可以用树莓派做网站啦</a></li>
+<li><a target="_blank" rel="noopener" href="https://nova.moe/accelerate-and-secure-with-cloudflared/">使用 Cloudflare Argo Tunnel(cloudflared) 来加速和保护你的网站</a></li>
+</ul>
+<hr>
+<p><img src="/images/2023031218513238.jpeg" alt="图形用户界面, 应用程序, 表格 描述已自动生成"></p>
+<p>由于我的博客还在使用 <a target="_blank" rel="noopener" href="https://webp.sh/#/">WebP Server Go</a>作为图片优化策略，因此前面还得套个 nginx。今天看日志的时候发现没显示源站IP！但是我明明已经设置了<code>set_real_ip_from</code>，而且这些IP肯定是最新的。</p>
+<p><img src="/images/2023031218513352.jpeg" alt="文本 描述已自动生成"></p>
+<p>对应的 WordPress容器也是有真实IP的，同时其他 Python应用也记录了真实IP。奇怪哦</p>
+<p>后来经过瞎猫碰死耗子的尝试，发现了<code>set_real_ip</code>要加上这个</p>
+<p>set_real_ip_from 172.21.0.1;</p>
+<p>然后就万事大吉啦！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/14/argo-real-ip/index/" data-id="clhp6hdxl0007ezqreyuoa93d" data-title="Nginx不显示Argo Tunnel后用户真实IP？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-meilisearch/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/14/meilisearch/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-14T00:00:00.000Z" itemprop="datePublished">2023-03-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/14/meilisearch/index/">轻量级全文搜索引擎 Meilisearch使用体验</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自从人人影视分享站被攻击之后，我便一直在想如何提升搜索性能。</p>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><h3 id="人人影视分享站的搜索功能主要包括这三大模块："><a href="#人人影视分享站的搜索功能主要包括这三大模块：" class="headerlink" title="人人影视分享站的搜索功能主要包括这三大模块："></a>人人影视分享站的搜索功能主要包括这三大模块：</h3><ol>
+<li>搜索yyets数据库的<code>cnname</code>、<code>enname</code>和<code>aliasname</code>三个字段，也就是之前爬下来的老的数据库的内容</li>
+<li>搜索评论信息，同时找到评论所在页面</li>
+<li>如果以上都无结果，那么去搜索其他网站</li>
+</ol>
+<h3 id="三大模块的优化方案"><a href="#三大模块的优化方案" class="headerlink" title="三大模块的优化方案"></a>三大模块的优化方案</h3><ul>
+<li>1和2都是使用了正则作为模糊搜索，因此加索引是没用的。虽然数据库不算很大，但是毕竟要全表检索，数量多就容易过载</li>
+<li>搜索评论时，是Python拿到结果再去请求yyets，其实可以通过聚合查询一次性搞定。让MongoDB去做这件事情肯定比Python去做要方便得多，也省得写乱七八糟的处理代码</li>
+<li>站外查询这个功能可以禁用了</li>
+<li>升级服务器</li>
+</ul>
+<p>但是以上方案无论怎么折腾，都逃不过搜索时要全表检索，只要涉及到全表检索那肯定会重IO重CPU。</p>
+<p>那不请求数据库，加redis做缓存呢？好是好，但是命中率会很低，因为每个人搜索关键词可能差很多，而且缓存多久合适？很难搞的问题</p>
+<p>那有没有更好的办法呢，那种搜索很快的数据库？当然有的了，比如知名的Elastic Search</p>
+<h2 id="全文搜索引擎"><a href="#全文搜索引擎" class="headerlink" title="全文搜索引擎"></a>全文搜索引擎</h2><p>ElasticSearch可谓是最致命知名的全文搜索引擎了，几年前在做实习生的时候<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">简单地接触过</a>。那时候在我的眼中，ES似乎和MongoDB没什么区别。</p>
+<p>为了能够让人人影视分享站的搜索功能更上一个台阶，我需要选择一个全文搜索引擎。</p>
+<p>ES确实是非常知名的全文搜索引擎，但是同时也非常致命：需要非常的配置，尤其是内存，官方建议似乎最少8G了，我真的很穷😭</p>
+<p>我对于这个全文搜索的要求如下：</p>
+<ol>
+<li>轻量级，对配置要求比较低</li>
+<li>开发活跃，有相应的Python SDK</li>
+<li>支持CJK</li>
+<li>最好再支持docker，真的不想自己写<code>Dockerfile</code>，太累了</li>
+<li>使用简单，像MongoDB那样随便插入，不需要定义schema，心智负担小一点吧</li>
+</ol>
+<p>网上搜索了一圈，发现了这么几个比较不错的产品</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/valeriansaliou/sonic">sonic</a> 官方宣称轻量级的ES替代品，支持几十种语言。坏消息是Python library没一个能用的，全挂了。官方维护的nodejs的倒还可以，不愧是亲儿子啊</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/quickwit-oss/tantivy">Tantivy</a> 官方说也支持十几种语言，并且可以通过插件支持CJK，还有一个<code>tantivy-py</code>，rust的bingding，虽然没啥自动补全了，安装时说不准还得来个rust，但是也能用。缺点就是，这个<code>tantivy-py</code>，不支持第三方tokenizer，那和不支持CJK有什么区别嘛……</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/typesense/typesense">Typesense</a> 也是非常有名的全文搜索引擎，不过对CJK的支持不太完善，并且需要定义schema</li>
+</ol>
+<p>最终我找到了今天的主角，Meilisearch，美丽搜索。支持CJK，可以容忍错别字，有官方的各种语言的SDK，自带一个简单的检索页面，使用rust构建，同样轻量级</p>
+<p><img src="/images/2023031206073470.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h2 id="Meilisearch消费数据"><a href="#Meilisearch消费数据" class="headerlink" title="Meilisearch消费数据"></a>Meilisearch消费数据</h2><p>对于全文检索来说最重要的无非是两件事情，存储数据和检索。对Meilisearch来说这很简单：</p>
+<p>import Meilisearch</p>
+<p>client &#x3D; Meilisearch.Client(“<a target="_blank" rel="noopener" href="http://127.0.0.1:7700/">http://127.0.0.1:7700</a>“, “masterKey”)<br>index &#x3D; client.index(“demo”)<br>documents &#x3D; [<br>    {<br>        “id”: 123,<br>        “title”: “后端的接口大概在半年前就写好了”<br>    },<br>    {<br>        “id”: 456,<br>        “title”: “我最近才学了一点点 React做好了邮件验证的功能”<br>    }<br>]<br>index.add_documents(documents)</p>
+<p>可一次性提交很多数据，Meilisearch会异步处理。如果想要知道处理结果可以看tasks结果，如：</p>
+<p>task &#x3D; index.add_documents(documents)<br>time.sleep(1)<br>print(index.get_task(task.task_uid))</p>
+<h3 id="Meilisearch的ID"><a href="#Meilisearch的ID" class="headerlink" title="Meilisearch的ID"></a>Meilisearch的ID</h3><p>Meilisearch要求数据包含ID，如果你提交的数据是这样的</p>
+<p>documents &#x3D; [<br>    {<br>        “title”: “后端的接口大概在半年前就写好了”,<br>        “titleId”: “123a”,<br>        “content”: “好的”,<br>        “contentId”: “yagwah2”<br>    },<br>    {<br>        “title”: “我最近才学了一点点 React做好了邮件验证的功能”,<br>        “titleId”: “456b”,<br>        “content”: “不好”,<br>        “contentId”: “9777”<br>    },<br>]</p>
+<p>你会发现在网页上看不到这些索引，这是因为Meilisearch要求数据中包含唯一ID，这也是以后更新索引的依据。给每一条数据加上一个唯一的ID就好了。或者：</p>
+<p>如果你的数据中不包括id字段，那么Meilisearch将会尝试自动从其他<a target="_blank" rel="noopener" href="https://docs.meilisearch.com/learn/core_concepts/primary_key.html#setting-the-primary-key">类似ID的字段中推导</a>，比如你的数据是：</p>
+<p>{<br>    “username”: “abcdefg”,<br>    “date”: “2021-06-13 22:32:48”,<br>    “comment”: “很好看”,<br>    “commentID”: “60c61710004833fc8cd4b240”,<br>    “origin”: “comment”,<br>    “hasAvatar”: None,<br>    “resourceName”: “急诊室的故事”,<br>}</p>
+<p>Meilisearch就会把<code>commentID</code>当作ID去使用。但是如果非常不巧你的数据中包含多个ID结尾的字段，如</p>
+<p>{<br>    “username”: “abcdefg”,<br>    “date”: “2021-06-13 22:32:48”,<br>    “comment”: “很好看”,<br>    “commentID”: “60c61710004833fc8cd4b240”,<br>    “origin”: “comment”,<br>    “hasAvatar”: None,<br>    “resourceID”: 10323,<br>    “resourceName”: “急诊室的故事”,<br>}</p>
+<p>那么就会推导失败，此时要么自己添加好id，要么指定主键名</p>
+<p>index.add_documents(documents, primary_key&#x3D;”commentID”)</p>
+<h2 id="Meilisearch检索数据"><a href="#Meilisearch检索数据" class="headerlink" title="Meilisearch检索数据"></a>Meilisearch检索数据</h2><p>非常简单高效，唯一的缺点是没有提供confidence score之类的东西，有的时候搜出来的东西实在是离谱🤡</p>
+<p>result &#x3D; index.search(“棒”)</p>
+<p>不用考虑简体繁体，有非常多的参数可以选择，具体<a target="_blank" rel="noopener" href="https://docs.meilisearch.com/reference/api/search.html">可以看文档</a></p>
+<h2 id="集成Meilisearch"><a href="#集成Meilisearch" class="headerlink" title="集成Meilisearch"></a>集成Meilisearch</h2><p>把Meilisearch集成到人人影视分享站，要考虑的问题如下：</p>
+<ol>
+<li>数据持久化，我的所有应用都是docker跑的，这样就一定要考虑数据持久化的事情</li>
+<li>消费数据，要保证Meilisearch的数据和MongoDB同步更新，并且在每次重启容器时也不会有丢失</li>
+<li>保证返回一样的数据结构，避免前端改来改去</li>
+</ol>
+<h3 id="数据持久化"><a href="#数据持久化" class="headerlink" title="数据持久化"></a>数据持久化</h3><p>Meilisearch的数据并不重要，因此不需要映射宿主机的目录到容器之中，只需要docker volume就可以了。</p>
+<p>docker volume create meili</p>
+<p>然后</p>
+<p>docker run -v meili:&#x2F;meili_data getmeili&#x2F;meilisearch:v1.0.2</p>
+<p>用<code>docker-compose</code>的话，也基本一样</p>
+<p>version: ‘3.1’</p>
+<p>services:<br>  meili:<br>    image: getmeili&#x2F;meilisearch:v1.0.2<br>    volumes:<br>      - meilisearch:&#x2F;meili_data</p>
+<p>volumes:<br>  meilisearch:</p>
+<h3 id="第一次消费数据"><a href="#第一次消费数据" class="headerlink" title="第一次消费数据"></a>第一次消费数据</h3><p>由于Meilisearch是异步处理数据的，也就意味着提交一大堆数据之后，我们并不会阻塞。</p>
+<p>因此问题就变成了如何更优雅的从MongoDB中查询到我们想要的数据，然后一股脑的塞过去。</p>
+<p>此时就要用到 MongoDB的<code>aggregate</code>了，非常强大的功能，一个查询就可以全部搞定，不用拿Python再遍历然后二次查</p>
+<p>我的第一次消费数据也非常简单粗暴，程序启动时丢个线程去跑就好了，反正也没多少，第一次几秒钟就结束</p>
+<p>threading.Thread(target&#x3D;engine.run_import).start()</p>
+<h3 id="同步数据"><a href="#同步数据" class="headerlink" title="同步数据"></a>同步数据</h3><p>MongoDB有一个功能叫做 Change Stream，这是一种发布订阅的模式，简单的说就是当数据库发生变更，MongoDB会“推送”数据过去。</p>
+<p>唯一的小缺点是，数据库药需要配置成replica set才可以。当然了，只有一个节点的replica set也没问题啦。</p>
+<p>用起来很容易，先在配置文件中启用replica set，如果用的docker，那么command追加<code>--replSet rs0</code>即可，然后启动MongoDB，</p>
+<p>配置replica set，比如我要配置两个节点的</p>
+<p>rs.initiate({<br>    _id: “rs0”,<br>    members: [{<br>        _id: 0,<br>        host: “localhost:27017”<br>    },<br>    {<br>        _id: 1,<br>        host: “mongo2:27017”<br>    }]<br>})</p>
+<p><code>rs.status()</code>可以查看配置结果</p>
+<p>多个节点的话，等到数据同步好了，可选配置一下优先级</p>
+<p>cfg &#x3D; rs.conf()<br>cfg.members[0].priority &#x3D; 0.5<br>cfg.members[1].priority &#x3D; 0.5<br>cfg.members[2].priority &#x3D; 1 # 最高<br>rs.reconfig(cfg)</p>
+<p>配置成功之后，比如我想监听<code>comment</code>这个集合的变化</p>
+<p>cursor &#x3D; self.db.comment.watch()<br>for change in cursor:<br>    print(change)</p>
+<p>无论是增删改都会在这个<code>change</code>中体现。我同样也很简单粗暴，拿到数据了<code>add_documents</code> 就好。</p>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p>由于在喂数据的时候就是根据前端的要的数据构造的，所以这里根本不用管，直接把Meilisearch返回的结果返回给前端就好了</p>
+<h2 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a>性能对比</h2><p>在开了省电模式的M1 Macbook单核心、2G内存的docker engine环境，用<code>ab -c 100 -n 2000</code> 的跑分，优化前：</p>
+<p><img src="/images/2023031206073540.png" alt="文本 描述已自动生成"></p>
+<p>优化后：</p>
+<p><img src="/images/2023031206073648.png" alt="文本 描述已自动生成"></p>
+<p>每秒请求次数从20左右提升到200多，直接10倍，这不比升级机器配置好多啦！并且IO、CPU、RAM占用也比MongoDB理想多了。</p>
+<p> </p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>我也不知道这个人是谁，还在孜孜不倦的爬呀爬😂 虽然并无任何影响，但是看着就很恶心人，有什么好的办法吗</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/03/2023031506455240.png"><img src="/images/2023031506455240.png"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/14/meilisearch/index/" data-id="clhp6he0j004hezqr6qmn4hcp" data-title="轻量级全文搜索引擎 Meilisearch使用体验" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-yyets-hack/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/12/yyets-hack/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-12T00:00:00.000Z" itemprop="datePublished">2023-03-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/12/yyets-hack/index/">这是人人影视分享站被黑的最惨的一次</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近这段时间，我的<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/home">人人影视分享站</a>不怎么太平，不是被恶意爬虫就是被CC攻击。不知道是遭遇了竞争对手还是怎么的。</p>
+<p>3月7日中午，收到cloudflare邮件说服务器无法连接</p>
+<p><img src="/images/2023031204182854.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>SSH看一下日志，果然，有很多莫名其妙的搜索，</p>
+<p><img src="/images/2023031204182942.jpeg" alt="背景图案 描述已自动生成"></p>
+<p>这些请求主要有如下特点：</p>
+<p>40秒内200多个请求，分布在60个不同的IP地址上，还全都是中国民用家宽的IP。</p>
+<ol>
+<li>使用中国各个地区、各个运营商的民用家宽IP，比如上图40秒内200多请求，分布在60个不同的IP地址上</li>
+<li>同一个IP的UA还会变，一会是Chrome一会是Firefox，这看起来很不正常</li>
+<li>即使到了下半夜也还在大量请求，正常人都是要睡觉的</li>
+<li>搜索内容大致为某些综艺的名字+集数或演员名字，没有referer，正常搜索浏览器是一定会带referer的，因此应该是机器人直接发出的请求</li>
+<li>他直接请求的！要是跑的selenium我也就认啦，就当给我点广告了</li>
+</ol>
+<p>我尝试了如下解决方案：</p>
+<ol>
+<li>根据IP去cloudflare上拉黑，结果发现IP太多，根本拉不过来</li>
+<li>用Cloudflare的 rate limit去限制请求频率，结果因为他们IP实在是太多了，全都分散开了，没用</li>
+<li>开cloudflare的DDoS 防护规则也没用，因为IP太多了，在cf 看来基本就是正常请求，至少免费版来看是这样的</li>
+</ol>
+<p>发现以上办法似乎都没有什么用，于是开了三秒墙，所有用户在打开网站的时候都会有浏览器检查，大概这样</p>
+<p><img src="/images/2023031204183031.png" alt="文本 描述已自动生成"></p>
+<p>机器人自然无法完成JS challenge，于是这一波下来稳了。</p>
+<p>我的<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/database"><strong>数据库是公开的</strong></a>，这么爬很不地道，动了这么多IP也一定没少破费。何必呢？我也不是什么竞争对手，我只不过是开了一个很普通的个人站，全靠网友贡献。挺累的。</p>
+<hr>
+<p>几天之后星期五，我发现网站竟然又挂了！开着三秒墙也能被打挂？看了一眼日志……</p>
+<p><img src="/images/2023031204183524.png" alt="电脑屏幕的照片 中度可信度描述已自动生成"></p>
+<p>Vultr的美国机，竟然用这种随机无意义的字符串来搜索，竟然还绕过了三秒墙，也绕过了rate limit。🤣于是MongoDB炸了，nginx也基本要炸了。</p>
+<p>去cloudflare上添加了黑名单，并没有效果。哦豁？难道是cloudflare又bug了……想了一下，不对，是我的源站IP被找到了，怪不得三秒墙和rate limit都没效果😓</p>
+<p>这种情况下只能去机器上添加防火墙，或者机器的供应商那里添加安全组之类的了。不幸的事情来了：</p>
+<ol>
+<li>没有安全组可用</li>
+<li>我的nginx是docker启动的，这也就意味着一般的在<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">INPUT链拉黑IP的办法不管用</a></li>
+<li>在尝试调解docker和nginx的过程中，一不小心写错了iptables规则。出门没带钥匙嘛。</li>
+<li>我不知道SSH的密码是什么，应该是16位的hex，去grub改init然后修改密码很麻烦毕竟是VNC</li>
+</ol>
+<p><img src="/images/2023031204184330.png" alt="卡通人物 中度可信度描述已自动生成"></p>
+<p>不幸之外还有一些好消息：</p>
+<ol>
+<li>我没有持久化iptables规则，意味着只要去控制面板重启一下，我刚刚写错的规则就会消失了！</li>
+<li>我可以换IP，至少能够暂时化解这种情况</li>
+</ol>
+<hr>
+<p>于是问题就这么解决了。这是我做这个小破站被黑的最惨的一次。在这次经历中，我学习到了如下经验教训：</p>
+<ol>
+<li>爬虫死全家，尤其是45.32.227.75 😄</li>
+<li><a target="_blank" rel="noopener" href="https://twitter.com/baobao1270/status/1634619642630246401?s=20">docker会破坏基于iptables为后端的防火墙</a>。Docker跑的应用，如果绑定了端口，那么会给iptables打洞，意味着常规堵INPUT链的办法不管用，要PRE ROUTTING、改DOCKER-USER或者<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">让docker和ufw一起工作</a>，巨麻烦，心智负担非常大。</li>
+<li>网站躲在cloudflare后也可能被抓到源站IP，比如说censys，全网扫IP+443然后找证书，或者IP+80比对特征</li>
+<li>应该拒绝全部非cloudflare IP对80和443的请求，甚至直接通过argo tunnel之类的来解决，连nginx都用不上</li>
+<li>保护好自己的IP，毕竟只要IP被抓到了，14亿中国人一人一个ping你也受不了🇨🇳</li>
+<li>在MongoDB中使用正则模糊查询，如&#x2F;.*keyword.*&#x2F;是非常慢的，全文检索的话，我记得是Atlas专有，而且一旦涉及到CJK，也有可能完犊子</li>
+<li>容器如果一直不停地yyetsbot_web_1 exited with code 137，记得检查下是不是有什么<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1634342211319128064?s=20">奇奇怪怪的保活监测脚本</a></li>
+<li>配置路由表、iptables规则时务必小心，务必给自己留后门。我之前留的后门是只能通过console登录的root权限用户，密码不是很复杂，通过VNC之类的东西输入还是可以的</li>
+<li>MongoDB的aggregation很强大，可以做到跨集合查询，自定义查询字段名称等等</li>
+<li>遇到问题不要慌，记得先撸猫再解决问题</li>
+</ol>
+<p><img src="/images/2023031204184447.jpeg" alt="猫躺在沙发上 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/12/yyets-hack/index/" data-id="clhp6he3y00c3ezqracx35sxq" data-title="这是人人影视分享站被黑的最惨的一次" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-container-smtp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/02/07/container-smtp/index/" class="article-date">
+  <time class="dt-published" datetime="2023-02-07T00:00:00.000Z" itemprop="datePublished">2023-02-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/02/07/container-smtp/index/">为什么我的容器连不上riseup的邮件服务器了？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几天前，我开放了<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/home">人人影视下载站</a>的用户注册功能，并且新用户在注册后需要验证邮箱才能发表评论。开放注册可能会提高用户的活跃度，但是又总有用户发一些不合适的东西，因此有必要提高一点注册门槛。</p>
+<p>后端的接口大概在半年前就写好了，我最近才学了一点点 React做好了邮件验证的功能。</p>
+<h2 id="如何用发邮件"><a href="#如何用发邮件" class="headerlink" title="如何用发邮件"></a>如何用发邮件</h2><p>我用的是riseup来发，基本如下几步：</p>
+<ol>
+<li>去域名注册商那边添加一个email forward，因为后需要验证</li>
+<li>去riseup添加一个alias</li>
+<li>去DNS那边添加一个SPF 记录<code>v=spf1 include:riseup.net +all</code>，如果同时还想用email forward，那就添加 include就好了，比如说我的是这样的<code>v=spf1 include:_spf.mx.cloudflare.net include:riseup.net +all</code></li>
+<li>用SMTP协议，可以先用mailhog做测试，确定没问题来之后切到riseup，代码大概这样</li>
+</ol>
+<p>import smtplib<br>from email.header import Header<br>from email.mime.text import MIMEText<br>from email.utils import formataddr, parseaddr</p>
+<p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
+<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; “username”<br>    password &#x3D; “password”<br>    host &#x3D; “mail.riseup.net”<br>    port &#x3D; 465<br>    from_addr &#x3D; “<a href="mailto:&#x79;&#121;&#x65;&#116;&#115;&#64;&#x64;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#x70;&#112;">&#x79;&#121;&#x65;&#116;&#115;&#64;&#x64;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#x70;&#112;</a>“</p>
+<pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
+msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
+msg\[&#39;To&#39;\] = \_format\_addr(to)
+msg\[&#39;Subject&#39;\] = Header(subject, &#39;utf-8&#39;).encode()
+
+if port == &quot;1025&quot;:
+    server = smtplib.SMTP(host, int(port))
+else:
+
+    server = smtplib.SMTP\_SSL(host, int(port))
+server.login(user, password)
+server.sendmail(from\_addr, \[to\], msg.as\_string())
+server.quit()
+</code></pre>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#x6e;&#110;&#121;&#x2e;&#116;&#104;&#105;&#x6e;&#107;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;">&#98;&#101;&#x6e;&#110;&#121;&#x2e;&#116;&#104;&#105;&#x6e;&#107;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;</a>“, “test subject”, “test body”)</p>
+<p>收到的邮件也比较理想，一般来说不会进spam</p>
+<p><img src="/images/2023020703173685.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>前几天做测试的时候一切顺利，上线的时候本来以为没什么大问题，结果今天却收到了一个用户的反馈，说收不到邮件，试了各种邮箱，检查了垃圾箱，也没有收到。</p>
+<h2 id="排查问题"><a href="#排查问题" class="headerlink" title="排查问题"></a>排查问题</h2><p>加了几条log之后发现在容器中 smtplib.SMTP_SSL 会直接卡住，如果按ctrl + c会收到这样的报错</p>
+<p>Traceback(most recent call last):<br>  File “”, line 1, in<br>  File “&#x2F;YYeTsBot&#x2F;yyetsweb&#x2F;utils.py”, line 51, in send_mail<br>    server &#x3D; smtplib.SMTP_SSL(host, int(port))<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 1050, in __init__<br>    SMTP.__init__(self, host, port, local_hostname, timeout,<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 255, in __init__<br>    (code, msg)&#x3D;self.connect(host, port)<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 341, in connect<br>    self.sock&#x3D;self._get_socket(host, port, self.timeout)<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 1057, in _get_socket<br>    new_socket&#x3D;self.context.wrap_socket(new_socket,<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 513, in wrap_socket<br>    return self.sslsocket_class._create(<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 1071, in _create<br>    self.do_handshake()<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 1342, in do_handshake<br>    self._sslobj.do_handshake()<br>ssl.SSLZeroReturnError: TLS&#x2F;SSL connection has been closed(EOF)(_ssl.c: 997)</p>
+<p>奇怪哦，那就排除法做几个测试，首先在容器内nc一下看看</p>
+<p>&#x2F; # nc -v mail.riseup.net 465<br>mail.riseup.net (198.252.153.21:465) open</p>
+<p>通的耶！那容器内连试试？</p>
+<p>[root:~]# docker run –rm -it python:alpine sh<br>&#x2F; # python<br>Python 3.11.1 (main, Feb 4 2023, 01:59:37) [GCC 12.2.1 20220924] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>果不其然，卡住了。去宿主机试试看呢？</p>
+<p>[root:~]# python<br>Python 3.8.10 (default, Nov 14 2022, 12:59:47)<br>[GCC 9.4.0] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)<br>&lt;smtplib.SMTP_SSL object at 0xffffa1148610&gt;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>没问题哎。看着上面有TLS&#x2F;SSL connection has been closed(EOF)，难道是OpenSSL的问题，试试 <code>python</code>而不是<code>python:alpine</code> 呢？</p>
+<p>也不行。</p>
+<p>是因为arm64有bug吗？但是我的电脑没问题啊🤔找了一台x86_64的试了一下也没问题。</p>
+<p>这么排除下来，问题就是容器的网络了。默认来说docker的默认网络上bridge模式。Bridge是通过iptables去做转发的，之前在<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">《我的ufw怎么又不好用了？使用docker时如何拒绝非cloudflare访问》</a>中提到过。</p>
+<p>切换到host模式试试看？</p>
+<p>[root:~]# docker run –rm –network host -it python:alpine sh<br>&#x2F; # python<br>Python 3.11.1 (main, Feb 4 2023, 01:59:37) [GCC 12.2.1 20220924] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)<br>&lt;smtplib.SMTP_SSL object at 0xffff96122ed0&gt;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>果然，那为什么bridge模式不行host就可以呢？</p>
+<p>看了一眼iptables，突然看到这么一条</p>
+<p>Chain PREROUTING (policy ACCEPT)<br>target prot opt source destination</p>
+<p>REDIRECT tcp – anywhere anywhere tcp dpts:telnet:finger redir ports 16698<br>REDIRECT tcp – anywhere anywhere tcp dpts:81:442 redir ports 16698<br>REDIRECT tcp – anywhere anywhere tcp dpts:snpp:1000 redir ports 16698<br>DOCKER all – anywhere anywhere ADDRTYPE match dst-type LOCAL</p>
+<p>这不是之前为了方便梯子使用，把23-1000中除了80和443的端口都给转发到本地的16698了吗？😓</p>
+<p>删掉这条规则就好了。</p>
+<h2 id="其他的发邮件的办法"><a href="#其他的发邮件的办法" class="headerlink" title="其他的发邮件的办法"></a>其他的发邮件的办法</h2><p>比如说自建，mailgun，sendgrid之类的，我个人觉得sendgrid比较不错，免费用户每天可以发100封。另外一个mailersend一个月可以发12000。同样都可以用SMTP协议手搓邮件。</p>
+<h2 id="人人影视分享站运行状况分享"><a href="#人人影视分享站运行状况分享" class="headerlink" title="人人影视分享站运行状况分享"></a>人人影视分享站运行状况分享</h2><p>人人影视分享站大概2021年2月初开始上线，6月的时候在 <a target="_blank" rel="noopener" href="https://github.com/wyx1818">zuiyu</a>的帮助下用React重做了前端，已经跑了整整两年啦。</p>
+<h3 id="两年里的收获"><a href="#两年里的收获" class="headerlink" title="两年里的收获"></a>两年里的收获</h3><ul>
+<li>总计21000条评论，有很多热心网友都会把新出的剧集网盘分享贴到评论区，非常优秀！</li>
+<li>37000个用户😂虽然可能大部分用户都不活跃</li>
+<li>每日大概有几千个访问</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">YYeTsBot项目</a>收获了12.4K的star和1.7k的fork，写在简历上很有趣😂</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsFE">前端YYeTsFE</a> 收获了182个star和49个fork</li>
+<li><a target="_blank" rel="noopener" href="https://afdian.net/a/BennyThink">爱发电</a>得到了一些热心网友的帮助，足够域名和服务器的费用了，也不枉费我N多个小时的努力</li>
+<li>加了Adsense，如果可以的话希望各位能关掉广告屏蔽器。<strong>以后我的猫猫们就是广大网友们养的了！</strong></li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/02/2023020703250152.jpg"><img src="/images/2023020703250152.jpg" alt="猫"></a></p>
+<h3 id="未来一段时间想要做的事情"><a href="#未来一段时间想要做的事情" class="headerlink" title="未来一段时间想要做的事情"></a>未来一段时间想要做的事情</h3><ul>
+<li>把网站继续开下去，尽量活下去</li>
+<li>优化前端，提升易用性</li>
+<li>提升访问量，这很刑！</li>
+<li>希望能找到人和我一起维护，这样你也是某个10K+ star的项目都维护者了 🤩，要不我这开源有什么意思嘛</li>
+</ul>
+<p> </p>
+<p>欢迎给个star或者点个广告～</p>
+<p><a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">https://yyets.dmesg.app/</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">https://github.com/tgbot-collection/YYeTsBot</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/02/07/container-smtp/index/" data-id="clhp6hdyl001fezqr0kjh14xx" data-title="为什么我的容器连不上riseup的邮件服务器了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -126,23 +1043,49 @@
   
 
 
+  <nav id="page-nav">
+    
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+  </nav>
+
 </section>
         
           <aside id="sidebar">
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
 
   
     
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
   
     
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -155,7 +1098,23 @@
       <ul>
         
           <li>
-            <a href="/2023/05/15/hello-world/">Hello World</a>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
           </li>
         
       </ul>
@@ -171,7 +1130,7 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       
-      &copy; 2023 John Doe<br>
+      &copy; 2023 Benny小土豆<br>
       Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>

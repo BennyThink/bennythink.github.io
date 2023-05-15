@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>如何防范网络审计 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="咳咳，怎么会写起这个话题呢？起因是某个小伙伴发给了我知乎的链接让我提提神。 本来是想给写到总结里，结果一口气就写了2000来字，已经不适合在总结里出现啦，所以就单独拎出来好了！ 事先声明，俺呀，不是什么大牛，也不是安全圈的业内人士，更不是密码学专家。我只是来科普下科普下……当然了是原创的科普。 另外，本篇文章是应对”审计”的哟……社会工程学等等不在此列。   一。网络审计是什么？这里我指的是”">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何防范网络审计">
+<meta property="og:url" content="http://example.com/2016/03/03/prevent-from-network-audit/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="咳咳，怎么会写起这个话题呢？起因是某个小伙伴发给了我知乎的链接让我提提神。 本来是想给写到总结里，结果一口气就写了2000来字，已经不适合在总结里出现啦，所以就单独拎出来好了！ 事先声明，俺呀，不是什么大牛，也不是安全圈的业内人士，更不是密码学专家。我只是来科普下科普下……当然了是原创的科普。 另外，本篇文章是应对”审计”的哟……社会工程学等等不在此列。   一。网络审计是什么？这里我指的是”">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2016030305595622.jpg">
+<meta property="og:image" content="http://example.com/images/030316_0533_1.png">
+<meta property="og:image" content="http://example.com/images/2016030306085390.jpg">
+<meta property="og:image" content="http://example.com/images/030316_0533_2.png">
+<meta property="og:image" content="http://example.com/images/2016030306244250-1024x576.jpg">
+<meta property="article:published_time" content="2016-03-03T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:47.998Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2016030305595622.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-prevent-from-network-audit/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/03/prevent-from-network-audit/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-03T00:00:00.000Z" itemprop="datePublished">2016-03-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      如何防范网络审计
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>咳咳，怎么会写起这个话题呢？起因是某个小伙伴发给了我<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/40543633/answer/88747638?from=singlemessage&isappinstalled=0&code=021ec89ac291c875d6f701e974c275b2&state=1a394b6ce165363accb5a08f16b0bbbd">知乎的链接</a>让我提提神。</p>
+<p>本来是想给写到总结里，结果一口气就写了2000来字，已经不适合在总结里出现啦，所以就单独拎出来好了！</p>
+<p>事先声明，俺呀，<strong>不是</strong>什么大牛，也不是安全圈的业内人士，更不是密码学专家。我只是来科普下科普下……当然了是原创的科普。</p>
+<p>另外，本篇文章是应对”审计”的哟……社会工程学等等不在此列。</p>
+<p> </p>
+<h1 id="一。网络审计是什么？"><a href="#一。网络审计是什么？" class="headerlink" title="一。网络审计是什么？"></a>一。网络审计是什么？</h1><p>这里我指的是”<strong>上网行为管理审计</strong>“。在某些企业、学校里，会在网关部署一个设备（当然也有可能是旁路），所有进出网关的东西都会被记录下来。简而言之就是，理论上你看了什么网页，听了什么歌，下了什么电影都是可以在审计工具里看到的。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030305595622.jpg"><img src="/images/2016030305595622.jpg" alt="QQ截图20160303135839"></a></p>
+<p>当然审计的程度是不同的，有的可能不会部署这类工具，有的可能会对某些端口进行屏蔽（比如屏蔽BT端口来禁止下载），有的可能会特殊关照某些端口（比如HTTP的80）。</p>
+<p>防范之心不可无。</p>
+<p>当然你可以说，我们处在运营商这一个大的”公司”之中，无论怎么防范都是没用的。对待这种言论，我只想说，滚犊子！人活着早晚得死，那就现在死了呗。防范是有针对性的，你在公司里主要的防范对象是公司领导，关电信CEO什么事？况且，互联网的存在使得匿名真正成为了可能。</p>
+<p>有人可能会问，有这么坏的公司&#x2F;学校吗？就引用鲁迅老人家的那句话：我向来不惮以最坏的恶意揣测中国人。</p>
+<h1 id="二。如何防范网络审计"><a href="#二。如何防范网络审计" class="headerlink" title="二。如何防范网络审计"></a>二。如何防范网络审计</h1><p>想要避开网络审计工具，那就要从多个方面来避免，这还是要借鉴编程随想的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2013/06/privacy-protection-0.html">《如何保护隐私》</a>系列和<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2010/04/howto-cover-your-tracks-0.html">《如何隐藏你的踪迹，避免跨省追捕</a>》系列。此两系类博文堪称经典，隐匿&#x2F;匿名必看！看了他那两个系类博文，就可以直接×了我这个了。</p>
+<p>拿着和国家机器隐匿的办法来对付区区一个公司显然大材小用。尽管不同人对匿名有不同的需求，但是这种意识应该得到提高、加强。</p>
+<p>对待网络审计工具，首先是无法避免要通过网关了，所以只能在通信手段上进行保护。相信现代密码学，相信科学。</p>
+<p>[v_error]编程随想的博客搭建于Blogspot，被墙——因为Blogspot是Google的[&#x2F;v_error]</p>
+<h2 id="1-网络层面的防范："><a href="#1-网络层面的防范：" class="headerlink" title="1.网络层面的防范："></a>1.网络层面的防范：</h2><p>毫无疑问你的所有数据都得有一个网关一样的设备转发出去，这是无法避免的。也就是说，所有明文传输的东西都会被记录下来。想当然的那么就不明文传输，直接密文传输就好了。</p>
+<p>那么应对措施就来了：</p>
+<h3 id="1-VPN工具"><a href="#1-VPN工具" class="headerlink" title="(1).VPN工具"></a>(1).VPN工具</h3><p>我们可以使用VPN协议来创建加密隧道，所有的数据都会在这个隧道里传播，网关<strong>只能知道</strong>你的VPN服务器的IP和你在使用VPN，却<strong>比较难</strong>解密你的VPN通信。当然，推荐使用OpenVPN这种可以防止中间人攻击的证书体系VPN，当然L2TP+IPSec也可以做到一定程度的防护，PPTP还是免了吧。</p>
+<h3 id="2-加密代理"><a href="#2-加密代理" class="headerlink" title="(2).加密代理"></a>(2).加密代理</h3><p>除了VPN这种加密隧道之外，还可以使用代理工具，比如非常著名的加密socks5代理Shadowsocks。当然要注意选择一个<strong>比较健壮的加密算法，</strong>比如说aes256cfb而不是RC4——尽管我们有理由怀疑，一个公司的网络审计有那么多时间和计算能力来破解RC4吗？</p>
+<h3 id="3-加密的通信协议"><a href="#3-加密的通信协议" class="headerlink" title="(3).加密的通信协议"></a>(3).加密的通信协议</h3><p>加密的通信协议，而且是公认的加密协议。时刻记住，尽可能使用加密连接，而且是使用了强大的加密算法和健壮的安全体系的<strong>强加密</strong>。越是公开的加密算法，它的健壮性也就越强，封闭的算法反而越弱，这是密码学的违反常识的理论之一。常见的安全的加密协议有，VPN中的OpenVPN,L2TP+IPSec, Shadowsocks，HTTPS，POP3S,IMAPS,SMTPS等，SSH和基于SSH的SFTP ,SCP等。</p>
+<p>最常见的莫过于HTTPS了，你看这篇博文的时候， 右上角是不是绿色的小锁头？你打开淘宝的时候，是不是也是小锁头？甚至某些还会显示Certificate Transparency</p>
+<p><img src="/images/030316_0533_1.png"></p>
+<p>我可没钱……不过需要注意的是，即使访问了https网站，审计工具也依旧能够知道你访问了某个网站，因为在DNS查询，密钥协商交换证书的时候是一定会泄漏域名的；但是网络审计工具无法得知你具体看了某个文章以及其内容。想要避免此种泄漏，那么最好的方式是使用shadowsocks，或者VPN+远程DNS解析（DNSCrypt也行），这样审计工具就只能看到你和代理服务器的加密通信了。</p>
+<p>此网络层面的防范乃是比较全能的办法。可是也<strong>别天真的以为</strong>，用了VPN就不会泄露你的IP，开了全局模式就不会泄露IP——有一种东西叫Flash和WebRTC的，这就是隐匿的内容了。</p>
+<h2 id="2-软件层面的防范"><a href="#2-软件层面的防范" class="headerlink" title="2.软件层面的防范"></a>2.软件层面的防范</h2><p>编程随想把这部分分成了”操作系统的防范”、”个人软件的防范”、”通讯工具的防范”，我觉得在应对公司的审计工具有点大材小用。</p>
+<h3 id="1-IM软件："><a href="#1-IM软件：" class="headerlink" title="(1).IM软件："></a>(1).IM软件：</h3><p>即时通信工具，比如说QQ，飞信等这是存在国家级监控的，小小公司应该管不到。但是QQ客户端是否加密传输聊天记录、加密程度、是否可以防范中间人至今还是未知数。</p>
+<p>我们可以使用Skype、Google环聊等工具。请注意是国际版Skype哟，绝对的加密安全和保障。</p>
+<h3 id="2-CA证书："><a href="#2-CA证书：" class="headerlink" title="(2).CA证书："></a>(2).CA证书：</h3><p>CA证书对于整个HTTPS的安全体系有多么重要，不了解的人可能完全无法理解。为此，我大家伙可以同样去看看编程随想的系列博文：<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/11/https-ssl-tls-0.html">《扫盲 HTTPS 和 SSL&#x2F;TLS 协议》</a></p>
+<p>如果公司在各位预装的系统上植入了自签名的CA证书，那么毫无疑问所有HTTPS都存在被劫持的风险。</p>
+<p>如图，被签发了伪证书的GitHub</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030306085390.jpg"><img src="/images/2016030306085390.jpg" alt="t011407dbd01decd039"></a></p>
+<p>说到CA，就得提到臭名昭著的CNNIC Root和12306的SRCA根证书。那么大的铁道部买不起一个证书？我只能再次引用并改编鲁迅老人家的那句话：我向来不惮以最坏的恶意揣测党国。</p>
+<h3 id="3-邮件的防范"><a href="#3-邮件的防范" class="headerlink" title="(3).邮件的防范"></a>(3).邮件的防范</h3><p>目前QQ邮箱是默认开启https的，如果在QQ面板直接打开邮箱，是https的web页面，这样审计工具只能知道你访问了QQ邮箱，却没办法知道你的邮件内容。</p>
+<p>如果使用邮件客户端，那么可以设置相应的SSL连接。</p>
+<p>比如QQ邮箱的帮助里是这样的：</p>
+<p><img src="/images/030316_0533_2.png"></p>
+<h3 id="4-客户端监控软件："><a href="#4-客户端监控软件：" class="headerlink" title="(4).客户端监控软件："></a>(4).客户端监控软件：</h3><p>有些变态公司可能会在员工的电脑中安装监控工具，好似当初绿坝，有些甚至可能是驱动级监控工具。最简单的办法就是重装系统——怕啥BIOS密码，大部分电脑都可以在启动的时候按F8、ESC之类按键选择启动设备。哪怕不能选择，你都看这篇文章了，难道不会拆机箱抠电池么~顺手重建MBR来防范MBR病毒吧……好像现在都是GPT了耶。</p>
+<p>可能重装系统会被发现或者引起怀疑，那么也有一个替代的办法，使用一些Linux发行版的LiveCD，制作成启动U盘，随插随用。当然这就有点技术门槛了，大部分人还是不太能适应各种Linux发行版吧！</p>
+<p>对待不截屏的监控软件，也可以使用虚拟机隔离之。</p>
+<h3 id="5-浏览器的防范："><a href="#5-浏览器的防范：" class="headerlink" title="(5.)浏览器的防范："></a>(5.)浏览器的防范：</h3><p>大概不会有公司会无聊到给员工的电脑装上自己开发的“监控浏览器”吧，但是依旧要注意一点，电脑被收走了，浏览器的历史记录不也就”公之于众”了吗？</p>
+<p>Chrome有隐身模式。</p>
+<h2 id="3-硬件层面的防范："><a href="#3-硬件层面的防范：" class="headerlink" title="3.硬件层面的防范："></a>3.硬件层面的防范：</h2><p>电脑又被收走了，那平时下的小黄片不就被发现了吗？</p>
+<p>没关系，只要我们做好了预防措施，那么就可以让监管人员欲哭无泪。</p>
+<p>我们可以用BitLocker（Windows 7就自带了哦）、GnuPG、VeraCrypt（或许大家还记得TrueCrypt）这类工具加密文件、乃至于整个分区，而且保证是让NSA都欲哭无泪的加密。</p>
+<p>GPG和VC的简要使用方法可以参考<a target="_blank" rel="noopener" href="https://dmesg.app/encrypt-tech-gnupg-veracrypt-turial.html">《加密技术的科普以及GnuPG和VeraCrypt教程》</a></p>
+<p>或许有人要抬杠了，领导说不给他密码，就给我开除让我喝西北风，我没办法啊就给了密码。这再次印证了一个安全圈的俗话：越是安全的系统，最大的弱点往往就越在于人。</p>
+<p>对待这种胁迫，我们可以使用VeraCrypt的隐藏卷，或者干脆死无对证——销毁数据。千万<strong>别天真的以为</strong>清空回收站、任何格式化（低级格式化、快速格式化、完全格式化）可以保护你的数据不被恢复，请使用粉碎工具或者完全物理销毁掉你的存储设备。</p>
+<p>关于TrueCrypt更多更牛逼的介绍以及使用技巧等方法，我就不瞎说了，参考随想的牛逼哄哄的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2011/05/recommend-truecrypt">《TrueCrypt——文件加密的法宝》</a></p>
+<p>以及<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2015/10/VeraCrypt.html">《扫盲 VeraCrypt——跨平台的 TrueCrypt 替代品》</a></p>
+<p> </p>
+<h2 id="4-物理层面的防范："><a href="#4-物理层面的防范：" class="headerlink" title="4.物理层面的防范："></a>4.物理层面的防范：</h2><p>老板就在你身后呢，你就别看小黄片了；身后就亮着一个摄像头呢，就悠着点……这种物理层面的防范，只能靠各位自己了……</p>
+<p> </p>
+<h1 id="三。话外："><a href="#三。话外：" class="headerlink" title="三。话外："></a>三。话外：</h1><p> </p>
+<h2 id="密码学"><a href="#密码学" class="headerlink" title="密码学"></a>密码学</h2><p>要不是密码学的发展，哪能给一个普通人和国家机器、哪怕是全世界的人斗争的可能？</p>
+<p>在信息时代之前，就几乎已经注定了个人几乎无法匹敌政府，个人往往在任何一个方面都是非常渺小的……</p>
+<p>举个例子，一个人能造什么武器？顶多是把枪，而政府却能制造出飞机坦克甚至是核武器。</p>
+<p>不光是”武器”，其它领域（比如交通工具）也差不多。在信息时代之前，个人吖那个渺小。</p>
+<p>信息时代之后，其实大部分领域也并没有什么变化。你现在能造出来坦克？能玩的出来高铁？别逗了。</p>
+<p>但是密码学是个例外。</p>
+<p>多亏了当初PGP创始人Philip Zimmermann的抗争，他抵着被无数爱国者们骂成卖国贼的心理压力、抵着被FBI抓走坐牢的压力，义无反顾的发布了PGP——当然，靠着宪法修正案第一条他出口了一本书，书里的内容就是PGP的源代码。（二战以来，密码学一直被大部分国家认作军事机密，所以是禁止出口的。大家晓得图灵不）</p>
+<p>如今，随意一个人都可以在网上下载到一些非常优秀的加密工具，稍微学习几分钟，就可以进行<strong>高高高高高强度加密</strong>。而政府方面即使用上超级计算机，也只好干瞪眼。</p>
+<p>当然了这无法解密是说，在有意义的时间内无法解密，比如说一百年一千年。</p>
+<p>在密码学上，俺们屁民，是和政府们平起平坐的。</p>
+<p>再说一句，别以为保密的加密算法就是牛逼的……反而是越开放的加密算法越健壮。</p>
+<h2 id="隐私权"><a href="#隐私权" class="headerlink" title="隐私权"></a>隐私权</h2><p>有没有这种意识，隐私权就是基本人权，是不可以被侵犯的。如果隐私是非法的，那也就非法之徒才能够有隐私。</p>
+<p> </p>
+<h1 id="四。抽风"><a href="#四。抽风" class="headerlink" title="四。抽风"></a>四。抽风</h1><p>最后，我的新规则是，编辑结束发表之前，贴上当前的壁纸，耶。</p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030306244250.jpg"><img src="/images/2016030306244250-1024x576.jpg" alt="Battlefield (53)"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/03/prevent-from-network-audit/index/" data-id="clhp6he180063ezqr3fbp5s5v" data-title="如何防范网络审计" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/03/12/timeline-subtitles/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          [新手向]如何制作时间轴、字幕和压制影片
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/02/28/swiffy-flash2html5/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">swiffy的本地化：在线Flash转HTML5</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

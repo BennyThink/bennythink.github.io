@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[新手向]使用Thunderbird + Enigmail 发送加密邮件 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="这是一个为新手准备的从无到有的发送加密邮件的教程，老手请略过~ 我的公钥请戳导航栏  前言：为何要发送加密邮件在电影《斯诺登》中，斯诺登就要求她的女朋友使用加密邮件和她通信，并且说，很简单，其实真的很简单。 如今情况越来越变得严峻，加密邮件是保护隐私的重要手段之一。 一些邮箱只提供不加密的SMTP&#x2F;IMAP&#x2F;POP3，这些通信过程无疑是具有被偷窥、劫持的风险的；有些提供了支持S">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[新手向]使用Thunderbird + Enigmail 发送加密邮件">
+<meta property="og:url" content="http://example.com/2017/03/26/encrypted-email/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="这是一个为新手准备的从无到有的发送加密邮件的教程，老手请略过~ 我的公钥请戳导航栏  前言：为何要发送加密邮件在电影《斯诺登》中，斯诺登就要求她的女朋友使用加密邮件和她通信，并且说，很简单，其实真的很简单。 如今情况越来越变得严峻，加密邮件是保护隐私的重要手段之一。 一些邮箱只提供不加密的SMTP&#x2F;IMAP&#x2F;POP3，这些通信过程无疑是具有被偷窥、劫持的风险的；有些提供了支持S">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2017032611171183.jpg">
+<meta property="og:image" content="http://example.com/images/firefoxdoge.gif">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb1.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb2.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb3.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb4.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb5.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb6.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb7.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb8.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb9.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb10.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb11.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb12.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb13.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb14.png">
+<meta property="og:image" content="http://example.com/images/032617_1053_Thunderb15.png">
+<meta property="article:published_time" content="2017-03-26T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:48.897Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2017032611171183.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-encrypted-email/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/26/encrypted-email/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-26T00:00:00.000Z" itemprop="datePublished">2017-03-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      [新手向]使用Thunderbird + Enigmail 发送加密邮件
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>这是一个为新手准备的从无到有的发送加密邮件的教程，老手请略过~</p>
+<p>我的公钥请戳导航栏</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/03/2017032611171183.jpg"><img src="/images/2017032611171183.jpg"></a></p>
+<h2 id="前言：为何要发送加密邮件"><a href="#前言：为何要发送加密邮件" class="headerlink" title="前言：为何要发送加密邮件"></a>前言：为何要发送加密邮件</h2><p>在电影《斯诺登》中，斯诺登就要求她的女朋友使用加密邮件和她通信，并且说，很简单，其实真的很简单。</p>
+<p>如今情况越来越变得严峻，加密邮件是保护隐私的重要手段之一。</p>
+<p>一些邮箱只提供不加密的SMTP&#x2F;IMAP&#x2F;POP3，这些通信过程无疑是具有被偷窥、劫持的风险的；有些提供了支持SSL&#x2F;TLS的SMTP，但是我们仍然无法保证服务器的偷窥、审查。</p>
+<p>保护隐私的理由大概不用说什么了。</p>
+<h2 id="第零步：使用条件、准备工具"><a href="#第零步：使用条件、准备工具" class="headerlink" title="第零步：使用条件、准备工具"></a>第零步：使用条件、准备工具</h2><p>考虑到广大读者都是使用Windows的，所以此次使用Windows下的Thunderbird + Enigmail作为示例。对于Linux、Mac OS，Thunderbird也是有的，基本操作也都是类似的。</p>
+<p>准备工具：<a target="_blank" rel="noopener" href="https://www.mozilla.org/zh-CN/thunderbird/">Mozilla Thunderbird</a></p>
+<p>没错就是小狐狸的那个Mozilla（不过Mozilla已经不再管Thunderbird了）</p>
+<p><img src="/images/firefoxdoge.gif"></p>
+<p>看我百变doge</p>
+<p>当然啦咱得准备个邮箱……</p>
+<p>为了方便起见，咱给Thunderbird的菜单添加出来。如图所示</p>
+<p><img src="/images/032617_1053_Thunderb1.png"></p>
+<h2 id="第一步：配置邮箱"><a href="#第一步：配置邮箱" class="headerlink" title="第一步：配置邮箱"></a>第一步：配置邮箱</h2><p>打开Thunderbird，在主页面选择创建新账户-电子邮件（或者右上角菜单-选项-账户设置-（左下角）添加邮件账户，会进入如图所示页面，我们输入自己的邮箱和密码</p>
+<p><img src="/images/032617_1053_Thunderb2.png"></p>
+<p>点击继续，有的时候Thunderbird无法找到正确的SMTP&#x2F;IMAP服务器，那咱就要手动配置下。具体的SMTP&#x2F;IMAP服务器，参考你的邮箱的帮助。</p>
+<p>[v_blue]腾讯企业邮是 smtp.exmail.qq.com 端口465 imap.exmail.qq.com 端口993 QQ邮箱是 smtp.qq.com端口465 imap.qq.com端口993[&#x2F;v_blue]</p>
+<p>正确填入信息之后，点击重新测试按钮。</p>
+<p><img src="/images/032617_1053_Thunderb3.png"></p>
+<p>之后点击完成，Thunderbird会验证密码</p>
+<p><img src="/images/032617_1053_Thunderb4.png"></p>
+<p>[v_tips]注意： 1.有些邮箱默认不开启SMTP、IMAP服务，有些邮箱默认需要一个特殊的动态密码才能够使用邮件客户端。遇到这种情况请查看对应邮箱的帮助和设置文档。 2.有时如果没有重新测试按钮，可能是因为启用了Enigmail扩展。请暂时将其禁用。 3.Thunderbird默认会把发送后的邮件保存到已发送文件夹，在某些邮件服务商下这一步骤可能会耗费很长时间，所以如果遇到类似问题，可以在账户设置中取消这个选项。 <img src="/images/032617_1053_Thunderb5.png">[&#x2F;v_tips]</p>
+<h2 id="第二步：安装Enigmail-扩展"><a href="#第二步：安装Enigmail-扩展" class="headerlink" title="第二步：安装Enigmail 扩展"></a>第二步：安装Enigmail 扩展</h2><p>在Thunderbird的菜单-附加组件中搜索Enigmail并安装。这一步大概是个人都会吧……</p>
+<h2 id="第三步：添加一对密钥"><a href="#第三步：添加一对密钥" class="headerlink" title="第三步：添加一对密钥"></a>第三步：添加一对密钥</h2><p>Enigmail-安装向导-我更喜欢扩展配置（其实普通的也行）。相信大部分用户都会有这么个提示：需要GnuPG什么的。</p>
+<p>咱就点上面的安装吧，之后他会为我们下载GnuPG并运行，咱只要无脑下一步就可以啦。</p>
+<p>之后，我们选择”我想为数字签名和加密邮件创建新的密钥对”，如下图所示</p>
+<p><img src="/images/032617_1053_Thunderb6.png"></p>
+<p>此时由于我们的Thunderbird只添加了一个邮箱，所以这里默认就是为这个邮箱创建密钥对。</p>
+<p><img src="/images/032617_1053_Thunderb7.png"></p>
+<p>这里需要输入一个密码，并且一定要牢记。</p>
+<p>点击下一步之后，就是等待。当进度条走到最后的时候，屏幕上会提示您的密钥已生成。此时如果不想生成证书废除，点取消-关闭就可以啦。</p>
+<p><img src="/images/032617_1053_Thunderb8.png"></p>
+<p>[v_blue]备注：无法下一步的原因是因为没有”创建证书废除”，所谓证书废除就是能够废除你的公钥的那个玩意，如果大家觉得有必要的话，生成也是可以的。[&#x2F;v_blue]</p>
+<h2 id="第三步：添加其他人公钥"><a href="#第三步：添加其他人公钥" class="headerlink" title="第三步：添加其他人公钥"></a>第三步：添加其他人公钥</h2><p>我们想要给其他人发邮件，必然要有其他人的公钥，所以这里大家得找个公钥，比如说我的公钥你可以<a target="_blank" rel="noopener" href="https://dmesg.app/my-gpg">这里下载</a></p>
+<p>下载完成之后，Enigmail-密钥管理-文件-从文件导入密钥，选择下载的公钥（通常扩展名是asc），之后在密钥管理器里面我们可以看见导入的公钥</p>
+<p><img src="/images/032617_1053_Thunderb9.png"></p>
+<h2 id="第四步：启用选定身份的邮件加密"><a href="#第四步：启用选定身份的邮件加密" class="headerlink" title="第四步：启用选定身份的邮件加密"></a>第四步：启用选定身份的邮件加密</h2><p>导入公钥之后，就可以发送加密邮件啦。这一步仅需要设置一次。点击新建消息，</p>
+<p>我们点击Enigmail的工具条中红框所示按钮，点击配置，</p>
+<p><img src="/images/032617_1053_Thunderb10.png"></p>
+<p>选择”为这个标识打开OpenPGP……”其他选项默认即可。</p>
+<p><img src="/images/032617_1053_Thunderb11.png"></p>
+<p>之后Enigmail会再次弹出来，问我们选择何种加密方式</p>
+<p><img src="/images/032617_1053_Thunderb12.png"></p>
+<p>我们确保勾选了”加密邮件”这个选项，其他默认不动，确定即可。</p>
+<p>[v_blue]注： 我们可以在选项-账户设置-OpenPGP中启用。操作方式是一样的。[&#x2F;v_blue]</p>
+<h2 id="第五步：附送公钥并发送邮件"><a href="#第五步：附送公钥并发送邮件" class="headerlink" title="第五步：附送公钥并发送邮件"></a>第五步：附送公钥并发送邮件</h2><p>在刚刚的新建消息页面，我们输入邮箱、主题、正文，确保工具栏中Enigmail提示已加密。然后菜单栏中选择Enigmail-附加公钥（或者直接点工具栏的附送我的公钥也可以），选择自己邮箱的公钥。之后发送即可。 [v_blue]注： 想要双向通信，就要让对方也持有你的公钥，否则这通信就会是单向的了。[&#x2F;v_blue]</p>
+<h2 id="第六步：查看加密邮件并回复"><a href="#第六步：查看加密邮件并回复" class="headerlink" title="第六步：查看加密邮件并回复"></a>第六步：查看加密邮件并回复</h2><p>我们打开Thunderbird并选择获取消息，会发现这么一个新的邮件</p>
+<p>我们只要点击标题，输入密码即可成功解密啦。</p>
+<p><img src="/images/032617_1053_Thunderb13.png"></p>
+<p>那么我们如何回复呢？简单的点击回复，输入正文，确保Enigmail提示此消息将被加密，发送即可。</p>
+<p><img src="/images/032617_1053_Thunderb14.png"></p>
+<h2 id="补遗和备注："><a href="#补遗和备注：" class="headerlink" title="补遗和备注："></a>补遗和备注：</h2><h3 id="我该如何导入别人的公钥呢？"><a href="#我该如何导入别人的公钥呢？" class="headerlink" title="我该如何导入别人的公钥呢？"></a>我该如何导入别人的公钥呢？</h3><p>我们可以从<strong>可信的地方</strong>（他的分享在HTTPS博客站上的公钥下载、密钥服务器、面交）、邮件附送的公钥<strong>确认这个公钥的合法性</strong>，之后在Enigmail的密钥管理中根据情况使用文件-从文件导入密钥、编辑-从剪贴板导入密钥、或者Thunderbird直接右键导入即可。</p>
+<h3 id="我该如何分享我的公钥"><a href="#我该如何分享我的公钥" class="headerlink" title="我该如何分享我的公钥"></a>我该如何分享我的公钥</h3><p>在Enigmail的密钥管理中，点击你的邮箱，选择导出密钥到文件，然后选择只导出公钥。之后你可以通过将这个文件贴到自己的博客上，存到U盘里等安全的方式来交换密钥。</p>
+<p><img src="/images/032617_1053_Thunderb15.png"></p>
+<p>[v_error]注： 可以将公钥的内容复制粘贴作为博文发布，但是WordPress处理五个-的时候会转义，敬请注意。[&#x2F;v_error]</p>
+<h3 id="密钥的信任是一个很重要的问题"><a href="#密钥的信任是一个很重要的问题" class="headerlink" title="密钥的信任是一个很重要的问题"></a>密钥的信任是一个很重要的问题</h3><p>这个可以算得上是社会学问题了，我们可以想象下如果用中间人劫持的手段对付公钥密码，将会是怎样的情景。</p>
+<h3 id="GnuPG能够保护的信息"><a href="#GnuPG能够保护的信息" class="headerlink" title="GnuPG能够保护的信息"></a>GnuPG能够保护的信息</h3><p>邮件正文以及附件。收件人、发件人、邮件主题都是<strong>无法被保护的</strong>。</p>
+<p>注意：只有PGP&#x2F;MIME才可以保护邮件附件（包括文件名）；内嵌PGP不可以。</p>
+<h3 id="Linux用户的另类方法"><a href="#Linux用户的另类方法" class="headerlink" title="Linux用户的另类方法"></a>Linux用户的另类方法</h3><p>使用Linux的用户，在导入了密钥之后，咱还可以用<code>gpg2 -d</code>来解密，<code>gpg2 –e -a</code>来加密。</p>
+<h2 id="在移动设备上的类似工具"><a href="#在移动设备上的类似工具" class="headerlink" title="在移动设备上的类似工具"></a>在移动设备上的类似工具</h2><p>这个……我只知道Android上有个APG可以用来解密、加密PGP Message……</p>
+<h2 id="备注……"><a href="#备注……" class="headerlink" title="备注……"></a>备注……</h2><p>如果你收到了enigmail发的邮件，但是自己只有cli的gpg，那么怎么办呢？直接把encrypt.asc解密了，扩展名改成eml，用任意的邮件客户端打开就可以啦</p>
+<h2 id="参考与其他"><a href="#参考与其他" class="headerlink" title="参考与其他"></a>参考与其他</h2><p>更多从参考资料，请阅读如下文章：</p>
+<p><a target="_blank" rel="noopener" href="https://securityinabox.org/zh/guide/thunderbird/windows/">https://securityinabox.org/zh/guide/thunderbird/windows/</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">https://dmesg.app/encryption-gpg-veracrypt.html</a> <a target="_blank" rel="noopener" href="https://getfreedom.life/191/">https://getfreedom.life/191/</a></p>
+<h2 id="最后的话"><a href="#最后的话" class="headerlink" title="最后的话"></a>最后的话</h2><p>大家快来给我发加密邮件吧！会发送加密邮件的都是大神哟！感谢某个可爱的小童鞋……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/26/encrypted-email/index/" data-id="clhp6hdyu0025ezqr05yhffsx" data-title="[新手向]使用Thunderbird + Enigmail 发送加密邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/03/28/nginx-jekyll-typecho/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          我和Nginx二级目录rewrite、Jekyll、Typecho的故事
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/03/25/ssd/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">换固态的那点事</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

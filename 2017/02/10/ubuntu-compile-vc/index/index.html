@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>在Ubuntu下编译并使用VeraCrypt | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="VeraCrypt是个啥我就不说了，咱集中精力来谈谈如何在Ubuntu下编译并使用VeraCrypt [v_tips]提示： VeraCrypt有官方编译好的二进制包，可以自己下载。但是在这里为了练习编译软件的技巧，并使用最新版呢，我们选择手动编译。[&#x2F;v_tips] VeraCrypt官网 一  下载源码有好几个地方可以下载源码 [gb href&#x3D;’https:&#x2F;&#x2F;launc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在Ubuntu下编译并使用VeraCrypt">
+<meta property="og:url" content="http://example.com/2017/02/10/ubuntu-compile-vc/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="VeraCrypt是个啥我就不说了，咱集中精力来谈谈如何在Ubuntu下编译并使用VeraCrypt [v_tips]提示： VeraCrypt有官方编译好的二进制包，可以自己下载。但是在这里为了练习编译软件的技巧，并使用最新版呢，我们选择手动编译。[&#x2F;v_tips] VeraCrypt官网 一  下载源码有好几个地方可以下载源码 [gb href&#x3D;’https:&#x2F;&#x2F;launc">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/021017_1318_UbuntuVe1.png">
+<meta property="article:published_time" content="2017-02-10T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:48.745Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/021017_1318_UbuntuVe1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-ubuntu-compile-vc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/10/ubuntu-compile-vc/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      在Ubuntu下编译并使用VeraCrypt
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>VeraCrypt是个啥我就不说了，咱集中精力来谈谈如何在Ubuntu下编译并使用VeraCrypt [v_tips]提示： VeraCrypt有官方编译好的二进制包，可以自己下载。但是在这里为了练习编译软件的技巧，并使用最新版呢，我们选择手动编译。[&#x2F;v_tips] <a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/">VeraCrypt官网</a></p>
+<h2 id="一-下载源码"><a href="#一-下载源码" class="headerlink" title="一  下载源码"></a>一  下载源码</h2><p>有好几个地方可以下载源码</p>
+<p>[gb href&#x3D;’<a target="_blank" rel="noopener" href="https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt/_1.19/_Source.tar.gz'/]%E5%AE%98%E7%BD%91%E7%A8%B3%E5%AE%9A%E7%89%88%EF%BC%881.19%EF%BC%89/[/gb/]">https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt\_1.19\_Source.tar.gz&#39;\]官网稳定版（1.19）\[/gb\]</a></p>
+<p>[bb href&#x3D;’<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/SourceControl/latest#README.md'\]%E5%AE%98%E7%BD%91%E6%9C%80%E6%96%B0%E7%89%88%EF%BC%881.20%EF%BC%89\[/bb\]">https://VeraCrypt.codeplex.com/SourceControl/latest#README.md&#39;\]官网最新版（1.20）\[/bb\]</a></p>
+<p>[yb href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/VeraCrypt/VeraCrypt'/]GitHub">https://github.com/VeraCrypt/VeraCrypt&#39;\]GitHub</a> Repository[&#x2F;yb]</p>
+<p>[lhb href&#x3D;’<a target="_blank" rel="noopener" href="https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/'/]SourceForge/[/lhb/]">https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/&#39;\]SourceForge\[/lhb\]</a></p>
+<p>我就用官网的最新版为例了。</p>
+<p>然后给源码解压缩，切到对应的目录，这里就不多说了。</p>
+<h2 id="二-安装依赖"><a href="#二-安装依赖" class="headerlink" title="二  安装依赖"></a>二  安装依赖</h2><p>通过阅读readme，我们可以发现，在Linux下编译VeraCrypt需要这些依赖：</p>
+<blockquote>
+<p>GNU Make GNU C++ Compiler 4.0 or compatible NASM assembler 2.08 or compatible (x86&#x2F;x64 architecture only) pkg-config makeself (Linux only) wxWidgets 3.0 shared library and header files installed or wxWidgets 3.0 library source code FUSE library and header files</p>
+</blockquote>
+<p>想要使用VeraCrypt还需要dmsetup这个依赖，所以在这里直接安装了。</p>
+<p>sudo apt update<br>sudo apt install -y build-essential g++ nasm pkg-config makeself libwxgtk3.0-dev wx3.0-headers libfuse-dev fuse dmsetup</p>
+<p>反正是一个不差的安装了。PS，我是怎么知道这些软件包的名字的？<code>apt search</code>嘛…… [v_blue]请注意： 这些依赖在Ubuntu 16.04的源中都有，如果你选择的源有问题导致更新失败，可能导致一些依赖安装失败。[&#x2F;v_blue]</p>
+<h2 id="三-编译源码"><a href="#三-编译源码" class="headerlink" title="三  编译源码"></a>三  编译源码</h2><p>VeraCrypt的源码有<code>makefile</code>文件，所以我们直接<code>make</code>即可。</p>
+<p>切换到src目录，</p>
+<p>cd src<br>make</p>
+<p>提示：多核心处理器的用户，假如你是四核的，使用<code>make -j4</code>或者<code>make -j6</code>，选择一个恰当的并行数量并行编译会明显提高编译速度。但是请不要尝试使用<code>make -j10</code>——否则你的电脑会慢成狗。</p>
+<p>等待这功夫我讲个笑话吧：</p>
+<blockquote>
+<p>说有个施工队叫gcc，专门负责盖大楼。一天某开发商让他们盖个楼，盖完了之后开发商一看，说，一楼这大门的门把手图纸画错了，应该用圆的，怎么画成方的了？改了吧。施工队一听，赶紧下令：图纸画错啦，把楼炸了重新盖！虽说这样对于拉动GDP有很好的作用，但毕竟属于精神不正常的范畴。</p>
+<p>（摘自《笨兔兔的故事》，又名《Linux入门很简单》）</p>
+</blockquote>
+<p>估计你看完懂了啥意思，编译也差不多了</p>
+<h2 id="四-安装"><a href="#四-安装" class="headerlink" title="四  安装"></a>四  安装</h2><p>编译完成之后，屏幕上大概会有这样的输出结果</p>
+<p>self-extractable archive …..successfully created.</p>
+<p>之后我们就切到<code>src/setup/Linux</code>下，执行如下命令即可安装</p>
+<p>.&#x2F;VeraCrypt-1.20-BETA2-setup-gui-x64</p>
+<p>安装步骤很简单，依次选择<code>Install VeraCrypt，I accept，OK</code>,可能还需要你在新的窗口里输入密码，即可安装成功。</p>
+<p>在dash里直接打vera就能找到了（可能注销或者重启之后才有）</p>
+<p>之后VeraCrypt使用方法就和Windows下一样了，除了最后挂载的时候可能会让你输入当前用户的密码。</p>
+<p><img src="/images/021017_1318_UbuntuVe1.png"> [v_notice]友情提示： 我发现源码目录下有个Translations，我想把VeraCrypt汉化成中文版的，可以吗？ 非常抱歉的是，<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/wikipage?title=Language%20Packs">只有Windows版本的VeraCrypt才支持语言包</a>……[&#x2F;v_notice]</p>
+<h2 id="五-升级"><a href="#五-升级" class="headerlink" title="五  升级"></a>五  升级</h2><p>VeraCrypt的源码发出新版本了，我想升级，该怎么办呢？</p>
+<p>嗯……下载最新的源码，从步骤三开始。</p>
+<h2 id="六-使用方法与总结"><a href="#六-使用方法与总结" class="headerlink" title="六  使用方法与总结"></a>六  使用方法与总结</h2><p>关于VeraCrypt的使用方法，请戳很久之前写过的<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版密码学科普》</a>.</p>
+<p>下面我来总结一下在Linux编译软件的方法或者说是技巧吧！</p>
+<p>满足依赖，使用<code>configure</code>生成<code>makefile</code>（有些可能不是configure），执行<code>make</code>编译，然后<code>sudo make install</code>安装，基本上就是这么个步骤，如果还要更简洁，那么就是：</p>
+<p>读readme，根据readme里面的说明来。&#x2F;(ㄒoㄒ)&#x2F;~~ :arrow:</p>
+<h2 id="七-其他问题"><a href="#七-其他问题" class="headerlink" title="七  其他问题"></a>七  其他问题</h2><p>有童鞋可能想问了，对称密码的VeraCrypt我有了，那公钥密码在Linux下有好的选择吗？</p>
+<p>当然有啦！seahorse就是一个很好的选择</p>
+<p>sudo apt install seahorse-nautilus seahhorse</p>
+<p>注销后即可在鹦鹉螺右键看到哦！</p>
+<p>其他的GnuGPG前端，可以<a target="_blank" rel="noopener" href="https://www.gnupg.org/related_software/swlist.html">戳我参考这里</a></p>
+<p>[v_tips]提示： seahorse有个地方可能会让人感到困惑，当你用别人的公钥加密文件之后，你会发现自己双击也能打开。别担心，除了你和公钥持有者，别人都打不开的（会提示没有密钥）。[&#x2F;v_tips]</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/10/ubuntu-compile-vc/index/" data-id="clhp6he3600alezqrgyz192ai" data-title="在Ubuntu下编译并使用VeraCrypt" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/02/19/jekyll-nginx/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Jekyll + Nginx 配置指南
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/02/10/ufw-iptables/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">开启ufw导致断网不能ping? ufw和iptables的那些坑</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用Python将海量MySQL数据导入Elastic Search/MongoDB | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="[audio play&#x3D;’0’]话说啊，几天之前，我接到了这么一个任务，就是把大量MySQL的数据导入到Elastic Search中，再久之前我还有个把数据导入到MongoDB中。MongoDB和ES本身还是比较接近的，只不过这次导入到ES的数据量非常大，最大的表大概有4GiB左右，咱得必须想点方法优化一下这个导入过程。 当然了，凡是涉及到对海量数据进行处理的，都可以用本篇提到的思路进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Python将海量MySQL数据导入Elastic Search&#x2F;MongoDB">
+<meta property="og:url" content="http://example.com/2017/11/03/mysql-es-mongo/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="[audio play&#x3D;’0’]话说啊，几天之前，我接到了这么一个任务，就是把大量MySQL的数据导入到Elastic Search中，再久之前我还有个把数据导入到MongoDB中。MongoDB和ES本身还是比较接近的，只不过这次导入到ES的数据量非常大，最大的表大概有4GiB左右，咱得必须想点方法优化一下这个导入过程。 当然了，凡是涉及到对海量数据进行处理的，都可以用本篇提到的思路进">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ1.png">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ2.png">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ3.png">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ4.png">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ5.png">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ6.png">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ7.png">
+<meta property="og:image" content="http://example.com/images/110317_1444_PythonMySQ8.png">
+<meta property="article:published_time" content="2017-11-03T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:49.673Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/110317_1444_PythonMySQ1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-mysql-es-mongo/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/11/03/mysql-es-mongo/index/" class="article-date">
+  <time class="dt-published" datetime="2017-11-03T00:00:00.000Z" itemprop="datePublished">2017-11-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用Python将海量MySQL数据导入Elastic Search/MongoDB
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[audio play&#x3D;’0’]话说啊，几天之前，我接到了这么一个任务，就是把<strong>大量</strong>MySQL的数据导入到Elastic Search中，再久之前我还有个把数据导入到MongoDB中。MongoDB和ES本身还是比较接近的，只不过这次导入到ES的<strong>数据量非常大</strong>，最大的表大概有<strong>4GiB</strong>左右，咱得必须想点方法优化一下这个导入过程。</p>
+<p>当然了，凡是涉及到对海量数据进行处理的，都可以用本篇提到的思路进行处理。</p>
+<p>咱先说说思路。咋办捏？最笨的办法哈，从MySQL中读取一行，根据列名转换成对应形式的字典，然后插入到MongoDB&#x2F;ES中，然后再读一行，转换，插入，直到读取完。这样吧，说实话，效率是有点低，但是也能完成任务对吧。包括俺的mentor、还有其他Python的专家们，都反对俺这种<strong>读一行写一行</strong>的处理方式。</p>
+<p>其实啊，我也知道<code>insert_many()</code>、<code>executemany()</code>和<code>writelines()</code>这种批量的方法，另一种思路呢，就是把数据存到一个列表里，然后迭代批量操作。但是怎奈我都是处理很大的数据的，如果一下子把这些东西塞到内存里，怕是没等运行完呢，就Memory Error或者发生大量的swap交换再Kernel Panic了吧。</p>
+<p>当然了，第二种思路其实是能够有办法完成的，要不我写这篇文章是干嘛的！</p>
+<p>当然了，咱要先从导入少量数据开始。</p>
+<h2 id="导入少量数据到MongoDB"><a href="#导入少量数据到MongoDB" class="headerlink" title="导入少量数据到MongoDB"></a>导入少量数据到MongoDB</h2><p>废话少说，直接贴以前的代码。太懒了，直接贴图了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/110317_1444_PythonMySQ1.png"><img src="/images/110317_1444_PythonMySQ1.png"></a></p>
+<p>大概就是这么回事，逻辑非常简单明了。</p>
+<p><code>data = cur.fetchall()</code>将数据库表中的内容（结果集）<strong>一下子</strong>塞到内存里，其形式为列表内套元组，然后下面根据它的长度进行循环，以此进行构造字典、调用插入，直到不满足循环条件。</p>
+<p>当然了，大家看我注释能发现，pymongo还是有些坑的，比如说就关于<code>Duplicate Key Error</code>这个错误，如果把<code>mongo_dic</code>这个变量写到循环外面，那就要用<code>copy()</code>浅拷贝来让驱动生成不同的<code>_id</code>，如果放在循环里，那么每次每次循环驱动都会生成不同的<code>_id</code>啦。</p>
+<p>这种做法有何问题呢？有很多</p>
+<h3 id="一行一个操作效率太低"><a href="#一行一个操作效率太低" class="headerlink" title="一行一个操作效率太低"></a>一行一个操作效率太低</h3><p>这可能是这种做法最大的问题了，效率太低，对数据库压力也不小，唯一开心的是内存了。</p>
+<h3 id="无法快速重用代码"><a href="#无法快速重用代码" class="headerlink" title="无法快速重用代码"></a>无法快速重用代码</h3><p>假如某一天我想导入另一个数据表，列很有可能是不同的，那么构造字典这一块就要推倒重来，很难做到快速<strong>重用代码</strong>。况且，用<code>update()</code>方法来构造字典好像不是那么常见，咱都是<code>mongo_dic=dict(key1=value1,key2=value2)</code>的。</p>
+<h3 id="无法处理大量数据"><a href="#无法处理大量数据" class="headerlink" title="无法处理大量数据"></a>无法处理大量数据</h3><p>咦？咱开篇不是说到，一行一行的读是可以处理大量数据只不过效率偏低。</p>
+<p>没错啊，但是那是指的使用<code>fetchone()</code>，<code>fetchmany()</code>这种方法。在这个demo里我图省事用了<code>fetchall()</code>，如果表太大，内存就炸了。想要改进，那就得放到一个while循环里用<code>fetchone()</code>，这里就不用演示了，估计有点基础的人都能分分钟写出来。</p>
+<h3 id="其他小问题"><a href="#其他小问题" class="headerlink" title="其他小问题"></a>其他小问题</h3><p>什么docstring写的不对，不Pythonic，try…except不规范等等等就不用说了。我后来还写了一个OOP的版本。反正这玩意是，<strong>能用，但是性能太差</strong>，不好用；糊弄小盆友可以，工作上用就等着被开除吧（尽管我mentor说，嗯这次代码写得很干净，很不错，但是咱怎么能知足呢！）</p>
+<h2 id="痛定思痛"><a href="#痛定思痛" class="headerlink" title="痛定思痛"></a>痛定思痛</h2><p>于是乎，在国庆假期之前，我被Python的多线程彻底坑了一次（<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%85%A8%E5%B1%80%E8%A7%A3%E9%87%8A%E5%99%A8%E9%94%81">GIL，全局解释器锁</a>），然后顺带着开始了熟悉Elastic Search（然而现在依旧什么都不会）；</p>
+<p>然后在国庆假期之后，我的新任务就是熟悉ELK（Elastic Search+Logstash+Kibana），居然有一种大数据工程师的感觉。</p>
+<p>然而我并没有抽出时间来熟悉这玩意，因为我<strong>忙着难过</strong>、写Telegram Bot、翻译、维护博客、维护两款主题来着</p>
+<p>然后某一天，我就有了个小任务，要想办法把某个数据库里最大的4个表导入到另一台机器上的ES中。感受一下这13GiB的表……</p>
+<p><img src="/images/110317_1444_PythonMySQ2.png"></p>
+<h2 id="按着MongoDB的思路来"><a href="#按着MongoDB的思路来" class="headerlink" title="按着MongoDB的思路来"></a>按着MongoDB的思路来</h2><p>此路不太好走，内心深处的我纠结了很久才决定回头。</p>
+<h3 id="构造四个字典"><a href="#构造四个字典" class="headerlink" title="构造四个字典"></a>构造四个字典</h3><p>我：这算啥事，哥哥小时候很穷，新衣服都穿不起，没少吃苦，这点算啥，哪怕是曾经138列，我都敢再来一次。为什么我的眼里常含泪水，因为我对你爱的深沉啊</p>
+<p>某童鞋：你真无聊。</p>
+<h3 id="fetchone读一行写一行"><a href="#fetchone读一行写一行" class="headerlink" title="fetchone读一行写一行"></a>fetchone读一行写一行</h3><p>我：效率是有点低，但是任务还是能完成的。</p>
+<p>老板：你丫拿着工资不干正事，这效率太低了。</p>
+<p>CPU：我XXXX。算了，我忍。</p>
+<p>硬盘：你妹！你是测试我4K性能呢么？</p>
+<p>Python：哎内存大哥，把这个放进去，哎把那个拿出来，哎把这个放进去给原来的拿走，哎给这个拿走。</p>
+<p>内存：有完没完……(￣_￣|||)</p>
+<h3 id="读到一个列表里，一起插入"><a href="#读到一个列表里，一起插入" class="headerlink" title="读到一个列表里，一起插入"></a>读到一个列表里，一起插入</h3><p>我：效率是高了点，就是不知道能不能行。</p>
+<p>老板：嗯，看样子还是不错的哈……</p>
+<p>内存：Python大哥你悠着点，我这才8G，你这表4G就占了一半了啊。</p>
+<p>Python：内存大哥你放心，我保证<strong>把200MiB的表读入内存时就跟你要4G的地</strong>。</p>
+<p>硬盘：我了割草内核你干啥突然要来写入&#x2F;swap，我这老胳膊老腿了，你有啥事找隔壁内存啊，<strong>我就是个备胎啊</strong>找你真爱内存去。</p>
+<p>内核：我也很无奈啊，没办法了<strong>只有你能救我</strong>，我还是爱你的。哎，Python那家伙吃了太多内存，我等等看看要不要手起刀落施展生杀大权。</p>
+<p>其他程序：喂喂喂 内核，我要I&#x2F;O，阻塞好久了！！快，快！一会主人逼急了断电了你负责么？</p>
+<p>CPU：大家干啥呢那么热闹？</p>
+<p>内核：大家别急，让我为民除害，杀了Python这个……<strong>负  心  汉</strong></p>
+<p>Python：内核大哥，别别别，不是我的错，是我主人太太太…</p>
+<p>主人：哎Python你干啥啊读200MiB的数据库跟人要4G的内存，造反啊</p>
+<p>Kernel Panic了</p>
+<p>神说要有光，就有了光。坐在椅子上的我仰天长笑（并做出一种<strong>神经病</strong>一样的诡异表情）：Let there be light.</p>
+<h2 id="处理大量结果集、读取多行并写入ES的方法"><a href="#处理大量结果集、读取多行并写入ES的方法" class="headerlink" title="处理大量结果集、读取多行并写入ES的方法"></a>处理大量结果集、读取多行并写入ES的方法</h2><p>既然如此，那么咱只好采取读多行，写入ES，再读取多行，写入ES，直到全部完成为止。</p>
+<p>鉴于这样的需求，我们需要解决那些问题呢？</p>
+<h3 id="读取多行时的内存消耗"><a href="#读取多行时的内存消耗" class="headerlink" title="读取多行时的内存消耗"></a>读取多行时的内存消耗</h3><p>我使用的MySQL驱动是由<strong>MySQL官方维护的MySQL Connector&#x2F;Python</strong>，而不是大部分网上教程所用的MySQLdb（MySQL-Python）。不选择用MySQLdb的原因是它<strong>上次更新</strong>是2014年，这都2017年了，真是不敢用不更新的基础库啊</p>
+<p><img src="/images/110317_1444_PythonMySQ3.png"></p>
+<p>图片来源，<a target="_blank" rel="noopener" href="https://pypi.python.org/pypi/MySQL-python/1.2.5">pypi</a> </p>
+<p>根据<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html">MySQL Connector官方文档</a>的说明，Connector默认<strong>不会缓存结果集</strong>。换句话说，在执行<code>cur.execute()</code>之后，程序应该负责处理数据（大白话，你就是select了一个100TB的表，内存也是不会暴涨的）。假如结果集很小，能够一次性处理，那么可以选择<code>buffered=True</code>来缓存数据（或者是设置另一个游标），咱的经验嘛，<code>fetchall()</code>也行，就是得每次运行之后都来一遍。</p>
+<p>注意：貌似MySQLdb是默认缓存的。</p>
+<p>那如果结果集很大呢，自然不能<code>fetchall()</code>，也不能设置<code>buffered=True</code>了，而要用<code>fetchone()</code>或者<code>fetchmany()</code>。其中<code>fetchmany()</code>这个方法就神奇了，它的参数是指定本次读取多少行结果集（不写就是1行，和<code>fetchone()</code>一样），然后再次运行会<strong>继续读取对应行的结果集</strong>，一行都不对丢，全都读完了返回空列表。所以咱程序员们完全不用考虑offset和limit这类烦人的问题。</p>
+<p>PS，我觉得这就是库提供的处理大结果集的方式……没找到还有没有更好的方法了。</p>
+<p>哎，咱得说一句，网上的这群人啊，<strong>你抄我我抄你</strong>，你说有用吧还说得过去，都是没用的错误的，有意思嘛。</p>
+<p>啊呸，跑题太远了，咱得说说读取多行时怎么限制内存消耗。俺想到了魔术方法<code>__sizeof__</code>和<code>sys.getsizeof()</code>，这俩的区别嘛，<code>sys.getsizeof()</code>会调用对象的<code>__sizeof__</code>方法，如果对象有垃圾回收器的话，还会加上垃圾回收器的内存占用量。</p>
+<p>所以咱测试占用100MiB内存是这么写的：</p>
+<p><img src="/images/110317_1444_PythonMySQ4.png"></p>
+<p>别说，还挺准。</p>
+<p>所以咱测试结果集占用内存的时候也差不多是这么写的，然后发现，坑爹了。待我堆上一个Excel折线图：</p>
+<p><img src="/images/110317_1444_PythonMySQ5.png"></p>
+<p>横轴是getsizeof显示的结果集占用内存的数值（单位理应为字节），取得的数据量依次为1000、10000、10W、20W、30W。我也不知道为啥这个getsizeof显示的数值是不正确的，结果集是标准的内置对象啊，可能他只是显示了外层的列表的内存占用，我还得乘以内层的元组内存占用？（是的我算上了乘以内部元组的大小，结果还是错误的，但也是线性的，还望高人指教怎么做乘法才会得到正确的结果）</p>
+<p>我是不是该计算y&#x3D;kx一次函数了？反正就是，这玩意能用，非得计算，或者做参考，还是可以的。 [v_blue]后来经过一段时间的尝试，我终于用它拿到了正确的内存占用，代码可以<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Intern-Life/blob/master/mission%204/mem.py">看这里</a>。之前拿到的结果是呈线性的原因是<code>getsizeof</code>只会获得最外层数据类型的内存占用，所以如果想获得整个变量的内存占用，要递归到基础的不可变类型。当然这递归效率就不太高了，[&#x2F;v_blue] 反正管他怎么的，管他看不看这个折线图的，咱起码可以好好利用<code>fetchmany()</code>这个方法了，所以这块控制的代码大概就是下面这个样子：</p>
+<p>cur.execute(‘SELECT * FROM sometable’)<br>while True:<br>  data &#x3D; cur.fetchmany(SIZE)<br>  if data:<br>    pass<br>  else:<br>    break</p>
+<p>其中<code>SIZE</code>可以放到文件的最开始，或者写到配置文件中，甚至是另写一个函数、方法来控制计算内存占用。</p>
+<h3 id="批量插入ES"><a href="#批量插入ES" class="headerlink" title="批量插入ES"></a>批量插入ES</h3><p>这一点似乎没什么好说的，类似MongoDB，基本上他们需要的批量插入的数据类型就是<strong>列表里面包含着字典</strong>，也就是<code>[&#123;&#125;,&#123;&#125;...]</code>，我们只需要构造字典，在列表中不停的使用<code>append()</code>方法，就可以达到这个目的了。</p>
+<h3 id="手动构造字典？我拒绝"><a href="#手动构造字典？我拒绝" class="headerlink" title="手动构造字典？我拒绝"></a>手动构造字典？我拒绝</h3><p>咱在最上面的demo，是手动根据数据库的列名来构造字典的key的，但是这表说不定很复杂，俺以前穷，吃点苦手动也就算了；虽说我现在也很穷，但是，<strong>我傲娇啊，我高冷啊</strong>，就要这么不近人情，不想手动搞四个字典！（再加上这代码也没办法复用啊）</p>
+<h3 id="根据列名自动获得键"><a href="#根据列名自动获得键" class="headerlink" title="根据列名自动获得键"></a>根据列名自动获得键</h3><p>想起来了，咱可以通过查询语句得知表里有那些列，然后<strong>把列名取出来作为字典的key</strong>，再正常执行查询得到值，然后使用某种方法把这俩<strong>动态的捏到一起</strong>，再<code>append()</code>到SIZE的次数<del>(￣▽￣)</del>*</p>
+<p>没错，看起来这个思路是很好的。</p>
+<p>那么咋搞出来列名呢？</p>
+<p>cur.execute(‘SHOW COLUMNS from tb’)<br>col_data &#x3D; cur.fetchall()<br>col_field &#x3D; [i[0] for i in col_data]</p>
+<p>由于列名也不能多到哪去，直接<code>fetchall()</code>肯定是没问题的，顺便应用了一下列表推导，这样<code>col_field</code>这个列表里就会保存有整个表的列名啦。</p>
+<p> </p>
+<h3 id="根据键和表内容动态构造字典"><a href="#根据键和表内容动态构造字典" class="headerlink" title="根据键和表内容动态构造字典"></a>根据键和表内容动态构造字典</h3><p>下面可能就到了本篇中最不好搞的一部分了，反正我也不知道我是怎么搞出来的，大概是看了一眼《流畅的Python》吧，差点连字典推导都用上了(ﾉ*･ω･)ﾉ</p>
+<p>动态构造字典大概是这样的，其中<code>data</code>是<code>fetchmany()</code>的结果集（列表套元组），<code>bulk_dic</code>是一个列表（我这名字起的不太好）：</p>
+<p>for i in range(len(data)):<br>  es_dic &#x3D; dict(zip(col_field, data[i]))<br>  bulk_dic.append(es_dic)</p>
+<p>别问我这动态构造字典咋搞出来的，我也是<strong>吭吃瘪肚的胡编乱造</strong>了好久才弄出来的（哎这就是我和大牛的差距啊，人家一杯茶的功夫，我得搞一个小时）</p>
+<p>[v_blue]友情提示：</p>
+<p>为什么不尝试使用下pymysql.cursors.DictCursor呢？是吧是吧，DictCursor最方便了[&#x2F;v_blue]</p>
+<h2 id="齐活！拼凑代码"><a href="#齐活！拼凑代码" class="headerlink" title="齐活！拼凑代码"></a>齐活！拼凑代码</h2><p>所以，基本上思路都有了，各个模块的功能也都实现了，那么就剩下把代码组合在一起，然后测试了！</p>
+<p>大体思路就是，利用上面介绍的<code>fetchmany()</code><strong>限制内存占用</strong>，利用<code>col_field和</code>取得的结果集<strong>构造一个正确的字典</strong>，<code>append()</code>到一个列表里，执行插入，然后重新开始一轮循环。</p>
+<p>俺最终写出来的代码大概是这样子的（懒，贴图）：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/110317_1444_PythonMySQ6.png"><img src="/images/110317_1444_PythonMySQ6.png"></a></p>
+<p><code>exe_time</code>是俺写的一个装饰器，用于测量一个函数的执行时间。只要调用这个函数，传递两个参数，就可以不管不顾了，这个函数会把<strong>表的名字</strong>当作<code>_index</code>插入到ES中。当然了，我这个<code>SIZE=100</code>有点小，应该根据机器配置进行<strong>适当的调整</strong>。</p>
+<p>其中还有几点我不是很理解的地方、以及我觉得有必要再多说几句的地方（我也是瞎猫碰死耗子啊）</p>
+<h3 id="paramStyle"><a href="#paramStyle" class="headerlink" title="paramStyle"></a>paramStyle</h3><p>看注释可以得知，</p>
+<p>cur.execute(‘SHOW COLUMNS from %s’ % tb)</p>
+<p>这一句实际上是<strong>存在注入风险</strong>的。</p>
+<p>按照mysql.connector的参数风格pyformat，正常应该是字典或者元组模式就可以的，</p>
+<p>字典示例代码如下：</p>
+<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; %(jack)s”, {‘jack’: lumberjack})</p>
+<p>元组示例代码如下：</p>
+<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; %s”, (lumberjack,))</p>
+<p>然而在实际过程中却可耻的抛异常了，不晓得为什么，只好用%和格式化字符拼接下了。</p>
+<h3 id="index与-type"><a href="#index与-type" class="headerlink" title="_index与_type"></a>_index与_type</h3><p>对于<code>_index</code>，如果接触过ES的人大概知道，<code>_index</code>大概相当于关系数据库里面的数据库；<code>_type</code>就有点像表了；</p>
+<p>咱看个表格吧，对比下SQL、NoSQL和ES，只是个人的理解，未必准确：</p>
+<table border="0"><colgroup><col> <col> <col> <col> <col></colgroup><tbody valign="top"><tr><td><span style="font-size: 12pt;">SQL</span></td><td><span style="font-size: 12pt;">Database</span></td><td><span style="font-size: 12pt;">Table</span></td><td><span style="font-size: 12pt;">Row</span></td><td><span style="font-size: 12pt;">Column</span></td></tr><tr><td><span style="font-size: 12pt;">NoSQL</span></td><td><span style="font-size: 12pt;">Database</span></td><td><span style="font-size: 12pt;">Collection</span></td><td><span style="font-size: 12pt;">Document</span></td><td><span style="font-size: 12pt;">Field</span></td></tr><tr><td><span style="font-size: 12pt;">ES</span></td><td><span style="font-size: 12pt;">Index</span></td><td><span style="font-size: 12pt;">Type</span></td><td><span style="font-size: 12pt;">Document</span></td><td><span style="font-size: 12pt;">Field</span></td></tr></tbody></table>
+
+<p>当然了，由于mentor的要求是把每一个表名作为index（数据库），所以上面代码中我是这么写的：</p>
+<p>es_dic.update(_index&#x3D;tb, _type&#x3D;’hey’)</p>
+<p>这个<code>_type</code>就是随意起的了；</p>
+<p>可能你的要求是index叫test，type叫表名，那就 <code>es_dic.update(_index=&#39;test&#39;, _type=tb)</code>，很简单的。</p>
+<p>哦对了，我自然还是会写一个函数从<code>information_schema</code>中得出指定数据库中最大的四个表，然后自动处理的，我怎么会自己写四个调用呢！！！<strong>我这么傲娇这么高冷，要是你叫高晓松我叫韩寒我肯定天天把“高处不甚寒”挂在嘴边</strong></p>
+<h3 id="理论与实际总是存在差距的"><a href="#理论与实际总是存在差距的" class="headerlink" title="理论与实际总是存在差距的"></a>理论与实际总是存在差距的</h3><p>圈里有一句话，</p>
+<blockquote>
+<p>In theory, there is no difference between theory and practice. In practice there is.</p>
+</blockquote>
+<p>上面的这堆代码，在你处理非常非常大的表的时候，很有可能还会因为种种原因抛异常的（基本上是因为超时啊什么的），为了处理这个问题，我们需要在构造es的时候加几个参数，我也是开始导入了才发现还有这么多坑……</p>
+<p>es &#x3D; Elasticsearch(timeout&#x3D;30, max_retries&#x3D;10, retry_on_timeout&#x3D;True)</p>
+<p>在连接到数据库之后修改三个参数，以免超时提示<code>Lost connection to MySQL server</code></p>
+<p>cur.execute(“SET GLOBAL max_allowed_packet&#x3D;1073741824”)<br>cur.execute(‘SET GLOBAL CONNECT_TIMEOUT &#x3D; 60’)<br>cur.execute(‘SET SESSION NET_READ_TIMEOUT &#x3D; 600’)</p>
+<p>当然，具体数值需要大家自己掌握。</p>
+<p>完整的最新代码会在12月17日之前开源。</p>
+<h2 id="最后的总结"><a href="#最后的总结" class="headerlink" title="最后的总结"></a>最后的总结</h2><p>所以所以，这段函数能干啥？</p>
+<p>接受俩参数，一个数据库名，一个表名，将<strong>表名作为index</strong>把全部数据<strong>批量高效可靠</strong>导入到ES中，<strong>不用担心内存</strong>问题，你只需要关心硬盘和选择一个合适的SIZE。</p>
+<p>想要批量高效的导入数据到MongoDB也只不过是把<code>helpers.bulk()</code>换成pymongo的<code>insert_many()</code>而已。当然了，想要批量写入文件（比如说csv文件）……呃，还不更容易，都不用构造字典，用好控制内存那段代码就行了。</p>
+<p>最后，还希望能够有高手指出，还有没有更方便简洁的方法，比如说什么什么库本身就提供了这个功能等等……</p>
+<p>PS，把这个代码开源到GitHub，供大家学习使用，也欢迎PR…… [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Intern-Life/blob/master/mission%204/mysql2es.py'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/Intern-Life/blob/master/mission%204/mysql2es.py&#39;\]开源地址\[/gt\]</a></p>
+<p>紧跟时代潮流，commit是要带签名的。搞得我现在基本上不想用图形化的客户端了，哎，<strong>装逼要紧啊</strong>，装完赶紧跑ε&#x3D;ε&#x3D;ε&#x3D;(<del>￣▽￣)</del></p>
+<p><img src="/images/110317_1444_PythonMySQ7.png"></p>
+<p>哦对了，秀一下我的kibana！！看起来就很高大上，是吧。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/110317_1444_PythonMySQ8.png"><img src="/images/110317_1444_PythonMySQ8.png"></a></p>
+<blockquote>
+<p>本地开发主题测试用WordPress的内心独白：</p>
+<p>终于也有哥出头露面的一天了！</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/11/03/mysql-es-mongo/index/" data-id="clhp6he0p004xezqrhg6ldfuk" data-title="使用Python将海量MySQL数据导入Elastic Search/MongoDB" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/11/20/hiramasa-mikuri/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          平匡与实栗
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/10/31/typecho-exploit/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">谈谈近期Typecho 的漏洞exploit及预防措施</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

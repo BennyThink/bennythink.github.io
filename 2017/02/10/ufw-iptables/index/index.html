@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>开启ufw导致断网不能ping? ufw和iptables的那些坑 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="昨晚不小心踩了一个坑，当开启ufw之后，电脑与外网的连接断开，明明ufw设置中incoming是allow、outgoing是deny，按理说应该能ping的…结果却全面断网，当然SSH也连不进来了…当把ufw禁用、或者把outgoing设置成allow，网络通信就恢复了，如动图所示。这是为啥捏？ 不好意思，动图被我删了，只能自己想象了? [v_blue]友情提示： 别说我”没加ping的allo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="开启ufw导致断网不能ping? ufw和iptables的那些坑">
+<meta property="og:url" content="http://example.com/2017/02/10/ufw-iptables/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="昨晚不小心踩了一个坑，当开启ufw之后，电脑与外网的连接断开，明明ufw设置中incoming是allow、outgoing是deny，按理说应该能ping的…结果却全面断网，当然SSH也连不进来了…当把ufw禁用、或者把outgoing设置成allow，网络通信就恢复了，如动图所示。这是为啥捏？ 不好意思，动图被我删了，只能自己想象了? [v_blue]友情提示： 别说我”没加ping的allo">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/021017_0252_ufwping1.png">
+<meta property="og:image" content="http://example.com/images/021017_0252_ufwping2.png">
+<meta property="og:image" content="http://example.com/images/Netfilter-packet-flow.png">
+<meta property="og:image" content="http://example.com/images/021017_0252_ufwping3.png">
+<meta property="article:published_time" content="2017-02-10T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:48.721Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/021017_0252_ufwping1.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-ufw-iptables/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/10/ufw-iptables/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      开启ufw导致断网不能ping? ufw和iptables的那些坑
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨晚不小心踩了一个坑，当开启ufw之后，电脑与外网的连接断开，明明ufw设置中incoming是allow、outgoing是deny，按理说应该能ping的…结果却全面断网，当然SSH也连不进来了…当把ufw禁用、或者把outgoing设置成allow，网络通信就恢复了，如动图所示。这是为啥捏？ 不好意思，动图被我删了，只能自己想象了? [v_blue]友情提示： 别说我”没加ping的allow规则”，我家ping是ICMP协议的，我家的ICMP协议是网络层的要比传输层的TCP、UDP低，所以我家ping是没有端口这一说法的。[&#x2F;v_blue]</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="我尝试的无效方案"><a href="#我尝试的无效方案" class="headerlink" title="我尝试的无效方案"></a>我尝试的无效方案</h3><p>我先尝试了<code>iptables -F</code>来”清空全部规则”，无效； 重启无效； 之后我尝试了<code>apt remove –-purge iptables ufw gufw</code>然后再安装，依旧无效。</p>
+<p>天呐purge都无效了？</p>
+<h3 id="真正的解决方案"><a href="#真正的解决方案" class="headerlink" title="真正的解决方案"></a>真正的解决方案</h3><p>我从DigitalOcean找到了解决方案</p>
+<p>首先，我们先把INPUT、FORWARD、OUTPUT这三个链的规则设置成ACCEPT免得把自己锁在门外：</p>
+<p>sudo iptables -P INPUT ACCEPT<br>sudo iptables -P FORWARD ACCEPT<br>sudo iptables -P OUTPUT ACCEPT</p>
+<p>然后，我们清除NAT、Mangle表，清除链，删除所有的非默认链</p>
+<p>sudo iptables -t nat -F        #清除NAT表<br>sudo iptables -t mangle -F    #清除mangle表<br>sudo iptables -F    #清除所有链的规则<br>sudo iptables -X    #删除非默认链</p>
+<p>此时如果我们<code>iptables -L</code>列出链和规则，会发现只剩下INPUT、FORWARD、OUTPUT这三个链了，如图：</p>
+<p><img src="/images/021017_0252_ufwping1.png"></p>
+<p>此时我们再<code>ufw enable</code>启用ufw，如果SSH请先<code>ufw allow 22</code>，就会发现没断网。</p>
+<p>如果这个时候<code>iptables -L</code>，会看到多出来很多链和规则</p>
+<p><img src="/images/021017_0252_ufwping2.png"></p>
+<p>童鞋们是不是觉得很奇怪，为啥这次就行了？我是咋重现的这个问题？</p>
+<p>在回答这个问题之前，我们首先要了解下ufw、iptables是什么，之后以及这二者之间的关系，简单的了解iptables的基本概念和基本运作原理。</p>
+<h2 id="ufw"><a href="#ufw" class="headerlink" title="ufw"></a>ufw</h2><p>Uncomplicated FireWall，不是Ubuntu FireWall哦，是debian系发行版中为了轻量化配置 iptables 而开发的一款工具。</p>
+<p>UFW和iptables一样都是<a target="_blank" rel="noopener" href="https://dmesg.app/semi-auto-blacklist.html">匹配原则</a>，匹配到了则忽略剩下的规则，这点就不废话了。</p>
+<h2 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h2><p>我们习惯性的会把iptables认为是Linux上的防火墙，自从Linux内核2.4之后就集成进主线内核。实际上准确是说，iptables是一个通过控制Linux内核的netfilter模块来<strong>管理网络数据包的流动与转送</strong>的应用软件，其功能包括不仅仅包括防火墙的控制出入流量，还有端口转发等等。</p>
+<p>iptables内部有<strong>表tables、链chains、规则rules</strong>这三种概念。</p>
+<p>iptables的每一个”表”都和不同的数据包处理有关、决定数据包是否可以穿越的是”链”、而一条”规则”在链里面则可以决定是否送往下一条链（或其它的动作）</p>
+<p>那一个包到达网卡的时候，Linux的如何处理的呢？</p>
+<p>我们提到了iptables是可以控制netfilter模块的，netfilter内部（主要、常用的）分为三个表，分别是 <strong>filter, nat, mangle</strong>，每个表又有不同的链（Chains），每个链下可以有不同的规则（rules）。</p>
+<h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><p>在filter（过滤）表中，也就是防火墙功能的表，定义了三个链。分别是<strong>INPUT, FORWARD, OUTPUT</strong>。也就是对包的<strong>入、转发、出</strong>进行定义的三个过滤链。对于这个filter表的操作和控制也是我们实现防火墙功能的一个重要手段；</p>
+<h3 id="nat"><a href="#nat" class="headerlink" title="nat"></a>nat</h3><p>在nat(网络地址转换)表中，也就是我们用以实现地址转换和端口转发功能的这个表，定义了PREROUTING, POSTROUTING,OUTPUT三个链；</p>
+<h3 id="mangle"><a href="#mangle" class="headerlink" title="mangle"></a>mangle</h3><p>netfilter的mangle表则是一个自定义表，里面包括上面 的filter以及nat表中的各种chains，它可以让我们进行一些自定义的操作，同时这个mangle表中的chains在netfilter对包 的处理流程中比较优先。</p>
+<h2 id="包在Linux中的前世今生"><a href="#包在Linux中的前世今生" class="headerlink" title="包在Linux中的前世今生"></a>包在Linux中的前世今生</h2><p><a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/Netfilter-packet-flow.png"><img src="/images/Netfilter-packet-flow.png"></a></p>
+<p>图片来自维基百科（太大了，戳大图吧）</p>
+<p>我们大致可以看出：包首先要由bridge check来判断属于链路层还是网络层，之后包都会遇到NAT或者mangle表的PREROUTING链，从这pre前缀咱能才出来，这是要在路由之前要过的链。</p>
+<p>接着当包通过了PREROUTING之后，便到了 decision这个分支点，这里有一个对目的地址的判断，如果包的目的地是本地,那么包向上走，走入INPUT链处理，然后进入LOCAL PROCESS，之后再进入对应的OUTPUT、POSTROUTING；</p>
+<p>如果非本地，那么就进入FORWARD链进行转发，之后再走POSTROUTING，我们在这里就不说FORWARD链的事了。</p>
+<p>我们可以看到，filter表在包的处理流程中，处于中间的位置，这部分也就是防火墙的主要功能所在。</p>
+<h2 id="ufw怎么和iptables一起合作的"><a href="#ufw怎么和iptables一起合作的" class="headerlink" title="ufw怎么和iptables一起合作的"></a>ufw怎么和iptables一起合作的</h2><p>在稍微理解了包是怎么走的之后，回到我们<code>iptables -L</code>的时候，我们看filter表，可以看到，ufw在<strong>INPUT、FORWARD、OUTPUT</strong>添加了好些自定义规则，并且添加了好些自己的链和链的规则，还把把INPUT、FORWARD默认策略设置成DROP <img src="/images/021017_0252_ufwping3.png"> 如图，当你有这些ufw定义的链的时候，是能够匹配到ufw链和规则，也就是正常入网的。</p>
+<p>当我们执行<code>iptables -F</code>的时候，会发生什么呢？</p>
+<p><strong>所有链的规则都被清空了</strong>！包括ufw的链！并且INPUT、FORWARD依旧是DROP</p>
+<p>再想想包的前世今生，OUTPUT我们发出了ping，但是却因为<strong>INPUT的DROP而永远无法收到ICMP echo</strong>，只能往出发包而不能接收任何类型的包，毫无疑问自然就断网了。</p>
+<p>此时<code>ufw status</code>还会告诉你在运行，但是当你使用<code>ufw disable</code>关闭ufw时，INPUT会被设置成ACCEPT，自然就恢复网络通信了；</p>
+<p>当你使用<code>ufw default allow</code>把默认出网规则设置成allow时，INPUT也会被设置成ACCEPT，当然网络通信恢复了。</p>
+<p>所以童鞋们自此应该理解了刚开始理解动图能够ping通和不通的原因吧！</p>
+<h2 id="使用ufw和iptables的警告"><a href="#使用ufw和iptables的警告" class="headerlink" title="使用ufw和iptables的警告"></a>使用ufw和iptables的警告</h2><p>最后给大家一个警告，当你使用了ufw这类前端时，就最好不要再碰iptables了，尤其要**慎重使用iptables -**来清空所有链的规则。在不了解iptables的表、链、规则之前，盲目的清空iptables”规则”就是耍流氓！</p>
+<p>试想，假如你在服务器上<code>ufw enable</code>，那么INPUT和FORWARD就是DROP，那么当你<code>iptables -F</code>时，不仅仅是SSH的例外规则没了，所有出网的包也都出不去了！此时唯一能做的事情就是去VNC、或者去机房插鼠标键盘显示器。</p>
+<p>假如你是买的服务器，为了安全考虑使用密钥认证，并且把用户名设置成了从openssl生成的随机密码，并且你是由Windows重装成的Linux，那么控制台也是没有用的……重装或者快照吧。</p>
+<p> </p>
+<p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules">https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules</a></p>
+<p><a target="_blank" rel="noopener" href="http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html">http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/10/ufw-iptables/index/" data-id="clhp6he3900atezqr8b8kdcum" data-title="开启ufw导致断网不能ping? ufw和iptables的那些坑" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/02/10/ubuntu-compile-vc/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          在Ubuntu下编译并使用VeraCrypt
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/02/05/reason-of-this-blog/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">为什么我要写独立域名的博客</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

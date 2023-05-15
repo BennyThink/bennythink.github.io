@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用vnstat获取容器网络流量 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="背景在我使用pyrogram重构了YouTube Download之后，bot的SLA从9个6变为6个9，同时也迎来了使用量上的增加。这样的结果是，每天我的服务器都会跑掉100-200G的流量。  （这段统计信息是从docker stats拿到的，为了方便复用，我发布了一个wrapper到pypi，同样也可以go get，代码可以看这里 https:&#x2F;&#x2F;github.com&#x2F;tgbot-colle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用vnstat获取容器网络流量">
+<meta property="og:url" content="http://example.com/2021/08/21/vnstat-container/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="背景在我使用pyrogram重构了YouTube Download之后，bot的SLA从9个6变为6个9，同时也迎来了使用量上的增加。这样的结果是，每天我的服务器都会跑掉100-200G的流量。  （这段统计信息是从docker stats拿到的，为了方便复用，我发布了一个wrapper到pypi，同样也可以go get，代码可以看这里 https:&#x2F;&#x2F;github.com&#x2F;tgbot-colle">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2021082111335735.png">
+<meta property="og:image" content="http://example.com/images/2021082111335814.png">
+<meta property="og:image" content="http://example.com/images/2021082111340014.png">
+<meta property="og:image" content="http://example.com/images/202108211134001.png">
+<meta property="og:image" content="http://example.com/images/2021082111340051.jpeg">
+<meta property="og:image" content="http://example.com/images/2021082111340120.png">
+<meta property="og:image" content="http://example.com/images/2021082111340343.png">
+<meta property="og:image" content="http://example.com/images/2021082111340355.png">
+<meta property="article:published_time" content="2021-08-21T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:51.369Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2021082111335735.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-vnstat-container/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/08/21/vnstat-container/index/" class="article-date">
+  <time class="dt-published" datetime="2021-08-21T00:00:00.000Z" itemprop="datePublished">2021-08-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用vnstat获取容器网络流量
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在我使用pyrogram重构了<a target="_blank" rel="noopener" href="https://t.me/benny_ytdlbot">YouTube Download</a>之后，bot的SLA<a target="_blank" rel="noopener" href="https://twitter.com/magicxqq/status/1428514338785009671?s=20">从9个6变为6个9</a>，同时也迎来了使用量上的增加。这样的结果是，每天我的服务器都会跑掉100-200G的流量。</p>
+<p><img src="/images/2021082111335735.png"></p>
+<p>（这段统计信息是从docker stats拿到的，为了方便复用，我发布了一个wrapper到pypi，同样也可以go get，代码可以看这里 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/tgbot_ping">https://github.com/tgbot-collection/tgbot_ping</a>）</p>
+<p>于是我就想，我一定要想办法记录这个容器每天究竟跑了多少流量，不能每次都亲自指挥，亲自部署吧。那咋办呢……</p>
+<h2 id="宿主机上使用vnstat"><a href="#宿主机上使用vnstat" class="headerlink" title="宿主机上使用vnstat"></a>宿主机上使用vnstat</h2><p>在宿主机上使用vnstat，就可以看到本机一共跑了多少流量，不过这个数值通常来讲是会大于YouTube Download的流量的，当然也有一些例外情况，比如容器之间通信，那么自然不会被记录到宿主机的外网网卡。</p>
+<p>直接用宿主机的vnstat做参考，对于我的场景也没什么大问题，因为这个bot是单独跑在一台机器上的，没有太多的影响因素。那么如何在容器中执行宿主机上的某个命令呢？</p>
+<p>坏消息是，这个恐怕是没办法的。容器的namespace是隔离的，看不到宿主机上的信息。</p>
+<p>非想搞呢，在宿主机上跑一个web程序，用于调用vnstat，然后容器访问宿主机的web程序好了……</p>
+<h2 id="docker-stats"><a href="#docker-stats" class="headerlink" title="docker stats"></a>docker stats</h2><p>docker stats可以用于获取容器的运行时统计信息，比如CPU、RAM等。</p>
+<p>比如在某台机器上，我执行下stats，能看到这样的结果</p>
+<p><img src="/images/2021082111335814.png"></p>
+<p>本质上docker是C&#x2F;S架构的一个东西，所以其实这东西是有一个REST API的。</p>
+<p>对于 docker stats，是这个接口</p>
+<p><a target="_blank" rel="noopener" href="http://socat:2375/containers/dreamy/_hugle/stats?stream=0">http://socat:2375/containers/dreamy\_hugle/stats?stream=0</a></p>
+<p>哦我预先用了下socat，在实际部署中，我有一个名为socat的容器，专门干这事的。当然这也意味着容器可以控制宿主机上的docker engine，有一定的风险。</p>
+<p>socat tcp-listen:2375,fork,reuseaddr unix-connect:&#x2F;var&#x2F;run&#x2F;docker.sock</p>
+<p>拿到的响应是json，其中有一段networks</p>
+<p><img src="/images/2021082111340014.png"></p>
+<p>那么我只要去解析这个json，然后定时算diff，这样就可以啦！只不过实现难度 🌟🌟🌟🌟🌟，万一以后想看小时、月的呢，容器重启了怎么办，数据存哪，这代码怎么维护呀……</p>
+<h2 id="vnstat"><a href="#vnstat" class="headerlink" title="vnstat"></a>vnstat</h2><p>在统计流量这方面，已经有了成熟的vnstat，在容器里怎么就不行了？容器也是能跑很多个进程的啊，我还见过容器跑sshd的呢。</p>
+<p>vnstat其实也是个C&#x2F;S架构的东西，<code>vnstatd</code>负责存储流量信息到SQLite，<code>vnstat</code>用于读取显示信息，还有一个<code>vnstati</code>，能够生成图表。在某些廉价VPS厂商能看到如下简陋的流量图，那么很有可能就是<code>vnstati</code>生成的。</p>
+<p><img src="/images/202108211134001.png"></p>
+<p>在容器里用vnstat并不复杂，先开启vnstatd，然后再开我们的应用程序。</p>
+<p>那么就先搞一段shell脚本，为了避免问题使用绝对路径吧</p>
+<p>&#x2F;usr&#x2F;sbin&#x2F;vnstatd -d<br>&#x2F;usr&#x2F;local&#x2F;bin&#x2F;python ytdl.py</p>
+<p>然后把入口从 <code>python xxx.py</code>改成<code>sh xxx.sh</code></p>
+<p>看进程树是这样子的</p>
+<p><img src="/images/2021082111340051.jpeg"></p>
+<p>需要的时候，写代码调用vnstat就可以了。为了避免干扰，代码中可以用 <code>/usr/bin/vnstat -i eth</code>0 排除其他网卡哦。</p>
+<p>一个示例<code>Dockerfile</code>如下，使用了多阶段构建，所以vnstat要安装在运行时而不是构建时：</p>
+<p>FROM python:alpine as builder</p>
+<p>RUN apk update &amp;&amp; apk add  –no-cache tzdata alpine-sdk libffi-dev ca-certificates<br>ADD requirements.txt &#x2F;tmp&#x2F;<br>RUN pip3 install –user -r &#x2F;tmp&#x2F;requirements.txt &amp;&amp; rm &#x2F;tmp&#x2F;requirements.txt</p>
+<p>FROM python:alpine<br>WORKDIR &#x2F;ytdlbot<br>ENV TZ&#x3D;Asia&#x2F;Shanghai</p>
+<p>RUN apk update &amp;&amp; apk add  –no-cache ffmpeg vnstat<br>COPY –from&#x3D;builder &#x2F;root&#x2F;.local &#x2F;usr&#x2F;local<br>COPY –from&#x3D;builder &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;ca-certificates.crt &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;<br>COPY –from&#x3D;builder &#x2F;usr&#x2F;share&#x2F;zoneinfo &#x2F;usr&#x2F;share&#x2F;zoneinfo<br>COPY . &#x2F;ytdlbot<br>RUN echo “&#x2F;usr&#x2F;sbin&#x2F;vnstatd -d;&#x2F;usr&#x2F;local&#x2F;bin&#x2F;python ytdl.py”&gt; &#x2F;ytdlbot&#x2F;start.sh</p>
+<p>CMD [“sh”, “start.sh”]</p>
+<p>需要注意的是，为了避免容器重启后数据丢失，记得做个volume到 <code>/var/lib/vnstat</code>哦。</p>
+<p>完美！结果如下图</p>
+<p><img src="/images/2021082111340120.png"></p>
+<p>当然了，在容器中运行多个进程有很多种办法，使用shell脚本是一种，缺点很多，比如进程崩溃了，那shell脚本也没法给守护起来……更好的更优雅的方案就是用supervisor，或者是一些好用的init，那些想用systemd的还是劝您放弃</p>
+<p>supervisor可以参考这个配置，会把log重定向到stdout中</p>
+<p>[supervisord]<br>nodaemon&#x3D;true<br>logfile&#x3D;&#x2F;dev&#x2F;null<br>logfile_maxbytes&#x3D;0<br>user&#x3D;root</p>
+<p>[program:vnstat]<br>command&#x3D;vnstatd -n<br>autorestart&#x3D;true</p>
+<p>[program:ytdl]<br>directory&#x3D;&#x2F;ytdlbot<br>command&#x3D;python ytdl.py<br>autorestart&#x3D;true</p>
+<p>stdout_logfile&#x3D;&#x2F;dev&#x2F;fd&#x2F;1<br>stdout_logfile_maxbytes&#x3D;0<br>redirect_stderr&#x3D;true</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我不知道你们是怎么想的，反正我感觉我快要被薅🐰了。</p>
+<p><img src="/images/2021082111340343.png"></p>
+<p>尽管我已经开启了VIP模式，试图通过10G&#x2F;24h来产生一定威慑效果，但是依旧架不住人多啊🤣</p>
+<p><img src="/images/2021082111340355.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/08/21/vnstat-container/index/" data-id="clhp6he3g00b1ezqray7h2uyp" data-title="使用vnstat获取容器网络流量" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/10/02/cat/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          多图杀猫
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/08/15/tgbot3/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">[Telegram bot 系列]3: 使用MTProto协议</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

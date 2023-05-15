@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用Python给带合并单元格的Excel加一列 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="前几天有这么一个需求，要给Excel表格的最前面加入两列。我想这不是非常简单吗？几行代码而已： import openpyxl wb &#x3D; openpyxl.load_workbook(‘simple.xlsx’)sh &#x3D; wb.activesh.insert_cols(1)wb.save(‘result.xlsx’) 非常简单，自己还找了个表格试了下，好像没问题。  然后我发现">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Python给带合并单元格的Excel加一列">
+<meta property="og:url" content="http://example.com/2018/09/19/python-excel-add-column/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="前几天有这么一个需求，要给Excel表格的最前面加入两列。我想这不是非常简单吗？几行代码而已： import openpyxl wb &#x3D; openpyxl.load_workbook(‘simple.xlsx’)sh &#x3D; wb.activesh.insert_cols(1)wb.save(‘result.xlsx’) 非常简单，自己还找了个表格试了下，好像没问题。  然后我发现">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2018091913193939.png">
+<meta property="og:image" content="http://example.com/images/2018091913194017.png">
+<meta property="og:image" content="http://example.com/images/2018091913194476.png">
+<meta property="og:image" content="http://example.com/images/2018091913194557.png">
+<meta property="article:published_time" content="2018-09-19T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:50.121Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2018091913193939.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-python-excel-add-column/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/09/19/python-excel-add-column/index/" class="article-date">
+  <time class="dt-published" datetime="2018-09-19T00:00:00.000Z" itemprop="datePublished">2018-09-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用Python给带合并单元格的Excel加一列
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天有这么一个需求，要给Excel表格的最前面加入两列。我想这不是非常简单吗？几行代码而已：</p>
+<p>import openpyxl</p>
+<p>wb &#x3D; openpyxl.load_workbook(‘simple.xlsx’)<br>sh &#x3D; wb.active<br>sh.insert_cols(1)<br>wb.save(‘result.xlsx’)</p>
+<p>非常简单，自己还找了个表格试了下，好像没问题。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913193939.png"><img src="/images/2018091913193939.png"></a></p>
+<p>然后我发现我要处理的表格是带有合并单元格的，用这几行代码处理下发现……</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913194017.png"><img src="/images/2018091913194017.png"></a></p>
+<p>我的单元格都乱套了……</p>
+<p>这可咋整……不管了，掏出了openpyxl</p>
+<h2 id="openpyxl"><a href="#openpyxl" class="headerlink" title="openpyxl"></a>openpyxl</h2><h3 id="处理xlsx合并单元格插入列"><a href="#处理xlsx合并单元格插入列" class="headerlink" title="处理xlsx合并单元格插入列"></a>处理xlsx合并单元格插入列</h3><p>其实处理思路很简单，遍历每一个单元格，给纵坐标+2，然后样式什么的也拷贝一份写到新的表格里就好了。但是一片不大不小的水域，总是有那么不多不少的水坑。</p>
+<h3 id="如何判断合并单元格"><a href="#如何判断合并单元格" class="headerlink" title="如何判断合并单元格"></a>如何判断合并单元格</h3><p>在openpyxl中， 合并单元格是以<code>ws.merged_cells</code>这个列表表示的，这个列表里面的形式如下：I1:I2 D1:E1 A1:A2 B1:C1 F1:H1，每一对用冒号连接的坐标表示这两个之间是合并的。</p>
+<p>这样问题就简单啦，我们只需要把坐标+2就好了，比如说A1:B2变C1:E2，K1:J5变M1:L1，Z1:AA1变AB1:AC1，等等什么？Z1:AA1变AB1:AC1？没办法我这个Excel有点长……</p>
+<p>这个不是普通的加法啊，通过<code>ord()</code>和<code>chr()</code>来回转换吧？进坑了吧少年?</p>
+<h3 id="二十六进制？？"><a href="#二十六进制？？" class="headerlink" title="二十六进制？？"></a>二十六进制？？</h3><p>我们了解到，Excel的坐标变化是字母表的进位，也就是26进制！这……二进制，八进制，十六进制都是咱比较常用的，这二十六进制是什么鬼？来我们<code>if…elif…elif….elif</code>写一波……</p>
+<p>def twenty_six(coord, size):</p>
+<h1 id="A1-B2-AB1-AC2"><a href="#A1-B2-AB1-AC2" class="headerlink" title="A1:B2, AB1:AC2"></a>A1:B2, AB1:AC2</h1><pre><code>left = coord.split(&#39;:&#39;)\[0\]
+right = coord.split(&#39;:&#39;)\[-1\]
+left\_char = left\[0\]
+right\_char = right\[0\]
+
+if len(left\_char) == 1 and len(right\_char) == 1:
+    return &quot;%s:%s&quot; % (chr(ord(left\_char + size)), chr(ord(right\_char + size)))
+elif len(left\_char) == 2 and len(right\_char) == 2:
+    return &quot;%s:%s&quot; % (chr(ord(left\_char + size)), chr(ord(right\_char + size)))
+</code></pre>
+<p>哎？那要坐标是A1:AZ3的呢？不用想了这段代码是错的⛲</p>
+<p>那么我们来创造人类史上的第一个26进制吧！小伙子，又进坑了吧……?</p>
+<p>要什么26进制啊，直接弄个A, B, C, D….AA, AB, AC….BC, BD….ZZ一共26*26个元素的列表，通过index查得了。</p>
+<p>所以所谓的“26进制”咱可以这么处理一波：</p>
+<p>import itertools<br>import string</p>
+<p>table &#x3D; list(itertools.chain(string.ascii_uppercase,(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2))))</p>
+<p>def twenty_six(char, size):<br>    index &#x3D; table.index(char)<br>    return table[index + size]</p>
+<p>其中<code>char</code>是表示字母（不带数字的那种）</p>
+<p>喜欢挑刺的童鞋们可能会说，你这是列表，列表查找可能得全都遍历完了才查找到，你这太浪费时间了。得用字典。</p>
+<p>喂(#`O′)童鞋，如果用字典的话，那么需要不仅能从键（字母）找到值，还得需要通过值找到键，这……行行行，没啥不可能的，键值对反转嘛，面试必会题目。那么用字典，table大概就是这么构造：</p>
+<p>使用dict方法</p>
+<p>table &#x3D; [dict(zip(itertools.chain(string.ascii_uppercase,<br>(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2))),<br>[i for i in range(26 * 26)])),<br>dict(zip([i for i in range(26 * 26)], itertools.chain(string.ascii_uppercase,<br>(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2)))))]</p>
+<p>使用字典推导(ﾉ*･ω･)ﾉ：</p>
+<p>base &#x3D; dict(zip(itertools.chain(string.ascii_uppercase,<br>(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2))),<br>[i for i in range(26 * 26)]))</p>
+<p>table &#x3D; [base, {v: k for k, v in base.items()}]</p>
+<p><code>table[0]</code>表示从字母查找数字，给数字+2之后在<code>table[1]</code>从数字查找字母，调用就更简单了。我爱(ﾉ*･ω･)ﾉ。</p>
+<p>然而实际上，676个元素有点少，字典的空间换时间几乎是划不来的。而且<code>dict()</code>和<code>zip()</code>方法以及遍历字典也会花费一点时间，代码还写得很长，所以简单起见生成个列表就够了。</p>
+<h3 id="处理字母式坐标"><a href="#处理字母式坐标" class="headerlink" title="处理字母式坐标"></a>处理字母式坐标</h3><p>在解决了26进制之后，我们只需要把字母从一个合并单元格坐标中提取出来就可以了，要完成这项工作其实方法挺多的，比较简单的方法是直接用正则表达式。一搜就有。这里就不写了。</p>
+<h3 id="遍历单元格内容和样式"><a href="#遍历单元格内容和样式" class="headerlink" title="遍历单元格内容和样式"></a>遍历单元格内容和样式</h3><p>我们需要遍历每个单元格，多亏了PyCharm的Evaluate Expression功能，很容易就发现遍历单元格的方法：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913194476.png"><img src="/images/2018091913194476.png"></a></p>
+<p>我们可以很清楚的看到，i这个变量的每一个元素都包含了这个表格的全部信息，包括内容，边框，填充，字体等等。那么获取到这些信息就很简单了，一个双循环即可：</p>
+<p>for i in ws.rows:<br>    for v in i:<br>        print(v.coordinate, v.fill, v.border, v.value)</p>
+<p><code>v.coordinate</code>表示的是单元格的字母式坐标，我们可以给上面封装好的twenty_six调用下，就能够做好新的移动之后的坐标了。</p>
+<p>那么拷贝样式吧。</p>
+<h3 id="拷贝单元格样式"><a href="#拷贝单元格样式" class="headerlink" title="拷贝单元格样式"></a>拷贝单元格样式</h3><p>在openpyxl中，给单元格写入样式非常简单，大概如下就可以了：</p>
+<p><code>ws[&#39;A1&#39;].fill=&#39;Your fill style&#39;</code></p>
+<p>我们把上面遍历过来的内容直接赋值就可以了，大概如下：</p>
+<p>for i in ws.rows:<br>    for v in i:<br>        coord &#x3D; ‘移动之后的坐标’<br>        # copy fill border and everything<br>        write_ws[coord].fill &#x3D; v.fill<br>        write_ws[coord].font &#x3D; v.border<br>        write_ws[coord].border &#x3D; v.border</p>
+<p>童鞋，你又进坑了━((*′д｀)爻(′д｀*))━!!!!</p>
+<p>尽管通过Evaluate能够看到右面的类型是左边接受的类型，但是还是报错。为什么不尝试下浅拷贝呢？嗯这是好用的。</p>
+<p><code>from copy import copy</code>把<code>v.fill</code>替换成<code>copy(v.fill)</code>就好了</p>
+<h3 id="给合并单元格应用样式"><a href="#给合并单元格应用样式" class="headerlink" title="给合并单元格应用样式"></a>给合并单元格应用样式</h3><p>这个有点特殊，<a target="_blank" rel="noopener" href="https://openpyxl.readthedocs.io/en/stable/styles.html#styling-merged-cells">openpyxl官网写好</a>了一个，咱拿过来直接用就好了。</p>
+<h3 id="拷贝单元格内容"><a href="#拷贝单元格内容" class="headerlink" title="拷贝单元格内容"></a>拷贝单元格内容</h3><p>单元格内容用<code>v.value</code>就能读到了。但是那些合并了的单元格，究竟是读取哪个坐标才能读到呢?别猜了，让我来告诉你，左上角的。其他的读取出来的都是<code>None</code></p>
+<p>所以拷贝单元格内容就太简单了，判断下就好了。</p>
+<p>if v.value:<br>    self.write_ws[coord] &#x3D; v.value</p>
+<p>啪(￣ε(#￣)打飞你。如果某个单元格的内容是0，0是布尔假值啊……那岂不是丢数据了？？</p>
+<p>小可爱，判断下，这是个特例。于是乎吭哧吭哧……</p>
+<p>elif type(v.value) &#x3D;&#x3D; int:<br>    pass</p>
+<p>啪(。&gt;︿&lt;)_θ再次打飞你。难道不知道有个东西叫<code>isinstance()</code>嘛？后面的类型可以是元组，列表或者单个类型（类啊，int啊，float啊啥的都可以）</p>
+<p>elif isinstance(v.value, float):<br>    pass</p>
+<h3 id="组装……"><a href="#组装……" class="headerlink" title="组装……"></a>组装……</h3><p>好吧，那么坑都踩的差不多了，组装组装就好了，先拷贝每个单元格，再给<code>merge_cell</code>拷贝过去，基本上就没啥了。</p>
+<p>biu biu biu于是别人给你发了一个xls格式的Excel。</p>
+<p>openpyxl不支持xls哦。</p>
+<h3 id="转换格式？"><a href="#转换格式？" class="headerlink" title="转换格式？"></a>转换格式？</h3><p>怕啥，openpyxl不支持读xls，我们就找个东西给转换成xlsx，再拿他处理。什么pandas啊，pyexcel啊都行，要不随手找个什么在线转换的支持REST API的咱用requests走起啊……</p>
+<p>你看，这个?是什么，黑乎乎的我看不清，要不你跳进去看下。</p>
+<p>不用试了，那些库把xls转换成xlsx之后，合并单元格基本丢的差不多的了。用在线转换，比如说牛逼哄哄的Google Docs？恐怕我是要请<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Legal_High">黛真知子</a>当我的辩护律师呀……啊不，我愿意，非常愿意，真的真的那就在线转换吧。小黛请你为我唱一首歌(&#x2F;≧▽≦)&#x2F;</p>
+<iframe src="//player.bilibili.com/player.html?aid=4012670&amp;cid=6469605&amp;page=1" frameborder="no" scrolling="no" allowfullscreen="allowfullscreen"></iframe>
+
+<p>哦那个对不起，其实我家小黛唱歌好好听的。爱老婆的清唱??(*￣3￣)╭</p>
+<iframe src="//player.bilibili.com/player.html?aid=2440565&amp;cid=3820356&amp;page=1" frameborder="no" scrolling="no" allowfullscreen="allowfullscreen"></iframe>
+
+<p>(づ￣ 3￣)づ</p>
+<h2 id="xlrd-xlwt-xlutils"><a href="#xlrd-xlwt-xlutils" class="headerlink" title="xlrd xlwt xlutils"></a>xlrd xlwt xlutils</h2><p>所以说到底，我们又用回来了xlrd这一系列？不过好在思路已经有了，那么就简单了。</p>
+<h3 id="读取合并单元格"><a href="#读取合并单元格" class="headerlink" title="读取合并单元格"></a>读取合并单元格</h3><p>同样的，借助PyCharm的Debug，咱很快就找到了合并单元格存于<code>read_ws.merged_cells</code>中。当然要遍历啦，每个元素都是一个包含了四个数字的元组。这四个数字都是啥啊……哎嘿嘿坐标呗，↖↘酱紫的呗，从0开始数数哦，前开后闭哦（哦对不起我高中数学就没及格过）。</p>
+<p>for (rlow, rhigh, clow, chigh) in read_ws.merged_cells:<br>    print(rlow, rhigh, clow, chigh)</p>
+<p>那怎么读取到合并单元格的值呢？当然还是左上角的坐标啦。那是什么呢，反正就4个数字，排列组合也就十几种，哎……好吧，是rlow和clow啦。读取的话就<code>read_ws.cell(1,2).value</code>就拿到了。</p>
+<h3 id="写入合并单元格"><a href="#写入合并单元格" class="headerlink" title="写入合并单元格"></a>写入合并单元格</h3><p>这个也很简单啦，<code>write_merge()</code>接受4个必选参数，也就是坐标，1个可选参数插入的值，另一个可选参数样式。</p>
+<p>所以复制合并单元格就这样子：</p>
+<p>for (rlow, rhigh, clow, chigh) in read_ws.merged_cells:<br>    # 2nd &amp; 4th parameter have to -1<br>    write_ws.write_merge(rlow, rhigh - 1, clow + size, chigh - 1 + size, read_ws.cell(rlow, clow).value)</p>
+<h3 id="读取单元格样式"><a href="#读取单元格样式" class="headerlink" title="读取单元格样式"></a>读取单元格样式</h3><p>xlrd的样式是怎么读出来的呢？找遍了<code>sh.cell()</code>的返回值也没发现有什么结构是存着样式的。</p>
+<p>猛然间发现一个<code>sh.cell_xf_index()</code>似乎可以拿到样式的索引的……还有个<code>wb.xf_list</code>，于是用索引去取，完美了。</p>
+<h3 id="应用单元格样式"><a href="#应用单元格样式" class="headerlink" title="应用单元格样式"></a>应用单元格样式</h3><p>样式已经取到了，那么赋值给关键字参数style，❌；copy一下赋值，❌……类型似乎正确啊……</p>
+<p>一把梭一把梭，拿起来就是干，我不会编程，全都是抄StackOverflow的。</p>
+<p>xlrd的样式不能应用给xlwt哦亲亲。(╯‵□′)╯︵┻━┻气得我当场就把桌子掀了。</p>
+<p>w &#x3D; XLWTWriter()<br>process(XLRDReader(wb, ‘unknown.xls’), w)<br>w.style_list</p>
+<p>从这个<code>w.style_list</code>取下标，这个值就是可以传给xlwt的关键字参数style的了✔○( ＾皿＾)っHiahiahia…</p>
+<h3 id="遍历并写入单元格内容和样式"><a href="#遍历并写入单元格内容和样式" class="headerlink" title="遍历并写入单元格内容和样式"></a>遍历并写入单元格内容和样式</h3><p>xlrd的<code>read_ws.nrows</code>和<code>read_ws.ncols</code>表示了这个表格总计的行数和列数，简单粗暴双循环，同样需要注意布尔值为假的0：</p>
+<p>for i in range(__nrows):<br>    for j in range(__ncols):<br>        # copy style and value<br>        if read_ws.cell(i, j).value:<br>            write_ws.write(i, j + size, read_ws.cell(i, j).value, style&#x3D;__generate_style(i, j))<br>        elif isinstance(read_ws.cell(i, j).value, float):<br>            write_ws.write(i, j + size, read_ws.cell(i, j).value)</p>
+<p>?<strong>是一种神奇的东西，我们每个人都见过，但是却又不知道它的本质，不知道它究竟为何。</strong></p>
+<p>?有的时候，可能某些单元格，它是有填充色的，但是内容为空哦。那你这……不就错了吗？</p>
+<p>解决方案也很简单，再来个else，继续copy style但是插入空值呗……哎？有没有人想问下openpyxl就没有这个问题啊，怎么这就出现了……(*&#x2F;ω＼*)那个你最好看下openpyxl我是在哪里应用的样式。</p>
+<p>人生在世，?总是有的，说不定哪一天走在马路上就……这样做可能会抛出ValueError的异常。</p>
+<p>这是为啥呢？其实我也不知道。try一波捕获了就好了。</p>
+<h2 id="那么封装成一个类"><a href="#那么封装成一个类" class="headerlink" title="那么封装成一个类"></a>那么封装成一个类</h2><p>这还用说嘛，简单，把openpyxl和xlrd家族的封装到类里，<code>__init__()</code>接受俩参数，也就是输入和输出文件名，该用双下划线“保护”的成员变量就写上，该静态方法就静态方法，最后保留一个<code>insert_col()</code>接受一个size参数，一个<code>save()</code>保存文件就得了，实例能访问读取和写入的workbook和worksheet就足够了。</p>
+<h3 id="为什么要有save-呢？"><a href="#为什么要有save-呢？" class="headerlink" title="为什么要有save()呢？"></a>为什么要有save()呢？</h3><p>因为灵活啊，万一人家想插了两列空白，顺便加点字呢？难不成要让人再打开一遍文件啊？当然不了，直接实例调用写入的worksheet的那个变量，想怎么来就怎么来了。</p>
+<h2 id="这个新的列的表头也得你加"><a href="#这个新的列的表头也得你加" class="headerlink" title="这个新的列的表头也得你加"></a>这个新的列的表头也得你加</h2><h3 id="自定义前景色"><a href="#自定义前景色" class="headerlink" title="自定义前景色"></a>自定义前景色</h3><p>这没啥，很简单，xlwt和openpyxl都带，自己看下文档，很容易就做出来了。</p>
+<p>不过需要注意的是，xlwt的设计有一点秀逗，这个插入的背景色的话，如果想自定义的话，是用不了十六进制的颜色值的……那么自定义颜色值大概是……</p>
+<p>pattern &#x3D; xlwt.Pattern()<br>xlwt.add_palette_colour(“custom_color”, 0x21)<br>c.write_wb.set_colour_RGB(0x21, 0, 204, 255)<br>pattern.pattern &#x3D; xlwt.Pattern.SOLID_PATTERN<br>pattern.pattern_fore_colour &#x3D; 0x21</p>
+<h3 id="这个新加的表头也要封装"><a href="#这个新加的表头也要封装" class="headerlink" title="这个新加的表头也要封装"></a>这个新加的表头也要封装</h3><p>于是咱咔咔咔的要给这个类再加个方法，再给构造方法添加个参数啥的（因为要处理两个不同的表头样式）</p>
+<p>啪ㄟ( ▔, ▔ )ㄏ手疼ヽ(*。&gt;Д&lt;)o゜</p>
+<p>难道不知道有个东西叫做继承吗？这个类已经很纯粹了，就是给Excel前面加两列，这么加个不相干的方法进去那就是老鼠屎里进了米饭……啊不是米饭里进了老鼠屎。继承下更好哟(＾Ｕ＾)ノ~ＹＯ</p>
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913194557.png"><img src="/images/2018091913194557.png"></a></p>
+<p>完美(o゜▽゜)o☆</p>
+<p>全部源代码以及示例文件可以戳下面的章鱼猫哦o(&#x3D;•ェ•&#x3D;)m [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/xls'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/xls&#39;\]开源地址\[/gt\]</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/09/19/python-excel-add-column/index/" data-id="clhp6he1c006dezqrhrhzbrg1" data-title="使用Python给带合并单元格的Excel加一列" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/11/03/confess-for-what/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          面壁思过...？
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/08/27/purpose-of-life/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">生活啊，究竟是为了什么呢</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

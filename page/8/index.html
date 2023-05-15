@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="土豆不好吃">
+<meta property="og:url" content="http://example.com/page/8/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-rm-etc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/06/27/rm-etc/index/" class="article-date">
+  <time class="dt-published" datetime="2019-06-27T00:00:00.000Z" itemprop="datePublished">2019-06-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/06/27/rm-etc/index/">手一抖，我删除了etc目录</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>我死了之后 会变成那些星星吗？ 你想变成星星吗？ 想啊，因为我的家人都在那里 这样啊 真想变成美丽的星星 想变成星星的话…必须先好好地活着才行啊 什么是「活着」？ 活着，就是怀抱希望的意思 希望？ 人若是失去了希望 就无法活下去 如果连希望本身都消失了呢？ 希望不会消失的 是人们变得看不见希望而已</p>
+</blockquote>
+<p>不干了，我开除了黑心公司。不好意思，走错片场了。我不是不干了，我没有开除了黑心公司。我是手一抖，删除了<code>/etc</code>目录……</p>
+<h2 id="嗯？？"><a href="#嗯？？" class="headerlink" title="嗯？？"></a>嗯？？</h2><p>作为一名Linux老司机，我经常自吹自擂拥有n年Linux使用经验，root敢死队从未翻车过。实际上，除了n年前凌晨三四点重装服务器时忘记备份数据库之外，我还真没翻车过。</p>
+<p>然而这次，小手一抖……</p>
+<p>事情是这样的，nodequery挂了，我寻思着换一个监控服务，那就要先把原来的监控脚本删掉，可是我这么懒，又删除用户删除crontab删除文件的，我就直接<a target="_blank" rel="noopener" href="https://www.moerats.com/archives/568/">在网上找了下</a>删除的命令：</p>
+<p>root@abcdef:~# rm -R &#x2F; etc &#x2F; nodequery &amp;&amp;（crontab -u nodequery -l | grep -v“&#x2F;etc&#x2F;nodequery&#x2F;nq-agent.sh”）| crontab -u nodequery  - &amp;&amp;  userdel nodequery</p>
+<p>rm: it is dangerous to operate recursively on ‘&#x2F;‘<br>rm: use –no-preserve-root to override this failsafe<br>rm: cannot remove ‘etc’: No such file or directory<br>rm: it is dangerous to operate recursively on ‘&#x2F;‘<br>rm: use –no-preserve-root to override this failsafe<br>rm: cannot remove ‘nodequery’: No such file or directory</p>
+<p>我这一看，报错了，哎哟啊前面怎么有个空格呢，啊这样</p>
+<p>root@abcdef:~# rm -R &#x2F;etc&#x2F; nodequery &amp;&amp;（crontab -u nodequery -l | grep -v“&#x2F;etc&#x2F;nodequery&#x2F;nq-agent.sh”）| crontab -u nodequery - &amp;&amp; userdel nodequery</p>
+<p>rm: cannot remove ‘nodequery’: No such file or directory</p>
+<p>好像没问题了，确认一下crontab已经没了吧！</p>
+<p>root@abcdef:~# crontab -l</p>
+<p>crontab: your UID isn’t in the passwd file.<br>bailing out.</p>
+<p>哎哟我去？我的UID不在passwd里？什么，卧槽卧槽卧槽……</p>
+<p>事情就是这么个事情，经过就是这么个经过，<code>/etc</code>目录被我干掉了！(╯‵□′)╯︵┻━┻</p>
+<h2 id="没了-x2F-etc会怎样"><a href="#没了-x2F-etc会怎样" class="headerlink" title="没了&#x2F;etc会怎样"></a>没了&#x2F;etc会怎样</h2><p>首先系统的各种配置是没了，ssh肯定也登不上去，因为sshd要检查<code>/etc/ssh/sshd_config</code>的配置的。别想了，VNC也不好用。此时这台服务器就像是行尸走肉一样……</p>
+<p>但是好消息是，Nginx，PHP和MySQL还是运行着的，虽说Let’s Encrypt证书也丢了，但是Nginx还缓存着，所以网站其实还活着。</p>
+<p>还有一个更好的消息，当前的shell还在！这个shell是我唯一的机会！别断网别断网就好……</p>
+<h2 id="备份、转移"><a href="#备份、转移" class="headerlink" title="备份、转移"></a>备份、转移</h2><p>这台服务器的用途比较单一，更可怕的是，<strong>主人还不是我</strong>，天啊我也会做出传说中删库跑路的事情吗！</p>
+<p>冷静了几秒钟之后，趁着没断网赶紧打包备份网站文件，导出数据库，大不了重装。</p>
+<p>文件打包完了，scp发给我的另一个服务器吧</p>
+<p>root@abcdef:~# scp 062WARNING:root:could not open file ‘&#x2F;etc&#x2F;apt&#x2F;sources.list’</p>
+<p>Command ‘awk’ not found, but can be installed with:<br>apt install gawk (You will have to enable component called ‘main’)<br>apt install mawk (You will have to enable component called ‘main’)<br>apt install original-awk (You will have to enable component called ‘universe’)<br>7.tgz ^C</p>
+<p>唉？？bash completion也挂了？那我不补全了可以吧</p>
+<p>root@abcdef:~# scp 0627.tgz <a href="mailto:&#114;&#111;&#111;&#116;&#64;&#97;&#99;&#118;&#x64;&#97;&#x2e;&#109;&#101;">&#114;&#111;&#111;&#116;&#64;&#97;&#99;&#118;&#x64;&#97;&#x2e;&#109;&#101;</a>:&#x2F;root</p>
+<p>unknown user 0</p>
+<p>啊对啊，因为sshd凉了，所以依赖于ssh的一些命令，比如scp也凉了……那我SFTP往回下载文件也不行啊……</p>
+<p>啊那我cp到webroot下，另一台服务器赶紧wget，然后删除webroot下的文件……</p>
+<h2 id="死马当活马医"><a href="#死马当活马医" class="headerlink" title="死马当活马医"></a>死马当活马医</h2><p>数据备份好了，那么现在该思考怎么恢复了，不能一辈子不重启，自己也没法ssh啊……赶紧登录下阿里云看看有没有快照——没有哦。</p>
+<p>重装系统？那太麻烦了。本着死马当活马医的思想，试试移花接木吧——我把另一台配置基本一样的服务器的配置拷贝过来看看ssh能不能活。</p>
+<p>于是另一台服务器上</p>
+<p>tar jcpf etc.tgz &#x2F;etc</p>
+<p>一定要记得带p参数，这样才会保持权限。scp不管用，那也放到webroot下，赶紧wget然后删除，然后解压缩……</p>
+<p>新开一个ssh连接，哇，活了……当然了host keys是另一台服务器的，密码也是，主机名也是……这就好像换头术哦！</p>
+<h2 id="篡改记忆"><a href="#篡改记忆" class="headerlink" title="篡改记忆"></a>篡改记忆</h2><p>医学史上换头术难度极高，也可能有一些伦理问题，但是咱这来说，这就像是换了个身体，灵魂还是另一个服务器……还要做一些配置的</p>
+<h3 id="重新生成ssh-host-key"><a href="#重新生成ssh-host-key" class="headerlink" title="重新生成ssh host key"></a>重新生成ssh host key</h3><p>咱着让两台服务器的host key都一样，自己用起来太不好了，所以要重新生成一组</p>
+<p>rm -v &#x2F;etc&#x2F;ssh&#x2F;ssh_host_*<br>dpkg-reconfigure openssh-server</p>
+<h3 id="修改密码"><a href="#修改密码" class="headerlink" title="修改密码"></a>修改密码</h3><p>这点就不用说了</p>
+<h3 id="重新申请SSL证书"><a href="#重新申请SSL证书" class="headerlink" title="重新申请SSL证书"></a>重新申请SSL证书</h3><p>由于整个letsencrypt目录也没了，所以也没办法revoke证书，直接删除<code>/etc/letsencrypt</code>然后<code>apt install certbot</code>，然后再重新申请一个证书好了</p>
+<p><strong>我还是年轻啊，我做完这些的时候我觉得差不多了，就一个reboot重启了。当然了这怎么够啊……fstab呢，网络呢！！很悲剧的，我ssh不上，还好VNC是好用的</strong></p>
+<h3 id="fstab"><a href="#fstab" class="headerlink" title="fstab"></a>fstab</h3><p>于是我VNC登录上，看着这台服务器还叫着别人的名字，唉……</p>
+<p>由于现在大家基本上是用UUID挂载的磁盘，很少有人直接指定设备名了，所以这里肯定有问题啦。解决办法很简单，remount为rw，改一下下</p>
+<p>mount &#x2F;dev&#x2F;vda1 –o remount,rw &#x2F;</p>
+<p>这样根就是可以读写的了，然后看情况更改<code>/etc/fstab</code></p>
+<h3 id="重新配置网络"><a href="#重新配置网络" class="headerlink" title="重新配置网络"></a>重新配置网络</h3><p>另一台服务器使用的是静态IP，这台服务器使用的是DHCP，所以网络是肯定不通的。首先<code>ifconfig</code>确定下我的网卡叫ens3，由于我用的是Ubuntu 18.04，所以要去修改netplan的配置文件<code>/etc/netplan/01-netcfg.yaml</code>，写如下配置：</p>
+<p>network:<br>  version: 2<br>  renderer: networkd<br>  ethernets:<br>    ens3:<br>        dhcp4: true</p>
+<p>确定缩进也没问题，应用下配置</p>
+<p>netplan apply</p>
+<p>之后再curl下，网络通了</p>
+<h3 id="修改主机名"><a href="#修改主机名" class="headerlink" title="修改主机名"></a>修改主机名</h3><p>hostnamectl set-hostname abcde</p>
+<h3 id="检查其他配置与服务"><a href="#检查其他配置与服务" class="headerlink" title="检查其他配置与服务"></a>检查其他配置与服务</h3><p>这点就因人而异啦~</p>
+<h2 id="后遗症"><a href="#后遗症" class="headerlink" title="后遗症"></a>后遗症</h2><p>毕竟咱这个<code>/etc</code>是别人的，所以有些地方肯定是有问题的。比如说……</p>
+<h3 id="文件和目录的所有者可能会改变"><a href="#文件和目录的所有者可能会改变" class="headerlink" title="文件和目录的所有者可能会改变"></a>文件和目录的所有者可能会改变</h3><p>毕竟uid不同，所以遇到这种情况只能手动改改啦</p>
+<h3 id="某些服务可能启动不了"><a href="#某些服务可能启动不了" class="headerlink" title="某些服务可能启动不了"></a>某些服务可能启动不了</h3><p>比如在我这里就是MySQL启动不起来。第一猜想是权限不够？chown了也不对</p>
+<p>后来发现报错mysqld_safe –malloc-lib can not be read and will not be used</p>
+<p>后来发现把<code>my.cnf</code>里的<code>malloc-lib=/usr/lib/libtcmalloc.so</code>注释了就好</p>
+<p>然后突然想起来，这两台服务器似乎是曾经做的主从，于是现在农奴翻身把歌唱，大家都是奴隶了呗？</p>
+<h3 id="断掉的符号链接"><a href="#断掉的符号链接" class="headerlink" title="断掉的符号链接"></a>断掉的符号链接</h3><p>有些<code>/etc</code>里的文件可能是符号链接到其他目录的，那就自己重新弄下吧。</p>
+<h2 id="损失了什么"><a href="#损失了什么" class="headerlink" title="损失了什么"></a>损失了什么</h2><p>在这接近两个小时（15:45-17:55，包括给人送文件和回家路上），总结下来，我只损失了一套SSL证书，大概半小时左右的网站宕机时间。</p>
+<p>当然如果处置得当，宕机时间应该可以保证在一分钟之内的（重启验证是否恢复）。唉，还是年轻啊。</p>
+<h2 id="哦？"><a href="#哦？" class="headerlink" title="哦？"></a>哦？</h2><p>事后回想起来，直接不检查复制粘贴回车别人的命令真的很危险，这还不是恶意的那种，只是写错了，外加我手抖了一下。</p>
+<p>恶意的命令是什么呢？</p>
+<p>有种命令，复制的和粘贴的不一样哦，这个技术叫<a target="_blank" rel="noopener" href="https://github.com/dxa4481/Pastejacking">pastehijack</a>哦。这时候有一个聪明的SSH工具就很重要了。</p>
+<p><img src="/images/201906271148135.png"></p>
+<p>另外还有一种可能，假如我当初在<code>/</code>下，那这条命令一贴——凉凉。</p>
+<p>行了我也不说啥了，不想引战，管他原创不原创转载不转载的，怪我自己粗心了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/06/27/rm-etc/index/" data-id="clhp6he1r007bezqrfzr54jqw" data-title="手一抖，我删除了etc目录" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-vps-more-disk/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/06/23/vps-more-disk/index/" class="article-date">
+  <time class="dt-published" datetime="2019-06-23T00:00:00.000Z" itemprop="datePublished">2019-06-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/06/23/vps-more-disk/index/">vps硬盘不够了怎么办</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自从搭建了<a target="_blank" rel="noopener" href="https://gakki.photos/">一个图床</a>之后，我开始发现vps的硬盘空间开始慢慢不够用了。随着时间的增长，上传的图片也越来越多。贫穷总是会限制我的想象力，那么有哪些解决方案呢？</p>
+<h2 id="世界加钱可及"><a href="#世界加钱可及" class="headerlink" title="世界加钱可及"></a>世界加钱可及</h2><h3 id="加钱升级配置"><a href="#加钱升级配置" class="headerlink" title="加钱升级配置"></a>加钱升级配置</h3><p>加钱，去服务商那里升级配置就好了，好多钱钱~</p>
+<h3 id="使用block-storage"><a href="#使用block-storage" class="headerlink" title="使用block storage"></a>使用block storage</h3><p>有些服务商可能提供类似block storage这种存储服务（如vultr、DigitalOcean），那就花钱钱买点，然后挂载上就好了。假如不提供这些服务的话，可以考虑试试<a target="_blank" rel="noopener" href="https://cloud.google.com/storage/?hl=zh-cn">Google Cloud Storage</a>，然后挂载到本地，价格也还是可以接受的~</p>
+<h2 id="使用rclone挂载网络硬盘"><a href="#使用rclone挂载网络硬盘" class="headerlink" title="使用rclone挂载网络硬盘"></a>使用rclone挂载网络硬盘</h2><p>可是我是穷人唉，$1都出不起，那该怎么办呢……可不可以把Google Drive、OneDrive、Dropbox什么的挂载上呢？Google Drive有15G，Dropbox有2G，OneDrive有5G，这加起来就是22G，那就是$2.2呢！</p>
+<p>淘宝花个几块钱扩容什么的，那就是血赚啊！</p>
+<p>rclone挂载Google Drive什么的很容易，有很多人写文件介绍过，比如说<a target="_blank" rel="noopener" href="https://moonagic.com/mount-google-drive-with-rclone/">这篇</a>，只不过有两点需要注意的：</p>
+<p>使用mount挂载之后，这个程序会“阻塞”，另开一个窗口<code>df –h</code>就会发现有了</p>
+<p><img src="/images/2019062307425439.png"></p>
+<p>5T滑稽?</p>
+<p>但是咱也不能一直开着，跑个screen也不好，所以还是写个systemd单元文件吧</p>
+<p>[Unit]<br>Description&#x3D;Google Drive mounter<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
+<p>[Service]<br>Restart&#x3D;on-failure<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;rclone mount gdrive_goldstein:&#x2F; &#x2F;mnt&#x2F;gdrive&#x2F; –allow-non-empty –vfs-cache-mode writes –allow-other</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<p>非常需要注意这个<code>--allow-other</code>参数，如果没有的话，从nginx的webroot下做过来的符号链接www用户无权访问，那就403了哦</p>
+<h2 id="iSCSI"><a href="#iSCSI" class="headerlink" title="iSCSI"></a>iSCSI</h2><p>这网络存储有的时候可能也有点不太够（5T都不够吗？），那该怎么办呢？不如买个大硬盘的vps，然后试试iSCSI！（看来这RHCE是没白考啊ε&#x3D;ε&#x3D;ε&#x3D;(<del>￣▽￣)</del></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/ISCSI">iSCSI是个啥呢？Internet小型计算机系统接口</a>，简单理解就是客户端可以通过网络让自己有&#x2F;dev&#x2F;sd*这样的“真实”的物理设备，然后随便格式化挂载什么的。</p>
+<p>iSCSI一般来说是局域网使用的，一般不会跨公网玩，因为这东西对延迟丢包有点敏感。当然了用是能用的，只不过配置起来有点麻烦，而且传输过程是不加密的。(′д｀ )…彡…彡</p>
+<p>iSCSI传输不是加密的这个消息不太好，但是有一些解决方案的，比如套个IPSec啦，比如走个SSH隧道啦。</p>
+<p>本着灵活应用的道理，咱就来挂载个玩玩……</p>
+<h3 id="概念解析"><a href="#概念解析" class="headerlink" title="概念解析"></a>概念解析</h3><p>target – 理解成服务器；initiator – 理解成客户端</p>
+<h3 id="准备“硬盘”"><a href="#准备“硬盘”" class="headerlink" title="准备“硬盘”"></a>准备“硬盘”</h3><p>对于服务端来说，提供服务的“硬盘”可以选择块设备（硬盘啊，U盘啊什么的），也可以选择文件设备，甚至内存够大做ramdisk都是可以的~</p>
+<p>为了方便扩展，我们这里就做一个逻辑卷，这样以后也可以看心情随时扩容的。</p>
+<p>首先~登录到server，需要进行一下分区，总之就是搞出来一个sdb2这种分区做逻辑卷。使</p>
+<h4 id="分区"><a href="#分区" class="headerlink" title="分区"></a>分区</h4><p>用fdisk进行类似操作：</p>
+<p>root@server:~# fdisk &#x2F;dev&#x2F;sda<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.</p>
+<p>Command (m for help): p<br>Disk &#x2F;dev&#x2F;sda: 20 GiB, 21474836480 bytes, 41943040 sectors<br>Units: sectors of 1 * 512 &#x3D; 512 bytes<br>Sector size (logical&#x2F;physical): 512 bytes &#x2F; 512 bytes<br>I&#x2F;O size (minimum&#x2F;optimal): 512 bytes &#x2F; 512 bytes<br>Disklabel type: gpt<br>Disk identifier: DCBEF2AD-7269-4B63-BA34-AE2F15A6D9F7<br>Device Start End Sectors Size Type<br>&#x2F;dev&#x2F;sda1 2048 4095 2048 1M BIOS boot<br>&#x2F;dev&#x2F;sda2 4096 20975615 20971520 10G Linux filesystem</p>
+<p>Command (m for help): n</p>
+<p>Partition number (3-128, default 3):<br>First sector (20975616-41943006, default 20975616):<br>Last sector, +sectors or +size{K,M,G,T,P} (20975616-41943006, default 41943006):<br>Created a new partition 3 of type ‘Linux filesystem’ and of size 10 GiB.</p>
+<p>Command (m for help): w</p>
+<p>The partition table has been altered.<br>Syncing disks.</p>
+<p>输入<code>partprobe</code>更新分区表，这里新分区为sda3，大小10G</p>
+<h4 id="创建逻辑卷"><a href="#创建逻辑卷" class="headerlink" title="创建逻辑卷"></a>创建逻辑卷</h4><p>root@server:~# pvcreate &#x2F;dev&#x2F;sda3<br>Physical volume “&#x2F;dev&#x2F;sda3” successfully created.</p>
+<p>默认的Volume Group大小是4MiB，当然这个创建vg的时候可以改。</p>
+<p>root@server:~# vgcreate idata &#x2F;dev&#x2F;sda3<br>Volume group “idata” successfully created</p>
+<p>创建Logic Volume的时候，n表示名字；大小方面，可以指定是多少个PE，也可以直接写大小，使用l指定多少个PE，256个也就是1G了，L指定大小，</p>
+<p>root@server:~# lvcreate -n iscsi_data -l 256 idata<br>Logical volume “iscsi_data” created.</p>
+<h1 id="直接指定3G"><a href="#直接指定3G" class="headerlink" title="直接指定3G"></a>直接指定3G</h1><p>root@server:~# lvcreate -n test -L 3G idata<br>Logical volume “test” created.</p>
+<p>查看一下 确定信息无误</p>
+<p>root@server:~# lvdisplay</p>
+<p>— Logical volume —<br>LV Path &#x2F;dev&#x2F;idata&#x2F;iscsi_data<br>LV Name iscsi_data<br>VG Name idata<br>LV UUID ueP2uS-zEOG-6B1q-5GuD-9L5f-1ZyZ-86E4ee<br>LV Write Access read&#x2F;write<br>LV Creation host, time server, 2019-06-23 06:19:06 +0000<br>LV Status available</p>
+<h1 id="open-0"><a href="#open-0" class="headerlink" title="open 0"></a>open 0</h1><p>LV Size 1.00 GiB<br>Current LE 256<br>Segments 1<br>Allocation inherit<br>Read ahead sectors auto</p>
+<ul>
+<li>currently set to 256<br>Block device 253:0</li>
+</ul>
+<p>[v_blue]叮咚提示：</p>
+<p>有些vps上来就是一个&#x2F;，这种情况下根本用不了fdisk给分出来空间的。那咋办呢？有这么几种思路，fileio，livecd用gparted，手动重装系统[&#x2F;v_blue]</p>
+<h3 id="配置target"><a href="#配置target" class="headerlink" title="配置target"></a>配置target</h3><p>就假定服务端和客户端都是Ubuntu 啦，16.04之后应该操作都差不多的</p>
+<p>apt install targetcli-fb</p>
+<p>输入<code>targetcli</code>进入交互页面，输入ls可以看下大体情况</p>
+<p><img src="/images/2019062307425576.png"></p>
+<p>我们要做这么几件事情：创建backstore，给backstore增加LUNS，ACL，PORTAL</p>
+<h4 id="创建backstore"><a href="#创建backstore" class="headerlink" title="创建backstore"></a>创建backstore</h4><p>创建block设备</p>
+<p>&#x2F;backstores&#x2F;block create name&#x3D;client1_data dev&#x3D;&#x2F;dev&#x2F;idata&#x2F;iscsi_data</p>
+<p><code>/dev/idata/iscsi_data</code> 就是我们刚刚创建的逻辑卷，name 是名字</p>
+<p>创建iSCSI</p>
+<p>&#x2F;iscsi create wwn&#x3D;iqn.2019-06.com.bennythink:server</p>
+<p>回车之后会发现自动帮我们创建好了portal</p>
+<p>创建luns，这里的<code>client1_data</code>就是我们第一步创建的name</p>
+<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;luns create &#x2F;backstores&#x2F;block&#x2F;client1_data</p>
+<p>创建acl</p>
+<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;acls create wwn&#x3D;iqn.2019-06.com.bennythink:client1</p>
+<p>这几步都做完了之后，ls一下，大概的结构应该是这样的：</p>
+<p><img src="/images/2019062307425778.png"></p>
+<p><code>saveconfig</code>保存退出</p>
+<h3 id="配置客户端"><a href="#配置客户端" class="headerlink" title="配置客户端"></a>配置客户端</h3><p>客户端的配置相比之下就简单多了，只需要改下配置文件就好了</p>
+<h4 id="安装与修改配置"><a href="#安装与修改配置" class="headerlink" title="安装与修改配置"></a>安装与修改配置</h4><p>apt install open-iscsi</p>
+<h1 id="编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi"><a href="#编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi" class="headerlink" title="编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi"></a>编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</p>
+<h1 id="把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1"><a href="#把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1" class="headerlink" title="把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1"></a>把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1</h1><p>InitiatorName&#x3D;iqn.2019-06.com.bennythink:client1</p>
+<h1 id="设置自动login"><a href="#设置自动login" class="headerlink" title="设置自动login"></a>设置自动login</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;iscsid.conf</p>
+<h1 id="原来是manual"><a href="#原来是manual" class="headerlink" title="原来是manual"></a>原来是manual</h1><p>node.startup &#x3D; automatic</p>
+<h4 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h4><p>systemctl restart iscsi<br>systemctl restart iscsid<br>systemctl enable iscsid</p>
+<h4 id="发现与登录节点"><a href="#发现与登录节点" class="headerlink" title="发现与登录节点"></a>发现与登录节点</h4><p>server可以写服务端的域名，或者IP也可以</p>
+<p>root@client:~# iscsiadm –mode discoverydb –type sendtargets –portal server –discover<br>172.21.174.180:3260,1 iqn.2019-06.com.bennythink:server</p>
+<h1 id="把上一步拿到的iqn写到这里"><a href="#把上一步拿到的iqn写到这里" class="headerlink" title="把上一步拿到的iqn写到这里"></a>把上一步拿到的iqn写到这里</h1><p>root@client:~# iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal server:3260 –login<br>Logging in to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] (multiple)<br>Login to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] successful.</p>
+<p>此时就应该多出来一个<code>/dev/sdb</code>了</p>
+<h4 id="分区、格式化与挂载"><a href="#分区、格式化与挂载" class="headerlink" title="分区、格式化与挂载"></a>分区、格式化与挂载</h4><p>使用fdisk对sdb进行分区，这里想怎么分都行，我就直接都分一个主分区了</p>
+<p>root@client:~# fdisk &#x2F;dev&#x2F;sdb<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.<br>Device does not contain a recognized partition table.<br>Created a new DOS disklabel with disk identifier 0x2afb442f.</p>
+<p>Command (m for help): n<br>Partition type<br>p primary (0 primary, 0 extended, 4 free)<br>e extended (container for logical partitions)<br>Select (default p):<br>Using default response p.<br>Partition number (1-4, default 1):<br>First sector (8192-2097151, default 8192):<br>Last sector, +sectors or +size{K,M,G,T,P} (8192-2097151, default 2097151):<br>Created a new partition 1 of type ‘Linux’ and of size 1020 MiB.</p>
+<p>Command (m for help): w<br>The partition table has been altered.<br>Calling ioctl() to re-read partition table.<br>Syncing disks.</p>
+<p>进行格式化、挂载</p>
+<p>mkfs.ext4 &#x2F;dev&#x2F;sdb1<br>mount &#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data&#x2F;</p>
+<p><img src="/images/2019062307425926.png"></p>
+<h4 id="重启之后自动挂载"><a href="#重启之后自动挂载" class="headerlink" title="重启之后自动挂载"></a>重启之后自动挂载</h4><p>为了确保重启之后自动挂载，我们需要更改fstab</p>
+<p>&#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data ext4 defaults,_netdev 0 0</p>
+<h3 id="安全使用iSCSI"><a href="#安全使用iSCSI" class="headerlink" title="安全使用iSCSI"></a>安全使用iSCSI</h3><p>由于iSCSI的传输数据的过程并不是加密的，所以如果跨公网使用，给人的感觉总是不好。为了解决这一问题，我们可以在客户端挂个VPN到服务端，可以用SSH隧道，可以用IPSec保护iSCSI，也可以加密sdb（比如用LUKS、VeraCrypt等呗）</p>
+<p>咱这里就开个SSH隧道吧！要在<strong>配置客户端之前</strong>做好哦</p>
+<p>修改服务端配置<code>vim /etc/ssh/sshd_config</code>，修改如下配置</p>
+<p>PermitTunnel yes</p>
+<p>然后重启sshd</p>
+<p>systemctl restart sshd</p>
+<p>然后输入如下命令，其中<code>root@server</code>替换成自己的服务器</p>
+<p>sudo -E \<br>  ssh -F &#x2F;dev&#x2F;null \<br>  -o PermitLocalCommand&#x3D;yes \<br>  -o LocalCommand&#x3D;”ifconfig tun0 172.18.0.2 pointopoint 172.18.0.1 netmask 255.255.255.0” \<br>  -o ServerAliveInterval&#x3D;60 \<br>  -w 0:0 root@server \<br>  ‘sudo ifconfig tun0 172.18.0.1 pointopoint 172.18.0.2 netmask 255.255.255.0; hostname; echo tun0 ready’</p>
+<p>之后再开一个窗口，discover &amp; login</p>
+<p>iscsiadm –mode discoverydb –type sendtargets –portal 172.18.0.1 –discover<br>iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal 172.18.0.1:3260 –login</p>
+<p>当然理想方式是用key，然后systemd管这个SSH Tunnel啦！</p>
+<p>(′д｀ )…彡…彡还是<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">用wireguard</a>吧</p>
+<h3 id="iSCSI空间不够了怎么办"><a href="#iSCSI空间不够了怎么办" class="headerlink" title="iSCSI空间不够了怎么办"></a>iSCSI空间不够了怎么办</h3><p>还记得我们是使用的Logical Volume创建的吗！此时只需要<code>lvextend -L 10G /dev/idata/iscsi_data</code>就可以把分区调整为10G，然后客户端那边fdisk就能看见</p>
+<p> </p>
+<h2 id="其他类似技术"><a href="#其他类似技术" class="headerlink" title="其他类似技术"></a>其他类似技术</h2><h3 id="NFS、Samba"><a href="#NFS、Samba" class="headerlink" title="NFS、Samba"></a>NFS、Samba</h3><p>同理?</p>
+<h3 id="GlusterFS"><a href="#GlusterFS" class="headerlink" title="GlusterFS"></a>GlusterFS</h3><p>萌新不懂，萌新瑟瑟发抖</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>折腾一大圈，不还是得买大盘鸡吗?还不是贫穷限制了我的想象力</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/06/23/vps-more-disk/index/" data-id="clhp6he3i00b5ezqr3sv139c8" data-title="vps硬盘不够了怎么办" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rhce-value/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/06/20/rhce-value/index/" class="article-date">
+  <time class="dt-published" datetime="2019-06-20T00:00:00.000Z" itemprop="datePublished">2019-06-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/06/20/rhce-value/index/">RHCE证书含金量高吗</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>小葵花妈妈课堂开课啦！</p>
+<p>经过一小段时间的艰苦奋斗，俺终于拿下了RHCE&amp;RHCSA认证。那么，这东西有什么用呢？</p>
+<p><img src="/images/2019062013564551.jpeg"></p>
+<h2 id="太长不看版"><a href="#太长不看版" class="headerlink" title="太长不看版"></a>太长不看版</h2><p>含金量没有想象中的那么高，是一块敲门砖，写在简历上会比较出彩，能够证明在考试这段时间比较努力。其余的估计没有什么了。</p>
+<p>Okay, let’s track this from the beginning</p>
+<h2 id="RHCSA-amp-RHCE课程"><a href="#RHCSA-amp-RHCE课程" class="headerlink" title="RHCSA&amp;RHCE课程"></a>RHCSA&amp;RHCE课程</h2><p>首先，红帽认证是不接受个人考试报名的，所以一般要考的话都要找培训机构报名。</p>
+<p>按照我这里的安排，RHCSA上了6天，RHCE上了8天，考试前有考前辅导。</p>
+<p>(′д｀ )…彡…彡 不过，俺比较喜欢逃课，所以这14天的课估计也就上了5天吧。</p>
+<p>至于RHCSA&amp;RHCE培训+报名一共需要多少钱，这俺就不清楚了……</p>
+<h2 id="考试题目"><a href="#考试题目" class="headerlink" title="考试题目"></a>考试题目</h2><p>基本上网上一搜，能看到的题目都差不多是真题。考试满分300，拿到210（70%）就算通过。</p>
+<p>RHCSA涉及到配置用户账户、配置文件目录权限、LDAP、逻辑卷、Autofs等非常基础的内容；</p>
+<p>RHCE主要就是各种服务的配置，包括NFS、Samba、Apache、MariaDB、iSCSI，以及链路聚合、端口转发什么的。</p>
+<p>总体考试难度不大，考前稍微认真的多练习练习，高分通过还是可以保证的，零基础都能通过的那种哦。作为多年Linux老司机的我，自然是驾轻就熟了ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛</p>
+<p>我相信在座的各位，稍微准备一下，应该问题不大。</p>
+<h2 id="证书的含金量"><a href="#证书的含金量" class="headerlink" title="证书的含金量"></a>证书的含金量</h2><p>可能由于博主比较年轻（因此还是萌新），据称早期RHCE证书的含金量还是比较高的。但是就现在这个情况来说，我感觉RHCE证书的含金量不算太高。</p>
+<p>实际上，在RHCE&amp;RHCSA考试中遇到的内容都是比较局限的。由于应试的因素，考前往往是有题库的，题库是基本固定不变的，因此解决方案也是固定的，这也就导致造成了考前只需要努力按照题库练习，考试就基本会通过的局面。</p>
+<p>而在真正应用Linux时，所遇到的问题往往是花样比较多，而且没有固定套路的。举个例子，通过了RHCE认证的你，如果遇到下列问题，会怎样解决呢？</p>
+<ul>
+<li>在物理机上安装某个发行版</li>
+<li>在物理机上安装Windows+Linux双系统，甚至是三系统</li>
+<li>查看当前的出网、入网速度</li>
+<li>查看每日、每周的网卡流量信息</li>
+<li>查看本机的硬件信息，如CPU、RAM、硬盘等</li>
+<li>grub rescue修复，修改grub配置</li>
+<li>性能优化，内核参数微调</li>
+<li>持久运行一个程序（关了终端不会退出）</li>
+<li>搭建一个网站，申请SSL证书……</li>
+<li>配置一个用户，只可以用过密钥登录，可以sudo</li>
+<li>配置目录与文件权限</li>
+<li>备份数据到其他服务器，备份到Google Drive，S3等</li>
+<li>扫描一下指定网段有哪些存活的主机</li>
+<li>判断某服务器是否可达</li>
+<li>搭个代理，包括OpenVPN，L2TP，Shadowsocks等</li>
+<li>SSH打洞做跳板</li>
+<li>安装Google Chrome</li>
+<li>安装或配置中文输入法</li>
+<li>根据PID得知这个进程所对应的文件的路径、进程所访问的文件</li>
+<li>配置EPEL源</li>
+<li>command systemctl not found，怎么管理各种服务</li>
+<li>想换个shell，怎么换</li>
+</ul>
+<h2 id="考试与实际的差别"><a href="#考试与实际的差别" class="headerlink" title="考试与实际的差别"></a>考试与实际的差别</h2><p>在RCHSA的试题中，有一道题大概是这样的：</p>
+<p>一个名为 sysadms 的组</p>
+<p>一个名为 natasha 的用户，其属于 sysadms ，这个组是该用户的从属组</p>
+<p>一个名为 harry 的用户，属于 sysadms ，这个组是该用户的从属组</p>
+<p>一个名为 sarah 的用户，其在系统中没有可交互的 shell，并且该用户不是 sysadms 组的成员</p>
+<p>大家都知道，这基本上就是送分题</p>
+<p>groupadd sysadms<br>useradd natasha –G sysadms</p>
+<p>基本上这样就够了。但是在实际中，组与用户的关系，如何巧妙的利用文件和目录的组权限，估计很大程度上都会一脸茫然了吧？毕竟对于考试来说，只需要根据题库练习好了，基本上就是依样画葫芦。至于为什么要这样做，往往是不明不白的。</p>
+<p>再看RHCE的一道题，配置SSH访问。也是接近送分题。</p>
+<p>很幸运的是，考试时使用的RHEL是默认开启sshd服务的。但是有些情况下（比如桌面版，嵌入式版），那么默认可能是没装ssh服务的。怎么装怎么启动？sshd和ssh有什么区别？</p>
+<p>再比如，Linux发行版众多，每个发行版之间可能会有比较大的差距。比如最重要的包管理器，Debian系的dpkg&#x2F;apt和RHEL系的rpm&#x2F;yum；RHEL系一般会带SELinux，但Debian系往往默认都不带SELinux；RHEL系一般使用firewalld，而Debian系使用ufw。</p>
+<p>如果只是专注于考试的话，那么会不会出现换个发行版就不会用了的情况呢？</p>
+<h2 id="评分脚本"><a href="#评分脚本" class="headerlink" title="评分脚本"></a>评分脚本</h2><p>像红帽这种纯操作的考试，实际上还有一个很严肃的问题就是如何进行评分？毫无疑问的是RedHat肯定是使用了脚本去搜集、评分，但是脚本究竟是如何处理的那估计就是商业机密了——是只看过程，还是只看结果，还是二者都看？对于同一个问题，如禁止某个域访问，往往有很多解决方式，究竟该如何验证才能保证不错判也不漏判呢？</p>
+<h2 id="RHCE证书有用吗"><a href="#RHCE证书有用吗" class="headerlink" title="RHCE证书有用吗"></a>RHCE证书有用吗</h2><p>从求职面试的角度来看，简历上如果有证书认证，是比较能抓人眼球的，可以认为是敲门砖；但是实际应用时，考试中的那些操作往往都是无法应用的。当然了，如果面试的是运维、运维开发相关的岗位，那么红帽认证的重要性会提高一点。</p>
+<p>即考下来了RHCE，但是在实际生活与工作中却并没有应用，那么实际上这个证书就无法证明任何价值，分分钟被问懵，考下来RHCE并不证明你具备实践能力，</p>
+<p>就好比一年前我考的CCNA一样，你现在问我生成树协议的具体原理、OSPF的原理，我都说不明白呢。</p>
+<p>对于在职的运维工程师来说，除了可能涨工资评职称之外，对于技术水平的提高几乎没有什么用处；对于有意转运维相关的岗位，写在简历上还是能有点高亮的。</p>
+<p>与语言等级考试（四六级、日语二级等）不同的是，语言等级考试往往需要比较长时间的准备，即使是在应试体制下，也或多或少会沉淀出一点真才实学。</p>
+<p>对于我来说，没啥用，但是你懂的，除了在简历中写上通过了RHCE考试，让面试官眼前一亮（仅限三年）</p>
+<h2 id="Linux究竟该怎么学"><a href="#Linux究竟该怎么学" class="headerlink" title="Linux究竟该怎么学"></a>Linux究竟该怎么学</h2><p>Linux就该这么学</p>
+<p>以我个人的经验来说说，最适合初学者的书籍一定是鸟哥的《鸟哥的Linux私房菜》之《基础学习篇》+《服务器架设篇》，书有点厚，现在应该是出到了第四版。鸟哥的风格比较幽默，很容易理解各种基础概念。</p>
+<p>另外有一本《Linux命令行与shell脚本编程大全》也是非常不错的学习资料。</p>
+<p>至于选择什么发行版，萝卜青菜各有所爱嘛。万一不喜欢，也可以这样：</p>
+<p><img src="/images/2019062013564998.png"></p>
+<p>来源 <a target="_blank" rel="noopener" href="https://twitter.com/crsm855/status/1139791312843001857?s=19">crsm855</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/06/20/rhce-value/index/" data-id="clhp6he1k006zezqr2dxfccnz" data-title="RHCE证书含金量高吗" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-git-pi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/04/27/git-pi/index/" class="article-date">
+  <time class="dt-published" datetime="2019-04-27T00:00:00.000Z" itemprop="datePublished">2019-04-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/04/27/git-pi/index/">在树莓派上搭建一个git服务器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>树莓派虽说小，但是性能……也差啊！</p>
+<p>开源的git实现有很多，gitlab community算是一种，但是对硬件要求有点高，这里我使用了<a target="_blank" rel="noopener" href="https://nova.moe/">nova</a>推荐的<a target="_blank" rel="noopener" href="https://gogs.io/">g</a><a target="_blank" rel="noopener" href="https://gogs.io/">ogs</a>，gogs是用golang写的，足够轻量级，足够让我瞎玩……</p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>一只不可以吃的树莓派</p>
+<p>数据库：MySQL&gt;&#x3D;5.7，PosgreSQL、MSSQL、TiDB</p>
+<p>由于我选择了MySQL，而Raspbian的源里似乎只有5.5的，所以只能自己编译一个5.7的啦……耗时N小时……当然啦有预编译好的deb，当然啦非得用5.5也是没关系的！</p>
+<h2 id="下载配置gogs"><a href="#下载配置gogs" class="headerlink" title="下载配置gogs"></a>下载配置gogs</h2><p># 创建一个git用户，专门用于运行该服务<br>useradd git -s &#x2F;bin&#x2F;bash -m -d &#x2F;home&#x2F;GitServer</p>
+<h1 id="为了方便管理，切换到该目录"><a href="#为了方便管理，切换到该目录" class="headerlink" title="为了方便管理，切换到该目录"></a>为了方便管理，切换到该目录</h1><p>cd &#x2F;home&#x2F;GitServer</p>
+<h1 id="切换到该用户"><a href="#切换到该用户" class="headerlink" title="切换到该用户"></a>切换到该用户</h1><p>su git</p>
+<h1 id="下载二进制并解压缩"><a href="#下载二进制并解压缩" class="headerlink" title="下载二进制并解压缩"></a>下载二进制并解压缩</h1><p>wget –c <a target="_blank" rel="noopener" href="https://dl.gogs.io/0.11.86/gogs/_0.11.86/_raspi2/_armv6.zip">https://dl.gogs.io/0.11.86/gogs\_0.11.86\_raspi2\_armv6.zip</a><br>unzip gogs_0.11.86_raspi2_armv6.zip<br>cd gogs</p>
+<h1 id="运行服务"><a href="#运行服务" class="headerlink" title="运行服务"></a>运行服务</h1><p>.&#x2F;gogs web</p>
+<p>打开浏览器，http:&#x2F;&#x2F;树莓派IP:3000，会进入如下页面</p>
+<p><img src="/images/2019042713050674.png"></p>
+<p>此时如果你使用的是MySQL5.7以下版本，创建一个字符集是utf-8的数据库</p>
+<p>CREATE DATABASE gogs DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci</p>
+<p>5.7及以上直接创建就好了</p>
+<p>其中域名和应用url两项需要填写你的域名（或者是树莓派IP）</p>
+<p><img src="/images/2019042713050763.png"></p>
+<p>之后第一个注册的用户会是管理员用户。管你是screen还是nohup还是supervisor的。</p>
+<h2 id="监听本机"><a href="#监听本机" class="headerlink" title="监听本机"></a>监听本机</h2><p>vim &#x2F;home&#x2F;GitServer&#x2F;gogs&#x2F;custom&#x2F;conf&#x2F;app.ini</p>
+<p>在<code>HTTP_PORT</code>下添加一行</p>
+<p>HTTP_ADDR&#x3D;127.0.0.1</p>
+<h2 id="Nginx-反代配置"><a href="#Nginx-反代配置" class="headerlink" title="Nginx 反代配置"></a>Nginx 反代配置</h2><p>对应的server段添加如下信息就可以了</p>
+<p>location &#x2F; {<br>proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3000/">http://127.0.0.1:3000</a>; # 对应服务<br>}</p>
+<p>完整配置文件<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/blob/master/TLS/gitconfig.nginx">戳这里</a></p>
+<h2 id="systemd配置"><a href="#systemd配置" class="headerlink" title="systemd配置"></a>systemd配置</h2><p>接上，我们需要更改git用户的shell</p>
+<p>usermod git -s &#x2F;usr&#x2F;sbin&#x2F;nologin</p>
+<p>之后交给systemd启动就好了</p>
+<p>[Unit]<br>Description&#x3D;Benny’s Personal Git Server<br>After&#x3D;syslog.target<br>After&#x3D;network.target</p>
+<p>[Service]<br>Type&#x3D;simple<br>User&#x3D;git<br>Group&#x3D;git<br>WorkingDirectory&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs<br>ExecStart&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs&#x2F;gogs web<br>Restart&#x3D;on-failure<br>Environment&#x3D;USER&#x3D;git HOME&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer</p>
+<p>ProtectSystem&#x3D;full<br>PrivateDevices&#x3D;yes<br>PrivateTmp&#x3D;yes<br>NoNewPrivileges&#x3D;true</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<p><img src="/images/2019042713050811.png"></p>
+<p>Yeah~~</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service">https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service</a></p>
+<p><a target="_blank" rel="noopener" href="https://gogs.io/docs/intro/faqs">https://gogs.io/docs/intro/faqs</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/04/27/git-pi/index/" data-id="clhp6hdzi002rezqre7d3cb18" data-title="在树莓派上搭建一个git服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-list-dict-performance/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/04/13/list-dict-performance/index/" class="article-date">
+  <time class="dt-published" datetime="2019-04-13T00:00:00.000Z" itemprop="datePublished">2019-04-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/04/13/list-dict-performance/index/">列表与字典的查找、Cython在Windows下的使用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨天在工作时遇到一个小问题，同事的某API返回太慢了，我帮他优化下。简单的探究了下需求，发现了一点得优化的地方。</p>
+<h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>需求很简单，就是对数据结构进行初步的整理。a.json内容大致如下：</p>
+<p><img src="/images/2019041306310451.png"></p>
+<p>b.json内容大致如下（大概16M的一个大文件）：</p>
+<p><img src="/images/2019041306310575.png"></p>
+<p>想要的结果如下：</p>
+<p><img src="/images/2019041306310511.png"></p>
+<p>就是把sent_id和received_id的值去b.json里查找对应的itemid，然后在原始的a.json的结构中增加一项data列，记录b中的值。</p>
+<p>在开始鼓捣之前，我们需要先了解下，在Python中，列表是一种非常重要的数据结构，特性有点像数据结构中的链表。列表结构简单，容易扩展，但是却有一个比较致命的弱点——查找元素比较慢。完全就是看命的操作，查找的元素是第一个还好，万一是最后一个，那就要全部遍历完才知道是否有对应的元素。</p>
+<p>还有另外一种同样重要的数据结构，被称作字典。字典的特点就是查找很快，很快很快的那种。</p>
+<h2 id="原始实现"><a href="#原始实现" class="headerlink" title="原始实现"></a>原始实现</h2><p>实现起来其实很容易，就是循环判断嘛，按照常规的思路，可能会这样实现：</p>
+<p>for item_dict in a_list:<br>    re_data &#x3D; []<br>    se_data &#x3D; []<br>    for value_dict in b_list:<br>        if item_dict.get(‘received_id’) &#x3D;&#x3D; value_dict[‘itemid’]:<br>            re_data.append(value_dict)<br>        elif item_dict.get(‘sent_id’) &#x3D;&#x3D; value_dict[‘itemid’]:<br>            se_data.append(value_dict)</p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><p>老夫掐指一算，看出来几个这段代码中制约性能的因素：</p>
+<ol>
+<li>双循环增加时间复杂度</li>
+<li>b_list非常大，查找它恐怕不会是比较理想的解决方案。再加上它外面还有个循环，简直就是雪上加霜了</li>
+</ol>
+<p>由于b.json是个大列表，列表里还有字典，因此不仅导致多了一层循环，还增大了列表不适合查找的特性。因此正确的解决思路是，将b.json的格式转换成字典，key对应item_id，值是一个列表，列表中的每个元素为字典。</p>
+<p>由于我们并不预先知道字典的key是什么，因此只能动态的创建字典，使得它的值为空列表，然后追加数据。</p>
+<p>完成这个操作大概有三个方法：</p>
+<h3 id="方法1：跑两个循环"><a href="#方法1：跑两个循环" class="headerlink" title="方法1：跑两个循环"></a>方法1：跑两个循环</h3><p>result &#x3D; {}<br>for item in item_list:<br>    result[item[‘itemid’]] &#x3D; []<br>for item in item_list:<br>    result[item[‘itemid’]].append(item)</p>
+<p>思路很简单，时间复杂度也是线性的，可以接受</p>
+<h3 id="方法2：使用defaultDict"><a href="#方法2：使用defaultDict" class="headerlink" title="方法2：使用defaultDict"></a>方法2：使用defaultDict</h3><p>我们使用defaultDict定义字典，这样当访问不存在的key时返回列表，直接append就可以了。当然了要从collections里import这个好东西</p>
+<p>from collections import defaultdict</p>
+<p>d &#x3D; defaultdict(list)<br>for item in item_list:<br>    d[item[‘itemid’]].append(item)</p>
+<h3 id="方法3：利用setdefault"><a href="#方法3：利用setdefault" class="headerlink" title="方法3：利用setdefault"></a>方法3：利用setdefault</h3><p>利用字典的setdefault方法，如果key不存在，我们可以让他返回个空列表，然后append呗~</p>
+<p>result &#x3D; {}<br>for item in item_list:<br>    result.setdefault(item[‘itemid’], []).append(item)</p>
+<p>这三者性能上，肯定是方法1稍微差一点啦，至于2和3，2比3稍好一点的。</p>
+<p>这样的字典创造出来之后，后面的事情就很好处理了</p>
+<p>for item in a_list:<br>    item.setdefault(“data”, []).extend(d.get(item.get(‘received_id’), []))<br>    item.setdefault(“data”, []).extend(d.get(item.get(‘sent_id’), []))</p>
+<p>由于a.json的数据不纯，有些元素没有received_id，因此只能用get方法了。要不用[]直接取数据速度应该会再快点的。</p>
+<p>优化结构之前：</p>
+<p><img src="/images/2019041306310625-1.png"></p>
+<p>优化之后：</p>
+<p><img src="/images/2019041306310781.png"></p>
+<p>大概提升了30倍吧。</p>
+<h2 id="还需要更快？"><a href="#还需要更快？" class="headerlink" title="还需要更快？"></a>还需要更快？</h2><p>这个时候除了换个解释器（如PyPy），提升配置，其实还有一个办法！那就是Cython。如果你用的是Anaconda或者是Linux，那就好办多了，那可真是太幸福了。但是Windows……</p>
+<h3 id="安装编译环境"><a href="#安装编译环境" class="headerlink" title="安装编译环境"></a>安装编译环境</h3><p>要么就用mingw，要么就用visual c++ build tools，以后者为例……</p>
+<p>根据你的Python 版本选择不同的build tools版本，</p>
+<p>Python 3.6 对应 VS2015</p>
+<p>Python 3.7 对应 VS2017</p>
+<p>我就直接安装Visual Studio Build Tools 2017</p>
+<p>安装时选择如下组件就可以了</p>
+<ol>
+<li>Visual C++ Build tools core features.</li>
+<li>VC++ 2017 v141 toolset (x86,x64)</li>
+<li>Visual C++ 2017 Redistributable Update</li>
+<li>Windows 10 SDK (10.0.16299.0) for Desktop C++</li>
+</ol>
+<p><img src="/images/2019041306310851.png"></p>
+<h3 id="安装Cython"><a href="#安装Cython" class="headerlink" title="安装Cython"></a>安装Cython</h3><p><code>pip install cython</code></p>
+<p>然后新建一个pyx文件，写代码……</p>
+<p>再新建一个setup.py</p>
+<p>from distutils.core import setup<br>from Cython.Build import cythonize<br>setup(<br>name&#x3D;’Hello pyx’,<br>ext_modules&#x3D;cythonize(‘hello.pyx’)<br>)</p>
+<p>然后运行 <code>python setup.py build</code></p>
+<p>之后把build&#x2F;lib下的那个pyd（Linux为so）拷贝走，就可以import了……</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://matthew-brett.github.io/pydagogue/python_msvc.html">https://matthew-brett.github.io/pydagogue/python_msvc.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/freeweb/p/6548208.html">https://www.cnblogs.com/freeweb/p/6548208.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/04/13/list-dict-performance/index/" data-id="clhp6he0i004fezqr7iiigsj5" data-title="列表与字典的查找、Cython在Windows下的使用" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-pixel3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/03/03/pixel3/index/" class="article-date">
+  <time class="dt-published" datetime="2019-03-03T00:00:00.000Z" itemprop="datePublished">2019-03-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/03/03/pixel3/index/">Google Pixel3 体验报告</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>几天前的周三下单了一台Pixel 3，昨天终于收到了，简单的说下个人的使用体验。</p>
+<h2 id="拆箱"><a href="#拆箱" class="headerlink" title="拆箱"></a>拆箱</h2><p>  <img src="/images/20190303053424100.jpeg"> <img src="/images/2019030305342716.jpeg"> <img src="/images/2019030305342956.jpeg"></p>
+<p>非常粉又怎么样！</p>
+<p>美国人民很幸福啊，只要$599！</p>
+<h2 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h2><p>Google Photos赠送原生画质无限存储空间，2022年1月31日结束</p>
+<p>Android 9.0 很新颖，有些新功能很实用</p>
+<p>GBoard的语音输入准确度很高，英文和中文都能够识别</p>
+<p>手机屏幕朝下即进入勿扰模式</p>
+<p>捏手机进入个啥模式来着？</p>
+<p>手指滑动指纹识别查看通知（我手小，滑不动）</p>
+<p>据说相机很好，然而处女拍还没被我霍霍呢。</p>
+<p>后盖手感不错</p>
+<p>支持无线充电，不过貌似只有Pixel Stand充电速度才比较快？</p>
+<p>Android Message可以在电脑上发短信，我感受到了话费的流逝</p>
+<p>屏占比蛮高的，5.5寸的屏幕，手机整体比我原来的<a target="_blank" rel="noopener" href="https://www.htc.com/cn/smartphones/htc-one-a9/">htc A9w</a>还小</p>
+<p>原生有密码填充了，用上LastPass之后体验和iOS非常接近了</p>
+<p>emoji很多，最新的都能看见，妈妈再也不怕看到××了。</p>
+<h2 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h2><p>没有呼吸灯，好不适应，我之前用的四个手机都是带呼吸灯的。不过似乎Always on display能一定程度上替代……但是费电啊。</p>
+<p>后置指纹有点不适应，按不准，从兜里拿出来经常分不清上下</p>
+<p>有时可能有bug，比如Play Store不下载，重启就好了</p>
+<p>暂不支持中国移动的VoLTE，也就是说接电话的时候会断网，据说这个要中国移动去提交才可以，或者root了自己改</p>
+<h2 id="一些疑问和其他事情"><a href="#一些疑问和其他事情" class="headerlink" title="一些疑问和其他事情"></a>一些疑问和其他事情</h2><p>用原装的充电器充电有时就很慢，只好用上了X1C的电源适配器</p>
+<p>一晚上LastPass竟然吃了接近50%的电，这是为什么？就这一次，之后发现都好了。</p>
+<p>关于续航，充满电我到家还有60%，平时上班大概就是刷个推听个歌聊天，还是不错的。</p>
+<p>由于你懂的原因，连上WiFi会提示你没有网络，所以需要adb来这么一波</p>
+<p>adb shell settings put global captive_portal_https_url <a target="_blank" rel="noopener" href="https://www.google.cn/generate/_204">https://www.google.cn/generate\_204</a></p>
+<p>连上WiFi了，手机信号也带x，开流量才会消失，这……</p>
+<p>这耳机我带起来怎么那么不适应呢，是我耳朵眼太小了吗？<strong>卖了卖了，有想要的联系我！</strong></p>
+<p>Design by Google. Assemble in China?</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>可以可以，用个三年试试，下部手机准备买Pixel 7</p>
+<p><img src="/images/2019030305343146.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/03/03/pixel3/index/" data-id="clhp6he13005vezqr2ocfbpov" data-title="Google Pixel3 体验报告" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-cloudlare-real-ip/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/02/03/cloudlare-real-ip/index/" class="article-date">
+  <time class="dt-published" datetime="2019-02-03T00:00:00.000Z" itemprop="datePublished">2019-02-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/02/03/cloudlare-real-ip/index/">使用Cloudflare时如何获取访客的真实IP？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前段时间搭建了一个<a target="_blank" rel="noopener" href="https://gakki.photos/">图床站</a>，然后很自然的套上了一层Cloudflare。但是几天前突然发现大量垃圾评论，想要有针对性的处理一下。于是问题来了，获取不到访客的真实IP，只能看到Cloudflare的IP，想要对IP进行封杀似乎有些问题。</p>
+<p>经过十分钟的探索，我总结出来以下几种办法</p>
+<h2 id="通过X-Forwarded-For-或-CF-Connecting-IP-标头"><a href="#通过X-Forwarded-For-或-CF-Connecting-IP-标头" class="headerlink" title="通过X-Forwarded-For 或 CF-Connecting-IP 标头"></a>通过X-Forwarded-For 或 CF-Connecting-IP 标头</h2><p>Cloudflare会按照行业标准把访问者的真实IP包含在这两个访问头中。那么我们就可以通过提取这个内容来获取到真实IP，不过这个头是<strong>可以伪造的</strong>，所以实际上还需要进行进一步的处理。</p>
+<p>用PHP的话，以下两者之一就可以获取到真实IP：</p>
+<p>$_SERVER[“HTTP_CF_CONNECTING_IP”]<br>$_SERVER[“HTTP_X_FORWARDED_FOR”]</p>
+<p>简单的判断一下是这样的：</p>
+<p>user_ip &#x3D; (isset($_SERVER[“HTTP_CF_CONNECTING_IP”])$_SERVER[“HTTP_CF_CONNECTING_IP”]:$_SERVER[‘REMOTE_ADDR’]);</p>
+<p>但是这样其实有些不方便，需要我们手动改代码，在使用某些开源程序时对应的位置可能不太好找。</p>
+<p>多说一句：</p>
+<p>有些时候我们的应用可能是由Nginx反代的，这个时候Nginx会记录访客的IP，但是我们的应用记录的只可能是127.0.0.1，这个时候应用想获取到真实IP该怎么办呢？Nginx中可以这样配置：</p>
+<p>proxy_set_header X-Real-IP $remote_addr;<br>proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;</p>
+<p>我们用<code>x-real-ip</code>就能拿到用户的IP啦，<code>x-forwarded-for</code>能看到每层连接的IP（自然也包括真实IP了）</p>
+<h2 id="使用一些插件"><a href="#使用一些插件" class="headerlink" title="使用一些插件"></a>使用一些插件</h2><p>对于类似WordPress这类成熟的CMS，有些插件可以提供类似的功能，比如说<a target="_blank" rel="noopener" href="https://wordpress.org/plugins/real-ip-and-geo-for-cloudflare/">https://wordpress.org/plugins/real-ip-and-geo-for-cloudflare/</a></p>
+<p>这个可以搜索下看看，同样也需要注意，headers是可以被伪造的</p>
+<h2 id="通过Nginx-http-realip-module"><a href="#通过Nginx-http-realip-module" class="headerlink" title="通过Nginx http_realip_module"></a>通过Nginx http_realip_module</h2><p>gx_http_realip_module默认是不被编译的，所以我们需要重新编译Nginx。</p>
+<p>参考这篇<a target="_blank" rel="noopener" href="https://dmesg.app/tls1_3.html">《为 Nginx 开启 tls 1.3 支持，顺便编译 openssl1.1.1a》</a>，编译参数增加一个<code>--with-http_realip_module</code></p>
+<p>之后创建一个配置文件<code>cloudflare.conf</code>，IP地址来源于Cloudflare官网</p>
+<p>set_real_ip_from 103.21.244.0&#x2F;22;<br>set_real_ip_from 103.22.200.0&#x2F;22;<br>set_real_ip_from 103.31.4.0&#x2F;22;<br>set_real_ip_from 104.16.0.0&#x2F;12;<br>set_real_ip_from 108.162.192.0&#x2F;18;<br>set_real_ip_from 131.0.72.0&#x2F;22;<br>set_real_ip_from 141.101.64.0&#x2F;18;<br>set_real_ip_from 162.158.0.0&#x2F;15;<br>set_real_ip_from 172.64.0.0&#x2F;13;<br>set_real_ip_from 173.245.48.0&#x2F;20;<br>set_real_ip_from 188.114.96.0&#x2F;20;<br>set_real_ip_from 190.93.240.0&#x2F;20;<br>set_real_ip_from 197.234.240.0&#x2F;22;<br>set_real_ip_from 198.41.128.0&#x2F;17;<br>set_real_ip_from 2400:cb00::&#x2F;32;<br>set_real_ip_from 2405:b500::&#x2F;32;<br>set_real_ip_from 2606:4700::&#x2F;32;<br>set_real_ip_from 2803:f800::&#x2F;32;<br>set_real_ip_from 2c0f:f248::&#x2F;32;<br>set_real_ip_from 2a06:98c0::&#x2F;29;</p>
+<h1 id="use-any-of-the-following-two"><a href="#use-any-of-the-following-two" class="headerlink" title="use any of the following two"></a>use any of the following two</h1><p>real_ip_header CF-Connecting-IP;<br>#real_ip_header X-Forwarded-For;</p>
+<p>然后在对应站点的配置文件中，或者是<code>nginx.conf</code>中添加一行<code>include cloudflare.conf;</code>即可。</p>
+<p>这样Web应用就会获取到正确的IP了，日志里的记录也是正确的IP</p>
+<p><img src="/images/2019020303365555.png"></p>
+<p>这样看谁不爽就添加到黑名单好了。</p>
+<h2 id="如何伪造X-Forwarded-For等请求头"><a href="#如何伪造X-Forwarded-For等请求头" class="headerlink" title="如何伪造X-Forwarded-For等请求头"></a>如何伪造X-Forwarded-For等请求头</h2><p>用curl的话可以这样：</p>
+<p>curl <a href="http://example.com/">http://example.com</a> -H ‘X-Forwarded-For: 1.1.1.1’ -H ‘X-Real-IP: 2.2.2.2’</p>
+<p>或者Postman中设置Headers也一样。</p>
+<p>需要注意的是：</p>
+<ol>
+<li>如果由Nginx直连的应用，那么<code>REMOTE_ADDR</code>一定是真实IP，要不怎么进行TCP握手呢</li>
+<li>如果由Nginx反代，那么需要我们配置合理的<code>proxy_set_header</code>设置请求头，此时<code>REMOTE_ADDR</code>会变成Nginx所属的那台服务器的IP</li>
+<li>由于请求头是可以伪造的、不可控的，所以用<code>X-Forwarded-For</code>时总得校验下是不是IP吧，要不可能会出现注入，跨站等安全风险。</li>
+</ol>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://support.cloudflare.com/hc/zh-cn/articles/200170706-%E4%BD%BF%E7%94%A8-Nginx-%E6%97%B6%E5%A6%82%E4%BD%95%E6%81%A2%E5%A4%8D%E5%8E%9F%E5%A7%8B%E8%AE%BF%E9%97%AE%E8%80%85%E7%9A%84-IP-">https://support.cloudflare.com/hc/zh-cn/articles/200170706-%E4%BD%BF%E7%94%A8-Nginx-%E6%97%B6%E5%A6%82%E4%BD%95%E6%81%A2%E5%A4%8D%E5%8E%9F%E5%A7%8B%E8%AE%BF%E9%97%AE%E8%80%85%E7%9A%84-IP-</a></p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/14985518/cloudflare-and-logging-visitor-ip-addresses-via-in-php">https://stackoverflow.com/questions/14985518/cloudflare-and-logging-visitor-ip-addresses-via-in-php</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/02/03/cloudlare-real-ip/index/" data-id="clhp6hdyg0011ezqr10ji2if7" data-title="使用Cloudflare时如何获取访客的真实IP？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-cmcc-ipv6/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/01/04/cmcc-ipv6/index/" class="article-date">
+  <time class="dt-published" datetime="2019-01-04T00:00:00.000Z" itemprop="datePublished">2019-01-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/01/04/cmcc-ipv6/index/">中国移动IPv6使用体验报告</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>经过N多年的期待，终于等到了IPv6，本文就来简单的介绍下中国移动的IPv6体验。当然辣，要先说说IPv6怎么配置。</p>
+<p>假定你是三大运营商的固网宽带，那么ISP很有可能已经提供了IPv6了。我目前使用的是FTTH，所以实际上是有一个移动光猫的。</p>
+<p>就如把大象放到冰箱里，想要使用IPv6我们也要经过如下几步：确保软硬件支持IPv6，破解光猫，配置光猫或者路由器，测试和验证。</p>
+<h2 id="确保软硬件支持IPv6"><a href="#确保软硬件支持IPv6" class="headerlink" title="确保软硬件支持IPv6"></a>确保软硬件支持IPv6</h2><p>我想只要你的设备不是太老，那么基本上对于IPv6的支持都是没太大的问题的。软件上，Windows XP都支持IPv6呢；硬件上，估计也都没太大问题吧~不支持就扔掉好惹&#x3D;￣ω￣&#x3D;</p>
+<h2 id="破解光猫"><a href="#破解光猫" class="headerlink" title="破解光猫"></a>破解光猫</h2><p>“破解”这两个字，说的好像很高大上似的，其实只是拿到光猫的超级管理员密码啦。</p>
+<p>像我的这个光猫，GS3101 吉比特无光源光纤接入用户端设备，自带2.4GHz的无线，登录长这样：</p>
+<p><img src="/images/2019010414523316.png"></p>
+<p>我的这个超管账号为CMCCAdmin，密码为aDm8H%MdA，其他光猫可以自己搜索下试试看，不行就致电要密码。</p>
+<h2 id="确定拨号模式"><a href="#确定拨号模式" class="headerlink" title="确定拨号模式"></a>确定拨号模式</h2><p>对于某些家里有矿家里有路由器（尤其是刷了第三方固件的那种）的用户，可能不太喜欢用光猫拨号，多一层NAT呢是不。当然啦，没有路由器那就只好用这只?啦。以下介绍使用路由器拨号的方法，如果是使用光猫拨号，那么直接忽略这一部分就好啦。</p>
+<h2 id="使用路由器拨号"><a href="#使用路由器拨号" class="headerlink" title="使用路由器拨号"></a>使用路由器拨号</h2><h3 id="光猫改桥接"><a href="#光猫改桥接" class="headerlink" title="光猫改桥接"></a>光猫改桥接</h3><p>首先，需要用网线把路由器的WAN和光猫的LAN连接起来。尽管咱不是千兆光纤，弄个超五类和G口连总是不过分的。需要注意的是，有些光猫是无法通过无线访问web界面的，这个时候就要插网线啦。</p>
+<p>然后，需要知道超管密码和自己的宽带账号的用户名和密码。打电话，短信，APP之类查看。假如都没有呢？作为一名优秀的全沾工程师，当然要有灵性啦！</p>
+<p><img src="/images/201901041452341.png"></p>
+<p>还是没有看见怎么办啊！把type&#x3D;password改成text？</p>
+<p>然后选择互联网连接，把模式改成桥接，协议版本改成IPv4&#x2F;IPv6双栈。</p>
+<p><img src="/images/2019010414523667.png"></p>
+<h3 id="路由器拨号设置"><a href="#路由器拨号设置" class="headerlink" title="路由器拨号设置"></a>路由器拨号设置</h3><p>这里里padavan为例，进入WAN的设置，选择PPPoE，然后确定路由器基本上就能拨号成功了。</p>
+<p><img src="/images/2019010414523717.png"></p>
+<h2 id="IPv6-IP分配设置"><a href="#IPv6-IP分配设置" class="headerlink" title="IPv6 IP分配设置"></a>IPv6 IP分配设置</h2><p>IPv6地址当然也是要分配的，目前存在两种分配手段，一种被称作Stateless，另一种就是Stateful啦。</p>
+<p>所谓statelss，就是无状态了，设备通过“无状态地址自动配置”（SLAAC）获取IPv6地址。地址会自动由路由器给出的前缀推算出，不需要其他配置，也不需要DHCP客户端。当然了，这个过程中是需要一些算法的，比如通过MAC地址算出来IPv6的除了前缀的剩下部分，如果IP重复了通过某算法重新选择一个。</p>
+<p>不过在SLAAC的过程中，是很容易通过IPv6算出来用户的MAC地址的，这样对于隐私而言很不好，所以IETF搞了一个“IPv6隐私扩展”标准(RFC 4941)。使用这个隐私扩展，操作系统会从原本的IPv6地址计算生成一个“临时地址”。在连接远程服务器时，系统会优先选择这个地址以隐藏原来的地址。</p>
+<p><img src="/images/2019010414523840.png"></p>
+<p>Windows 10中的临时IPv6.启用了隐私扩展，与外界连接的时候会优先使用这个IP</p>
+<p>另外一种分配IP的方式，stateful，也就是有状态的，需要一个中心化的服务器来管理分配IP，类似IPv4时的DHCP。DHCPv6是一个用来配置工作在IPv6网络上的IPv6主机所需的IP地址、IP前缀和&#x2F;或其他配置的网络协议。</p>
+<p>那么究竟该怎样选择呢？实际上，这俩协议也可以一起开启，互不干扰的。简单的说，DHCP倾向于被用在需要集中管理主机的站点，而无状态自动配置不需要任何集中管理，因此后者更多地被用在典型家庭网络这样的场景下。</p>
+<p>需要注意的是，原生Android至今不支持DHCPv6，也就是说，如果Android设备需要v6的IP地址，那么就要支持SLAAC，或者root了之后进行一些处理。</p>
+<p>在padavan中，设置IPv6分配模式也很简单，在外部网络（WAN）-IPv6设置中，如下图所示即可，红框内可以选择IP分配方法。</p>
+<p><img src="/images/2019010414523994.png"></p>
+<p>如果你是用光猫分配IPv6的话，那么在网络-LAN侧地址分配进行相似配置就可以了，要注意，网络配置中需要启用IPv4&amp;IPv6双栈哦（上面改桥接那块），否则这里是没用的：</p>
+<p><img src="/images/2019010414524175.png"></p>
+<p>使能？使能什么？(￣_￣|||)</p>
+<h2 id="IPv6-ping测试"><a href="#IPv6-ping测试" class="headerlink" title="IPv6 ping测试"></a>IPv6 ping测试</h2><p>目前，ping能够正常拿到响应，但是被ping却看不到了ICMPv6的响应，不晓得为什么。也许是我配置错误，也许是ISP原因？也就是说这个IPv6目前是不能拿来当公网IP使唤的……</p>
+<p>2019年1月10日更新：现在拿到的IPv6已经能从外面ping通了，国内国外都可以。但是从国外SSH似乎不太可以，国内ssh暂时没测试。</p>
+<p>2月10日更新：</p>
+<p>目前能互相ping通。之前无法ssh是因为路由器的ip6tables的input是drop，设置成允许就可以了。不过当然这样也要小心内网的智能设备被暴力破解等。命令如下：</p>
+<p>ip6tables -F<br>ip6tables -X<br>ip6tables -P INPUT ACCEPT<br>ip6tables -P OUTPUT ACCEPT<br>ip6tables -P FORWARD ACCEPT</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2019/01/2019011013492650.jpg"><img src="/images/2019011013492650.jpg"></a></p>
+<h3 id="ping国内"><a href="#ping国内" class="headerlink" title="ping国内"></a>ping国内</h3><p><img src="/images/2019010414524232.png"></p>
+<p>至于大家都很关注的ipv6.google.com，当然是你懂的啦！</p>
+<p><img src="/images/2019010414524389.png"></p>
+<p>看样子是成功DNS污染了，但是如果设置正确的hosts……啊(#`O′)IPv4时这样干说不定还是好用的吧？</p>
+<p><img src="/images/2019010414524510.png"></p>
+<h3 id="ping国外"><a href="#ping国外" class="headerlink" title="ping国外"></a>ping国外</h3><h4 id="vultr日本"><a href="#vultr日本" class="headerlink" title="vultr日本"></a>vultr日本</h4><p><img src="/images/2019010414524762.png"></p>
+<p>我记得以前IPv4路由是直接过去的，看来今晚也绕路了？反正IPv6是绕路的</p>
+<p>[v_error] 提到这里饶不饶路，我突然想说下，ping越低越好吗？对于某些人、或者是某些特殊类型的应用（如游戏）来说在某些情况下可能会是这样的。</p>
+<p>但是从路由的角度来说，RIP认为跳数越低的越好；EIGRP考虑了链路的带宽、延迟、可靠性、负载，使用这四个因素和设定的K值计算之后作为度量值；OSPF则是考虑了管理距离和度量值。 你说呢？? [&#x2F;v_error]</p>
+<h4 id="vultr洛杉矶"><a href="#vultr洛杉矶" class="headerlink" title="vultr洛杉矶"></a>vultr洛杉矶</h4><p><img src="/images/2019010414524877.png"></p>
+<p>正常水平</p>
+<h2 id="IPv6访问测试"><a href="#IPv6访问测试" class="headerlink" title="IPv6访问测试"></a>IPv6访问测试</h2><p>得益于我这个牛逼哄哄的Windows 10（可能有anyconnect或者HyperV作祟），说不定过了多长时间IPv6的IP就没了，或者有IP但是提示没有No network access禁用网卡再启用可能就好了，同样的树莓派和android就没这个问题，这……</p>
+<h3 id="test-ipv6-com"><a href="#test-ipv6-com" class="headerlink" title="test-ipv6.com"></a>test-ipv6.com</h3><p><img src="/images/2019010414524943.png"></p>
+<p>我可真勇敢?(￢︿̫̿￢☆)只是你没检测出来我的v4好不好嘛。</p>
+<p>访问百度没啥问题，只不过不会手动跳https</p>
+<p><img src="/images/2019010414525018.png"></p>
+<p>其他的IPv6网站，反正还活着的好像都没啥问题。</p>
+<h2 id="IPv6其他测试：Xbox网络测试"><a href="#IPv6其他测试：Xbox网络测试" class="headerlink" title="IPv6其他测试：Xbox网络测试"></a>IPv6其他测试：Xbox网络测试</h2><p>NAT全通有木有很羡慕（巨硬：我出bug也不是一天两天了）</p>
+<p><img src="/images/2019010414525924.png"></p>
+<h2 id="中国移动IPv6总结"><a href="#中国移动IPv6总结" class="headerlink" title="中国移动IPv6总结"></a>中国移动IPv6总结</h2><p>目前就以上的简单测试结果总体来看，移动固网宽带还是一定程度上部署了IPv6的，只不过设备拿到的地址从外面是ping不通的，从国外也无法建立TCP连接，国内估计也不能通TCP（没有服务器给我玩啊?）。</p>
+<p>至于IPv6访问国外其他地区是否绕路，这还是得自己追踪路由。反正vultr的$2.5的IPv6 Only似乎是可以一定程度上简单使用的。</p>
+<p>太长不看总结：有点鸡肋。</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>东北大学：我错了，别这么玩我了。我不想被RST</p>
+<p>啪打飞。https还配置错了，叫我说什么好。</p>
+<p><img src="/images/2019010414530113.png"></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/IPv6_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">https://wiki.archlinux.org/index.php/IPv6_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a></p>
+<p><a target="_blank" rel="noopener" href="https://networkengineering.stackexchange.com/questions/47829/dhcpv6-stateful-vs-stateless-what-is-difference-between-it">https://networkengineering.stackexchange.com/questions/47829/dhcpv6-stateful-vs-stateless-what-is-difference-between-it</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/01/04/cmcc-ipv6/index/" data-id="clhp6hdyi0015ezqrapsb7444" data-title="中国移动IPv6使用体验报告" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-keep-abp-on/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/12/31/keep-abp-on/index/" class="article-date">
+  <time class="dt-published" datetime="2018-12-31T00:00:00.000Z" itemprop="datePublished">2018-12-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/12/31/keep-abp-on/index/">Keep APB on：别碰我的广告屏蔽器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天，在偶然浏览某知名博主的博客时，偶然发现开着ABP竟然无法加载博文正文了，取而代之的是一个大大的div告诉我需要关闭广告屏蔽器然后刷新页面。哦这怎么行？弹个小窗，某个div提示我们加到白名单里这是可以考虑的，直接不显示文章？作为一名优秀的全沾工程师，肯定是受不了这种事情的。</p>
+<p>于是<a target="_blank" rel="noopener" href="https://github.com/BennyThink/KeepABPOn">KeepAPBon</a>这个项目因此而生。一句话概括：</p>
+<p>网站永远不应该强迫用户去关闭广告屏蔽器，除非用户想主动关闭。</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/KeepABPOn'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/KeepABPOn&#39;\]开源地址\[/gt\]</a></p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>安装TamperMonkey扩展，然后搜索KAO，安装你所需要反制的网站的脚本即可。</p>
+<p>目前此项目还处于测试阶段，日后可能会把所有反制措施都集中到一个脚本中。</p>
+<h2 id="处理标准"><a href="#处理标准" class="headerlink" title="处理标准"></a>处理标准</h2><p>所有会影响页面显示、影响阅读体验的“反广告屏蔽器”类网站都会被处理，视频分享类网站排除在外。其他情况的广告不会被处理。</p>
+<p>欢迎提交PR、issue，包括但不限于网站提供、反制措施。</p>
+<h2 id="目前被反制的网站"><a href="#目前被反制的网站" class="headerlink" title="目前被反制的网站"></a>目前被反制的网站</h2><h3 id="KAO-1-ruanyifeng"><a href="#KAO-1-ruanyifeng" class="headerlink" title="KAO#1:ruanyifeng"></a><a target="_blank" rel="noopener" href="https://greasyfork.org/zh-CN/scripts/376131-kao-1-ruanyifeng">KAO#1:ruanyifeng</a></h3><p>浏览阮一峰博客时，不必关闭广告屏蔽器。</p>
+<h2 id="一些观点"><a href="#一些观点" class="headerlink" title="一些观点"></a>一些观点</h2><h3 id="我不讨厌的广告"><a href="#我不讨厌的广告" class="headerlink" title="我不讨厌的广告"></a>我不讨厌的广告</h3><p>在合理展示的情况下，它们为网站所有者创造了收入，为潜在的受众提升了品牌的知名度。可接受的广告，既不会令人烦恼，也不会干扰正在查看的内容</p>
+<p>可不，你看我很喜欢吃的明治就是广告看来的？有广告很正常，我也一直开着ABP里的可接受广告。甚至看到有些博客提示请加入白名单，我还会手动加进去。</p>
+<h3 id="我讨厌的广告"><a href="#我讨厌的广告" class="headerlink" title="我讨厌的广告"></a>我讨厌的广告</h3><p>从我的个人角度来看，有两种广告是我讨厌的：</p>
+<ol>
+<li>铺天盖地、眼花缭乱，一页屏幕半页都是广告，影响浏览体验。</li>
+<li>不关ABP，就不给看。看都不给看，还体验个屁啊</li>
+</ol>
+<h3 id="为什么？"><a href="#为什么？" class="headerlink" title="为什么？"></a>为什么？</h3><p>多少年以来，我一直坚定地认为，互联网的精神是自由与传播。</p>
+<p>我非常憎恨阻止知识传播的行为，这也是我如此憎恨GFW的众多原因之一。</p>
+<p>也许你并不同意我的看法。那很正常。我们有不同的成长环境，接受了不同的教育，形成了不同的观念与想法。我们各自都有不同的想法，那是很正常的事情了。你一句我一句的讨论，找出论据支撑自己的观点，用事实来说明观点，可能经过这样一次讨论，我们对彼此的理解会更加深一点，或者是学习了解到了一些自己的思维体系中原本并不存在的一些观点。所谓思维的碰撞嘛，本应该就是这样美好的设想的。</p>
+<p> </p>
+<h2 id="其他参考"><a href="#其他参考" class="headerlink" title="其他参考"></a>其他参考</h2><p><a target="_blank" rel="noopener" href="https://reek.github.io/anti-adblock-killer/#">Anti-Adblock Killer</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/12/31/keep-abp-on/index/" data-id="clhp6he0e0043ezqrevrde37b" data-title="Keep APB on：别碰我的广告屏蔽器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-tls1_3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/12/07/tls1_3/index/" class="article-date">
+  <time class="dt-published" datetime="2018-12-07T00:00:00.000Z" itemprop="datePublished">2018-12-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/12/07/tls1_3/index/">为Nginx开启tls 1.3支持，顺便编译openssl1.1.1a</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>8月份的时候，TLS1.3正式发布了（<a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc8446">RFC 8446</a>），9月份的时候，支持TLS 1.3的Openssl 1.1.1正式发布了。对于我这种喜欢追新的人来说，终于可以升级了……（噢现在是12月哦……）其实……这就是个备忘录。</p>
+<h2 id="启用TLS-1-3的要求"><a href="#启用TLS-1-3的要求" class="headerlink" title="启用TLS 1.3的要求"></a>启用TLS 1.3的要求</h2><p>需要重新编译Nginx，加入<code>enable-tls1_3</code>参数，需要浏览器也支持TLS 1.3，如果你使用最新版本的Chrome&amp;Firefox，那么就可以。哦对了，<strong>不需要重新编译openssl哦</strong>。</p>
+<p>下表是目前的几个发行版对openssl版本的支持，虽说和本文内容干毫无关系，仅供观赏。</p>
+<table><tbody><tr><td><span style="font-size: 12pt;">Ubuntu 18.04</span></td><td><span style="font-size: 12pt;">Openssl 1.1.0g</span></td></tr><tr><td><span style="font-size: 12pt;">Ubuntu 18.10</span></td><td><span style="font-size: 12pt;">Openssl 1.1.1</span></td></tr><tr><td><span style="font-size: 12pt;">Debian sid</span></td><td><span style="font-size: 12pt;">Openssl 1.1.1a</span></td></tr><tr><td><span style="font-size: 12pt;">Debian 9 Stretch</span></td><td><span style="font-size: 12pt;">Openssl 1.1.0j</span></td></tr><tr><td><span style="font-size: 12pt;">CentOS 7</span></td><td><span style="font-size: 12pt;">Openssl 1.0.2k</span></td></tr></tbody></table>
+
+<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git</p>
+<h2 id="获取必要组件"><a href="#获取必要组件" class="headerlink" title="获取必要组件"></a>获取必要组件</h2><h3 id="openssl-1-1-1a"><a href="#openssl-1-1-1a" class="headerlink" title="openssl 1.1.1a"></a>openssl 1.1.1a</h3><p>wget <a target="_blank" rel="noopener" href="https://www.openssl.org/source/openssl-1.1.1a.tar.gz">https://www.openssl.org/source/openssl-1.1.1a.tar.gz</a><br>tar xf openssl-1.1.1a.tar.gz &amp;&amp; rm openssl-1.1.1a.tar.gz</p>
+<h3 id="Nginx-1-15-7"><a href="#Nginx-1-15-7" class="headerlink" title="Nginx 1.15.7"></a>Nginx 1.15.7</h3><p>wget <a target="_blank" rel="noopener" href="https://nginx.org/download/nginx-1.15.7.tar.gz">https://nginx.org/download/nginx-1.15.7.tar.gz</a><br>tar xf nginx-1.15.7.tar.gz &amp;&amp; rm nginx-1.15.7.tar.gz<br>cd nginx-1.15.7</p>
+<h2 id="编译Nginx"><a href="#编译Nginx" class="headerlink" title="编译Nginx"></a>编译Nginx</h2><p>.&#x2F;configure –user&#x3D;www –group&#x3D;www –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx –with-openssl&#x3D;..&#x2F;openssl-1.1.1a –with-openssl-opt&#x3D;’enable-tls1_3’ –with-http_v2_module –with-http_ssl_module –with-http_gzip_static_module –with-http_stub_status_module –with-http_sub_module –with-stream –with-stream_ssl_module</p>
+<p>配置完成之后</p>
+<p>make<br>make install</p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>在你的站点的配置文件中，如下配置即可：</p>
+<p>ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;</p>
+<p>ssl_ciphers ‘TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-GCM-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA’;</p>
+<h2 id="检测与验证"><a href="#检测与验证" class="headerlink" title="检测与验证"></a>检测与验证</h2><h3 id="浏览器"><a href="#浏览器" class="headerlink" title="浏览器"></a>浏览器</h3><p>升级Chrome吧，默认就应该支持了。直接浏览器访问，开F12在security中即可看到。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/12/2018120701580146.jpg"><img src="/images/2018120701580146.jpg"></a></p>
+<h3 id="ssllabs"><a href="#ssllabs" class="headerlink" title="ssllabs"></a>ssllabs</h3><p><a target="_blank" rel="noopener" href="https://www.ssllabs.com/ssltest/">https://www.ssllabs.com/ssltest/</a></p>
+<h3 id="testssl"><a href="#testssl" class="headerlink" title="testssl"></a>testssl</h3><p>需要1.1.1或更高版本的openssl</p>
+<p>.&#x2F;testssl –p –P <a target="_blank" rel="noopener" href="http://www.example.com/">www.example.com</a></p>
+<h3 id="Openssl"><a href="#Openssl" class="headerlink" title="Openssl"></a>Openssl</h3><p>注意，同样需要openssl版本为1.1.1或更高</p>
+<p>openssl s_client -connect <a target="_blank" rel="noopener" href="http://www.example.com:443/">www.example.com:443</a> -tls1_3</p>
+<h2 id="编译openssl-1-1-1"><a href="#编译openssl-1-1-1" class="headerlink" title="编译openssl 1.1.1"></a>编译openssl 1.1.1</h2><h3 id="安装依赖-1"><a href="#安装依赖-1" class="headerlink" title="安装依赖"></a>安装依赖</h3><p>sudo apt update<br>sudo apt install build-essential checkinstall zlib1g-dev -y</p>
+<h3 id="下载并解压缩源代码"><a href="#下载并解压缩源代码" class="headerlink" title="下载并解压缩源代码"></a>下载并解压缩源代码</h3><p>wget <a target="_blank" rel="noopener" href="https://www.openssl.org/source/openssl-1.1.1a.tar.gz">https://www.openssl.org/source/openssl-1.1.1a.tar.gz</a><br>tar xf openssl-1.1.1a.tar.gz &amp;&amp; rm openssl-1.1.1a.tar.gz<br>cd openssl-1.1.1a</p>
+<h3 id="配置、编译与安装"><a href="#配置、编译与安装" class="headerlink" title="配置、编译与安装"></a>配置、编译与安装</h3><p>.&#x2F;config –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;ssl –openssldir&#x3D;&#x2F;usr&#x2F;local&#x2F;ssl shared zlib<br>make &amp;&amp; make test<br>make install</p>
+<p>关于prefix和openssldir这俩参数</p>
+<p><code>prefix</code>和<code>openssldir</code>用于控制openssl安装路径。</p>
+<p><strong>1.0.2及之前的版本</strong></p>
+<p>一般来说不用指定<code>prefix</code>，如果<code>prefix</code>没指定，那么就会使用<code>openssldir</code></p>
+<p>如果未指定<code>openssldir</code>，那么<code>openssldir</code>的默认路径为<code>/usr/local/ssl</code></p>
+<p><strong>1.1.0 及之后版本</strong></p>
+<p>我们改啦！应该同时指定<code>prefix</code> 和 <code>openssldir</code></p>
+<p>简单的办法就是同时指定为<code>/usr/local/ssl</code></p>
+<h3 id="更新动态库"><a href="#更新动态库" class="headerlink" title="更新动态库"></a>更新动态库</h3><p>cd &#x2F;etc&#x2F;ld.so.conf.d&#x2F;</p>
+<h1 id="创建新文件"><a href="#创建新文件" class="headerlink" title="创建新文件"></a>创建新文件</h1><p>vim openssl-1.1.1a.conf</p>
+<h1 id="粘贴如下内容并保存退出"><a href="#粘贴如下内容并保存退出" class="headerlink" title="粘贴如下内容并保存退出"></a>粘贴如下内容并保存退出</h1><p>&#x2F;usr&#x2F;local&#x2F;ssl&#x2F;lib</p>
+<h1 id="重新加载动态库"><a href="#重新加载动态库" class="headerlink" title="重新加载动态库"></a>重新加载动态库</h1><p>ldconfig –v</p>
+<h3 id="删除（备份）旧的openssl"><a href="#删除（备份）旧的openssl" class="headerlink" title="删除（备份）旧的openssl"></a>删除（备份）旧的openssl</h3><p>mv &#x2F;usr&#x2F;bin&#x2F;c_rehash &#x2F;usr&#x2F;bin&#x2F;c_rehash.BEKUP<br>mv &#x2F;usr&#x2F;bin&#x2F;openssl &#x2F;usr&#x2F;bin&#x2F;openssl.BEKUP</p>
+<h3 id="把新的加入PATH"><a href="#把新的加入PATH" class="headerlink" title="把新的加入PATH"></a>把新的加入PATH</h3><p>类似如下语句，或者做软链接</p>
+<p>PATH&#x3D;”&#x2F;usr&#x2F;local&#x2F;sbin:&#x2F;usr&#x2F;local&#x2F;bin:&#x2F;usr&#x2F;sbin:&#x2F;usr&#x2F;bin:&#x2F;sbin:&#x2F;bin:&#x2F;usr&#x2F;games:&#x2F;usr&#x2F;local&#x2F;games:&#x2F;usr&#x2F;local&#x2F;ssl&#x2F;bin”</p>
+<p>参考</p>
+<p><a target="_blank" rel="noopener" href="https://www.howtoforge.com/tutorial/how-to-install-openssl-from-source-on-linux/">https://www.howtoforge.com/tutorial/how-to-install-openssl-from-source-on-linux/</a></p>
+<p><a target="_blank" rel="noopener" href="https://wiki.openssl.org/index.php/Compilation_and_Installation#PREFIX_and_OPENSSLDIR">https://wiki.openssl.org/index.php/Compilation_and_Installation#PREFIX_and_OPENSSLDIR</a></p>
+<p><a target="_blank" rel="noopener" href="https://imququ.com/post/enable-tls-1-3.html">https://imququ.com/post/enable-tls-1-3.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://halfrost.com/tls1-3_start/">https://halfrost.com/tls1-3_start&#x2F;</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/12/07/tls1_3/index/" data-id="clhp6he2v00a7ezqrefr15bt9" data-title="为Nginx开启tls 1.3支持，顺便编译openssl1.1.1a" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

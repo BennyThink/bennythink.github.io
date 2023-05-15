@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="土豆不好吃">
+<meta property="og:url" content="http://example.com/page/17/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-semi-auto-blacklist/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/06/16/semi-auto-blacklist/index/" class="article-date">
+  <time class="dt-published" datetime="2016-06-16T00:00:00.000Z" itemprop="datePublished">2016-06-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/06/16/semi-auto-blacklist/index/">利用ufw或者Nginx拉黑对xmlrpc.php的暴力破解</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>终于考完试啦，加点黑名单玩玩，没有技术含量的水水水  :roll:  :roll:</p>
+<p>最近一定没人会问，博主你干嘛去了，都一个月没更新博文了。哎，实属无奈啊，我昨天才考完“软件工程”，一直忙着复习来着。提到软件工程，我就想讲个笑话。</p>
+<blockquote>
+<p>有一天，有人夸我，小伙子你挺厉害啊，什么专业的？我说，SE的。他问，SE是啥？我说，是Shit Eating啦； 又有一天，有人问我，你这专业都学啥啊？我说，CS啊。他很惊讶，天天打游戏？我说，不，是Create Shit啊。</p>
+</blockquote>
+<p>此笑话如此无情的讽刺了中国高校的软工教育和所谓“软件工程”。</p>
+<p>虽说这一科考完了，但还是剩下很多待考的东东…还全都是背的。但至少在现在的这个空档，让我水水博文吧！</p>
+<p>目前的一个小小的问题就是，总是有人暴力破解后台，其中包括对xmlrpc.php的，也有wp-login.php的。对于xmlrpc的破解，只能在日志里看到；wp-login.php有插件可以帮忙处理。</p>
+<p>我就先手动处理下吧，备忘。</p>
+<h2 id="xmlrpc-php是什么"><a href="#xmlrpc-php是什么" class="headerlink" title="xmlrpc.php是什么"></a>xmlrpc.php是什么</h2><p>XML-RPC 是 WordPress 用于第三方客户端（如 WordPress iPhone 和安卓客户端，Windows Live Writer 等）的 API 接口，还可以用于 pingbacks 和 trackbacks 端口，作为站点之间的通讯桥梁。</p>
+<p>简而言之，当你使用Word的文件-共享-发布至博客将你的文章发布到WordPress的时候，就会使用到这个文件。</p>
+<h2 id="xmlrpc-php的风险"><a href="#xmlrpc-php的风险" class="headerlink" title="xmlrpc.php的风险"></a>xmlrpc.php的风险</h2><p>这东东，很危险的——<a target="_blank" rel="noopener" href="http://www.freebuf.com/articles/web/38861.html">暴力破解</a>嘛，还没有验证码什么的。</p>
+<p>应对措施</p>
+<p>稍微搜索一下便知，好多办法啊。直接删掉，000权限，禁用掉rpc服务，改个别人猜不到的名字，等等。</p>
+<p>但是呢，我就想小小的做一个蜜罐——我的<strong>黑名单</strong>已经饥渴难耐了。</p>
+<p>然而我并不太会shell脚本，实在无能为力写一个自动分析日志并加黑名单的脚本啊……还不想用插件，所以只能偶尔手动玩了。 [v_blue] GitHub上搜索到了一些脚本，<a target="_blank" rel="noopener" href="https://github.com/gurdiga/wp-protect-xmlrpc">传送门</a>[&#x2F;v_blue]</p>
+<h2 id="处理办法"><a href="#处理办法" class="headerlink" title="处理办法"></a>处理办法</h2><h3 id="揪出来大量post-xmlrpc-php的IP"><a href="#揪出来大量post-xmlrpc-php的IP" class="headerlink" title="揪出来大量post xmlrpc.php的IP"></a>揪出来大量post xmlrpc.php的IP</h3><p>grep -a ‘xmlrpc.php’ dmesg.app.log | awk ‘{print $1}’</p>
+<p>之后我们需要把这个IP里出现次数最多的那几个找出来，然后判断是不是自己所为。</p>
+<p>这个我暂时没找到好的办法——但是可以确定的是shell脚本可以很方便的做到这点，C++ STL中的count()也很方便。</p>
+<p>#利用正则表达式去除重复行<br>(^.*\n)(?&#x3D;\1)<br>#查询某个IP在日志中出现次数<br>grep -o ‘123.206.87.223’ dmesg.app.log |wc –l<br>#去除重复行<br>sort -k2n file | uniq &gt; a.out</p>
+<h2 id="封禁手段"><a href="#封禁手段" class="headerlink" title="封禁手段"></a>封禁手段</h2><h3 id="1-Nginx黑名单"><a href="#1-Nginx黑名单" class="headerlink" title="1. Nginx黑名单"></a>1. Nginx黑名单</h3><p>vim &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;blackip.conf</p>
+<p>然后把IP（或者是CIDR表示法）放到黑名单里吧</p>
+<p>deny 1.2.3.4;<br>deny 1.2.3.4&#x2F;16;</p>
+<p>修改nginx配置文件，将blackip.conf包含到配置文件之中</p>
+<p>vim &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf<br>include blackip.conf;</p>
+<p>然后保存退出</p>
+<p>之后重启nginx或者重新加载配置，黑名单即生效。</p>
+<p>#重启nginx，以下三选一<br>service nginx restart<br>systemctl restart nginx.service<br>&#x2F;etc&#x2F;init.d&#x2F;nginx restart<br>#重载配置<br>nginx -s reload</p>
+<p> </p>
+<h3 id="2-ufw封禁"><a href="#2-ufw封禁" class="headerlink" title="2.ufw封禁"></a>2.ufw封禁</h3><p>ufw就是umcomplicated firewall，是Ubuntu上的基于iptables的防火墙，使用起来比较方便，不像iptables规则那么变态……</p>
+<p>来看看基本用法吧，也是我的配置方法</p>
+<p>#默认入网规则全部拒绝<br>ufw default deny<br>#允许22号、TCP&#x2F;UDP协议、从任何位置入网请求<br>ufw allow 22<br>#允许SSH协议、从任何位置入网请求<br>ufw allow ssh<br>ufw allow http<br>ufw allow https<br>#启用防火墙<br>ufw enable<br>#显示防火墙状态和规则数字<br>ufw status numbered<br>#删除2号规则<br>ufw delete 2<br>#阻止192.168.1.5对所有端口的入网请求<br>ufw deny from 192.168.1.5 to any<br>#阻止192.168.1.5对所有443（HTTPS）的入网请求<br>ufw deny from 192.168.1.5 to any port 443<br>#查看ufw日志<br> less &#x2F;var&#x2F;log&#x2F;ufw.log<br>#重置ufw<br>ufw reset</p>
+<p>[v_error]一定要注意，如果你是通过SSH连接到服务器的，请第一步就添加ssh对应端口的入网请求（默认是22）[&#x2F;v_error]</p>
+<p>但是， ufw这家伙有点逗。我先ufw default deny将默认规则改成禁止入网，再添加http，https，ssh的入网规则，为了测试效果就把自己的IP给deny了，刷新网站发现没效果啊！查了些资料，发现ufw是规则匹配模式，从上匹配到下，匹配到符合规则的就停止，而后加的规则是在下面的，必然就被无视了。所以，那该怎么办呢？ 聪明的你一定想到了，那插入规则到第一行不就得了。</p>
+<p>#禁止14.3.20.228访问443，插入规则到第一行。<br>ufw insert 1 deny from 14.3.20.228 to any port 443</p>
+<p>[v_blue]小提示：deny，reject，limit区别 除了deny，还有reject和limit两种语法，根据manual，他们的区别是： limit： connection rate limiting ufw会允许连接到该端口，但是一个IP如果在30秒钟之内尝试6次，那么就暂时封禁。这也就意味着 ufw limit ssh是很必要的 reject：给出拒绝原因而不是deny直接拒绝什么提示都没有。 [&#x2F;v_blue]</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/06/16/semi-auto-blacklist/index/" data-id="clhp6he1x007nezqr9n88ajbo" data-title="利用ufw或者Nginx拉黑对xmlrpc.php的暴力破解" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-udp53/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/22/udp53/index/" class="article-date">
+  <time class="dt-published" datetime="2016-05-22T00:00:00.000Z" itemprop="datePublished">2016-05-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/05/22/udp53/index/">UDP 53免费上网、DNS隧道经验谈</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]郑重声明： 本文仅供研究学习技术交流，请勿用于商业及非法用途。如产生任何纠纷，与本人无关。[&#x2F;v_error]</p>
+<hr>
+<p>这是一篇回炉重炒的福利文</p>
+<p>本文将介绍一种绕过Web认证来免费上网的姿势，不敢保证在所有网络环境下都好用，但是至少我已经享受一段时间免费的待遇了。</p>
+<h2 id="一-原理简介"><a href="#一-原理简介" class="headerlink" title="一. 原理简介"></a>一. 原理简介</h2><p>在连接到某个需要Web认证的热点之前，我们已经获得了一个内网IP，此时，如果我们访问某个HTTP网站，网关会对这个HTTP响应报文劫持并篡改，302重定向给我们一个web认证界面（所以点HTTPS的网站是不可能跳转到web认证页面的）。详细原理可以<a target="_blank" rel="noopener" href="http://www.ruijie.com.cn/fw/wt/36502">戳这里</a></p>
+<p>我们看到了，网关（或者说交换机）都默认放行DHCP 和DNS报文，也就是UDP53与UDP 67。有些网关甚至不会报文进行检查，这也就意味着任何形式的数据包都可以顺畅通过。</p>
+<p>既然如此，我们就可以在公网搞一台服务器，然后借此来免费上网，顺便还能<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">防止网络审计</a>——再一次画了删除线的”免费”，其实只是把钱花在服务器上了。我们这次免费上网的主要突破点就是UDP 53，当然了，据一位朋友实践，UDP 67也可以绕过Web认证，甚至是那些UDP 53无法绕过的热点。当然啦，TCP 53也行，毕竟DNS也有TCP的。</p>
+<h2 id="二-环境检测"><a href="#二-环境检测" class="headerlink" title="二. 环境检测"></a>二. 环境检测</h2><p>废话不多说了，连上热点并且不要进行认证，打开cmd（或者GNU&#x2F;Linux的终端），输入如下内容</p>
+<p>nslookup <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a></p>
+<p>这是我的结果</p>
+<p><img src="/images/052216_0640_UDP53DNS1.png"></p>
+<p>我在没有进行Web认证的情况下成功查询到的IP地址，但是我们并无法确定网关是放行了UDP 53的<strong>所有数据包</strong>还是只放行了<strong>DNS报文</strong>。所以我们要进一步测试下！如果连这都过不了，那还是洗洗睡吧。好吧，说实话，脚本其实是测试TCP的53。 [v_blue]2016年9月10日更新：用我的这个小工具试试吧（此工具测试的其实是TCP53，但是如果允许TCP，那么UDP也肯定没问题） [&#x2F;v_blue] [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/UDP53-Filter-Type'/]%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/UDP53-Filter-Type&#39;\]项目地址\[/gt\]</a> 去Git仓库下载源码，之后Linux用户运行</p>
+<p>python UDP53.py</p>
+<p>Windows用户直接双击dist下的udp.exe吧！</p>
+<p>下图是Windows下的运行结果<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/05/2016091006202571.png"><img src="/images/2016091006202571.png" alt="41212"></a></p>
+<p>[v_blue]有人会问，为何你两次nslookup得到的IP不同呢？想都不用想，百度肯定是在全国各地都部署了内容分发节点，就近访问啊。[&#x2F;v_blue]</p>
+<h2 id="三-实战：允许任何类型数据包通过的网关（提示congratulations）"><a href="#三-实战：允许任何类型数据包通过的网关（提示congratulations）" class="headerlink" title="三. 实战：允许任何类型数据包通过的网关（提示congratulations）"></a>三. 实战：允许任何类型数据包通过的网关（提示congratulations）</h2><p>遇到这种情况，那就是人生中最幸运的事情啦！想法很简单，既然允许任何类型是数据通过UDP 53，那我就在外网搭建一个UDP 53的服务，然后连接上就好了。</p>
+<h3 id="使用UDP-53的OpenVPN（UDP-67同理）"><a href="#使用UDP-53的OpenVPN（UDP-67同理）" class="headerlink" title="使用UDP 53的OpenVPN（UDP 67同理）"></a>使用UDP 53的OpenVPN（UDP 67同理）</h3><p>这种情况我选择搭建OpenVPN的UDP 53（或者也可以试试UDP 67），搭建方法我已经在半年前的博文<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">《SoftEther VPN Server安装手记+福利》</a>提到了，只需要最后开启UDP 53的OpenVPN即可。</p>
+<p><img src="/images/052216_0640_UDP53DNS2.png"></p>
+<p>PS，APP Store大陆区早就封杀了OpenVPN，我来给你们提供一个美国住址来注册美区账号吧</p>
+<p>5200 Zoo Dr，Los Angeles, CA 90027<br>(323) 668-0104</p>
+<p>其实，如果是完全放行53（TCP、UDP），那么弄个Shadowsocks也行，开个全局呗。 如果此时抓包，咱能发现，wireshark会告诉咱DNS协议下那些都是malformed packet，必然呐……</p>
+<h2 id="四-实战：仅允许DNS报文通过的网关（提示sad-face）"><a href="#四-实战：仅允许DNS报文通过的网关（提示sad-face）" class="headerlink" title="四. 实战：仅允许DNS报文通过的网关（提示sad face）"></a>四. 实战：仅允许DNS报文通过的网关（提示sad face）</h2><p>这种情况下，我劝你还是放弃吧。但是并不是不可以免费上网，有一种技术叫做DNS隧道，还有Ping隧道→_→人们为了免费上网还真是什么方法都用上了啊。 [v_tips]据称在某些情况下DNS隧道效果也很好，我没有测试过[&#x2F;v_tips] 万能的SoftEther VPN Server同样提供了这个略显鸡肋的功能</p>
+<p>加密与网络-VPN over ICMP &#x2F; DNS 设置</p>
+<p><img src="/images/052216_0640_UDP53DNS3.png"></p>
+<p>注意，需要使用SoftEther VPN Client 管理工具4.0以上，VPN over DNS不可以与OpenVPN with UDP 53共存。</p>
+<p>之后在SoftEther VPN Client 管理工具中新建连接，填入相关信息即可。</p>
+<p>这里我的测试不太多，我从国外论坛上找到这么一句话：</p>
+<blockquote>
+<p>Softether client got it’s TCP protocol on top of it’s priority as it’s the stable one, UDP on Nat-t comes next, then ICMP and then DNS. of all these protocol only the vpn over DNS did not work for me as it fails to retrieve the right ip and gateway.</p>
+</blockquote>
+<p>SoftEther VPN Client先尝试TCP协议，然后尝试UDP on Nat-t，然后再Ping隧道和DNS隧道。</p>
+<p>下图是勉强成功建立DNS隧道的截图。</p>
+<p><img src="/images/052216_0640_UDP53DNS4.png"></p>
+<h2 id="五-注意事项"><a href="#五-注意事项" class="headerlink" title="五. 注意事项"></a>五. 注意事项</h2><h3 id="1-速度"><a href="#1-速度" class="headerlink" title="1.速度"></a>1.速度</h3><p>允许所有数据包通过UDP 53的情况下，速度主要取决于你的服务器的<strong>出网带宽</strong>和<strong>热点本身的网速</strong>。</p>
+<h3 id="2-IP问题"><a href="#2-IP问题" class="headerlink" title="2.IP问题"></a>2.IP问题</h3><p>服务器在外地，所以淘宝支付宝之类的需要验证码之类的。以后如果申诉也要记得把登陆地区选上服务器所在地。</p>
+<h3 id="3-安全问题"><a href="#3-安全问题" class="headerlink" title="3.安全问题"></a>3.安全问题</h3><p>某些热点是公开的、没有密码保护的，所以可以很轻松的搞<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB">中间人攻击</a>——甚至是root的Android手机都可以做到。而OpenVPN可以防止中间人攻击（配置文件里有服务器的证书），同时我使用了AES-128-CBC加密，搞定网络审计简直是轻轻松松的。</p>
+<h2 id="六-服务器的选购"><a href="#六-服务器的选购" class="headerlink" title="六. 服务器的选购"></a>六. 服务器的选购</h2><p>国内VPS价格普遍离谱，恰巧我还是学生党，也算捡到了大便宜→_→不是学生党谁想着免费上网的心思啊？</p>
+<p>其实大部分人最关心的问题还是速度吧！</p>
+<p>UDP 53的OpenVPN速度主要限制就在<strong>热点本身的速度</strong>和服务器的<strong>出口带宽</strong>速度。腾讯云学生版带宽都是1Mbps，所以限制基本就是服务器出口带宽了……</p>
+<p>所以下面给大家贴出来我在腾讯云和阿里云撕逼的经验（传说七牛今年也会推出云主机，我很期待啊）</p>
+<h3 id="腾讯云："><a href="#腾讯云：" class="headerlink" title="腾讯云："></a>腾讯云：</h3><p>策略是，每个月赠送”满65元减64元”优惠券，包年包月1核1G内存1Mbps恰巧是65元。至于你怎么凑满那65元，是没有限制的。但说实话，要是选择按流量计费，那流量是很不耐用的…！</p>
+<h3 id="阿里云："><a href="#阿里云：" class="headerlink" title="阿里云："></a>阿里云：</h3><p>价格要比腾讯云稍微贵一点点（接近十块钱），但是可以在购买界面直接选择其他数值的峰值带宽，并且每月赠送15G出网流量。</p>
+<p>但是，他丫的要签到！自己看去……</p>
+<p><img src="/images/052216_0640_UDP53DNS6.png"></p>
+<p>国内学生云服务器优惠也就这两个马家了……</p>
+<h2 id="七-买不起服务器、不会搭建、网速太慢"><a href="#七-买不起服务器、不会搭建、网速太慢" class="headerlink" title="七.买不起服务器、不会搭建、网速太慢"></a>七.买不起服务器、不会搭建、网速太慢</h2><p>这你叫我咋办。</p>
+<h2 id="八-最后"><a href="#八-最后" class="headerlink" title="八. 最后"></a>八. 最后</h2><p>给大家看看百度的广告，或者是”推广”吧。</p>
+<p>TMD整个第一屏都是广告，没有一个字和学生二字贴边。</p>
+<p><img src="/images/052216_0640_UDP53DNS7.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/05/22/udp53/index/" data-id="clhp6he3800arezqr6ngsh9w1" data-title="UDP 53免费上网、DNS隧道经验谈" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ubuntumate-raspberry2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/05/ubuntumate-raspberry2/index/" class="article-date">
+  <time class="dt-published" datetime="2016-05-05T00:00:00.000Z" itemprop="datePublished">2016-05-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/05/05/ubuntumate-raspberry2/index/">Ubuntu MATE 16.04 for Raspberry 2安装配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_blue]2019年更新： 最终，我换回了raspbian，苦等的18.04怎么也不来，也不想do-release-upgrade，于是直接上raspbian lite吧，开机后内存占用才30M，很完美~<a target="_blank" rel="noopener" href="https://weworkweplay.com/play/automatically-connect-a-raspberry-pi-to-a-wifi-network/">自动连WiFi参考</a>[&#x2F;v_blue]</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/05/201605050804463.png"><img src="/images/201605050804463.png" alt="ghhg"></a></p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨天把树莓派揪了出来，全新安装了Ubuntu MATE 16.04，发现这版本还是不错的……然而却存在很多问题，比如说，每次更新、下载软件都得跑去遥远的美帝——反正不在大陆了；SD卡没有扩展等。</p>
+<p>那今天就水一贴来说说Ubuntu MATE 16.04 for Raspberry 2安装之后的事情……</p>
+<p>本文的主要内容（主要解决的问题）有：</p>
+<p>扩展文件系统</p>
+<p>更换软件源</p>
+<p>安装OpenSSH</p>
+<p>完善语言支持</p>
+<p>1080P显示器黑边</p>
+<p>音频默认输出端口</p>
+<p>播放器的硬件加速</p>
+<p>更改桌面风格</p>
+<p>监测CPU温度</p>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://ubuntu-mate.org/raspberry-pi/">https://ubuntu-mate.org/raspberry-pi/</a></p>
+<h2 id="配置要求"><a href="#配置要求" class="headerlink" title="配置要求"></a>配置要求</h2><p>Raspberry 2或者3一个，显示器，鼠标，键盘，HDMI（或者转换器+VGA），microUSB数据线，8GB+的microSD（官方推荐使用Class 6或者Class 10 microSDHC），网线或者无线网卡，至少5V1A的直流电源适配器……一个都不能少。</p>
+<p>因为Ubuntu MATE 没有预先定义的用户，所以烧完卡之后直接想用ssh是不成的……</p>
+<p>反正这配置要求是蛮多的，有Pi的肯定没觉得啥了……</p>
+<p>那就一步一步来吧……</p>
+<p>先说点废话</p>
+<p>纠结树莓派的应用场景，所以我买了两张卡，一张做了OSMC，一张做了Ubuntu MATE</p>
+<p>后来想了想，有这么三种使用方法：</p>
+<p>**1.**把树莓派丢在路由器旁边，随意装个支持SSH的系统，挂个硬盘做NAS，好在现在很多电视有WiFi模块，怎么说也有54Mbps，不看1080P的原盘是没问题了……</p>
+<p>**2.**把树莓派连在电视上，用无线网卡连到路由器，装OSMC挂硬盘当HTPC……当然啦HTPC也可以SSH然后用samba的。PS，OSMC支持遥控器哦！</p>
+<p>**3.**同上，只不过装的是Ubuntu MATE……插个键盘鼠标还能偶尔上个网</p>
+<p>顺便搭建LNMP什么的也完全不过分(→_→)Pi这性能得编译半个晚上还是果断二进制包吧……</p>
+<p>反正现在我也没有多余的移动硬盘，也没有自己的家，还是先让它吃灰吧……</p>
+<h2 id="烧制Ubuntu-MATE"><a href="#烧制Ubuntu-MATE" class="headerlink" title="烧制Ubuntu MATE"></a>烧制Ubuntu MATE</h2><p><a target="_blank" rel="noopener" href="https://ubuntu-mate.org/raspberry-pi/ubuntu-mate-16.04-desktop-armhf-raspberry-pi.img.xz.torrent">点击这里下载种子</a>，然后下载镜像，是xz格式的，随意用什么东西解压缩，用Win32 Disk Imager写入到卡里，这我就不说了……</p>
+<h2 id="安装Ubuntu-MATE"><a href="#安装Ubuntu-MATE" class="headerlink" title="安装Ubuntu MATE"></a>安装Ubuntu MATE</h2><p>此步略……</p>
+<p>我相信大家都会的。</p>
+<p> </p>
+<h2 id="扩展文件系统"><a href="#扩展文件系统" class="headerlink" title="扩展文件系统"></a>扩展文件系统</h2><p>默认来说，16G的卡大概只有7G左右是默认被使用的，需要扩展下。很可惜</p>
+<p>rasp-config</p>
+<p>并不能使用（To do里有一项是后期会添加rasp-config），所以我们要手动扩展下。</p>
+<p>官网给出了两种办法：</p>
+<h3 id="第一种"><a href="#第一种" class="headerlink" title="第一种"></a>第一种</h3><p>在Ubuntu MATE的welcome窗口里调整，只需要点击Information -Resize 即可。（Welcome里可以看到好些好玩的东西呢，我这就截个图给你们看看）</p>
+<p><img src="/images/050516_0715_UbuntuMate12.png"></p>
+<h3 id="另外一种方式"><a href="#另外一种方式" class="headerlink" title="另外一种方式"></a>另外一种方式</h3><p>sudo fdisk &#x2F;dev&#x2F;mmcblk0</p>
+<p>删除第二个分区 (d回车, 2回车), 用默认参数新建分区 (n回车, p回车, 2回车, 回车两次, ), w回车，然后重启，再运行</p>
+<p>sudo resize2fs &#x2F;dev&#x2F;mmcblk0p2</p>
+<p><img src="/images/050516_0715_UbuntuMate13.png"></p>
+<p>重启即可。</p>
+<h2 id="更换软件源为国内源"><a href="#更换软件源为国内源" class="headerlink" title="更换软件源为国内源"></a>更换软件源为国内源</h2><p>别想着直接把mirrors.163.com等的sources.list直接复制过去，是不管用的，因为树莓派是ARM架构的。这里我找到了科大的软件源，顺便吐槽一句，科大的源里东西可真多啊，界面还好看！</p>
+<p>sudo pluma &#x2F;etc&#x2F;apt&#x2F;sources.list</p>
+<p>清空所有内容，添加如下内容（提前做好备份哦！）</p>
+<p>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-updates main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-updates main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-security main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-security main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-backports main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-backports main restricted universe multiverse</p>
+<p>如果你是用的是wily，那就把xenial替换成wily就好了（新版的设置里自带个中国的软件源，直接选就好啦）</p>
+<p>之后尽情的</p>
+<p>sudo apt-get update<br>sudo apt-get upgrade</p>
+<h2 id="安装语言包"><a href="#安装语言包" class="headerlink" title="安装语言包"></a>安装语言包</h2><p>16.04比14.04和15.10大了那么多，果然还是有些道理的，但是依旧有些翻译不完整。</p>
+<p>和Ubuntu差不多，上面的面板里点languages support，之后就会弹出语言支持不完整</p>
+<p><img src="/images/050516_0715_UbuntuMate15.png"></p>
+<p>点安装，输入密码就可以了。速度还是很好的</p>
+<p><img src="/images/050516_0715_UbuntuMate16.png"></p>
+<h2 id="安装openssh-server"><a href="#安装openssh-server" class="headerlink" title="安装openssh-server"></a>安装openssh-server</h2><p>更新源之后</p>
+<p>sudo apt-get install openssh-server</p>
+<p>之后其他电脑用putty之类的就可以了。用户是你设置的用户，密码是你设置的密码。</p>
+<h2 id="1080P显示器有黑边"><a href="#1080P显示器有黑边" class="headerlink" title="1080P显示器有黑边"></a>1080P显示器有黑边</h2><p>sudo pluma &#x2F;boot&#x2F;cofig.txt</p>
+<p>369行，去掉disable_overscan&#x3D;1的注释</p>
+<p>注意，不是前面70多行的HDMI_Mode&#x3D;4那里，别改错了</p>
+<p><img src="/images/050516_0715_UbuntuMate17.png"></p>
+<h2 id="音频默认输出端口"><a href="#音频默认输出端口" class="headerlink" title="音频默认输出端口"></a>音频默认输出端口</h2><h3 id="使用3-5mm或者HDMI输出音频"><a href="#使用3-5mm或者HDMI输出音频" class="headerlink" title="使用3.5mm或者HDMI输出音频"></a>使用3.5mm或者HDMI输出音频</h3><p>#3.5mm<br>sudo amixer cset numid&#x3D;3 1<br>#HDMI<br>sudo amixer cset numid&#x3D;3 2</p>
+<p>这个是全局的。</p>
+<h3 id="omxplayer输出音频端口"><a href="#omxplayer输出音频端口" class="headerlink" title="omxplayer输出音频端口"></a>omxplayer输出音频端口</h3><p>#3.5mm<br>omxplayer -o local video.mp4<br>#HDMI<br>omxplayer -o hdmi video.mp4</p>
+<p>仅对omxplayer有效。如果HDMI和3.5mm都接入了，那么omxplayer默认会输出到HDMI</p>
+<h2 id="VLC和ffmpeg硬件加速"><a href="#VLC和ffmpeg硬件加速" class="headerlink" title="VLC和ffmpeg硬件加速"></a>VLC和ffmpeg硬件加速</h2><p>大概树莓派上最好的播放器就是omxplayer，甚至有人还写了个GUI，TBOPlayer，好想音译成淘宝播放器，GitHub Repo在此：<a target="_blank" rel="noopener" href="https://github.com/KenT2/tboplayer">https://github.com/KenT2/tboplayer</a></p>
+<p>Ubuntu MATE带有VLC，也添加了OpenMax IL硬件解码的支持。</p>
+<h3 id="VLC启用硬件加速"><a href="#VLC启用硬件加速" class="headerlink" title="VLC启用硬件加速"></a>VLC启用硬件加速</h3><p>打开VLC，工具-偏好设置-视频，选择OpenMax IL</p>
+<p><img src="/images/050516_0715_UbuntuMate18.png"></p>
+<p>官网还提了一句，To use hardware accelerated video playback with ffplay you must specify the h264_mmal codec</p>
+<p>ffplay -vcodec h264_mmal video.mp4</p>
+<p>我没有进行测试</p>
+<p>[v_error]注意： 树莓派上的硬件加速是直接把视频输出，所以你看不到暂停、快进什么的播放控制。 所以 ，得用热键……参考如下wiki <a target="_blank" rel="noopener" href="https://wiki.videolan.org/Hotkeys_table/">https://wiki.videolan.org/Hotkeys_table&#x2F;</a>[&#x2F;v_error]</p>
+<h2 id="更改桌面风格"><a href="#更改桌面风格" class="headerlink" title="更改桌面风格"></a>更改桌面风格</h2><p>使用MATE Tweak工具，怀念瘟都死的我啊哈哈，Redmond很像Windows了，而且有好些主题可以换，好色主义的我啊哈哈哈~~</p>
+<p><img src="/images/050516_0715_UbuntuMate19.png"></p>
+<h2 id="监控CPU温度"><a href="#监控CPU温度" class="headerlink" title="监控CPU温度"></a>监控CPU温度</h2><p>懒得上GitHub上找写的非常好的程序了，我这就找了一个非常简单的代码……</p>
+<p>新建文件temp.c</p>
+<p>粘贴入如下内容</p>
+<p>#include<br>#include<br>#include  </p>
+<p>#include &lt;sys&#x2F;types.h&gt;<br>#include &lt;sys&#x2F;stat.h&gt;<br>#include </p>
+<p>#define TEMP_PATH “&#x2F;sys&#x2F;class&#x2F;thermal&#x2F;thermal_zone0&#x2F;temp”<br>#define MAX_SIZE 32<br>int main(void)<br>{<br>    int fd;<br>    double temp &#x3D; 0;<br>    char buf[MAX_SIZE];</p>
+<pre><code>// 打开/sys/class/thermal/thermal\_zone0/temp
+fd = open(TEMP\_PATH, O\_RDONLY);
+if (fd &lt; 0) &#123;
+    fprintf(stderr, &quot;failed to open thermal\_zone0/temp\\n&quot;);
+    return -1;
+&#125;
+
+// 读取内容
+if (read(fd, buf, MAX\_SIZE) &lt; 0) &#123;
+    fprintf(stderr, &quot;failed to read temp\\n&quot;);
+    return -1;
+&#125;
+
+// 转换为浮点数打印
+temp = atoi(buf) / 1000.0;
+printf(&quot;temp: %.2f\\n&quot;, temp);
+
+// 关闭文件
+close(fd);
+</code></pre>
+<p>}</p>
+<p>之后运行</p>
+<p>gcc –o temp temp.c</p>
+<p>会生成一个temp的二进制文件，继续运行</p>
+<p>.&#x2F;temp即可看到CPU温度。</p>
+<p>要想在任何目录都能看到CPU温度，就</p>
+<p>sudo cp temp &#x2F;bin</p>
+<p>任何目录运行temp都能看到CPU温度了——伸手去摸的别怪我哦（别想+x的事啦，是755啦。）</p>
+<p>还记得有个东西叫psensor吗？还有hardinfo（堪称Linux版AIDA64——其实比AIDA64还是有差距的）</p>
+<h2 id="迷之bug"><a href="#迷之bug" class="headerlink" title="迷之bug"></a>迷之bug</h2><p>应该是fcitx的事…？看不到输入法候选框。反正我也只是想拿它做个多媒体中心&#x2F;NAS而已。</p>
+<p><img src="/images/050516_0715_UbuntuMate111.png"></p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>我想了一想，像我这么懒的人，有必要</p>
+<p>alias ai&#x3D;’apt-get install’</p>
+<p>一下了……</p>
+<p><img src="/images/050516_0715_UbuntuMate112.jpg"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/05/05/ubuntumate-raspberry2/index/" data-id="clhp6he3800apezqr91q87z62" data-title="Ubuntu MATE 16.04 for Raspberry 2安装配置" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-letsencrypt-nginx-subdomain/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/25/letsencrypt-nginx-subdomain/index/" class="article-date">
+  <time class="dt-published" datetime="2016-04-25T00:00:00.000Z" itemprop="datePublished">2016-04-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/25/letsencrypt-nginx-subdomain/index/">手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]警告： 国内的大部分服务器会拦截80端口的通信，所以在这种情况下，无论是用webroot还是standalone模式，都是不可能成功签发证书的（因为这俩本质上都是http challenge）。 在这种情况下只能使用DNS challenge了，命令大致如下（renew要稍微麻烦一些）： <code>certbot certonly --manual --preferred-challenges dns</code> 官网详的教程<a target="_blank" rel="noopener" href="https://certbot.eff.org/docs/">戳我</a>[&#x2F;v_error]</p>
+<p>话说Let’s Encrypt已经进入正式版了，咱就来说说怎么签发证书。本人呐，恰巧今日弄了个马甲站<a target="_blank" rel="noopener" href="http://www.shemissed.me,还弄了几个子域名,于是乎就顺便也给弄了let's/">www.shemissed.me,还弄了几个子域名，于是乎就顺便也给弄了Let&#39;s</a> Encrypt吧！</p>
+<p>先声明下我的网站的结构，如果读者和我的建站结构一样，那么，跟着走就可以了！</p>
+<p>使用LNMP1.3一键安装包，nginx版本是1.9.5</p>
+<p>网站目录全部在&#x2F;home&#x2F;wwwroot，其中包含三个子域名（不要管那个default，是我懒得删除了）</p>
+<p><a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a> 主站 <a target="_blank" rel="noopener" href="http://angela.shemissed.me/">angela.shemissed.me</a> 给女神的祝福 <a target="_blank" rel="noopener" href="http://memory.shemissed.me/">memory.shemissed.me</a> 图床</p>
+<p><img src="/images/042516_1416_LetsEncry1.png"></p>
+<p>通过</p>
+<p>lnmp vhost add</p>
+<p>添加了三个子域名，配置为文件如下</p>
+<p><img src="/images/042516_1416_LetsEncry2.png"> [v_blue]关于子域名和二级域名的关系，其实子域名是个相对的概念，就像你是你爸爸的儿子，你儿子是你的儿子一样。而二级域名则是固定的概念，从右侧起第二个.就算二级域名。 纯粹的说，<a target="_blank" rel="noopener" href="http://www.shemissed.me也是shemissed.me的子域名./">www.shemissed.me也是shemissed.me的子域名。</a> 这里我就同一称作子域名啦！[&#x2F;v_blue]</p>
+<p>要注意，Let’s Encrypt并不是泛域名证书（可以签_.abc.com，_就代表泛域名的意思啦）</p>
+<p>现在Let’s Encrypt已经支持泛域名证书啦，使用如下命令，推荐用screen（0.22以后版本）：</p>
+<p>.&#x2F;certbot-auto –server <a target="_blank" rel="noopener" href="https://acme-v02.api.letsencrypt.org/directory">https://acme-v02.api.letsencrypt.org/directory</a> -d *.example.com –manual –preferred-challenges dns-01 certonly</p>
+<p>查询TXT记录</p>
+<p>dig txt example.com</p>
+<p> </p>
+<h2 id="准备Let’s-Encrypt"><a href="#准备Let’s-Encrypt" class="headerlink" title="准备Let’s Encrypt"></a>准备Let’s Encrypt</h2><p>这里有两种方法，一种是包管理器，一种的repo</p>
+<h3 id="包管理器（Ubuntu-16-04）或者官方PPA"><a href="#包管理器（Ubuntu-16-04）或者官方PPA" class="headerlink" title="包管理器（Ubuntu 16.04）或者官方PPA"></a>包管理器（Ubuntu 16.04）或者官方PPA</h3><p>sudo apt install certbot</p>
+<p>PPA</p>
+<p>sudo add-apt-repository ppa:certbot&#x2F;certbot<br>sudo apt-get update<br>sudo apt-get install certbot</p>
+<h3 id="使用GitHub的repo"><a href="#使用GitHub的repo" class="headerlink" title="使用GitHub的repo"></a>使用GitHub的repo</h3><p>找个目录，执行下两句吧</p>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/certbot/certbot">https://github.com/certbot/certbot</a><br>cd certbot</p>
+<p><img src="/images/042516_1416_LetsEncry3.png"></p>
+<p>[v_notice]我该使用那种办法？这两种有何区别 包管理器中的Let’s Encrypt&#x2F;certbot版本比较旧。 当然啦，我个人选择GitHub上最新的，因为支持wildcard哟。 值得注意的是，低版本的并不会兼容高版本的！会出现错误的。 [&#x2F;v_notice]</p>
+<h2 id="使用Let’s-Encrypt生成证书"><a href="#使用Let’s-Encrypt生成证书" class="headerlink" title="使用Let’s Encrypt生成证书"></a>使用Let’s Encrypt生成证书</h2><p>无论使用那种方法，只需要执行certonly即可。 如果你是使用包管理器的，那么就</p>
+<p>letsencrypt certonly</p>
+<h1 id="or"><a href="#or" class="headerlink" title="or"></a>or</h1><p>certbot certonly</p>
+<p>如果你是使用GitHub Repo的，那就cd进对应的目录，然后执行</p>
+<p>.&#x2F;certbot-auto certonly</p>
+<p><img src="/images/042516_1416_LetsEncry4.png"> 此后这两者的步骤是相同的了。 检测并安装环境……此时只需要等待等待……</p>
+<p><img src="/images/042516_1416_LetsEncry5.png"></p>
+<p>很磕碜的界面是不是，PuTTY就这熊样，xshell就没这个问题了。要是有强迫症，就开个screen，就没这么难看啦！</p>
+<p>在这一步很多人选择第一项，包括我自己也曾这样尝试过，不知为何会报”dialog error”，各位如果失败了的话，就停掉web服务器，就<strong>果断选择2</strong>吧！</p>
+<p>我这次讲解就直接从2来了，先停掉web服务器（以Nginx为例）</p>
+<p>service nginx stop</p>
+<p>选择2，回车</p>
+<p>输入你的邮箱</p>
+<p><img src="/images/042516_1416_LetsEncry7.png"></p>
+<p>接受许可条款</p>
+<p><img src="/images/042516_1416_LetsEncry8.png"></p>
+<p>输入你的域名，这里我们先给<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>签，所以就先输入这一个，要记得www哦（而且我并没有解析@）</p>
+<p><img src="/images/042516_1416_LetsEncry9.png"></p>
+<p>[v_blue]有人可能会问了，为什么我看到有的人的证书是abc.com，但是域名却是<a href="http://www.abc.com呢？如图">www.abc.com呢？如图</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/04/2016082714251989.png"><img src="/images/2016082714251989-300x156.png" alt="www和不带www"></a></p>
+<p>其实，在输入域名这一块，你可以输入abc.com,<a target="_blank" rel="noopener" href="http://www.abc.com,然后配置的时候直接选择abc.com的那个证书,就可以啦./">www.abc.com,然后配置的时候直接选择abc.com的那个证书，就可以啦。</a> 至于你想怎么选择，没有太大的安全考虑的情况下，那是随便滴！顺便提一句，这个叫做DNS Name啦……[&#x2F;v_blue]</p>
+<p>回车确定就会提示Congratulations啦。</p>
+<p>证书（fullchain.pem）和私钥（privkey.pem）已经给你放到了&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a></p>
+<p><img src="/images/042516_1416_LetsEncry11.png"></p>
+<h2 id="修改nginx的配置文件"><a href="#修改nginx的配置文件" class="headerlink" title="修改nginx的配置文件"></a>修改nginx的配置文件</h2><p>由于我是自行编译安装的，所以配置文件的路径在&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf</p>
+<p>我们重点需要编辑的是vhost下的那个<a target="_blank" rel="noopener" href="http://www.shemissed.me.conf的配置文件./">www.shemissed.me.conf的配置文件。</a></p>
+<p>没有监听443端口，因此，我们就需要在这后面加入监听443的配置内容。</p>
+<p>conf目录下可以看到一个enable-ssl-example.conf，都看到example了，还寻思啥呢，把这个example的内容全部复制到<a target="_blank" rel="noopener" href="http://www.shemissed.me.conf最下面/">www.shemissed.me.conf最下面</a></p>
+<p>之后我们只需要修改server name, root, ssl_certificate, ssl_certificate_key,并删掉下面多余的监听80的就可以了。我下面把我的完整的配置文件写出来供参考，#后面的是注释。</p>
+<p>[v_error]默认的那个example其实我不太安全的，我根据自己的需求进行了一些更改，感谢<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/1709.html">落格博客</a>！[&#x2F;v_error] 先生成迪菲-赫尔曼密钥 以增强安全</p>
+<p>openssl dhparam -out &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;dhparam.pem 2048</p>
+<p>你所需要做的事情就是<strong>修改网站目录、域名、证书私钥路径</strong>，然后保存。最顺快的情况就是搜索替换<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>为你的域名或者子域。（请注意此配置文件启用了HTTP&#x2F;2、自动跳转到https，有HSTS, X-Frame-Options, X-Xss-Protection, X-Content-Type-Options, Referrer-Policy这几个响应头，会防止一些盗链，请确定这符合你的意愿、并且你的Web服务器支持HTTP&#x2F;2）</p>
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/TLS">最新的配置文件请点击这里</a></strong></p>
+<p>server<br>    {<br>        listen 80;<br>        #listen [::]:80;<br>        server_name <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;<br>        index index.html index.htm index.php default.html default.htm default.php;<br>        root  &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;<br>    rewrite ^(.*)$  https:&#x2F;&#x2F;$host$1 permanent;<br>        #include other.conf;<br>        #error_page   404   &#x2F;404.html;<br>        include enable-php.conf;</p>
+<pre><code>location ~ .\*\\.(ico|gif|jpg|jpeg|png|bmp|swf)$ 
+&#123; expires      30d;
+  valid\_referers none blocked www.shemissed.me \*.google.com \*.baidu.com \*.so.com \*.bing.com;
+  if ($invalid\_referer) &#123;
+  rewrite ^/ https://o51bfbumd.qnssl.com/link.jpg;
+ &#125;
+&#125;
+
+    location ~ .\*\\.(js|css)?$
+    &#123;
+        expires      12h;
+    &#125;
+
+    location ~ /\\.
+    &#123;
+        deny all;
+    &#125;
+
+    access\_log  /home/wwwlogs/www.shemissed.me.log;
+&#125;
+</code></pre>
+<p>server<br>        {<br>        listen 443 ssl http2 ;<br>        #listen [::]:443 ssl spdy;<br>        server_name     <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;     #此处写你的域名<br>        index index.html index.htm index.php default.html default.htm default.php;<br>        root  &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;   #此处写你的网站目录</p>
+<pre><code>ssl on;
+    ssl\_certificate /etc/letsencrypt/live/www.shemissed.me/fullchain.pem;   #此处写你的证书文件的路径
+    ssl\_certificate\_key /etc/letsencrypt/live/www.shemissed.me/privkey.pem;    #私钥，同上
+    
+    ssl\_session\_timeout 20m;
+    ssl\_session\_cache builtin:1000 shared:SSL:10m;
+    ssl\_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl\_prefer\_server\_ciphers on;
+    
+    ssl\_dhparam /etc/ssl/certs/dhparam.pem;
+    ssl\_ciphers &#39;ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA&#39;;
+    
+    ssl\_stapling on;
+    ssl\_stapling\_verify on;
+        
+</code></pre>
+<p>add_header Strict-Transport-Security “max-age&#x3D;63072000; includeSubDomains; preload”;<br>add_header X-Frame-Options “SAMEORIGIN” always;<br>add_header X-Xss-Protection “1; mode&#x3D;block” always;<br>add_header X-Content-Type-Options “nosniff” always;<br>#add_header Public-Key-Pins ‘pin-sha256&#x3D;”YLh1dUR9y6Kja30RrAn7JKnbQG&#x2F;uEtLMkBgFF2Fuihg&#x3D;”; pin-sha256&#x3D;”sRHdihwgkaib1P1gxX8HFszlD+7&#x2F;gTfNvuAybgLPNis&#x3D;”; max-age&#x3D;10; includeSubDomains’;<br>#add_header  Content-Security-Policy  “default-src https: ‘unsafe-inline’ ‘unsafe-eval’ data:;”;<br>add_header Referrer-Policy “no-referrer-when-downgrade”;</p>
+<pre><code>    #error\_page   404   /404.html;
+    include enable-php.conf;
+if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
+    return 403;
+&#125;
+    location /nginx\_status
+    &#123;
+        stub\_status on;
+        access\_log   off;
+    &#125;
+
+   location ~ .\*\\.(ico|gif|jpg|jpeg|png|bmp|swf)$ 
+&#123; expires      30d;
+  valid\_referers none blocked www.shemissed.me \*.google.com \*.baidu.com \*.so.com;
+  if ($invalid\_referer) &#123;
+  rewrite ^/ https://o51bfbumd.qnssl.com/link.jpg;
+ &#125;
+&#125;
+
+    location ~ .\*\\.(js|css)?$
+    &#123;
+        expires      12h;
+    &#125;
+    
+    location / 
+    &#123;
+        try\_files $uri $uri/ /index.php; 
+    &#125;
+
+    access\_log  /home/wwwlogs/www.shemissed.me.log;   #日志文件
+</code></pre>
+<p>}</p>
+<p>保存，然后启动nginx</p>
+<p>service nginx start</p>
+<p>我们访问下，自动跳转了哟，而且启用了HSTS支持。</p>
+<p>小锁头已经出现</p>
+<p><img src="/images/042516_1416_LetsEncry14.png"></p>
+<p> </p>
+<p>PS，SSLLabs可以来测试你的HTTPS安全性哦！<a target="_blank" rel="noopener" href="https://www.ssllabs.com/ssltest/index.html">戳我</a>！</p>
+<p>其他两个子域，大家看着改吧…生成memory.shemissed.me…我玩不动了，要歇菜了。</p>
+<p>大家要注意，let’s encrypt的证书会在90天之后过期，快到期的时候</p>
+<p>.&#x2F;certbot-auto renew</p>
+<p>续期，这就不用说啥了。按照官网的推荐，一天两次cron最好了</p>
+<p>另外，如果用webroot模式，这样申请证书</p>
+<p>certbot certonly –webroot –webroot-path &#x2F;home&#x2F;wwwroot&#x2F;dmesg.app –renew-by-default –email <a href="mailto:&#x31;&#49;&#x31;&#64;&#x31;&#49;&#49;&#x2e;&#x63;&#111;&#109;">&#x31;&#49;&#x31;&#64;&#x31;&#49;&#49;&#x2e;&#x63;&#111;&#109;</a> –text –agree-tos -d dmesg.app</p>
+<p>Nginx里这么配置</p>
+<p>location ~ &#x2F;.well-known {<br>        allow all;<br>    }</p>
+<p>对呢，由于咱用的standlone模式，所以要关掉webserver才能续期成功，方法之一是写个bash脚本判断上一条命令返回值，方法之二是用hook，比如说：</p>
+<p>certbot renew --pre-hook “service nginx stop” --post-hook “service nginx start”</p>
+<hr>
+<h1 id="其他的一些小问题"><a href="#其他的一些小问题" class="headerlink" title="其他的一些小问题"></a>其他的一些小问题</h1><h2 id="HTTP自动跳转HTTPS"><a href="#HTTP自动跳转HTTPS" class="headerlink" title="HTTP自动跳转HTTPS"></a>HTTP自动跳转HTTPS</h2><p>啥都别说啦，在每个vhost的80的server段加个</p>
+<p>rewrite ^(.*)$  https:&#x2F;&#x2F;$host$1 permanent;</p>
+<p>在</p>
+<p>root &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;</p>
+<p>这一行下加就行。实测在nginx.conf加这一句是没有用滴……（Apache就用.htaccess吧）</p>
+<p>顺便提一句，如果是apache的话，思路也是一样的。同样以我【本站】的配置文件为例（很不幸本站没有vhost啊……），修改httpd-ssl.conf中的</p>
+<p>SSLCertificateFile “&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;dmesg.app&#x2F;fullchain.pem”<br>SSLCertificateKeyFile “&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;dmesg.app&#x2F;privkey.pem”<br>DocumentRoot “&#x2F;home&#x2F;wwwroot&#x2F;default”<br>ServerName dmesg.app:443</p>
+<p>自己看着改吧……我可懒得折腾这网站的vhost了</p>
+<h2 id="裸域自动跳转www二级域"><a href="#裸域自动跳转www二级域" class="headerlink" title="裸域自动跳转www二级域"></a>裸域自动跳转www二级域</h2><p>首先要设置@解析到你的IP，然后在nginx.conf中，在80的server段下添加如下内容</p>
+<p>if ($host &#x3D; ‘shemissed.me’ )<br>{<br>  rewrite  ^&#x2F;(.*)$ <a target="_blank" rel="noopener" href="https://www.shemissed.me/$1">https://www.shemissed.me/$1</a> permanent;<br>}</p>
+<h2 id="WordPress-404"><a href="#WordPress-404" class="headerlink" title="WordPress 404"></a>WordPress 404</h2><p>在443段下添加如下即可！</p>
+<p>location &#x2F; {<br>     try_files $uri $uri&#x2F; &#x2F;index.php;<br>}</p>
+<h2 id="Typecho-404"><a href="#Typecho-404" class="headerlink" title="Typecho 404"></a>Typecho 404</h2><p>在对应的443段添加如下信息（仅限于那些使用了lnmp1.3一键安装包的人哟，其他方式的不敢保证成功率。但是就是php path info的事情而已）</p>
+<p>include typecho.conf;<br>include enable-php-pathinfo.conf;</p>
+<h2 id="写后谈"><a href="#写后谈" class="headerlink" title="写后谈"></a>写后谈</h2><p>nginx配置文件真是简单易懂啊……还好编辑！</p>
+<p>当初我就为了个WP Super Cache选择了Apache……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/04/25/letsencrypt-nginx-subdomain/index/" data-id="clhp6he0c0041ezqr3ad25uhq" data-title="手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ubuntu16-04-wifi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/23/ubuntu16-04-wifi/index/" class="article-date">
+  <time class="dt-published" datetime="2016-04-23T00:00:00.000Z" itemprop="datePublished">2016-04-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/23/ubuntu16-04-wifi/index/">Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天Canonical放出了Ubuntu 16.04，代号Xenial Xerus。究竟改了啥我是不清楚，反正装着玩嘛，作为小白的我今天就测试了一下下，发现了一个从14.04开始就存在的bug——<strong>无法开启无线</strong>。</p>
+<p>具体症状就是，Ubuntu认得我的网卡，但是开启无线的时候，却毫无反应；设置里开启可以看到开了立刻又关了。 [v_blue]请注意，如果是Ubuntu没你无线网卡的驱动，自己下载make去吧。[&#x2F;v_blue]</p>
+<p>通过研究可以发现，Ubuntu是认得我的无线网卡<strong>AR9485</strong>，是一些设置上的问题导致无法使用。通过Ubuntu Community、forum和自己的探索，终于找到了解决方案！各位看官就跟我来看我是怎么解决这个问题的。</p>
+<p>首先按照当初14.04的办法，打开终端执行</p>
+<p>sudo rmmod acer-wmi</p>
+<p>之后注销下</p>
+<p>理论上来说就应该可以了，我们来看个图：</p>
+<p><img src="/images/042316_1056_Ubuntu16041.png"></p>
+<p>提示设备未就绪，什么鬼！</p>
+<p>继续打</p>
+<p>rfkill list all</p>
+<p><img src="/images/042316_1056_Ubuntu16042.png"></p>
+<p>发现无线网卡0的 Soft blocked是yes，也就是产生了软阻塞。</p>
+<p>下面还有个Hard blocked，这都是什么意思呢？</p>
+<p>大家可能有注意到，大部分笔记本都是有一个组合键控制WiFi开关的（比如说我的是Fn+F2），有一些甚至是硬件开关。这里的 Hard blocked指的就是这个硬件开关，如果是yes，那就是无线网卡关闭啦。而Soft blocked指的是系统层面的”开关”</p>
+<p>注意：这里有些人可能都会是yes，请用组合键打开自己的无线网卡！</p>
+<p>那我们就把第一个的yes改成no不就成了……</p>
+<p>没错就是这样</p>
+<p>rfkill unblock all</p>
+<p>正常来说你的无线网卡就正常了，可以搜索到无线信号了；不正常你就注销&#x2F;重启下<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/04/2016042312445854.png"><img src="/images/2016042312445854-638x1024.png" alt="21"></a></p>
+<p>难道一个unblock就解决问题了吗？不信我再block给你看</p>
+<p><img src="/images/042316_1056_Ubuntu16044.png"></p>
+<p>可是每次开机都这么执行一遍，很痛苦的哎，还得注销呢……</p>
+<p>那就跟我来！</p>
+<p>sudo nano &#x2F;etc&#x2F;modprobe.d&#x2F;blacklist.conf</p>
+<p>最后一行加入</p>
+<p>blacklist acer-wmi</p>
+<p>如图所示</p>
+<p><img src="/images/042316_1056_Ubuntu16045.png"></p>
+<p>Ctrl + X保存退出。之后就万事大吉什么都不用你管啦！</p>
+<p>好像这Ubuntu 16.04也没感觉到有啥长进……但是Bug 10却有很多长进……就不说进入桌面右下角不是少音量就是少网络连接要不就是没有IME了 :mad:  :mad:</p>
+<p><img src="/images/042316_1056_Ubuntu16046.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/04/23/ubuntu16-04-wifi/index/" data-id="clhp6he3700anezqr2eyz9g6d" data-title="Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-encryption-gpg-veracrypt/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/03/encryption-gpg-veracrypt/index/" class="article-date">
+  <time class="dt-published" datetime="2016-04-03T00:00:00.000Z" itemprop="datePublished">2016-04-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/03/encryption-gpg-veracrypt/index/">2016版：密码学科普，兼谈GnuPG和VeraCrypt</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="零-荐书"><a href="#零-荐书" class="headerlink" title="零.荐书"></a>零.荐书</h2><p>近期看了本结城浩的《图解密码技术》，感觉真心不错，翻到了自己最开始写的幼稚无比的文章，简直无语啦。有必要将此文章推倒重来……也怪那个时候我还不会写文章！所以，嘿嘿，重新写咯！</p>
+<h2 id="一-加密术的必要性"><a href="#一-加密术的必要性" class="headerlink" title="一.加密术的必要性"></a>一.加密术的必要性</h2><p>有些同学以为，自己既不是影视明星，又不是恐怖分子，不需要采用文件加密之类的工具，那就大错特错啦。俺大致介绍一下，文件加密的用武之地。</p>
+<p>强烈推荐阅读编程随想博文，原文地址为：<a target="_blank" rel="noopener" href="http://program-think.blogspot.com/2011/05/file-encryption-overview.html">http://program-think.blogspot.com/2011/05/file-encryption-overview.html</a></p>
+<h3 id="防范失窃"><a href="#防范失窃" class="headerlink" title="防范失窃"></a>防范失窃</h3><p>失窃，这年头移动设备越来越多流行，设备丢了，被顺走的可能也会增加。想想啊，东西一丢，上面的各种隐私资料、甚至包括浏览器自动保存的账号密码，不就都泄露了吗？</p>
+<h3 id="保护个人隐私"><a href="#保护个人隐私" class="headerlink" title="保护个人隐私"></a>保护个人隐私</h3><p>不要说自己是个光明正大的人，有什么隐私可以保护？如果是这样，为何要用信封呢？怎么不脱光光出去呢？</p>
+<p>另外，有些人家里是公用电脑的，那你上网下的小黄片、或者是艳照什么的，被看到了多不好，所以也要加密的。</p>
+<h3 id="加密个人数据"><a href="#加密个人数据" class="headerlink" title="加密个人数据"></a>加密个人数据</h3><p>一些东西备份到移动硬盘上，某天要借人，但是你又不想让他看到你的东西——或者上传到各种”云盘”，党国嘛，是很关心俺们屁民的隐私的。具体原因你懂的。</p>
+<h3 id="对抗极权统治"><a href="#对抗极权统治" class="headerlink" title="对抗极权统治"></a>对抗极权统治</h3><p>这一点，恐怕是现代密码学发展到今天最伟大的用途之一：终于有了一种工具与方式，可以让普通到不能普通的人和国家机器斗争，尤其是极权的国家机器。</p>
+<p>如果你是某些习惯抹黑党国的人（党国本来就黑，还抹什么啊），或者是民权人士、持不同政见者，那被查水表之后，电脑被收走，说不定要牵扯出多少人。</p>
+<h2 id="二-密码泛谈"><a href="#二-密码泛谈" class="headerlink" title="二.密码泛谈"></a>二.密码泛谈</h2><h3 id="对称密码"><a href="#对称密码" class="headerlink" title="对称密码"></a>对称密码</h3><p>对称密码全名叫做”对称密钥加密”，是密码学中的一类加密算法。这类算法在加密和解密时使用相同的密钥，或是使用两个可以简单地相互推算的密钥。非常著名的标准有DES（已经不再推荐使用、三重DES、AES）。对称密码有ECB、CBC、CFB、OFB、CTR五种分组模式。有兴趣的小伙伴可以去自行维基。</p>
+<h3 id="非对称密码"><a href="#非对称密码" class="headerlink" title="非对称密码"></a>非对称密码</h3><p>在对称密码中，存在一个非常bug的问题：如何配送密钥。直接发送密钥吧，很容易被窃取到；面交似乎还挺费事的。再给密钥进行加密，也不过是转移了安全配送的对象而已。</p>
+<p>为了解决这种配送密钥的问题，人们总结出了以下几种方法：</p>
+<p><strong>事先预共享密钥、密钥分配中心、Diffie-Hellman密钥交换、公钥密码。</strong></p>
+<p>我们要说的就是这个公钥密码，也被称作非对称加密。在这种密码学方法中，需要一对密钥，一个是私人密钥，另一个则是公开密钥。我们称公开的密钥为公钥；不公开的密钥为私钥。这两个密钥是数学相关的，用某用户公钥加密后所得的信息，只能用该用户的私钥才能解密。如果知道了其中一个，并不能计算出另外一个。因此如果公开了一对密钥中的一个，并不会危害到另外一个的秘密性质。</p>
+<p>通常，我们都使用公钥进行加密、而私钥进行解密；但是也有一个例外，在签名上，我们就使用私钥加密、公钥解密。为何如此？我写了一个工具，用私钥签了名，只有我才可以签名，而持有公钥的大众都可以对其进行验证</p>
+<p>对称加密中，私钥就像是一把钥匙。可以用钥匙把东西锁到盒子里（加密），也可以用钥匙打开盒子（解密）。对称加密的密钥可以加密、解密。这也就意味着如果私钥泄露，隐私不在。那么问题就来了，你怎么保证私钥可以被安全传输而不被第三方获取？</p>
+<p>非对称加密中，密钥体系分成公约和私钥。顾名思义，公开的密钥和私有的密钥。公钥是公开出去的，任何人都可以用这个公钥来加密文件，但是加密之后只能用私钥才能解开。这也就意味着，只要私钥保存好，那么加密就是接近完美的。</p>
+<h3 id="混合密码系统"><a href="#混合密码系统" class="headerlink" title="混合密码系统"></a>混合密码系统</h3><p>通常来说，公钥密码的运算速度要远远比不上对称密码的运算速度，而且公钥密码也往往需要更长的长度才足以保证不被暴力破解。混合密码体系是什么呢？</p>
+<p>简而言之，就是我想要用对称密码的密钥来进行加密，首先就要把密钥分享给对方。那么就让对方生成一个密钥对，将公钥公开给我，然后我用他的公钥加密我的会话密钥，当然这是对称密码的密钥，然后将加密之后的结果返还给对方，也只有他才可以解密，这样他就得到了我的对称密码的密钥，之后就可以愉快的通信啦。</p>
+<p>实际上，上述所述，恰恰是SSL&#x2F;TLS的做法中的一部分。</p>
+<p>有童鞋可能会问，那遇到中间人咋办？如果有童鞋这么想，那是真的要表扬下！抵抗中间人劫持，这就是消息认证码、数字签名、证书的事情了！</p>
+<h2 id="三-GnuPG实战：非对称密码"><a href="#三-GnuPG实战：非对称密码" class="headerlink" title="三.GnuPG实战：非对称密码"></a>三.GnuPG实战：非对称密码</h2><h3 id="加密文件："><a href="#加密文件：" class="headerlink" title="加密文件："></a>加密文件：</h3><h4 id="创建密钥对"><a href="#创建密钥对" class="headerlink" title="创建密钥对"></a>创建密钥对</h4><p>首先，你得准备个<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/gpg4win-2.2.6.exe">GPG</a>，然后你得安装，然后捏，你得给它打开（名为Kleopatra），哦，My lady in red, is dancing with me~</p>
+<p>这非对称加密啊，你不就得弄俩密钥出来么是吧。那怎么弄出来呢？大部分人都喜欢看图，那么我们就以图为准吧。</p>
+<p>依次点击File-New Certificate-Create a personal OpenPGP pair</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%BC%80%E5%A7%8B.png"><img src="/images/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%BC%80%E5%A7%8B.png" alt="创建密钥开始"></a></p>
+<p>两个必填项，最后一个comment强烈建议填写下，免得忘记是干嘛的了。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9%E8%BF%87%E7%A8%8B.png"><img src="/images/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9%E8%BF%87%E7%A8%8B.png" alt="创建密钥对过程"></a></p>
+<p>点击Advanced Settings可以设置高级选项，关于RSA这种基于分解质因数的数学上几乎不可能原理，大家伙可以自行搜索。RSA的密钥长度默认2048位的就已经够强大了，目前的RSA暴破的世界纪录是768bits。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E9%AB%98%E7%BA%A7%E8%AE%BE%E7%BD%AE.png"><img src="/images/%E9%AB%98%E7%BA%A7%E8%AE%BE%E7%BD%AE.png" alt="高级设置"></a></p>
+<p>点击Next，Create Key，咦，竟然要输入个密码？这个密码是用来保护私钥的，哪怕私钥丢失，不知道密码也是无法解密滴。国际惯例，别用123456qwertyuio这类弱密码。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E8%AE%BE%E7%BD%AE%E5%AF%86%E7%A0%81.png"><img src="/images/%E8%AE%BE%E7%BD%AE%E5%AF%86%E7%A0%81.png" alt="设置密码"></a></p>
+<p>哟，创建成功啦，可以考虑把私钥备份下。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9.png"><img src="/images/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9.png" alt="创建密钥对"></a></p>
+<p>前面提到过，公钥是用来加密的，可是刚才导出的是私钥啊，公钥呢？别急，选中证书，右键，Export Certificate就可以啦。用记事本打开那个asc文件，里面的内容就是公钥，可以放到博客、网页上，别人就可以用这个来加密文件发给你。</p>
+<h4 id="使用公钥加密文件"><a href="#使用公钥加密文件" class="headerlink" title="使用公钥加密文件"></a>使用公钥加密文件</h4><p>上一步已经到处了公钥，这里我就暂时化身为别人，用公钥加密一个文件。</p>
+<p>加密方需要打开GPG，File-Import Certificate导入别人发给你的公钥。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%AF%BC%E5%85%A5%E5%85%AC%E9%92%A5.png"><img src="/images/%E5%AF%BC%E5%85%A5%E5%85%AC%E9%92%A5.png" alt="导入公钥"></a></p>
+<p>之后加密文件，选择File-Sign&#x2F;Encrypt Files，选择要加密的文件</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A41.png"><img src="/images/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A41.png" alt="加密步骤1"></a></p>
+<p>点击Next，选择证书（公钥），然后点add添加进去。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E9%80%89%E6%8B%A9%E5%8A%A0%E5%AF%86%E7%A7%81%E9%92%A5.png"><img src="/images/%E9%80%89%E6%8B%A9%E5%8A%A0%E5%AF%86%E7%A7%81%E9%92%A5.png" alt="选择加密私钥"></a></p>
+<p>之后点击Encrypt，提示说，加密之后，你自己就看不了啦！好的我们确定继续。如果勾选了加密之后删除源文件，又会提示，会删掉源文件呀！</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A42.png"><img src="/images/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A42.png" alt="加密步骤2"></a></p>
+<p>根据不同的文件大小，加密也会用不同的时间。加密完成后将会在源文件目录下生成一个扩展名为pgp的文件，把这个文件发给你的朋友吧！（也就是给你公钥的那个人）。</p>
+<p>因为非对称加密只有用私钥才能解密，所以你大可以把这个文件公开了，没对应的私钥，是解密不了滴！</p>
+<h4 id="使用私钥解密文件"><a href="#使用私钥解密文件" class="headerlink" title="使用私钥解密文件"></a>使用私钥解密文件</h4><p>哟我那个狐朋狗友给我回信了，快来看看吧！</p>
+<p>File-Decrypt&#x2F;Verify Files，选择文件，点击Decrypt&#x2F;Verify，选择对应的私钥，输入为私钥设置的密码（为了保护私钥不泄露），好的解密成功了，你的文件回来了。</p>
+<hr>
+<p>其实，非对称的加密速度是很慢的，大概只有对称的及百分之一。但是，GnuPG的最大用途可能就是<strong>加密邮件</strong>了吧！哪怕邮箱密码泄露了，邮件内容也不会被看懂。我的GPG公钥<a target="_blank" rel="noopener" href="https://dmesg.app/my-gpg">在这里</a>，从网站导航上你也可以看到。如果你给我用这玩意发邮件了，我就会觉得你很牛逼，很厉害的样子。当然啦，别忘记再邮件里附上你的公钥！</p>
+<h3 id="我们来演示下！加密邮件"><a href="#我们来演示下！加密邮件" class="headerlink" title="我们来演示下！加密邮件"></a>我们来演示下！加密邮件</h3><p>[v_blue]友情提示： 如果你与一个人第一次使用GPG，推荐将PGP Message贴到邮件正文中并在附件中添加你的公钥（或是在邮件内容中指引对方下载你的公钥）；或者将邮件内容和你的公钥打包加密。当你确定对方有Enigmail这类插件的时候，再使用对应的插件、工具。以免你的邮件变成天书。[&#x2F;v_blue]</p>
+<p>下面我们简单的试试PGP Message吧！ 首先，要创建密钥对，然后把公钥共享出去。这里我用虚拟机来替代与我秘密通信的坏人。</p>
+<p>将公钥拖进Kleopatra的界面里，就可以看到Imort Certificate，选择这项，之后会看到自己的列表里出现了这一项公钥。</p>
+<p><img src="/images/040316_0603_1.png"></p>
+<p>之后呢，我们自然要用某种文本编辑器写我们的邮件。某坏人就写了好多好多字，然后按下Ctrl + C放到剪贴板里。</p>
+<p>之后此坏蛋就点了Clipboard-Encrypt</p>
+<p><img src="/images/040316_0603_2.png"></p>
+<p>点击左下角的Add Recipient，好家伙，竟然没有博主本人的公钥？别急，右上角选择All certificate就有了。</p>
+<p><img src="/images/040316_0603_3.png"></p>
+<p>底下会出现一行警告，这密钥你这坏人只有<strong>公钥</strong>啊，<strong>加密了你就解不开了啊</strong>。</p>
+<p>点Next，加密成功。咦？咋回事？怎么成功了？文件呢？</p>
+<p>别急，剪贴板里呢。</p>
+<p>粘贴一下看看。反正是个人类都看不懂了……</p>
+<p><img src="/images/040316_0603_4.png"></p>
+<p>邮件又回到了本人这里，加密了之后，那我有私钥，咋解密呢？Ctrl + C复制下，Clipboard – Decryt&#x2F;Verify，输入你的私钥密码。</p>
+<p>提示操作成功，没有找到签名，什么鬼？</p>
+<p>还是别急，粘贴下就有了……</p>
+<p><img src="/images/040316_0603_5.png"></p>
+<p>成功复原邮件，yeah！</p>
+<h2 id="四-VeraCrypt实战"><a href="#四-VeraCrypt实战" class="headerlink" title="四.VeraCrypt实战"></a>四.VeraCrypt实战</h2><p><a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/VeraCrypt%20Setup%201.14.exe">VeraCrypt</a>这货就是大名鼎鼎的TrueCrypt的后身。官网为<a target="_blank" rel="noopener" href="http://veracrypt.codeplex.com/">http://veracrypt.codeplex.com/</a></p>
+<h3 id="创建加密卷"><a href="#创建加密卷" class="headerlink" title="创建加密卷"></a>创建加密卷</h3><p>首先还得下载，之后呢，可以选择安装，或者Extract（提取），这货就瞬间变成绿色软件了。这两者有啥区别呢？安装版本可以加密系统盘。编程随想总结了四篇非常棒的TrueCrypt文章，本人已将其保存为mhtml，有兴趣可以下载阅读。</p>
+<p>在这只介绍下<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/VeraCrypt%20Setup%201.14.exe">VeraCrypt</a>的简单用法。</p>
+<p>打开它，看不惯英文就Settings-Language，选择简体中文。点击主界面下方的创建加密卷，看图走。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151612.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151612.png" alt="QQ截图20150924151612"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151625.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151625.png" alt="QQ截图20150924151625"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151722.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151722.png" alt="QQ截图20150924151722"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151758.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151758.png" alt="QQ截图20150924151758"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151840.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151840.png" alt="QQ截图20150924151840"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151859.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151859.png" alt="QQ截图20150924151859"></a></p>
+<p>密码：一定要很复杂哦！人永远是最大的弱点嘛。</p>
+<p>密钥文件，VC很牛逼的地方就是可以选择一个或者多个文件作为密钥，哪怕只知道密码、没有文件也是无法解密滴！其中，密钥文件可以随机生成，也可以随意选择自己的文件，比如说歌曲啊程序啊等等，但是一定要妥善保存。</p>
+<p>随意移动鼠标，越长越好，一般来说半分钟就足够啦，然后点击格式化。此处不会格式化你的分区，只会格式化那个设置好的卷文件（在这里我的是test）。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924152110.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924152110.png" alt="QQ截图20150924152110"></a></p>
+<p>好哒加密卷创建完了，E盘下也看到了那么个100M的文件，那么怎么加密数据呢？</p>
+<h3 id="挂载加密卷"><a href="#挂载加密卷" class="headerlink" title="挂载加密卷"></a>挂载加密卷</h3><p>加密卷-选择文件，选择刚刚创建的加密卷文件，点加载，输入密码、如果有的话还要加入密钥文件。</p>
+<p>稍等一会，会发现资源管理器里已经蹦出来了一个新的盘符，还等什么，这就和平常的分区一模一样，爱干什么干什么，用完记得点击卸载！</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924152421.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924152421.png" alt="QQ截图20150924152421"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924152444.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924152444.png" alt="QQ截图20150924152444"></a></p>
+<p>加密卷文件可以复制到U盘里，移动使用。</p>
+<h3 id="隐藏卷"><a href="#隐藏卷" class="headerlink" title="隐藏卷"></a>隐藏卷</h3><p>你这和上面的也没区别啊 ，我被人拿枪顶着，还得老老实实的打密码啊。</p>
+<p>接下来就来隐藏卷了。</p>
+<p>怎么解释呢？有这么一个卷，一个叫外层加密卷，一个叫内层隐藏卷。两个卷拥有不同的密码以及Keyfiles。当你输入外层密码，打开的是外层的东西，输入内层密码，打开的是内层的东西。这样当被胁迫的时候，就可以很不情愿的输入外层密码，让胁迫者看到一些无关紧要的文件从而躲过一劫。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924153540.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924153540.png" alt="QQ截图20150924153540"></a></p>
+<p>说了一堆废话，隐藏卷咋弄？</p>
+<p>还是“创建加密卷”，加密卷类型选择隐藏的，有常规模式和直接模式。常规模式就是，我新弄个文件作为加密卷；直接模式，使用现有的。跟着向导来，先输入设置外层，再设置内层。被胁迫的时候不要输入错啦！</p>
+<p>之后挂载的时候，输入外部卷密码，打开外部卷。输入内部卷密码，打开内部卷。</p>
+<p>注意，外部卷容量总要大于内部卷，而且如果向外部卷写入大量文件，很有可能影响内部卷。具体请参阅<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/TrueCrypt_program-think.7z">编程随想博文</a>。已经帮打包好了，解压缩密码为program-think</p>
+<h2 id="五-写后谈"><a href="#五-写后谈" class="headerlink" title="五.写后谈"></a>五.写后谈</h2><h3 id="1-隐蔽式安全性"><a href="#1-隐蔽式安全性" class="headerlink" title="1.隐蔽式安全性"></a>1.隐蔽式安全性</h3><p>密码学中，有很多违背人类常识的悖论：越是公开的算法，反而越安全；那些号称保密的算法，其安全性往往不堪一击。密码算法的秘密早晚会被公之于世：好似加密再牛逼的游戏最终都难逃破解一样，君不见DVD的DRM、RSA公司的RC4。那些依赖算法保密而”保密”的加密，一旦算法泄露，也就没有秘密可言了；而那些根本就没想保密的算法，公开算法对其加密性也没有影响。</p>
+<h3 id="2-密码学只是信息安全的一部分"><a href="#2-密码学只是信息安全的一部分" class="headerlink" title="2.密码学只是信息安全的一部分"></a>2.密码学只是信息安全的一部分</h3><p>某博主说得好，你的密码经得住破解但是你人经得住揍吗？</p>
+<p>加密在某种程度上来说，是”防君子不防小人”的。越是安全的系统，其最大的弱点往往越在于人。</p>
+<h3 id="3-任何密码总有被破解的一天"><a href="#3-任何密码总有被破解的一天" class="headerlink" title="3.任何密码总有被破解的一天"></a>3.任何密码总有被破解的一天</h3><p>只要尝遍所有可能的密钥，也就意味着破解——只不过有的需要几分钟，有的需要1000年。密码学的保密指的是在有限意义的时间内无法破解，你丫都死了我破解了之后怎么给你的尸骨定罪吗？</p>
+<h3 id="4-密码学的发展是全人类的福祉"><a href="#4-密码学的发展是全人类的福祉" class="headerlink" title="4.密码学的发展是全人类的福祉"></a>4.密码学的发展是全人类的福祉</h3><p>引用<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">《如何防范网络审计》</a>里的话：</p>
+<blockquote>
+<p>要不是密码学的发展，哪能给一个普通人和国家机器、哪怕是全世界的人斗争的可能？ 在信息时代之前，就几乎已经注定了个人几乎无法匹敌政府，个人往往在任何一个方面都是非常渺小的…… 举个例子，一个人能造什么武器？顶多是把枪，而政府却能制造出飞机坦克甚至是核武器。 不光是”武器”，其它领域（比如交通工具）也差不多。在信息时代之前，个人吖那个渺小。 信息时代之后，其实大部分领域也并没有什么变化。你现在能造出来坦克？能玩的出来高铁？别逗了。 但是密码学是个例外。 多亏了当初PGP创始人Philip Zimmermann的抗争，他抵着被无数爱国者们骂成卖国贼的心理压力、抵着被FBI抓走坐牢的压力，义无反顾的发布了PGP——当然，靠着宪法修正案第一条他出口了一本书，书里的内容就是PGP的源代码。（二战以来，密码学一直被大部分国家认作军事机密，所以是禁止出口的。大家晓得图灵不） 如今，随意一个人都可以在网上下载到一些非常优秀的加密工具，稍微学习几分钟，就可以进行<strong>高高高高高强度加密</strong>。而政府方面即使用上超级计算机，也只好干瞪眼。 当然了这无法解密是说，在有意义的时间内无法解密，比如说一百年一千年。 在密码学上，俺们屁民，是和政府们平起平坐的。</p>
+</blockquote>
+<h2 id="六-我的GPG公钥"><a href="#六-我的GPG公钥" class="headerlink" title="六.我的GPG公钥"></a>六.我的GPG公钥</h2><p>为了显得我很牛逼很厉害，在这里我再次奉上<a target="_blank" rel="noopener" href="https://dmesg.app/my-gpg">我的公钥</a>，大家戳去看看。你可以选择兼容Enigmail的工具，也可以直接贴PGP Message，或者附件加密。但是无论如何都<strong>不要忘记附加你的公钥</strong>。某天如果你这么发邮件了，我会觉得你这个人超厉害的。我猜在上面的菜单里你也看到了大大的公钥这两个字。</p>
+<h2 id="七-备注补遗"><a href="#七-备注补遗" class="headerlink" title="七.备注补遗"></a>七.备注补遗</h2><p>如果你使用Linux发行版，那么你也同样可以使用GPG的！ 对称加密来说，VeraCrypt有Linux版，也可以<a target="_blank" rel="noopener" href="https://dmesg.app/ubuntu-compile-vc.html">自行编译</a>； 非对称加密来说，Gnmoe环境下可以使用Seahorse，加密解密PGP Message可以使用<code>gpg2 -d</code>和<code>gpg2 -e -a</code>（加a选项使用ASCII Armor免得成乱码），这里就不讲教程了，既然已经入了Linux，还不会自己折腾这个嘛！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/04/03/encryption-gpg-veracrypt/index/" data-id="clhp6hdz0002bezqrfvo50i47" data-title="2016版：密码学科普，兼谈GnuPG和VeraCrypt" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-domain-lucky-too-lucky/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/30/domain-lucky-too-lucky/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-30T00:00:00.000Z" itemprop="datePublished">2016-03-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>►<a class="article-category-link" href="/categories/justsay/gfw/">gfw</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/30/domain-lucky-too-lucky/index/">互联网域名管理办法：有生之年和三生有幸</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>疫苗的事过去了没？对俺们搞IT的人，还有更火的一件事情。</p>
+<p>我们来谈谈天朝工信部最近的《互联网域名管理办法》</p>
+<p>不懂行的人可能完全不知道这是什么玩意，甚至会有无脑<a target="_blank" rel="noopener" href="http://world.huanqiu.com/exclusive/2016-03/8791525.html">花样洗地的文章</a>。</p>
+<p>你这也是真不容易，whois到头才发现这么一个在国内注册的国内大站。</p>
+<p> </p>
+<p>我也不是那么懂行，呵呵，但是我可以告诉你，TMD这就是<strong>倒挡</strong>踩死油门！</p>
+<p>域名是啥？<a target="_blank" rel="noopener" href="http://www.baidu.com就是个域名,需要有dns将其转换成ip,因为计算机只认ip不认域名./">www.baidu.com就是个域名，需要有DNS将其转换成IP，因为计算机只认IP不认域名。</a></p>
+<hr>
+<p>情况呢，是这样的：</p>
+<p>话说以前，很早的时候，域名可以随意注册的，空间可以随意买的，怎么解析、解析到哪，不管。</p>
+<p>后来敬爱的党妈妈觉得这不行啊，这谁都整个网站，说点啥我不喜欢的事，我还不好查水表，不行，我得管管。于是乎，在撵走了Google之前或者之后，出台了一个域名备案——CN这个域名啊，你得备案，把你的身份信息什么的都给我，我才给你解析。但是com这种国际域名呀，解析到国外我们还是暂时允许的……</p>
+<p>再后来呢，就是今天：既然你要在大陆开网站，嘿嘿嘿，那你域名要在大陆注册，解析也要解析到大陆，嘿嘿嘿嘿嘿。</p>
+<hr>
+<p> </p>
+<p>事情就是这么个事情，这TMD就是脑门一热一拍屁股，这TMD就是白名单的前奏！等这事落实了，我建议某部门先拔了百度啊搜狐啊网易的网线，反正他们都是在国外域名商注册的。</p>
+<p>其实这些国内的还不是问题，微软、苹果、英特尔等等这些对于中国经济发展非常重要的外资或者跨国企业——没有哪家跨国企业能接受自己的主域名被中国企业控制，这也意味着将外资互联网企业赶出中国。</p>
+<p>这中国企业就是节操在银河系之外的阿里。</p>
+<p>我无数次的说过，所有带”根”的东西，尽量别让中国（政府）染指——根域名服务器、根证书都是血淋漓的例子。</p>
+<p>引用月光博客的话，</p>
+<blockquote>
+<p>根据《中国互联网域名管理办法（修订征求意见稿）》第五十条，擅自篡改域名解析信息或者将域名解析指向他人IP地址的，可以视情节轻重并处一万元以上三万元以下的罚款，我举报中国有一个神秘部门，擅自将Facebook的域名解析到一个阿塞拜疆的IP地址，请对其罚款一万元。</p>
+</blockquote>
+<p>我勇敢的打开了<a target="_blank" rel="noopener" href="http://zqyj.chinalaw.gov.cn/index">国务院法务办公室</a>想投上我这无足轻重的反对票——请你们好点建设服务器，我知道你们手法拙劣，但是也不带这么玩的啊！一投票就让我回到首页。<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/41864611">大家可以看知乎这里</a></p>
+<p>还好，今晚我勇敢的成功的给37条投上反对票。</p>
+<p>我想起了几年前的事。2012年，国际电联在阿联酋开了个会，国际电信世界大会，以失败告终——互联网躲过一劫。那一年Google开了一个”<a target="_blank" rel="noopener" href="https://www.google.com/intl/zh-CN/takeaction/">Take action</a>“ 的页面，呼吁人们反对某个提案——是某几个龌龊国家提出的。值得庆幸的是，但美国等西方国家拒绝在新协议上签字。会议具体情况，<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2012/12/wcit-12.html">编程随想的博客写到了</a></p>
+<p>那一次全世界人们努力躲过了一劫，这一次中国人民呢？</p>
+<p>在德国，起初他们追杀共产主义者，我没有说话——因为我不是共产主义者；接着他们追杀犹太人，我没有说话——因为我不是犹太人；后来他们追杀工会成员，我没有说话——因为我不是工会成员；此后他们追杀天主教徒，我没有说话——因为我是新教教徒；最后他们奔我而来，却再也没有人站出来为我说话了。</p>
+<p>现在啊，古巴都能上Google了，大概只剩下朝鲜和某国了。</p>
+<hr>
+<p> </p>
+<p>以后我们要是自由了，我一定要跟子孙后代们好好讲讲，当初你爷爷我是多牛逼，遁地飞天穿墙都会，你们，差远了。</p>
+<p> </p>
+<p>最后，我只想说一句话，<strong>有生之年，我能够看到这种倒退，也是三生有幸。</strong></p>
+<p>其中有何意义，请各位慢慢揣度……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/30/domain-lucky-too-lucky/index/" data-id="clhp6hdyq001vezqr7c8falh1" data-title="互联网域名管理办法：有生之年和三生有幸" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-diskgenius-mbr2gpt/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/19/diskgenius-mbr2gpt/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-19T00:00:00.000Z" itemprop="datePublished">2016-03-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/19/diskgenius-mbr2gpt/index/">DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>话说，前几天比较忙，因为从Windows 7迁移到Windows 10——顺路从MBR改成了GPT，解决了以前的一个问题。</p>
+<p>以前写过一篇<a target="_blank" rel="noopener" href="https://dmesg.app/newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi.html">《[新手向]无需重装，Windows 7 由BIOS改成UEFI启动》</a></p>
+<p>其实我自己在弄的时候就遇见了这么一个问题：</p>
+<p><img src="/images/031916_1157_DiskGeniusM1.png"></p>
+<blockquote>
+<p>磁盘的首、尾部分没有转换到GUID分区表所必须的空间（除了MBR扇区外还需要各33个扇区）。请先删除分区或者对分区进行调整后再转换。</p>
+</blockquote>
+<p>这个问题属实棘手，怎么搜索也都没解决方案……后来经过我的研究，终于找到了解决解决方案——而且不会丢任何文件！</p>
+<p>DiskGenius提示首、尾部分没有所必须的空间，那咱们就手动的弄出来点空间呗……</p>
+<p>首先必须先启动到PE，然后大部分人的硬盘应该是有很多个分区的，我们就选择最后一个分区，右键-调整分区大小。</p>
+<p>不用多，给后面空出来点，前面也给空出来点就可以。</p>
+<p><img src="/images/031916_1157_DiskGeniusM2.png"></p>
+<p>调整之后硬盘的这个条前后就多出了空白的空间。</p>
+<p><img src="/images/031916_1157_DiskGeniusM3.png"></p>
+<p>再试试转换，噢耶！</p>
+<p><img src="/images/031916_1157_DiskGeniusM4.png"></p>
+<p>你看是GPT了吧！</p>
+<p>后面的空间嘛……愿意就合并回去，不愿意就拉倒。</p>
+<p>一不小心又暴露了我是虚拟机测试的……但是我想说，真实情况也差不多是这样。</p>
+<p>那我是怎么创造出来这种无法转换的情况呢？</p>
+<p>其实很简单啊，一个空白的硬盘，你一个扇区都不丢一点空间都不留的，都给分了就可以了……</p>
+<p> </p>
+<p>管理，献上我的壁纸！啦啦啦！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016031912040444.jpg"><img src="/images/2016031912040444.jpg" alt="Battlefield (57)"></a></p>
+<p>Battlefield 3 - 碎剑者行动→_→英文我忘记了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/19/diskgenius-mbr2gpt/index/" data-id="clhp6hdyo001nezqrdts1gfx1" data-title="DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-timeline-subtitles/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/12/timeline-subtitles/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-12T00:00:00.000Z" itemprop="datePublished">2016-03-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/12/timeline-subtitles/index/">[新手向]如何制作时间轴、字幕和压制影片</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>作为一名字幕组的小小翻译，其实我老早就想写写制作字幕的方法了，结果一直拖到今天。</p>
+<p>今天就以最简单的方式来教教大家如何制作双语字幕，还有卡轴、压制等~</p>
+<p> </p>
+<h2 id="一-扫个盲，编码格式、封装格式"><a href="#一-扫个盲，编码格式、封装格式" class="headerlink" title="一.扫个盲，编码格式、封装格式"></a>一.扫个盲，编码格式、封装格式</h2><p>先来搞清楚一个概念，视频&#x2F;音频编码格式、封装格式。我不是这个领域的绝对专家，但是解释下概念还是可以做到的。</p>
+<h3 id="视频编码格式"><a href="#视频编码格式" class="headerlink" title="视频编码格式"></a>视频编码格式</h3><p>就是一种编码视频的标准（这不是废话吗），目前最流行的莫过于AVC（通常我们叫它H.264）了，还有DivX等等。</p>
+<h3 id="音频编码格式"><a href="#音频编码格式" class="headerlink" title="音频编码格式"></a>音频编码格式</h3><p>就是编码音频的标准，又是一句废话，目前很流行的有AC3，DTS，AAC——很不幸的是前两者是杜比公司的专利，所以很多软件为了避免版权问题，都不会【直接提供】这两者的解码器，所以就会造成”只有图像没有声音”的假象，在iOS上这个现象会更明显。</p>
+<h3 id="封装格式"><a href="#封装格式" class="headerlink" title="封装格式"></a>封装格式</h3><p>我们常见的mp4、mkv、avi等结尾的视频，其实这个”mp4”是封装格式。封装格式是什么意思呢？我们知道一部视频里最起码要有视频流、音频流，可能还会有字幕等其他的”流”。如果把所有的”流”比作水，那么封装格式就是装水的杯子——有的”杯子”设计的很好，就可以装很多种不同的”水”并且利于饮用；而有些杯子设计的不好，可能会像滴管一样，很糟心的。</p>
+<p>现在除非专业人士，否则大部分人都是不太懂这三个”格式”的区别的，但是时刻铭记在心，一个视频文件的扩展名并不代表他的编码格式，AVC可以封装到mkv里，DivX也可以。当然，绝大部分有良心的制作者们都喜欢mkv搭配AVC这种。</p>
+<p>播放器能否流畅完整的播放一个视频也是由这三者共同制约的。</p>
+<p><img src="/images/031216_0537_1.png"></p>
+<p>可以看到这个视频的封装格式是MPEG-4，也就是扩展名是mp4，视频和音频编码分别是AVC、AAC</p>
+<p>其实这个扫盲根本就是废话，不喜欢看就略过嘛……</p>
+<p> </p>
+<h2 id="二-制作字幕的简介"><a href="#二-制作字幕的简介" class="headerlink" title="二.制作字幕的简介"></a>二.制作字幕的简介</h2><p>以我的经历来说，通常会有轴组的人先处理时间轴使字幕和说话配上，然后由翻译进行翻译，然后校对、特效、压制。自己的话只能一人包揽，说着很难但其实很简单。</p>
+<p>先祭上我们组都在使用的字幕处理工具：<strong>TimeMachine</strong>，此工具是使用了Windows Media Player作为播放界面的，所以只要WMP能播放的视频都可以的。加上外挂字幕插件之后会直接在播放窗口上显示字幕，就不用来回切换播放器了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/201603120605578.jpg"><img src="/images/201603120605578-1024x552.jpg" alt="主界面"></a></p>
+<p>界面还是很简洁实用的！</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z'/]TimeM%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z&#39;\]TimeM下载地址\[/dl\]</a></p>
+<p>PS，此工具是由VS2008编译而来，所以在最新的Windows 10上可能不是那么好用，而且有时会抽风不显示字幕，此时需要重装VodSub……</p>
+<p>为此，我将此工具的代码上传到GitHub以GPLv2开源，希望有能力的人能够继续开发此工具（不用试了，我从05试到了15全都编译出错），希望组织不会找到我哈哈哈</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/TimeM'/]%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/TimeM&#39;\]开源项目地址\[/gt\]</a></p>
+<p> </p>
+<h2 id="三-卡轴"><a href="#三-卡轴" class="headerlink" title="三.卡轴"></a>三.卡轴</h2><p>做时间轴是一个比较苦的活。我假设你的TM已经能够播放视频了，这是最起码的条件！</p>
+<p>我们用TM打开一个范例视频，好像没什么反应哎！对，你只能看到一个准备就绪。</p>
+<p><img src="/images/031216_0537_3.png"></p>
+<p>此时在左侧选择新字幕，我们就插入个50行吧！</p>
+<p><img src="/images/031216_0537_4.png"></p>
+<p>之后要注意保存的文件名，假如视频文件叫做1.mp4，字幕就要叫1.srt，这样播放器就会默认加载字幕。因为srt结构比较简单，方便查错校正什么的嘛。</p>
+<p><img src="/images/031216_0537_5.png"></p>
+<p>下面的编辑窗口就出现了50个空行。</p>
+<p>记住两个快捷键，F8和F9。F8对应轴开始的时间，F9对应轴结束的时间。</p>
+<p><img src="/images/031216_0537_6.png"></p>
+<p>现在开始播放视频，并且使字幕定位在第一行，类似下图这样。</p>
+<p><img src="/images/031216_0537_7.png"></p>
+<p>人物开始说话，就按F8，觉得这一行差不多够字数了，就按F9，然后什么都不用管，人物再说，就F8记录下一个轴的开始，F9记录结束。TM会自动往下选择下一个空轴的。</p>
+<p><img src="/images/031216_0537_8.png"></p>
+<p>粉色的圈起来的是每次按F9都会往下跳。</p>
+<p>可能有的人反应比较慢，导致开始说话过了0.x秒字幕才出现，那怎么办呢？很简单，设计个延迟就可以啦！</p>
+<p>设置-软件选项-字幕选项。根据自身情况设置吧！</p>
+<p><img src="/images/031216_0537_9.png"></p>
+<p>这样一直卡轴，直到最后，就算做完了时间轴的工作</p>
+<p>[v_blue]Tips： 通常来说，美剧&#x2F;电影等都是提供CC字幕的，也就是说英文字幕绝大部分都不是听译出来的。当然CC字幕的格式惨不忍睹，是需要进行大量修改的。[&#x2F;v_blue]</p>
+<p> </p>
+<h2 id="四-翻译"><a href="#四-翻译" class="headerlink" title="四.翻译"></a>四.翻译</h2><p>翻译这一步嘛，不只是翻译那么简单。翻译的信达雅是一方面，格式的统一也是一方面。</p>
+<p>上面提到了对CC的处理，这点基本各大字幕组的处理都差不多：</p>
+<p>删掉冗余字幕、标点符号初步统一、语气词感叹词等。</p>
+<p>字幕格式，不同组的要求就不同了。大致说下我们组的规则以便参考：</p>
+<blockquote>
+<p>**1.**不论何时， 严禁出现中文标点！ **2.**中文行断句无需标点句号逗号等，只需两段话之间空两格即可。 **3.**中文行出现书籍、杂志、影视作品名称等。 必须加书名号《》 **4.**特殊引用加英文引号””，比如说讽刺啊反语等。 **5.**外国人名之间加· **6.**对话格式如果一个时间轴里面有两个人的对话，字幕中对话一般没有对话的标记，所以，翻译需要自行加符号-来区分，英文对话之间-后面需要空一格，中文对话的-后面则不用空格， 如： 00:01:25,241 –&gt; 00:01:27,527 -你摸什么呢 -动脉 - What are you looking for? - A pulse. 一个时间轴里面有两个人对话前面要使用横断线-号分开，以区别是两人说的话，并且两人对白中间要用空格隔开。中文空两格，英文空一格。 **7.**大小写，这个嘛就是英语功底的事情了…… **8.**字幕长度，我们推荐的是英文不超过65字幕，中文不超过18字符，免得字幕变成两行影响效果。如果太长，那么就要根据意群进行分割。 **9.**硬字幕，一些说明头衔、学校等字幕，需要再翻一下方便观众理解，插入新轴用{\an8}置顶内容即可。插入按钮在倒数第四个。</p>
+</blockquote>
+<p>拆分字幕方法：</p>
+<p>在要拆分的字母上右键，自定义拆分</p>
+<p><img src="/images/031216_0537_10.png"></p>
+<p>选择好分割的位置，然后点击确定，之后点击新增，把中文的也分割了，确定就好。</p>
+<p><img src="/images/031216_0537_11.png"></p>
+<p>需要注意的是分割之后这两个轴可能会对不上，所以建议重新看看。</p>
+<p> </p>
+<h2 id="五-后期"><a href="#五-后期" class="headerlink" title="五.后期"></a>五.后期</h2><p>我呐，不是做后期的，但是一点特效都没有的字幕我是忍受不了的！简单的设置下字幕的字体、字形，我一般都使用SrtEdit，aegisub这种东西太高级用不来……</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z'/]SrtEdit%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z&#39;\]SrtEdit下载地址\[/dl\]</a></p>
+<p>由于srt对字幕特效的支持有限，所以我通常先将其转换为ass格式，用SrtEdit打开字幕，另存为，选择ass即可。</p>
+<p>之后Ctrl+A全选字幕，格式-文本特效编辑</p>
+<p><img src="/images/031216_0537_12.png"></p>
+<p>大家伙就看着办吧！其他特效也看着办吧</p>
+<p><img src="/images/031216_0537_13.png"></p>
+<p>要注意，如果你使用的字体文件在别的电脑上不存在，那么就会变成默认的字体——这也是为什么我们要压制的原因。</p>
+<p>这是我选择的英文字体Ubuntu Mono，中文字体幼圆。</p>
+<p><img src="/images/031216_0537_14.png"></p>
+<p>要注意的是，KMPlayer需要选项-字幕处理-多重字幕&#x2F;其他，选择“高级”选项卡，第一栏里选中开启、实时渲染、保持三项才可以显示字幕的字体。</p>
+<p> </p>
+<h2 id="六-压制"><a href="#六-压制" class="headerlink" title="六.压制"></a>六.压制</h2><p>前面预备知识里提过，一个封装格式里面可以带有很多信息，其中也自然而然的包括字幕。个人比较喜欢mkv这种封装格式。</p>
+<p>有一个工具叫做mkvtoolnix，可以看到一个mkv文件里有哪些东西。双击mmg.exe，将视频文件拖入，可以看到这个视频有两个流。</p>
+<p><img src="/images/031216_0537_15.png"></p>
+<p>有些电影是”国英粤”三个音频轨，如果只想要英语，就取消对应的勾选，然后开始混流即可。</p>
+<p>所以在这里，压制就有了两种办法：</p>
+<p>一种是简单的把字幕放到这个”容器”里，仍旧<strong>无法避免</strong>在没有对应字体的电脑上无法显示特效；</p>
+<p>另一种则是重新编码，把字幕作为视频流的一部分，这样字体特效无论放到哪都不会丢了。那些喜欢纯净的不要字幕的就会挑剔了。</p>
+<h3 id="第一种办法"><a href="#第一种办法" class="headerlink" title="第一种办法"></a>第一种办法</h3><p>直接用mkvtoolnix混流就可以了，把字幕添加进去，混流，基本上几分钟就可以完成；</p>
+<h3 id="第二种办法"><a href="#第二种办法" class="headerlink" title="第二种办法"></a>第二种办法</h3><p>就要用到俺组开发的傻瓜压制工具，通常来说会花费很长时间——当初我压制《阿凡达》花费了差不多三四个小时。</p>
+<p>首先需要安装AviSynthPlus-r1576和VC，在setup里有。</p>
+<p>然后打开压制工具，左上角选择新建任务，选择对应的视频和字幕，确定。</p>
+<p><img src="/images/031216_0537_16.png"></p>
+<p>右上角选择压制之后的分辨率即可。至于码率什么的，都是不用管的！</p>
+<p>64位操作系统选择x64会更好~</p>
+<p>PS，如果某位喜欢1080P的压制，可是这里又没有1080P的，那怎么办呢？</p>
+<p>其实很简单，打开encode文件夹，会发现有很多批处理文件。我已经为你们准备好了压制1080P的批处理了。</p>
+<p>该怎么办还用说吗~~修改完直接把视频拖上去就可以了。</p>
+<p>[v_error]警告 视频文件名最好不要带空格哦，毕竟windows这家伙不会拿\转义嘛……[&#x2F;v_error]</p>
+<p><img src="/images/031216_0537_17.png"></p>
+<p>压制过程是非常耗费CPU的，那个喜欢浮点运算的GPU呢？</p>
+<p><img src="/images/031216_0537_18.png"></p>
+<p>真的是1080P</p>
+<p><img src="/images/031216_0537_19.png"></p>
+<p>mmg分析表示，字幕已经成了视频的一部分。</p>
+<p>如果想要裁剪视频，简单的可以拿格式工厂来做到……另外，格式工厂转换格式的时候加字幕貌似有些bug…… [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z'/]mkvtoolnix/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z&#39;\]mkvtoolnix\[/dl\]</a></p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176%27%5C%5D%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176&#39;\]压片工具\[/dl\]</a></p>
+<h3 id="第三种方法：高手必备的ffmpeg"><a href="#第三种方法：高手必备的ffmpeg" class="headerlink" title="第三种方法：高手必备的ffmpeg"></a>第三种方法：高手必备的ffmpeg</h3><p>好吧，<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/2">看这里就好了</a>。</p>
+<h2 id="七-后话"><a href="#七-后话" class="headerlink" title="七.后话"></a>七.后话</h2><p>本文提到的所有工具打包下载，多贴心啊！ [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506%27%5C%5D%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E6%89%93%E5%8C%85%E4%B8%8B%E8%BD%BD%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506&#39;\]字幕处理工具打包下载\[/dl\]</a></p>
+<p>附：特别喜欢的一段演讲，尽管是游戏里的而且我还没玩过……Assassins Creed 2 - Ezio’s Speech </p>
+<p>[v_act]There are those who will take that freedom from us, and too many of you gladly give it. But it is our ability to choose whatever you think is true that makes us human. Choose your own way![&#x2F;v_act]</p>
+<p> </p>
+<h2 id="八-晒壁纸"><a href="#八-晒壁纸" class="headerlink" title="八.晒壁纸"></a>八.晒壁纸</h2><p>又到了晒壁纸的时候……</p>
+<p>然而并没有壁纸可以，哈哈哈。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/12/timeline-subtitles/index/" data-id="clhp6he2u00a5ezqr817v58no" data-title="[新手向]如何制作时间轴、字幕和压制影片" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-prevent-from-network-audit/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/03/prevent-from-network-audit/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-03T00:00:00.000Z" itemprop="datePublished">2016-03-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/03/prevent-from-network-audit/index/">如何防范网络审计</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>咳咳，怎么会写起这个话题呢？起因是某个小伙伴发给了我<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/40543633/answer/88747638?from=singlemessage&isappinstalled=0&code=021ec89ac291c875d6f701e974c275b2&state=1a394b6ce165363accb5a08f16b0bbbd">知乎的链接</a>让我提提神。</p>
+<p>本来是想给写到总结里，结果一口气就写了2000来字，已经不适合在总结里出现啦，所以就单独拎出来好了！</p>
+<p>事先声明，俺呀，<strong>不是</strong>什么大牛，也不是安全圈的业内人士，更不是密码学专家。我只是来科普下科普下……当然了是原创的科普。</p>
+<p>另外，本篇文章是应对”审计”的哟……社会工程学等等不在此列。</p>
+<p> </p>
+<h1 id="一。网络审计是什么？"><a href="#一。网络审计是什么？" class="headerlink" title="一。网络审计是什么？"></a>一。网络审计是什么？</h1><p>这里我指的是”<strong>上网行为管理审计</strong>“。在某些企业、学校里，会在网关部署一个设备（当然也有可能是旁路），所有进出网关的东西都会被记录下来。简而言之就是，理论上你看了什么网页，听了什么歌，下了什么电影都是可以在审计工具里看到的。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030305595622.jpg"><img src="/images/2016030305595622.jpg" alt="QQ截图20160303135839"></a></p>
+<p>当然审计的程度是不同的，有的可能不会部署这类工具，有的可能会对某些端口进行屏蔽（比如屏蔽BT端口来禁止下载），有的可能会特殊关照某些端口（比如HTTP的80）。</p>
+<p>防范之心不可无。</p>
+<p>当然你可以说，我们处在运营商这一个大的”公司”之中，无论怎么防范都是没用的。对待这种言论，我只想说，滚犊子！人活着早晚得死，那就现在死了呗。防范是有针对性的，你在公司里主要的防范对象是公司领导，关电信CEO什么事？况且，互联网的存在使得匿名真正成为了可能。</p>
+<p>有人可能会问，有这么坏的公司&#x2F;学校吗？就引用鲁迅老人家的那句话：我向来不惮以最坏的恶意揣测中国人。</p>
+<h1 id="二。如何防范网络审计"><a href="#二。如何防范网络审计" class="headerlink" title="二。如何防范网络审计"></a>二。如何防范网络审计</h1><p>想要避开网络审计工具，那就要从多个方面来避免，这还是要借鉴编程随想的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2013/06/privacy-protection-0.html">《如何保护隐私》</a>系列和<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2010/04/howto-cover-your-tracks-0.html">《如何隐藏你的踪迹，避免跨省追捕</a>》系列。此两系类博文堪称经典，隐匿&#x2F;匿名必看！看了他那两个系类博文，就可以直接×了我这个了。</p>
+<p>拿着和国家机器隐匿的办法来对付区区一个公司显然大材小用。尽管不同人对匿名有不同的需求，但是这种意识应该得到提高、加强。</p>
+<p>对待网络审计工具，首先是无法避免要通过网关了，所以只能在通信手段上进行保护。相信现代密码学，相信科学。</p>
+<p>[v_error]编程随想的博客搭建于Blogspot，被墙——因为Blogspot是Google的[&#x2F;v_error]</p>
+<h2 id="1-网络层面的防范："><a href="#1-网络层面的防范：" class="headerlink" title="1.网络层面的防范："></a>1.网络层面的防范：</h2><p>毫无疑问你的所有数据都得有一个网关一样的设备转发出去，这是无法避免的。也就是说，所有明文传输的东西都会被记录下来。想当然的那么就不明文传输，直接密文传输就好了。</p>
+<p>那么应对措施就来了：</p>
+<h3 id="1-VPN工具"><a href="#1-VPN工具" class="headerlink" title="(1).VPN工具"></a>(1).VPN工具</h3><p>我们可以使用VPN协议来创建加密隧道，所有的数据都会在这个隧道里传播，网关<strong>只能知道</strong>你的VPN服务器的IP和你在使用VPN，却<strong>比较难</strong>解密你的VPN通信。当然，推荐使用OpenVPN这种可以防止中间人攻击的证书体系VPN，当然L2TP+IPSec也可以做到一定程度的防护，PPTP还是免了吧。</p>
+<h3 id="2-加密代理"><a href="#2-加密代理" class="headerlink" title="(2).加密代理"></a>(2).加密代理</h3><p>除了VPN这种加密隧道之外，还可以使用代理工具，比如非常著名的加密socks5代理Shadowsocks。当然要注意选择一个<strong>比较健壮的加密算法，</strong>比如说aes256cfb而不是RC4——尽管我们有理由怀疑，一个公司的网络审计有那么多时间和计算能力来破解RC4吗？</p>
+<h3 id="3-加密的通信协议"><a href="#3-加密的通信协议" class="headerlink" title="(3).加密的通信协议"></a>(3).加密的通信协议</h3><p>加密的通信协议，而且是公认的加密协议。时刻记住，尽可能使用加密连接，而且是使用了强大的加密算法和健壮的安全体系的<strong>强加密</strong>。越是公开的加密算法，它的健壮性也就越强，封闭的算法反而越弱，这是密码学的违反常识的理论之一。常见的安全的加密协议有，VPN中的OpenVPN,L2TP+IPSec, Shadowsocks，HTTPS，POP3S,IMAPS,SMTPS等，SSH和基于SSH的SFTP ,SCP等。</p>
+<p>最常见的莫过于HTTPS了，你看这篇博文的时候， 右上角是不是绿色的小锁头？你打开淘宝的时候，是不是也是小锁头？甚至某些还会显示Certificate Transparency</p>
+<p><img src="/images/030316_0533_1.png"></p>
+<p>我可没钱……不过需要注意的是，即使访问了https网站，审计工具也依旧能够知道你访问了某个网站，因为在DNS查询，密钥协商交换证书的时候是一定会泄漏域名的；但是网络审计工具无法得知你具体看了某个文章以及其内容。想要避免此种泄漏，那么最好的方式是使用shadowsocks，或者VPN+远程DNS解析（DNSCrypt也行），这样审计工具就只能看到你和代理服务器的加密通信了。</p>
+<p>此网络层面的防范乃是比较全能的办法。可是也<strong>别天真的以为</strong>，用了VPN就不会泄露你的IP，开了全局模式就不会泄露IP——有一种东西叫Flash和WebRTC的，这就是隐匿的内容了。</p>
+<h2 id="2-软件层面的防范"><a href="#2-软件层面的防范" class="headerlink" title="2.软件层面的防范"></a>2.软件层面的防范</h2><p>编程随想把这部分分成了”操作系统的防范”、”个人软件的防范”、”通讯工具的防范”，我觉得在应对公司的审计工具有点大材小用。</p>
+<h3 id="1-IM软件："><a href="#1-IM软件：" class="headerlink" title="(1).IM软件："></a>(1).IM软件：</h3><p>即时通信工具，比如说QQ，飞信等这是存在国家级监控的，小小公司应该管不到。但是QQ客户端是否加密传输聊天记录、加密程度、是否可以防范中间人至今还是未知数。</p>
+<p>我们可以使用Skype、Google环聊等工具。请注意是国际版Skype哟，绝对的加密安全和保障。</p>
+<h3 id="2-CA证书："><a href="#2-CA证书：" class="headerlink" title="(2).CA证书："></a>(2).CA证书：</h3><p>CA证书对于整个HTTPS的安全体系有多么重要，不了解的人可能完全无法理解。为此，我大家伙可以同样去看看编程随想的系列博文：<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/11/https-ssl-tls-0.html">《扫盲 HTTPS 和 SSL&#x2F;TLS 协议》</a></p>
+<p>如果公司在各位预装的系统上植入了自签名的CA证书，那么毫无疑问所有HTTPS都存在被劫持的风险。</p>
+<p>如图，被签发了伪证书的GitHub</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030306085390.jpg"><img src="/images/2016030306085390.jpg" alt="t011407dbd01decd039"></a></p>
+<p>说到CA，就得提到臭名昭著的CNNIC Root和12306的SRCA根证书。那么大的铁道部买不起一个证书？我只能再次引用并改编鲁迅老人家的那句话：我向来不惮以最坏的恶意揣测党国。</p>
+<h3 id="3-邮件的防范"><a href="#3-邮件的防范" class="headerlink" title="(3).邮件的防范"></a>(3).邮件的防范</h3><p>目前QQ邮箱是默认开启https的，如果在QQ面板直接打开邮箱，是https的web页面，这样审计工具只能知道你访问了QQ邮箱，却没办法知道你的邮件内容。</p>
+<p>如果使用邮件客户端，那么可以设置相应的SSL连接。</p>
+<p>比如QQ邮箱的帮助里是这样的：</p>
+<p><img src="/images/030316_0533_2.png"></p>
+<h3 id="4-客户端监控软件："><a href="#4-客户端监控软件：" class="headerlink" title="(4).客户端监控软件："></a>(4).客户端监控软件：</h3><p>有些变态公司可能会在员工的电脑中安装监控工具，好似当初绿坝，有些甚至可能是驱动级监控工具。最简单的办法就是重装系统——怕啥BIOS密码，大部分电脑都可以在启动的时候按F8、ESC之类按键选择启动设备。哪怕不能选择，你都看这篇文章了，难道不会拆机箱抠电池么~顺手重建MBR来防范MBR病毒吧……好像现在都是GPT了耶。</p>
+<p>可能重装系统会被发现或者引起怀疑，那么也有一个替代的办法，使用一些Linux发行版的LiveCD，制作成启动U盘，随插随用。当然这就有点技术门槛了，大部分人还是不太能适应各种Linux发行版吧！</p>
+<p>对待不截屏的监控软件，也可以使用虚拟机隔离之。</p>
+<h3 id="5-浏览器的防范："><a href="#5-浏览器的防范：" class="headerlink" title="(5.)浏览器的防范："></a>(5.)浏览器的防范：</h3><p>大概不会有公司会无聊到给员工的电脑装上自己开发的“监控浏览器”吧，但是依旧要注意一点，电脑被收走了，浏览器的历史记录不也就”公之于众”了吗？</p>
+<p>Chrome有隐身模式。</p>
+<h2 id="3-硬件层面的防范："><a href="#3-硬件层面的防范：" class="headerlink" title="3.硬件层面的防范："></a>3.硬件层面的防范：</h2><p>电脑又被收走了，那平时下的小黄片不就被发现了吗？</p>
+<p>没关系，只要我们做好了预防措施，那么就可以让监管人员欲哭无泪。</p>
+<p>我们可以用BitLocker（Windows 7就自带了哦）、GnuPG、VeraCrypt（或许大家还记得TrueCrypt）这类工具加密文件、乃至于整个分区，而且保证是让NSA都欲哭无泪的加密。</p>
+<p>GPG和VC的简要使用方法可以参考<a target="_blank" rel="noopener" href="https://dmesg.app/encrypt-tech-gnupg-veracrypt-turial.html">《加密技术的科普以及GnuPG和VeraCrypt教程》</a></p>
+<p>或许有人要抬杠了，领导说不给他密码，就给我开除让我喝西北风，我没办法啊就给了密码。这再次印证了一个安全圈的俗话：越是安全的系统，最大的弱点往往就越在于人。</p>
+<p>对待这种胁迫，我们可以使用VeraCrypt的隐藏卷，或者干脆死无对证——销毁数据。千万<strong>别天真的以为</strong>清空回收站、任何格式化（低级格式化、快速格式化、完全格式化）可以保护你的数据不被恢复，请使用粉碎工具或者完全物理销毁掉你的存储设备。</p>
+<p>关于TrueCrypt更多更牛逼的介绍以及使用技巧等方法，我就不瞎说了，参考随想的牛逼哄哄的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2011/05/recommend-truecrypt">《TrueCrypt——文件加密的法宝》</a></p>
+<p>以及<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2015/10/VeraCrypt.html">《扫盲 VeraCrypt——跨平台的 TrueCrypt 替代品》</a></p>
+<p> </p>
+<h2 id="4-物理层面的防范："><a href="#4-物理层面的防范：" class="headerlink" title="4.物理层面的防范："></a>4.物理层面的防范：</h2><p>老板就在你身后呢，你就别看小黄片了；身后就亮着一个摄像头呢，就悠着点……这种物理层面的防范，只能靠各位自己了……</p>
+<p> </p>
+<h1 id="三。话外："><a href="#三。话外：" class="headerlink" title="三。话外："></a>三。话外：</h1><p> </p>
+<h2 id="密码学"><a href="#密码学" class="headerlink" title="密码学"></a>密码学</h2><p>要不是密码学的发展，哪能给一个普通人和国家机器、哪怕是全世界的人斗争的可能？</p>
+<p>在信息时代之前，就几乎已经注定了个人几乎无法匹敌政府，个人往往在任何一个方面都是非常渺小的……</p>
+<p>举个例子，一个人能造什么武器？顶多是把枪，而政府却能制造出飞机坦克甚至是核武器。</p>
+<p>不光是”武器”，其它领域（比如交通工具）也差不多。在信息时代之前，个人吖那个渺小。</p>
+<p>信息时代之后，其实大部分领域也并没有什么变化。你现在能造出来坦克？能玩的出来高铁？别逗了。</p>
+<p>但是密码学是个例外。</p>
+<p>多亏了当初PGP创始人Philip Zimmermann的抗争，他抵着被无数爱国者们骂成卖国贼的心理压力、抵着被FBI抓走坐牢的压力，义无反顾的发布了PGP——当然，靠着宪法修正案第一条他出口了一本书，书里的内容就是PGP的源代码。（二战以来，密码学一直被大部分国家认作军事机密，所以是禁止出口的。大家晓得图灵不）</p>
+<p>如今，随意一个人都可以在网上下载到一些非常优秀的加密工具，稍微学习几分钟，就可以进行<strong>高高高高高强度加密</strong>。而政府方面即使用上超级计算机，也只好干瞪眼。</p>
+<p>当然了这无法解密是说，在有意义的时间内无法解密，比如说一百年一千年。</p>
+<p>在密码学上，俺们屁民，是和政府们平起平坐的。</p>
+<p>再说一句，别以为保密的加密算法就是牛逼的……反而是越开放的加密算法越健壮。</p>
+<h2 id="隐私权"><a href="#隐私权" class="headerlink" title="隐私权"></a>隐私权</h2><p>有没有这种意识，隐私权就是基本人权，是不可以被侵犯的。如果隐私是非法的，那也就非法之徒才能够有隐私。</p>
+<p> </p>
+<h1 id="四。抽风"><a href="#四。抽风" class="headerlink" title="四。抽风"></a>四。抽风</h1><p>最后，我的新规则是，编辑结束发表之前，贴上当前的壁纸，耶。</p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030306244250.jpg"><img src="/images/2016030306244250-1024x576.jpg" alt="Battlefield (53)"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/03/prevent-from-network-audit/index/" data-id="clhp6he180063ezqr3fbp5s5v" data-title="如何防范网络审计" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/16/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><a class="page-number" href="/page/19/">19</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/18/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

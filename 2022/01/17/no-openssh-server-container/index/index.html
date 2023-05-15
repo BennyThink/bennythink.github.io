@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>没事别在容器里装openssh-server，真的 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="几天前，跑的好好的CI突然fail，报错信息看起来很奇怪，像是使用上的问题。  本地跑了一下这两个测试用例，并没有复现。以为是CI偶尔抽风了，就没管。 后来发现有点不对，怎么都跑不过。甚至直接在develop上跑CI都跑不过。这和GraphQL有什么关系啊？明明都能用的啊。让写这部分代码的同事帮忙看了下，发现他也能跑过。奇怪。 由于整套CI是跑在concourse上的，于是通过fly hijack">
+<meta property="og:type" content="article">
+<meta property="og:title" content="没事别在容器里装openssh-server，真的">
+<meta property="og:url" content="http://example.com/2022/01/17/no-openssh-server-container/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="几天前，跑的好好的CI突然fail，报错信息看起来很奇怪，像是使用上的问题。  本地跑了一下这两个测试用例，并没有复现。以为是CI偶尔抽风了，就没管。 后来发现有点不对，怎么都跑不过。甚至直接在develop上跑CI都跑不过。这和GraphQL有什么关系啊？明明都能用的啊。让写这部分代码的同事帮忙看了下，发现他也能跑过。奇怪。 由于整套CI是跑在concourse上的，于是通过fly hijack">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2022011720392372.png">
+<meta property="og:image" content="http://example.com/images/2022011720422322.jpeg">
+<meta property="og:image" content="http://example.com/images/2022011720392441.png">
+<meta property="og:image" content="http://example.com/images/2022011720392521.png">
+<meta property="og:image" content="http://example.com/images/20220117203926100.png">
+<meta property="og:image" content="http://example.com/images/2022011720531128.jpeg">
+<meta property="article:published_time" content="2022-01-17T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:51.621Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2022011720392372.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-no-openssh-server-container/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/01/17/no-openssh-server-container/index/" class="article-date">
+  <time class="dt-published" datetime="2022-01-17T00:00:00.000Z" itemprop="datePublished">2022-01-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      没事别在容器里装openssh-server，真的
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几天前，跑的好好的CI突然fail，报错信息看起来很奇怪，像是使用上的问题。</p>
+<p><img src="/images/2022011720392372.png"></p>
+<p>本地跑了一下这两个测试用例，并没有复现。以为是CI偶尔抽风了，就没管。</p>
+<p>后来发现有点不对，怎么都跑不过。甚至直接在develop上跑CI都跑不过。这和GraphQL有什么关系啊？明明都能用的啊。让写这部分代码的同事帮忙看了下，发现他也能跑过。奇怪。</p>
+<p>由于整套CI是跑在concourse上的，于是通过<code>fly hijack</code>进去，在对应失败的step中成功复现了这个问题。</p>
+<p>再后来同事发现出问题的是<code>urllib3/util/retry.py</code>的Retry</p>
+<p>max_retries &#x3D; Retry(<br>    total&#x3D;1,<br>    backoff_factor&#x3D;0.1,<br>    status_forcelist&#x3D;[500, 502, 503, 504],<br>    allowed_methods&#x3D;None,<br>)</p>
+<p>去比对了下，fly进去的容器中的<code>urllib3</code>版本和我测试的版本确实不一样。把fly进去的容器中的<code>urllib3</code>升级了之后，test case就可以过了。</p>
+<p>啥？这啥情况？先在<code>requirements.txt</code>中写上<code>urllib3==1.26.7</code>临时解决一下这个问题。至少别耽误大家跑CI啊。</p>
+<h2 id="差异"><a href="#差异" class="headerlink" title="差异"></a>差异</h2><p>fly进去的容器是用名为<code>builder/Dockerfile</code>构建的，我测试的是websvc是<code>websvc/Dockerfile</code>构建的，两者基本没什么差别。</p>
+<p>我自己跑测试用例是用的websvc，而跑CI用的是builder。</p>
+<p>可是问题来了，二者明明用了一样的<code>requirements.txt</code>，怎么会安装出来不一样的library？<code>pip install -r requirements.txt</code> 之后也没有安装别的，怎么就版本不一致了？</p>
+<p>后来经过一步一步测试，最终发现了这背后的原因。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/01/2022011720422322.jpeg"><img src="/images/2022011720422322.jpeg"></a></p>
+<h2 id="根本原因"><a href="#根本原因" class="headerlink" title="根本原因"></a>根本原因</h2><p>在<code>builder/Dockerfile</code>中，我们安装了<code>openssh-server</code>，先别管为啥……</p>
+<p><code>openssh-server</code>有非常多的依赖，如下图中选中的地方，就有<code>python3-urllib3</code>。</p>
+<p><img src="/images/2022011720392441.png"></p>
+<p>apt中的python package的版本是相对而言比较老的，经过查看这种方式安装的urllib3的版本是1.22</p>
+<p><img src="/images/2022011720392521.png"></p>
+<p>在 <code>requirements.txt</code> 中，我们安装的是<code>requests==2.25.1</code>和<code>gql==3.0.0b0</code>。这两个package对urllib3的版本要求比较宽泛，通过apt 安装的这个版本恰巧能够满足。</p>
+<p><img src="/images/20220117203926100.png"></p>
+<p>websvc这个image由于没有通过apt安装<code>openssh-server</code>，所以也没有<code>python3-urllib3</code>。在 <code>pip install -r requirements.txt</code>时，requests 2.25.1的要求是<code>urllib3&gt;=1.21.1,&lt;1.27</code>，也就安装了1.26.7（可用的版本）</p>
+<p>综上所述，在构建之后，builder这个image中 urllib3的版本就是1.22；而websvc是1.26.7。这也就是为什么本机永远无法复现而只有在fly hijack之后才可以复现的原因</p>
+<p>所以root cause是，在 builder中安装了<code>openssh-server</code>（容器里安装openssh-server干嘛🤣）</p>
+<h2 id="直接原因"><a href="#直接原因" class="headerlink" title="直接原因"></a>直接原因</h2><p>direct cause是 <code>gql==3.0.0b0</code> 的<code>install_requires</code> 没有要求urllib3的版本，也可能是graphql-core，或者说<code>requiremens.txt</code>应该写<code>gql[all]==3.0.0.b0</code>，但是很少有人这么写啊，真的是醉了。</p>
+<h2 id="间接原因"><a href="#间接原因" class="headerlink" title="间接原因"></a>间接原因</h2><p>那为啥之前都一直没问题怎么突然就挂了？</p>
+<p>一番实验之后也发现了原因。之前Base image升级到了Ubuntu 18.04，16.04的时候Ubuntu自带的python版本是3.5，所以哪怕安装了<code>openssh-server</code>，那也是py3.5的，而我们用的是从ppa安装的3.6所以无关联。</p>
+<p>升级之后，18.04自带的Python是3.6，即使通过ppa安装其实也是“共享”的，因此…</p>
+<h2 id="修复方法"><a href="#修复方法" class="headerlink" title="修复方法"></a>修复方法</h2><p>修复的办法包括</p>
+<ol>
+<li>patch掉graphql的调用</li>
+<li><code>requirements.txt</code>中强制安装新版本urllib3</li>
+<li>把<code>builder/Dockerfile</code>中<code>openssh-server</code>改成<code>wget</code>（安装<code>openssh-server</code>时会附带<code>wget</code>，后续我们需要<code>wget</code>）</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>升级升级到Ubuntu 18.04是我搞的，我背锅。境外势力已经够忙了，请不要诬陷境外势力。</li>
+<li>Dockerfile可以再更新一下了，把PPA去掉，一些重复的安装（指apt和pip）可以只保留pip了。openssh-server 也可以去掉，历史遗留问题。</li>
+<li>为啥不用multi-stage build？估计也是历史遗留原因。</li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/docker-nat-vps.html">没事别在容器里安装openssh-server，真的</a>。除非你知道你在干嘛。或者装降低熊。</li>
+</ol>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/01/2022011720531128.jpeg"><img src="/images/2022011720531128.jpeg"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/01/17/no-openssh-server-container/index/" data-id="clhp6he0w005fezqr22nva69r" data-title="没事别在容器里装openssh-server，真的" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/02/02/container-hot-patch/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Docker container热更新
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/01/08/actions-celery/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">使用GitHub Actions跑Celery worker</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

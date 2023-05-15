@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>[SSH系列1]：什么是SSH、背景知识，SSH协议需求与设计难点 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="前言：为啥要写这一系列几个星期之前小蜗牛童鞋写了一篇文章提到了SSH，但是其中引用的阮一峰的博文却有几处很明显的错误。无奈和感慨甚至是……愤恨之余，我顺便搜了下，好像大家都不是那么关注SSH，对SSH的原理更是知之甚少（貌似关注SSL&#x2F;TLS更多一些）。本着精益求精、顺便谈谈读书的问题，俺就只好亲自操刀写一系列文章，当然了我就是传说中的挖坑不填的超级不靠谱的人，我超级不负责说不定啥时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[SSH系列1]：什么是SSH、背景知识，SSH协议需求与设计难点">
+<meta property="og:url" content="http://example.com/2017/05/08/ssh-1/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="前言：为啥要写这一系列几个星期之前小蜗牛童鞋写了一篇文章提到了SSH，但是其中引用的阮一峰的博文却有几处很明显的错误。无奈和感慨甚至是……愤恨之余，我顺便搜了下，好像大家都不是那么关注SSH，对SSH的原理更是知之甚少（貌似关注SSL&#x2F;TLS更多一些）。本着精益求精、顺便谈谈读书的问题，俺就只好亲自操刀写一系列文章，当然了我就是传说中的挖坑不填的超级不靠谱的人，我超级不负责说不定啥时">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/050717_1305_SSH1SSH1.jpg">
+<meta property="og:image" content="http://example.com/images/050717_1305_SSH1SSH2.png">
+<meta property="article:published_time" content="2017-05-08T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:49.069Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/050717_1305_SSH1SSH1.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-ssh-1/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/05/08/ssh-1/index/" class="article-date">
+  <time class="dt-published" datetime="2017-05-08T00:00:00.000Z" itemprop="datePublished">2017-05-08</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      [SSH系列1]：什么是SSH、背景知识，SSH协议需求与设计难点
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<h2 id="前言：为啥要写这一系列"><a href="#前言：为啥要写这一系列" class="headerlink" title="前言：为啥要写这一系列"></a>前言：为啥要写这一系列</h2><p>几个星期之前小蜗牛童鞋写了一篇文章提到了SSH，但是其中引用的<a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2011/12/ssh_remote_login.html">阮一峰的博文</a>却有几处很明显的错误。<strong>无奈和感慨甚至是……愤恨之余</strong>，我顺便搜了下，好像大家都不是那么关注SSH，对SSH的原理更是知之甚少（貌似关注SSL&#x2F;TLS更多一些）。本着精益求精、顺便谈谈读书的问题，俺就只好亲自操刀写一系列文章，当然了我就是传说中的<strong>挖坑不填的超级不靠谱的人</strong>，我超级不负责说不定啥时候就给缩水了。</p>
+<p>上一篇<a target="_blank" rel="noopener" href="https://dmesg.app/school-0.html">学校上网系列</a>还差个如何下载软件没有填（那个……某童鞋麻烦你从垃圾站下载个全家桶回来？），这一系列指不定会几个月填完。</p>
+<p>所以嘛总结下来，别期待太多。</p>
+<p>但咱今天就开始直接说正题吧，毕竟，给个甜头瞧瞧是不？</p>
+<h2 id="本系列的目录"><a href="#本系列的目录" class="headerlink" title="本系列的目录"></a>本系列的目录</h2><p>1. 什么是SSH、背景知识，SSH协议需求与设计难点</p>
+<p>2. SSH协议层次、架构的实现：连接，认证，传输</p>
+<p>3. 来谈谈“学而不思则罔”</p>
+<p>本篇我们主要谈论的问题有：什么是SSH、密码学背景知识，SSH协议需求与设计难点</p>
+<h2 id="什么是SSH以及SSH的优点"><a href="#什么是SSH以及SSH的优点" class="headerlink" title="什么是SSH以及SSH的优点"></a>什么是SSH以及SSH的优点</h2><p>考虑到阅读本文的人应该知道什么是SSH，这里我也不费口水解释了，直接<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Secure_Shell">从维基百科上抄录如下</a>：</p>
+<blockquote>
+<p>Secure Shell（缩写为SSH），由IETF的网络工作小组（Network Working Group）所制定；SSH为一项创建在应用层和传输层基础上的安全协议，为计算机上的Shell（壳层）提供安全的传输和使用环境。</p>
+<p>传统的网络服务程序，如rsh、FTP、POP和Telnet其本质上都是不安全的；因为它们在网络上用明文传送数据、用户帐号和用户口令，很容易受到中间人（man-in-the-middle）攻击方式的攻击。就是存在另一个人或者一台机器冒充真正的服务器接收用户传给服务器的数据，然后再冒充用户把数据传给真正的服务器。</p>
+<p>而SSH是目前较可靠，专为远程登录会话和其他网络服务提供安全性的协议。利用SSH协议可以有效防止远程管理过程中的信息泄露问题。通过SSH可以对所有传输的数据进行加密，也能够防止DNS欺骗和IP欺骗。</p>
+<p>SSH之另一项优点为其传输的数据可以是经过压缩的，所以可以加快传输的速度。SSH有很多功能，它既可以代替Telnet，又可以为FTP、POP、甚至为PPP提供一个安全的”通道”。</p>
+</blockquote>
+<p>从中我们可以看到，SSH的优点是安全、加密，可以作为隧道协议来”包裹”其他不安全的协议。</p>
+<p>不知道大家有没有了解过SSL&#x2F;TLS的基本原理，SSH给人的感觉很像 SSL&#x2F;TLS，然而这两者还是有些差别的。下面咱就直接开始吧，不废话了。</p>
+<p>[v_blue]注：本系列内容如无特殊说明，SSH均为SSH2，实现为OpenBSD的子项目OpenSSH[&#x2F;v_blue]</p>
+<h1 id="背景知识，SSH协议需求，设计难点"><a href="#背景知识，SSH协议需求，设计难点" class="headerlink" title="背景知识，SSH协议需求，设计难点"></a>背景知识，SSH协议需求，设计难点</h1><h2 id="计算机网络背景知识"><a href="#计算机网络背景知识" class="headerlink" title="计算机网络背景知识"></a>计算机网络背景知识</h2><p>SSH不像https是在http基础上衍生出来的，所以这里我们无需像https一样再次介绍http，我们只需要知道，SSH是一个TCP之下的协议。</p>
+<h3 id="SSH的版本"><a href="#SSH的版本" class="headerlink" title="SSH的版本"></a>SSH的版本</h3><p>SSH主要有SSH1和SSH2两个版本，二者互不兼容。此两者的设计思想是基本相同的， SSH2修复了在SSH1中的一些不安全的设计、新增加了一些算法的支持等等。</p>
+<h3 id="SSH与TCP的关系"><a href="#SSH与TCP的关系" class="headerlink" title="SSH与TCP的关系"></a>SSH与TCP的关系</h3><p>我们先看这个图吧：</p>
+<p><img src="/images/050717_1305_SSH1SSH1.jpg"></p>
+<p>在计算机网络中，我们实际使用的是TCP&#x2F;IP的四层协议而不是OSI的七层（在一些情况下为了方便讲解我们会把这二者综合成五层协议）</p>
+<p>简单地说，TCP 协议是传输层的两大协议之一，在网络分层模型中，TCP 被称为”传输层协议”，而 SSH被称为”应用层协议”。有很多常见的应用层协议是以 TCP 为基础的，比如”FTP、SMTP、POP、IMAP”等。</p>
+<p>TCP 被称为”面向连接”的传输层协议。关于它的具体细节，<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%BC%A0%E8%BE%93%E6%8E%A7%E5%88%B6%E5%8D%8F%E8%AE%AE">咱就去看维基百科吧</a>，这玩意能写出来一本一千页的书。你只需知道：传输层主要有两个协议，分别是 TCP 和 UDP。TCP 是可靠的传输协议， TCP 协议能够确保报文的顺序。</p>
+<p>[v_error]注意：更可靠是否就意味着UDP是不能用的？谁不喜欢可靠的东西嘛？其实不是这样的，TCP和UDP都有着不同的适用条件。大家可以自己思考下为什么这俩协议都是非常有用滴。[&#x2F;v_error]</p>
+<h2 id="密码学背景知识"><a href="#密码学背景知识" class="headerlink" title="密码学背景知识"></a>密码学背景知识</h2><p>说道密码学，大家可能以为这玩意真的很高深，其实也确实是这样的；但是如果想要对密码学的一些技术有一些入门的了解，还是很简单的。这里我们就简单的介绍下密码学的一些”工具箱”，要不，下一篇都会看不懂的。</p>
+<p>[v_blue]注意：为了防止概念混淆，我们统一把密码（也就是你登录某个账号时输入的那个东西）说成”口令”。[&#x2F;v_blue]</p>
+<h3 id="加密、解密与密钥是什么？"><a href="#加密、解密与密钥是什么？" class="headerlink" title="加密、解密与密钥是什么？"></a>加密、解密与密钥是什么？</h3><p>加密就是<strong>把明文变成密文</strong>的过程，解密就是<strong>把密文变成明文</strong>的过程。此二者是互逆的，就好似减法是加法的逆运算一样。在加密和解密的过程中，需要一个”密钥”来参与数学运算，这个密钥就好像是你的钥匙一样。</p>
+<h3 id="对称密码"><a href="#对称密码" class="headerlink" title="对称密码"></a>对称密码</h3><p>所谓对称密码（对称加密），就是<strong>加密和解密的时候使用同一个密钥</strong>。这个很好理解，就像你用WinRAR啥玩意压缩一个文件的时候设置了一个口令，解压缩的时候也要用这个密码才能成功提取文件一样，这个”口令”就相当于我们上面说的密钥。对称密码有两种不同的色剂，可以分为流密码、分组密码。</p>
+<p>分组密码共有五种<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F">分组模式</a>，在这里就不提了否则又要严重跑题并且增加文章长度，感兴趣的可以去围观维基百科。</p>
+<p>我们常用的对称密码有DES、3DES、AES、Blowfish、IDEA、RC5、RC6等。其中AES竞标时最后入围共有五种算法：Rijndael、Serpent、 Twofish、MARS 和RC6，最后Rijndael被选作AES。</p>
+<h3 id="非对称密码"><a href="#非对称密码" class="headerlink" title="非对称密码"></a>非对称密码</h3><p>非对称密码（非对称加密）也被称作公钥密码，所谓”非对称”，意思就是<strong>加密和解密的时候使用不同的密钥</strong>，挺难理解的是吧，但是咱得说，这种非对称的想法可是密码学上最大的突破之一。</p>
+<p>咱在这里只要知道，非对称密码有一组密钥，这组密钥中，<strong>公开的被称为公钥，私有的被称作私钥</strong>；使用公钥加密的文件只有使用对应的私钥才能解开；使用私钥加密（签名）的文件只有使用对应的公钥才能解开。理论上来说，每一对公钥和私钥之间有着严谨的数学关系，很难互相推导。但是吧，在目前的大部分实现中(RSA)，通过公钥推导出对应的私钥很难，但是通过私钥推公钥是很可能的。，感谢<a target="_blank" rel="noopener" href="https://twitter.com/GFW">jaehee~임재희</a>的指正，<code>openssl rsa -in privkey.pem -pubout</code></p>
+<p>非对称密码中比较出名的有RSA和椭圆曲线（ECC）。</p>
+<p>总结：对称密码和非对称密码的优缺点咱能看出来，对称密码的实现比较简单，但是能干的事情却没有公钥密码那么多；但是公钥密码的设计通常要涉及到一些比较复杂的数学问题，所以公钥密码的速度通常要比对称密码差几个数量级；并且，公钥密码需要比较长的密钥长度才能够保证类似等同于对称密码的加密强度，NIST的建议是，RSA和DSA是1024位，ECC是160位，相应的对称分组密码（比如说AES-CBC）的密钥长度是80位；或者说AES为128位、RSA 2048和ECC 256位。</p>
+<h3 id="单向散列函数"><a href="#单向散列函数" class="headerlink" title="单向散列函数"></a>单向散列函数</h3><p>大家熟悉这个吗？</p>
+<p><img src="/images/050717_1305_SSH1SSH2.png"></p>
+<p>单向散列函数就相当于消息的指纹，指纹这东西嘛，就是接近独一无二的咯。咱把一个消息（文件）使用单向散列函数处理一下，就会有一个定长的”指纹”（也被称作散列值、摘要），我们就可以用这段摘要来唯一的代表这个消息；假如某天这个消息变化了哪怕是1比特，那么这个摘要也会变得面目全非，这样咱就能知道原来的消息被篡改了。</p>
+<p>换句话说，单向散列函数可以用来验证消息的完整性。</p>
+<p>咱常用的单向散列函数有MD5、SHA1等等。</p>
+<h3 id="消息认证码"><a href="#消息认证码" class="headerlink" title="消息认证码"></a>消息认证码</h3><p>消息认证码就是一种能够<strong>确定消息的完整性并且能够进行认证</strong>的技术。所谓”完整性”、”一致性”，就是消息没有被篡改；所谓”认证”，就是消息来自正确的发送者。消息认证码是一种结合了<strong>单向散列函数和对称密码</strong>的密码学技术。我们常用的HMAC就是其中之一。</p>
+<h3 id="数字签名"><a href="#数字签名" class="headerlink" title="数字签名"></a>数字签名</h3><p>前面我们提到了公钥和私钥。我们知道公钥是公开的、私钥是私有的，如果我们使用私钥对某个文件进行加密（实际上应该被称作签名），那么任何人都可以对此进行解密，看似这里似乎失去了加密的意义，但这实际上可以证明一点：只有持有私钥的人才能够进行加密，这也意味着我们可以<strong>认证、防止否认、完整性</strong>。</p>
+<p>咱一般都是对消息的散列进行”签名”，因为公钥密码比较慢嘛。</p>
+<h3 id="伪随机数"><a href="#伪随机数" class="headerlink" title="伪随机数"></a>伪随机数</h3><p>如果读者学习过某些程序设计语言，可能记得他们的标准库中都有个类似random的东西可以生成某个范围内的随机数。我们看那个随机数似乎是统计学上随机的，但实际上咱要认识到一件非常残酷的事实：计算机是无法生成真正的随机数的，所以我们称随机数算法为”伪随机数算法”。</p>
+<p>这好像挺难理解的，咱只要知道吧，只要随机数算法是固定的，在给一个固定的”种子”，那么每次生成的随机数也就是固定的、有规律可循的。</p>
+<p>那这随机数有啥用啊？还记得上面提到的密钥吗，在密码学中，随机数可是无处不在的。</p>
+<p>随机数有一些比较重要的性质：<strong>随机性</strong>（不存在统计学偏差）、<strong>不可预测性</strong>（不能根据过去的随机数序列预测未来的随机数序列）、<strong>不可重现性</strong>（不能重现该序列），密码学上使用的伪随机数算法至少也要做到前两点。</p>
+<p>咱要记得，凡是线性随余算法的随机数都不能作为密码学应用；请使用语言的标准库中提供的密码学算法，或者是使用OpenSSL、<code>/dev/random</code>这类安全的实现。</p>
+<p>说了这么多密码学的工具，估计可能已经蒙圈了吧？别急，咱继续，接下来咱来分析下SSH设计的需求，这才是重头戏。</p>
+<h2 id="SSH协议需求"><a href="#SSH协议需求" class="headerlink" title="SSH协议需求"></a>SSH协议需求</h2><h3 id="保密性（防止泄密）"><a href="#保密性（防止泄密）" class="headerlink" title="保密性（防止泄密）"></a>保密性（防止泄密）</h3><p>SSH 需要做到足够好的保密性。</p>
+<p>SSH首先要能够对抗嗅探。所谓的”嗅探”，通俗而言就是监视你的网络传输流量。比如说某些网关设备啊，甚至是某些情况下开了混杂模式的网卡都可以轻而易举的嗅探到你的网络流量。如果你使用明文的协议，那么监视者通过嗅探，就知道你传输的内容，自然而然也就包括密码啦什么的。。</p>
+<p>嗅探是比较低级的攻击手段了，下面咱会谈一种很变态的攻击手段：重放攻击。</p>
+<h3 id="完整性（防止篡改）"><a href="#完整性（防止篡改）" class="headerlink" title="完整性（防止篡改）"></a>完整性（防止篡改）</h3><p>除了”保密性”，还有一个同样重要的目标是”确保完整性”。完整性就是协议会保证传输的内容是不能被篡改的。</p>
+<p>如果换到HTTPS上的完整性，咱就想想那些http的页面被ISP插入的广告，而HTTPS却不会有ISP的广告，这样就好理解了。</p>
+<p>在完整性中，有一种比较变态的手段叫做”<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Replay_attack">重放攻击</a>“。举个栗子，假如某个攻击者监听了你的SSH会话，他将你执行某个命令（比如说rm –rf *）的报文记录下来，然后在你切换到~的时候插入这个报文，那么你就会错误的删除自己家目录下的所有文件。攻击者并没有解密你的通信，他的攻击之所以能够成功是因为发送的报文是真实有效的，而TCP的完整性校验是基于报文的，所以SSH必须要有一种有效的校验方式来抵抗这种攻击手法。</p>
+<h3 id="真实性"><a href="#真实性" class="headerlink" title="真实性"></a>真实性</h3><p>我猜很多人都不会考虑到”真实性”，那么让我来问你一个问题，你怎么知道你访问的网站真的是目标网站而不是其他人仿冒的？看域名？别扯了域名系统本身就是不可靠的。</p>
+<p>在SSH的设计中，也必须要通过某种手段来保证真实性的需求，当然了这里SSH的设计要比HTTPS的简单的多。</p>
+<h3 id="转发（隧道）、可扩展性"><a href="#转发（隧道）、可扩展性" class="headerlink" title="转发（隧道）、可扩展性"></a>转发（隧道）、可扩展性</h3><p>咱把SSH设计出来，还有一个作用是可以像SSL&#x2F;TLS一样来作为”隧道”来保护、强化其他协议的安全性。所谓转发，就是在SSH会话中封装了其他的基于TCP的应用层协议，借此可以把SSH的安全特性应用到这个应用层协议上。</p>
+<h3 id="高性能"><a href="#高性能" class="headerlink" title="高性能"></a>高性能</h3><p>咱谁都不喜欢性能低下的协议吧，毕竟加密、解密等过程中是存在性能开销的，如何设计SSH使得性能不至于太差也是至关重要的。所以SSH得关注于如何使用加密算法（对称or非对称）。</p>
+<h2 id="SSH协议的设计难点"><a href="#SSH协议的设计难点" class="headerlink" title="SSH协议的设计难点"></a>SSH协议的设计难点</h2><p>类似SSL&#x2F;TLS，SSH的设计同样需要解决一些很蛋疼的问题，类比于SSL&#x2F;TLS, SSH中设计难点主要有：</p>
+<h3 id="密钥交换"><a href="#密钥交换" class="headerlink" title="密钥交换"></a>密钥交换</h3><p>如果张三要和李四建立一个加密通信的信道，那么他们就要先约定好一个加密算法，然后交换一个密钥。在这种情况下，约定的算法被其他人知道是没关系的，但是密钥却不能被其他人得知，得到密钥等同于得到明文。</p>
+<p>回到开头，加密通信建立起来之前，咱必须协商算法、交换密钥（这个过程一般被称作握手），可是加密通信还没建立了，握手过程中必然是明文的，咋安全的交换密钥啊？所以啊，<strong>如何在不安全的网络中安全的进行密钥交换</strong>，这大概是非常蛋疼的一个问题，也是设计中的一个难点。俺剧透一下，DH交换就挺不错的其实。</p>
+<h3 id="服务器认证以及客户端认证"><a href="#服务器认证以及客户端认证" class="headerlink" title="服务器认证以及客户端认证"></a>服务器认证以及客户端认证</h3><p>不同于SSL&#x2F;TLS，SSH协议需要客户端认证服务器、服务器也需要认证客户端，换句话说，SSH的过程是双向认证。对服务器进行认证可以确保你连接到了正确的服务器而不是冒牌货、也就是防止中间人攻击；对客户进行认证，则被称作为“授权”更恰当，最简单单也最脆弱的则是通过密码实现的，还有一些比如使用公钥、kerberos等。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>说了这么多废话，来介绍密码学基础知识、SSH设计的需求和难点，是为了啥呢？因为只有当你了解这些，在后面介绍 SSH 的实现原理时，你才能更容易理解当初为啥要这么设计协议，这也就更方便理解why啦。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/05/08/ssh-1/index/" data-id="clhp6he270089ezqrbm5s51l3" data-title="[SSH系列1]：什么是SSH、背景知识，SSH协议需求与设计难点" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2017/05/14/wanna-cry/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Wanna Cry勒索病毒事件随想
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/04/28/git-password/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">不小心把密码上传到GitHub了，怎么办</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

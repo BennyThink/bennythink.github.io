@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用Telegram 斗图 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="人类的本质就是斗图机。  想要在Telegram上斗图，那么必然就要用到MTProto了。对于pyrogram来说，那是非常简单的！ @app.on_message(filters.incoming)def sticker_handler(client: “Client”, message: “types.Message”):    chat_id &#x3D; message.chat.id">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Telegram 斗图">
+<meta property="og:url" content="http://example.com/2021/10/26/telegram-sticker/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="人类的本质就是斗图机。  想要在Telegram上斗图，那么必然就要用到MTProto了。对于pyrogram来说，那是非常简单的！ @app.on_message(filters.incoming)def sticker_handler(client: “Client”, message: “types.Message”):    chat_id &#x3D; message.chat.id">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2021102621070689.png">
+<meta property="og:image" content="http://example.com/images/2021102621070739.jpeg">
+<meta property="og:image" content="http://example.com/images/2021102621070847.png">
+<meta property="og:image" content="http://example.com/images/2021102621070967.png">
+<meta property="og:image" content="http://example.com/images/2021102621071087.png">
+<meta property="og:image" content="http://example.com/images/2021102621071241.png">
+<meta property="article:published_time" content="2021-10-26T00:00:00.000Z">
+<meta property="article:modified_time" content="2023-05-15T18:16:51.421Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2021102621070689.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-telegram-sticker/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/10/26/telegram-sticker/index/" class="article-date">
+  <time class="dt-published" datetime="2021-10-26T00:00:00.000Z" itemprop="datePublished">2021-10-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用Telegram 斗图
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>人类的本质就是斗图机。</p>
+</blockquote>
+<p>想要在Telegram上斗图，那么必然就要用到MTProto了。对于pyrogram来说，那是非常简单的！</p>
+<p>@app.on_message(filters.incoming)<br>def sticker_handler(client: “Client”, message: “types.Message”):<br>    chat_id &#x3D; message.chat.id<br>    sticker &#x3D; “CAACAgUAAxkBAAEHooZhc87afMQjB-c10tBfkdcH1VSAWwACjwEAAjMDHAiv-7CBCwXTrR4E”<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(sticker, quote&#x3D;True)</p>
+<p>sticker可以为表情包的文件路径、HTTP URL、或者是文件ID。</p>
+<p>如有需要可以对filters进行各种定制，比如说我要某个用户给我发某个特定表情包时才斗图，那么filter大概可以这样写</p>
+<p>@app.on_message(filters.sticker &amp; filters.incoming &amp; filters.user(user_id))</p>
+<p>然后判断一下</p>
+<p>if message.sticker.file_unique_id &#x3D;&#x3D; “abcd”:<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(sticker, quote&#x3D;True)</p>
+<p>[v_blue]</p>
+<p>小提示：如何获取user_id? 试试这个bot呢？ <a target="_blank" rel="noopener" href="https://t.me/blog_update_bot">https://t.me/blog_update_bot</a> [&#x2F;v_blue] 那么这个sticker的ID怎么获取呢？笨办法是，找个小号帮忙发个表情就好了。</p>
+<p>我的Telegram里明明添加了那么多表情包，如果能一键使用就好了。既然MTProto是公开的，那么也一定有办法。</p>
+<h2 id="Raw-Functions"><a href="#Raw-Functions" class="headerlink" title="Raw Functions"></a>Raw Functions</h2><p>pyrogram封装了许多易于使用的方法，比如上面的发sticker，最常用的回复消息等等。但是实际上这些都利用了Raw Function。很多功能并没有封装成高层的 Python方法，非常不幸的是，获取sticker set便是其中之一。</p>
+<p>想要使用raw functions也很简单啦</p>
+<p>from pyrogram.raw import functions<br>app.send(<br>    functions.account.UpdateProfile(<br>    first_name&#x3D;”Dan”, last_name&#x3D;”Tès”,<br>    about&#x3D;”Bio written from Pyrogram”)<br>)</p>
+<h2 id="获取全部已添加的sticker"><a href="#获取全部已添加的sticker" class="headerlink" title="获取全部已添加的sticker"></a>获取全部已添加的sticker</h2><p>获取全部sticker的函数是 <code>functions.messages.GetAllStickers</code></p>
+<p>于是你兴致勃勃写好了代码，并且猜测猜测send方法会有返回值</p>
+<p><img src="/images/2021102621070689.png"></p>
+<p>这是怎么回事？这个参数hash是什么？要怎么写？</p>
+<p><img src="/images/2021102621070739.jpeg"></p>
+<p>其实这个hash是为了节约双方的资源的，有点像etag。具体可以看这里 <a target="_blank" rel="noopener" href="https://core.telegram.org/api/offsets#hash-generation">https://core.telegram.org/api/offsets#hash-generation</a></p>
+<p>我们这随便传入一个数字就可以了，这个接口获取到的数据大概是这种结构：</p>
+<p><img src="/images/2021102621070847.png"> [v_error]看到上面的hash 50617….了吗，按道理应该传入这个的哦，就会有类似304 Not Modified的效果[&#x2F;v_error]</p>
+<h2 id="获取sticker-set"><a href="#获取sticker-set" class="headerlink" title="获取sticker set"></a>获取sticker set</h2><p>上面的<code>all_stickers</code>就包含了这个用户所收藏的所有sticker，每一个sticker set都是list的一个元素。</p>
+<p>然后我们看下获取sticker set的API</p>
+<p><code>functions.messages.GetStickerSet</code></p>
+<p>接受一个神奇的参数 <code>stickerset: &quot;raw.base.InputStickerSet&quot;</code></p>
+<p>很多人可能会问，这是啥参数类型啊，怎么构造？</p>
+<p>要从raw_types里去搞啦，type hint已经给了提示是 <code>raw.base.InputStickerSet</code></p>
+<p>from pyrogram.raw import types as raw_types<br>raw_types.InputStickerSetID</p>
+<p><code>InputStickerSetID</code>接受两个参数，一个是<code>id</code>，一个是<code>access_hash</code></p>
+<p>那这个就不用我多说了吧，每一个set都有这两个参数</p>
+<p><img src="/images/2021102621070967.png"></p>
+<p>这样我们就能拿到一个sticker的全部信息了！数据结构大致如下</p>
+<p>set字段，表示sticker set的基本信息，和上面的一样</p>
+<p>packs和documents，表示单个sticker的信息</p>
+<p>packs的结构比较简单，看起来像是个索引一样</p>
+<p><img src="/images/2021102621071087.png"></p>
+<p>documents的结构比较复杂，包含了缩略图等信息</p>
+<p><img src="/images/2021102621071241.png"></p>
+<p>那看起来这个document就是我们想要的了！那么继续用<code>functions.messages.send_xxx</code></p>
+<p>想想就痛苦，有没有办法利用pyrogram的send_stickersn呢？</p>
+<p>那一大长串<code>file_id</code>是什么啊？</p>
+<h2 id="转换为file-id"><a href="#转换为file-id" class="headerlink" title="转换为file_id"></a>转换为file_id</h2><p>要使用古娜拉黑暗之神——呼呼拉——黑仙魔光才能把sticker变到file_id！</p>
+<p>具体怎么做我教给你们就好了！不用探索其中原理……反正就是看pyrogram的<code>send_sticker</code>是怎么实现的，然后逆着来嘛😝</p>
+<p>from pyrogram.file_id import FileId, FileType</p>
+<p>file_id &#x3D; FileId(file_type&#x3D;FileType.STICKER,<br>    dc_id&#x3D;doc.dc_id,<br>    file_reference&#x3D;doc.file_reference,<br>    media_id&#x3D;doc.id,<br>    access_hash&#x3D;doc.access_hash,<br>    sticker_set_id&#x3D;set_id,<br>    sticker_set_access_hash&#x3D;set_hash).encode()</p>
+<p><code>set_id</code>是<code>set_access_hash</code>是sticker set的，<code>media_id</code>和<code>access_hash</code>是这个sticker的，不要搞错了哦。</p>
+<p>然后生成的一长串字符串，就可以喂给 <code>send_sticker</code>啦。</p>
+<p>建议事先把所有的sticker的file_id都跑出来，然后随机从里面选就好了～要不然容易触发rate limit导致Durov送你飞机票。</p>
+<h2 id="欢乐斗图"><a href="#欢乐斗图" class="headerlink" title="欢乐斗图"></a>欢乐斗图</h2><p>为了斗图更快乐，我们也要搞的更欢乐更随机！</p>
+<p>那么最简单的办法，其实就random一下就好了，先随机选sticker，然后再自定义回复概率，比如我想要一半概率回复，那就……</p>
+<p>if random.choice([1, 0]):<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(“sticker file_id”, quote&#x3D;True)</p>
+<p>或者比如我想要79%的概率回复，那就……</p>
+<p>random.randint(1, 100) &lt;&#x3D; 79</p>
+<p>要想要每次都随机的回复概率，那其实也不难</p>
+<p>rand1 &#x3D; random.randint(1, 100)<br>rand2 &#x3D; random.randint(1, 100)<br>if rand1 &gt; rand2:<br>    pass</p>
+<p>当然啦，上述算法从整体上来讲，回复概率是50%的,样本数量越大就会越近于50%。毕竟嘛，要么发要么不发，这范围还是一样的……那肯定50%啦。</p>
+<h2 id="斗图结果"><a href="#斗图结果" class="headerlink" title="斗图结果"></a>斗图结果</h2><p>自然是非常开心了，24小时随时回复！小伙伴都惊呼我竟然大半夜不睡觉！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/10/26/telegram-sticker/index/" data-id="clhp6he2l009rezqrbh1bc13v" data-title="使用Telegram 斗图" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/11/01/fix-ax3600/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          小米AX3600救砖
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/10/02/cat/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">多图杀猫</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+          </li>
+        
+          <li>
+            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
