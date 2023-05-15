@@ -138,7 +138,7 @@
 
 <h2 id="树莓派使用串口"><a href="#树莓派使用串口" class="headerlink" title="树莓派使用串口"></a>树莓派使用串口</h2><p>树莓派有两个串口，一个是模拟的<code>ttyS0</code>，一个是硬件的<code>ttyAMA0</code>。硬件的那个更靠谱，波特率不会受到CPU频率的影响。</p>
 <p>我用的是Ubuntu，启用串口大概可以<a target="_blank" rel="noopener" href="https://askubuntu.com/a/1325939/1037895">参考这篇问答</a>，简单摘抄如下：</p>
-<p>sudo systemctl stop <a href="mailto:&#x73;&#x65;&#114;&#x69;&#x61;&#108;&#45;&#x67;&#x65;&#x74;&#116;&#x79;&#64;&#116;&#116;&#x79;&#83;&#x30;&#x2e;&#x73;&#101;&#x72;&#x76;&#105;&#99;&#101;">&#x73;&#x65;&#114;&#x69;&#x61;&#108;&#45;&#x67;&#x65;&#x74;&#116;&#x79;&#64;&#116;&#116;&#x79;&#83;&#x30;&#x2e;&#x73;&#101;&#x72;&#x76;&#105;&#99;&#101;</a><br>sudo systemctl disable <a href="mailto:&#115;&#101;&#114;&#x69;&#97;&#108;&#45;&#103;&#x65;&#x74;&#x74;&#121;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#46;&#x73;&#x65;&#x72;&#x76;&#105;&#99;&#101;">&#115;&#101;&#114;&#x69;&#97;&#108;&#45;&#103;&#x65;&#x74;&#x74;&#121;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#46;&#x73;&#x65;&#x72;&#x76;&#105;&#99;&#101;</a><br>sudo systemctl mask <a href="mailto:&#x73;&#101;&#114;&#x69;&#97;&#108;&#45;&#103;&#x65;&#116;&#x74;&#x79;&#64;&#116;&#116;&#121;&#x53;&#48;&#x2e;&#115;&#x65;&#x72;&#118;&#x69;&#x63;&#101;">&#x73;&#101;&#114;&#x69;&#97;&#108;&#45;&#103;&#x65;&#116;&#x74;&#x79;&#64;&#116;&#116;&#121;&#x53;&#48;&#x2e;&#115;&#x65;&#x72;&#118;&#x69;&#x63;&#101;</a></p>
+<p>sudo systemctl stop <a href="mailto:&#x73;&#101;&#x72;&#105;&#97;&#108;&#x2d;&#x67;&#101;&#116;&#116;&#121;&#64;&#116;&#x74;&#121;&#x53;&#48;&#46;&#115;&#101;&#x72;&#x76;&#105;&#99;&#x65;">&#x73;&#101;&#x72;&#105;&#97;&#108;&#x2d;&#x67;&#101;&#116;&#116;&#121;&#64;&#116;&#x74;&#121;&#x53;&#48;&#46;&#115;&#101;&#x72;&#x76;&#105;&#99;&#x65;</a><br>sudo systemctl disable <a href="mailto:&#x73;&#101;&#114;&#105;&#97;&#x6c;&#45;&#x67;&#101;&#116;&#x74;&#121;&#64;&#116;&#x74;&#x79;&#x53;&#x30;&#x2e;&#x73;&#x65;&#x72;&#118;&#105;&#x63;&#101;">&#x73;&#101;&#114;&#105;&#97;&#x6c;&#45;&#x67;&#101;&#116;&#x74;&#121;&#64;&#116;&#x74;&#x79;&#x53;&#x30;&#x2e;&#x73;&#x65;&#x72;&#118;&#105;&#x63;&#101;</a><br>sudo systemctl mask <a href="mailto:&#x73;&#101;&#114;&#105;&#x61;&#108;&#x2d;&#x67;&#x65;&#116;&#116;&#x79;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#x2e;&#115;&#101;&#x72;&#x76;&#x69;&#99;&#101;">&#x73;&#101;&#114;&#105;&#x61;&#108;&#x2d;&#x67;&#x65;&#116;&#116;&#x79;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#x2e;&#115;&#101;&#x72;&#x76;&#x69;&#99;&#101;</a></p>
 <h1 id="x2F-etc-x2F-udev-x2F-rules-d-x2F-10-local-rules"><a href="#x2F-etc-x2F-udev-x2F-rules-d-x2F-10-local-rules" class="headerlink" title="&#x2F;etc&#x2F;udev&#x2F;rules.d&#x2F;10-local.rules"></a>&#x2F;etc&#x2F;udev&#x2F;rules.d&#x2F;10-local.rules</h1><p>KERNEL&#x3D;&#x3D;”ttyS0”, SYMLINK+&#x3D;”serial0” GROUP&#x3D;”tty” MODE&#x3D;”0660”<br>KERNEL&#x3D;&#x3D;”ttyAMA0”, SYMLINK+&#x3D;”serial1” GROUP&#x3D;”tty” MODE&#x3D;”0660”</p>
 <p>sudo udevadm control –reload-rules &amp;&amp; sudo udevadm trigger<br>sudo adduser $USER tty</p>
 <h1 id="remove-console-x3D-serial0-115200-from-x2F-boot-x2F-firmware-x2F-cmdline-txt"><a href="#remove-console-x3D-serial0-115200-from-x2F-boot-x2F-firmware-x2F-cmdline-txt" class="headerlink" title="remove console&#x3D;serial0,115200 from &#x2F;boot&#x2F;firmware&#x2F;cmdline.txt"></a>remove console&#x3D;serial0,115200 from &#x2F;boot&#x2F;firmware&#x2F;cmdline.txt</h1><h1 id="add-newline-dtoverlay-x3D-disable-bt-to-x2F-boot-x2F-firmware-x2F-config-txt"><a href="#add-newline-dtoverlay-x3D-disable-bt-to-x2F-boot-x2F-firmware-x2F-config-txt" class="headerlink" title="add newline dtoverlay&#x3D;disable-bt to &#x2F;boot&#x2F;firmware&#x2F;config.txt"></a>add newline dtoverlay&#x3D;disable-bt to &#x2F;boot&#x2F;firmware&#x2F;config.txt</h1><p>重启之后就可以了，ls可以看到串口</p>
@@ -181,7 +181,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2022/02/22/zph01-pm25-voc/index/" data-id="clhp6he4100cbezqr4qigesbn" data-title="在树莓派上使用ZPH01监测PM2.5和VOC" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2022/02/22/zph01-pm25-voc/index/" data-id="clhp7rto300c6s2qr6w478dew" data-title="在树莓派上使用ZPH01监测PM2.5和VOC" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -275,7 +275,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2022/02/02/container-hot-patch/index/" data-id="clhp6hdyj001bezqrh1glelpa" data-title="Docker container热更新" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2022/02/02/container-hot-patch/index/" data-id="clhp7rtf6001js2qr348pb9ta" data-title="Docker container热更新" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -358,7 +358,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2022/01/17/no-openssh-server-container/index/" data-id="clhp6he0w005fezqr22nva69r" data-title="没事别在容器里装openssh-server，真的" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2022/01/17/no-openssh-server-container/index/" data-id="clhp7rthu0063s2qr5f7yb3gb" data-title="没事别在容器里装openssh-server，真的" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -450,7 +450,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2022/01/08/actions-celery/index/" data-id="clhp6hdxe0003ezqr36hs52h6" data-title="使用GitHub Actions跑Celery worker" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2022/01/08/actions-celery/index/" data-id="clhp7rtdp0001s2qr3nn55tvu" data-title="使用GitHub Actions跑Celery worker" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -576,7 +576,7 @@ psutil.Process().kill()
 <p>5. threads：任务实例在线程中执行。这里的线程就是我们通常认知上的线程，线程维护通常要明显大于协程，所以并行度的设置也需要考虑到维护的代价。</p>
 <p>那么用solo模式似乎可行</p>
 <p>tg_client &#x3D; create_app(“development”)<br>tg_client.start()</p>
-<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000").text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
 <h1 id="run-celery"><a href="#run-celery" class="headerlink" title="run celery"></a>run celery</h1><p>celery -A tasks worker –loglevel&#x3D;info –pool&#x3D;solo</p>
 <p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/01/202201032109099.jpeg"><img src="/images/202201032109099.jpeg"></a></p>
 <p>这样当然也行，但是一个很严肃的问题就是，solo情况下如果函数执行时间过长，会使得后续tasks被阻塞，也就是说solo下concurrency是没有用的。这……</p>
@@ -587,7 +587,7 @@ psutil.Process().kill()
 <p>但是改改还能抢救一下</p>
 <h3 id="如果你使用的是pyrogram-1-x版本的话"><a href="#如果你使用的是pyrogram-1-x版本的话" class="headerlink" title="如果你使用的是pyrogram 1.x版本的话"></a>如果你使用的是pyrogram 1.x版本的话</h3><p>from pyrogram import idle</p>
 <p>logging.basicConfig(level&#x3D;logging.INFO)<br>app &#x3D; Celery(‘tasks’, broker&#x3D;’redis:&#x2F;&#x2F;host.docker.internal:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”)<br>tg_client &#x3D; create_app(“development”)</p>
-<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000").text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
 <p>def run_celery():<br>    argv &#x3D; [“-A”, “tasks”, ‘worker’, ‘–loglevel&#x3D;info’, “–pool&#x3D;threads”, “–concurrency&#x3D;200”]<br>    app.worker_main(argv)</p>
 <p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    tg_client.start()<br>    threading.Thread(target&#x3D;run_celery, daemon&#x3D;True).start()<br>    idle()<br>    tg_client.stop()</p>
 <h1 id="run-celery-1"><a href="#run-celery-1" class="headerlink" title="run celery"></a>run celery</h1><p>python3 tasks.py</p>
@@ -621,7 +621,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2022/01/03/celery-bot/index/" data-id="clhp6hdy7000pezqr1bubbcim" data-title="分布式Telegram Bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2022/01/03/celery-bot/index/" data-id="clhp7rtev0015s2qraooceimd" data-title="分布式Telegram Bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -765,7 +765,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/12/25/docker-windows-container/index/" data-id="clhp6hdyr001xezqrf8wo1eow" data-title="使用Docker跑Windows！" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/12/25/docker-windows-container/index/" data-id="clhp7rtfy002ds2qr20ke2194" data-title="使用Docker跑Windows！" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -840,7 +840,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/12/24/docker-nat-vps/index/" data-id="clhp6hdyo001pezqrbw0428db" data-title="使用docker开NAT小鸡" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/12/24/docker-nat-vps/index/" data-id="clhp7rtf7001os2qr8q4a2yh9" data-title="使用docker开NAT小鸡" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -938,7 +938,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/12/03/hysteria/index/" data-id="clhp6he05003lezqr5sajcwly" data-title="一起来歇斯底里（hysteria）吧！" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/12/03/hysteria/index/" data-id="clhp7rtgr003xs2qr2ien8kns" data-title="一起来歇斯底里（hysteria）吧！" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1110,7 +1110,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/11/07/dyd-e12a3/index/" data-id="clhp6hdys0021ezqrhzlihk4p" data-title="如何控制德业DYD E12A3" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/11/07/dyd-e12a3/index/" data-id="clhp7rtg0002fs2qrfxypg7sl" data-title="如何控制德业DYD E12A3" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1250,7 +1250,7 @@ psutil.Process().kill()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/11/01/fix-ax3600/index/" data-id="clhp6hdzh002nezqr544zhrn6" data-title="小米AX3600救砖" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/11/01/fix-ax3600/index/" data-id="clhp7rtgb002us2qr6rqlgnt1" data-title="小米AX3600救砖" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

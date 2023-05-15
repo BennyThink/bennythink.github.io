@@ -155,7 +155,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/05/aeru/index/" data-id="clhp6hdxf0005ezqrer0h9x22" data-title="また会える" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/06/05/aeru/index/" data-id="clhp7rtdv0007s2qr596vc43o" data-title="また会える" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -220,14 +220,14 @@
 <p>If you wish to copy your credentials to a server, they have been saved to:</p>
 <p>&#x2F;home&#x2F;benny&#x2F;.cloudflared&#x2F;cert.pem</p>
 </blockquote>
-<h2 id="创建argo-tunnel"><a href="#创建argo-tunnel" class="headerlink" title="创建argo tunnel"></a>创建argo tunnel</h2><p>cloudflared tunnel create <NAME></p>
+<h2 id="创建argo-tunnel"><a href="#创建argo-tunnel" class="headerlink" title="创建argo tunnel"></a>创建argo tunnel</h2><p>cloudflared tunnel create <NAME></NAME></p>
 <p>这条命令会输出一个tunnle UUID</p>
 <p>name可以自己随便取一个，比如说Pi啦～Yui啦～随便的啦</p>
 <p>想要查看tunnel列表，可以使用 <code>cloudflared tunnel list</code></p>
 <p>很明显，想要删除，那就delete啦 <code>cloudflared tunnel delete pi</code></p>
 <h2 id="创建DNS记录"><a href="#创建DNS记录" class="headerlink" title="创建DNS记录"></a>创建DNS记录</h2><p>有两种办法，一种是去cloudflare dashboard中创建一条道<code>id. cfargotunnel.com</code>的CNAME解析，另外一种是使用cli命令～</p>
 <p>那比如说我要创建一个abcd.dmesg.app，那么就可以这样做</p>
-<p>cloudflared tunnel route dns <UUID or NAME> abcd.dmesg.com</p>
+<p>cloudflared tunnel route dns <UUID or name> abcd.dmesg.com</UUID></p>
 <p>或者在网页上这样添加，结果是一样滴</p>
 <p><img src="/images/2021041713264377.png"></p>
 <p>此时如果你访问abcd.dmesg.app，会看到1033错误的哦，因为我们的tunnel还没有运行。</p>
@@ -243,7 +243,7 @@
 <p>然后我们……</p>
 <p>cloudflared tunnel –config ~&#x2F;tunnel.yml run</p>
 <p>如果不想写这种配置文件，那么可以一条cli解决</p>
-<p>cloudflared tunnel run –url localhost:8000 <NAME or UUID></p>
+<p>cloudflared tunnel run –url localhost:8000 <NAME or uuid></NAME></p>
 <p>看到一大串输出，没有报错，那我们的tunnel就成功了。当然树莓派上8000还没有程序在监听，那我们再赶紧开一个吧</p>
 <p>docker run -d -p 127.0.0.1:8000:80 nginx:alpine</p>
 <p>这个时候打开浏览器刷新一下，你的页面就已经出来啦！</p>
@@ -259,7 +259,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/17/argo-tunnel/index/" data-id="clhp6hdxq000hezqrez6jbmw8" data-title="Cloudflare Argo Tunnel 小试：我终于可以用树莓派做网站啦" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/04/17/argo-tunnel/index/" data-id="clhp7rtei000ps2qradl41fjl" data-title="Cloudflare Argo Tunnel 小试：我终于可以用树莓派做网站啦" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -381,7 +381,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/10/ufw-vs-docker/index/" data-id="clhp6he3f00axezqrf6y3db1l" data-title="我的ufw怎么又不好用了？使用docker时如何拒绝非cloudflare访问" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/04/10/ufw-vs-docker/index/" data-id="clhp7rtmv00aps2qre4ce61qr" data-title="我的ufw怎么又不好用了？使用docker时如何拒绝非cloudflare访问" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -444,7 +444,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/02/10/docker-scale/index/" data-id="clhp6hdyp001rezqrc1l13cup" data-title="使用docker scale时遇到的一点小问题" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/02/10/docker-scale/index/" data-id="clhp7rtf8001qs2qrh4iib315" data-title="使用docker scale时遇到的一点小问题" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -500,7 +500,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/01/26/container-no-network/index/" data-id="clhp6hdyk001dezqrd7vmgkhb" data-title="什么鬼啊，我的容器怎么无法访问外网了" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/01/26/container-no-network/index/" data-id="clhp7rtex001as2qr7bzu7of0" data-title="什么鬼啊，我的容器怎么无法访问外网了" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -685,7 +685,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/01/24/no-yyets/index/" data-id="clhp6he0y005jezqr1ovy6pyd" data-title="没了人人影视，我们该怎么办？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/01/24/no-yyets/index/" data-id="clhp7rthv0065s2qr4v8jdjku" data-title="没了人人影视，我们该怎么办？" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -800,7 +800,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/01/04/nigeru-sp/index/" data-id="clhp6he0s0057ezqr957l156x" data-title="《逃避可耻却有用》新春SP" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/01/04/nigeru-sp/index/" data-id="clhp7rthr005rs2qr8oftgixx" data-title="《逃避可耻却有用》新春SP" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -857,7 +857,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2020/12/31/2020-conclusion/index/" data-id="clhp6hdxd0002ezqraw9g7enu" data-title="2020年终总结" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2020/12/31/2020-conclusion/index/" data-id="clhp7rtdh0000s2qr42o1dj7q" data-title="2020年终总结" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1006,7 +1006,7 @@ return file\_id
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2020/12/25/tgbot2/index/" data-id="clhp6he2r009vezqr79r80zw8" data-title="[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2020/12/25/tgbot2/index/" data-id="clhp7rtm5009qs2qrbn1ydxkk" data-title="[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
@@ -1116,7 +1116,7 @@ return file\_id
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2020/10/30/dev-deploy-bot/index/" data-id="clhp6hdym001jezqr848ycml9" data-title="我是如何优雅的开发、部署并管理多个Telegram Bot的？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2020/10/30/dev-deploy-bot/index/" data-id="clhp7rtf9001vs2qr2byb78o9" data-title="我是如何优雅的开发、部署并管理多个Telegram Bot的？" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

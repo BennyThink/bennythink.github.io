@@ -121,9 +121,9 @@
 <p>然后在riseup的web页面就可以用这个邮箱发邮件啦</p>
 <p><img src="/images/2021072919314467.png"></p>
 <p>想要用代码来解决的话，也很简单，Python的话直接用自带的smtplib就可以了</p>
-<p><code>from_addr</code>就是加的那个alias，别想着加一个 <a href="mailto:&#x74;&#101;&#110;&#99;&#101;&#110;&#x74;&#x40;&#x71;&#x71;&#x2e;&#x63;&#111;&#109;">&#x74;&#101;&#110;&#99;&#101;&#110;&#x74;&#x40;&#x71;&#x71;&#x2e;&#x63;&#111;&#109;</a>，不行的（这种情况倒是可以用mailhog自娱自乐）。</p>
+<p><code>from_addr</code>就是加的那个alias，别想着加一个 <a href="mailto:&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>，不行的（这种情况倒是可以用mailhog自娱自乐）。</p>
 <p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
-<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; os.getenv(“email_user”)<br>    password &#x3D; os.getenv(“email_password”)<br>    host &#x3D; os.getenv(“email_host”) or “localhost”<br>    port &#x3D; os.getenv(“email_port”) or “1025”  # mailhog<br>    from_addr &#x3D; os.getenv(“from_addr”) or “<a href="mailto:&#x79;&#121;&#101;&#116;&#x73;&#64;&#100;&#109;&#101;&#115;&#103;&#46;&#x61;&#x70;&#x70;">&#x79;&#121;&#101;&#116;&#x73;&#64;&#100;&#109;&#101;&#115;&#103;&#46;&#x61;&#x70;&#x70;</a>“</p>
+<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; os.getenv(“email_user”)<br>    password &#x3D; os.getenv(“email_password”)<br>    host &#x3D; os.getenv(“email_host”) or “localhost”<br>    port &#x3D; os.getenv(“email_port”) or “1025”  # mailhog<br>    from_addr &#x3D; os.getenv(“from_addr”) or “<a href="mailto:&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;">&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;</a>“</p>
 <pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
 msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
 msg\[&#39;To&#39;\] = \_format\_addr(to)
@@ -137,12 +137,12 @@ server.login(user, password)
 server.sendmail(from\_addr, \[to\], msg.as\_string())
 server.quit()
 </code></pre>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#110;&#110;&#x79;&#x2e;&#116;&#x68;&#105;&#110;&#107;&#x40;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#x6f;&#x6d;">&#98;&#101;&#110;&#110;&#x79;&#x2e;&#116;&#x68;&#105;&#110;&#107;&#x40;&#103;&#109;&#97;&#105;&#108;&#46;&#99;&#x6f;&#x6d;</a>“, “subj”, ‘aaaa<br>bbb’)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a>“, “subj”, ‘aaaa<br>bbb’)</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/07/29/riseup-alias-email/index/" data-id="clhp6he1k0071ezqrgqfxe32h" data-title="riseup如何使用自己域名邮箱发邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/07/29/riseup-alias-email/index/" data-id="clhp7rtik007ps2qrfb710m85" data-title="riseup如何使用自己域名邮箱发邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

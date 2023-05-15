@@ -255,7 +255,7 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
 <p>.&#x2F;certbot-auto renew</p>
 <p>续期，这就不用说啥了。按照官网的推荐，一天两次cron最好了</p>
 <p>另外，如果用webroot模式，这样申请证书</p>
-<p>certbot certonly –webroot –webroot-path &#x2F;home&#x2F;wwwroot&#x2F;dmesg.app –renew-by-default –email <a href="mailto:&#x31;&#49;&#x31;&#64;&#x31;&#49;&#49;&#x2e;&#x63;&#111;&#109;">&#x31;&#49;&#x31;&#64;&#x31;&#49;&#49;&#x2e;&#x63;&#111;&#109;</a> –text –agree-tos -d dmesg.app</p>
+<p>certbot certonly –webroot –webroot-path &#x2F;home&#x2F;wwwroot&#x2F;dmesg.app –renew-by-default –email <a href="mailto:&#49;&#x31;&#x31;&#x40;&#49;&#49;&#49;&#46;&#x63;&#111;&#109;">&#49;&#x31;&#x31;&#x40;&#49;&#49;&#49;&#46;&#x63;&#111;&#109;</a> –text –agree-tos -d dmesg.app</p>
 <p>Nginx里这么配置</p>
 <p>location ~ &#x2F;.well-known {<br>        allow all;<br>    }</p>
 <p>对呢，由于咱用的standlone模式，所以要关掉webserver才能续期成功，方法之一是写个bash脚本判断上一条命令返回值，方法之二是用hook，比如说：</p>
@@ -281,7 +281,7 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2016/04/25/letsencrypt-nginx-subdomain/index/" data-id="clhp6he0c0041ezqr3ad25uhq" data-title="手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2016/04/25/letsencrypt-nginx-subdomain/index/" data-id="clhp7rth7004gs2qra8jhgz8a" data-title="手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

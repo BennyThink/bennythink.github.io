@@ -115,7 +115,7 @@
 </ol>
 <p>import smtplib<br>from email.header import Header<br>from email.mime.text import MIMEText<br>from email.utils import formataddr, parseaddr</p>
 <p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
-<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; “username”<br>    password &#x3D; “password”<br>    host &#x3D; “mail.riseup.net”<br>    port &#x3D; 465<br>    from_addr &#x3D; “<a href="mailto:&#x79;&#121;&#x65;&#116;&#115;&#64;&#x64;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#x70;&#112;">&#x79;&#121;&#x65;&#116;&#115;&#64;&#x64;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#x70;&#112;</a>“</p>
+<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; “username”<br>    password &#x3D; “password”<br>    host &#x3D; “mail.riseup.net”<br>    port &#x3D; 465<br>    from_addr &#x3D; “<a href="mailto:&#121;&#121;&#x65;&#116;&#115;&#x40;&#100;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#112;&#112;">&#121;&#121;&#x65;&#116;&#115;&#x40;&#100;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#112;&#112;</a>“</p>
 <pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
 msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
 msg\[&#39;To&#39;\] = \_format\_addr(to)
@@ -130,7 +130,7 @@ server.login(user, password)
 server.sendmail(from\_addr, \[to\], msg.as\_string())
 server.quit()
 </code></pre>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#x6e;&#110;&#121;&#x2e;&#116;&#104;&#105;&#x6e;&#107;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;">&#98;&#101;&#x6e;&#110;&#121;&#x2e;&#116;&#104;&#105;&#x6e;&#107;&#64;&#103;&#109;&#97;&#105;&#108;&#46;&#x63;&#111;&#109;</a>“, “test subject”, “test body”)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#x65;&#110;&#110;&#121;&#x2e;&#116;&#104;&#105;&#110;&#x6b;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#98;&#x65;&#110;&#110;&#121;&#x2e;&#116;&#104;&#105;&#110;&#x6b;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;</a>“, “test subject”, “test body”)</p>
 <p>收到的邮件也比较理想，一般来说不会进spam</p>
 <p><img src="/images/2023020703173685.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
 <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>前几天做测试的时候一切顺利，上线的时候本来以为没什么大问题，结果今天却收到了一个用户的反馈，说收不到邮件，试了各种邮箱，检查了垃圾箱，也没有收到。</p>
@@ -201,7 +201,7 @@ server.quit()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2023/02/07/container-smtp/index/" data-id="clhp6hdyl001fezqr0kjh14xx" data-title="为什么我的容器连不上riseup的邮件服务器了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2023/02/07/container-smtp/index/" data-id="clhp7rtfp001ys2qr1go0h41t" data-title="为什么我的容器连不上riseup的邮件服务器了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

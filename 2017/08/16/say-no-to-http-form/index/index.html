@@ -105,8 +105,8 @@
       
         <p>话说， 本博客上面有个”美剧电影“的栏目，其中有个带有HTTP的、人人影视的form表单，所以，俺的小锁头就没了。 原来的HTML代码大概是这样子的（这HTML代码写转义真是累啊……）：</p>
 <form action="http://www.zimuzu.tv/search/index?keyword=" method="get" name="search" target="\_blank">
-<input class="keywords" name="keyword" type="text" value="" />
-<input class="submit" type="submit" value="搜索" />
+<input class="keywords" name="keyword" type="text" value>
+<input class="submit" type="submit" value="搜索">
 </form>
 
 <p>好吧，其实俺忍了很久了，那该怎么把小锁头找回来呢？先说说我的思路</p>
@@ -117,12 +117,12 @@
 <blockquote>
 <p>Talk is cheap, show me the code!</p>
 </blockquote>
-<input id="txt1" size="12" type="text" />
-<input type="button" value="搜索" onclick='window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById("txt1").value,"\_blank");'/>
+<input id="txt1" size="12" type="text">
+<input type="button" value="搜索" onclick="window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById("txt1").value,"\_blank");">
 
 <p>如果觉得这样看起来比较费事的话，也可以写成函数的形式：</p>
-<input id="txt1" size="12" type="text" />
-<input type="button" value="搜索" onclick="search()"/>
+<input id="txt1" size="12" type="text">
+<input type="button" value="搜索" onclick="search()">
 <script>
 function search(){
 window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById("txt1").value,"\_blank");
@@ -136,7 +136,7 @@ window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2017/08/16/say-no-to-http-form/index/" data-id="clhp6he1p0077ezqrc1l07ioi" data-title="找回小锁头，对HTTP表单说No" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2017/08/16/say-no-to-http-form/index/" data-id="clhp7rtiq007xs2qr2kkkaave" data-title="找回小锁头，对HTTP表单说No" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

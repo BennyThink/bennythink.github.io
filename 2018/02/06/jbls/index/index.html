@@ -162,7 +162,7 @@
 <h2 id="新版JetBrains-License-Server备注"><a href="#新版JetBrains-License-Server备注" class="headerlink" title="新版JetBrains License Server备注"></a>新版JetBrains License Server备注</h2><p>以下内容全文引用自<a target="_blank" rel="noopener" href="http://blog.lanyus.com/archives/174.html/comment-page-21#comments">lanyus</a>评论</p>
 <blockquote>
 <p>贵站居然没有过滤html的特殊字符？重新发一下吧，以下是原文：</p>
-<p>Jetbrains家产品线激活服务器认证从2018.2开始使用两个handler来处理，第一个handler会对老的签名方式进行认证（<!-- abcdef1234567890 --><ObtainTicketResponse></ObtainTicketResponse >类样式），该handler会判断签名是否包含hex之外的字符。如果没有，按老版本方式来验证签名，如果存在hex之外字符则抛异常由自己接住后进入第二个handler来验证。 从版本2018.2.1开始便去掉了第一个handler，改为只由第二个handler来验证，由此老的验证服务器全面失效。 来说说第二个handler的验证逻辑吧： 新的报文返回还是形同：<!-- sign\_body --><xxxResponse></xxxResponse>，其中<xxxResponse></xxxResponse>这样的响应正文中相比较老版本添加<serveruid>xyz</serveruid>配置，这个xyz后文中有用到，不可缺少。 sign_body格式较老版本的hex字符串变动很大，其示例格式如下：SHA1withRSA-xxxxxxxxxxxxxx-yyyyyyyyyyyyyyy，以-符号分隔，SHA1withRSA对应java中签名所使用的算法（可换为MD5withRSA等），xxxxxxxxxxxxxx部分是使用该算法以私钥签名的bin -&gt; base64字符串，yyyyyyyyyyyyyyy部分则是pem格式的证书字符串（可直接放证书正文，不换行）。 其中yyyyyyyyyyyyyyy证书必须由Jetbrains产品内置的一个CN为License Server CA的CA证书签发才有效，而且yyyyyyyyyyyyyyy证书中必须包含CN&#x3D;xyz.lsrv.jetbrains.com(其中xyz对应前文<serveruid>xyz</serveruid>部分所填)。 证书验证通过后才会取出证书中所包含的公钥来验证签名<xxxResponse></xxxResponse>响应正文（和base64Decode(xxxxxxxxxxxxxx)比对），验证通过后继续完成服务器认证（解析正文内容，逻辑同旧版）。 啰啰嗦嗦这么多，总结一下：如果我们想要自己造验证服务器，则需要拿到一张License Server CA签发的证书（包括私钥），而且这个证书被Jetbrains发现可能会被吊销！所以这个恐怕有些痴人说梦了。 对了License Server CA证书的内容由另一张Jetprofile签发的叫prod3y的证书公钥定时校验（数据格式同上文所述，不过正文部分是CA证书字符串），应该是防止被替换吧。 还有类似idea.lanyus.com这样的认证服务器域名黑名单也由这张prod3y证书公钥定时校验，也是怕被篡改吧。如果要替换CA要从替换prod3y证书开始，但那是破解的内容了，不如注册服务器优雅。 就这么多。</p>
+<p>Jetbrains家产品线激活服务器认证从2018.2开始使用两个handler来处理，第一个handler会对老的签名方式进行认证（<!-- abcdef1234567890 --><ObtainTicketResponse></ObtainTicketResponse>类样式），该handler会判断签名是否包含hex之外的字符。如果没有，按老版本方式来验证签名，如果存在hex之外字符则抛异常由自己接住后进入第二个handler来验证。 从版本2018.2.1开始便去掉了第一个handler，改为只由第二个handler来验证，由此老的验证服务器全面失效。 来说说第二个handler的验证逻辑吧： 新的报文返回还是形同：<!-- sign\_body --><xxxResponse></xxxResponse>，其中<xxxResponse></xxxResponse>这样的响应正文中相比较老版本添加<serveruid>xyz</serveruid>配置，这个xyz后文中有用到，不可缺少。 sign_body格式较老版本的hex字符串变动很大，其示例格式如下：SHA1withRSA-xxxxxxxxxxxxxx-yyyyyyyyyyyyyyy，以-符号分隔，SHA1withRSA对应java中签名所使用的算法（可换为MD5withRSA等），xxxxxxxxxxxxxx部分是使用该算法以私钥签名的bin -&gt; base64字符串，yyyyyyyyyyyyyyy部分则是pem格式的证书字符串（可直接放证书正文，不换行）。 其中yyyyyyyyyyyyyyy证书必须由Jetbrains产品内置的一个CN为License Server CA的CA证书签发才有效，而且yyyyyyyyyyyyyyy证书中必须包含CN&#x3D;xyz.lsrv.jetbrains.com(其中xyz对应前文<serveruid>xyz</serveruid>部分所填)。 证书验证通过后才会取出证书中所包含的公钥来验证签名<xxxResponse></xxxResponse>响应正文（和base64Decode(xxxxxxxxxxxxxx)比对），验证通过后继续完成服务器认证（解析正文内容，逻辑同旧版）。 啰啰嗦嗦这么多，总结一下：如果我们想要自己造验证服务器，则需要拿到一张License Server CA签发的证书（包括私钥），而且这个证书被Jetbrains发现可能会被吊销！所以这个恐怕有些痴人说梦了。 对了License Server CA证书的内容由另一张Jetprofile签发的叫prod3y的证书公钥定时校验（数据格式同上文所述，不过正文部分是CA证书字符串），应该是防止被替换吧。 还有类似idea.lanyus.com这样的认证服务器域名黑名单也由这张prod3y证书公钥定时校验，也是怕被篡改吧。如果要替换CA要从替换prod3y证书开始，但那是破解的内容了，不如注册服务器优雅。 就这么多。</p>
 </blockquote>
 <p> </p>
 <p>所以估计License Server这条路可能走不通了，只能通过javaagent这种方法修改客户端（IDE）代码然后达到目的了。</p>
@@ -170,7 +170,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2018/02/06/jbls/index/" data-id="clhp6he09003tezqrh3vu5tq8" data-title="JetBrains License Server原理及40行Python代码的实现" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2018/02/06/jbls/index/" data-id="clhp7rtgw0046s2qrch5q8bdo" data-title="JetBrains License Server原理及40行Python代码的实现" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

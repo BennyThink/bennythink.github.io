@@ -199,7 +199,7 @@
 <p>5. threads：任务实例在线程中执行。这里的线程就是我们通常认知上的线程，线程维护通常要明显大于协程，所以并行度的设置也需要考虑到维护的代价。</p>
 <p>那么用solo模式似乎可行</p>
 <p>tg_client &#x3D; create_app(“development”)<br>tg_client.start()</p>
-<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000").text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
 <h1 id="run-celery"><a href="#run-celery" class="headerlink" title="run celery"></a>run celery</h1><p>celery -A tasks worker –loglevel&#x3D;info –pool&#x3D;solo</p>
 <p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/01/202201032109099.jpeg"><img src="/images/202201032109099.jpeg"></a></p>
 <p>这样当然也行，但是一个很严肃的问题就是，solo情况下如果函数执行时间过长，会使得后续tasks被阻塞，也就是说solo下concurrency是没有用的。这……</p>
@@ -210,7 +210,7 @@
 <p>但是改改还能抢救一下</p>
 <h3 id="如果你使用的是pyrogram-1-x版本的话"><a href="#如果你使用的是pyrogram-1-x版本的话" class="headerlink" title="如果你使用的是pyrogram 1.x版本的话"></a>如果你使用的是pyrogram 1.x版本的话</h3><p>from pyrogram import idle</p>
 <p>logging.basicConfig(level&#x3D;logging.INFO)<br>app &#x3D; Celery(‘tasks’, broker&#x3D;’redis:&#x2F;&#x2F;host.docker.internal:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”)<br>tg_client &#x3D; create_app(“development”)</p>
-<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000").text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
 <p>def run_celery():<br>    argv &#x3D; [“-A”, “tasks”, ‘worker’, ‘–loglevel&#x3D;info’, “–pool&#x3D;threads”, “–concurrency&#x3D;200”]<br>    app.worker_main(argv)</p>
 <p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    tg_client.start()<br>    threading.Thread(target&#x3D;run_celery, daemon&#x3D;True).start()<br>    idle()<br>    tg_client.stop()</p>
 <h1 id="run-celery-1"><a href="#run-celery-1" class="headerlink" title="run celery"></a>run celery</h1><p>python3 tasks.py</p>
@@ -244,7 +244,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2022/01/03/celery-bot/index/" data-id="clhp6hdy7000pezqr1bubbcim" data-title="分布式Telegram Bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2022/01/03/celery-bot/index/" data-id="clhp7rtev0015s2qraooceimd" data-title="分布式Telegram Bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       

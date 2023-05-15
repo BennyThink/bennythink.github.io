@@ -126,7 +126,7 @@ fun()
 <p>没问题吧，动态导入module嘛，常规操作</p>
 <p>❯ python3 test.py ⏎<br>1 3 5 7 9</p>
 <p>当我们使用pyinstaller时是会无报错完成的，但是当我们运行时：</p>
-<p>❯ dist&#x2F;test<br>Traceback (most recent call last):<br>File “test.py”, line 26, in <module><br>main()<br>File “test.py”, line 15, in main<br>module &#x3D; importlib.import_module(“test_lib”)<br>File “importlib&#x2F;__init__.py”, line 127, in import_module<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1030, in _gcd_import<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1007, in _find_and_load<br>File “&lt;frozen importlib._bootstrap&gt;”, line 984, in _find_and_load_unlocked<br>ModuleNotFoundError: No module named ‘test_lib’<br>[91513] Failed to execute script test</p>
+<p>❯ dist&#x2F;test<br>Traceback (most recent call last):<br>File “test.py”, line 26, in <module><br>main()<br>File “test.py”, line 15, in main<br>module &#x3D; importlib.import_module(“test_lib”)<br>File “importlib&#x2F;__init__.py”, line 127, in import_module<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1030, in _gcd_import<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1007, in _find_and_load<br>File “&lt;frozen importlib._bootstrap&gt;”, line 984, in _find_and_load_unlocked<br>ModuleNotFoundError: No module named ‘test_lib’<br>[91513] Failed to execute script test</module></p>
 <p>我们会发现无法执行</p>
 <p>其实原因很简单啦。pyinstaller在build binary时，会有一个analysis的步骤去分析都有哪些module，使用<code>__import__</code>和<code>importlib</code>，甚至是<code>exec</code>、<code>eval</code>的都是无法被检测到的，所以在运行时就会报错啦。想要解决也很简单，<code>hidden-imports</code> 即可：</p>
 <p>pyinstaller -F –hidden-import&#x3D;test_lib test.py</p>
@@ -138,7 +138,7 @@ fun()
 <p>考虑如下代码，<code>text.txt</code>是同级目录的一个普通文本文件</p>
 <p>with open(“text.txt”) as f:<br>    text &#x3D; f.read()</p>
 <p>print(text)</p>
-<p>❯ .&#x2F;test_bin<br>Traceback (most recent call last):<br>File “test_bin.py”, line 10, in <module><br>FileNotFoundError: [Errno 2] No such file or directory: ‘text.txt’<br>[98107] Failed to execute script test_bin</p>
+<p>❯ .&#x2F;test_bin<br>Traceback (most recent call last):<br>File “test_bin.py”, line 10, in <module><br>FileNotFoundError: [Errno 2] No such file or directory: ‘text.txt’<br>[98107] Failed to execute script test_bin</module></p>
 <p>我们会发现，哎呀，文件不在，找不到～</p>
 <p>那么一种方法是，binary同级目录塞一个<code>text.txt</code>，这个方法就很简单了。另外一种做法是我们把这个txt塞进binary里！</p>
 <p>命令行参数使用 <code>--add-data</code>，同时我们需要小改一下代码来使用绝对路径</p>
@@ -176,7 +176,7 @@ fun()
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/17/pyinstaller-static-files/index/" data-id="clhp6he1b006bezqr2acu5h88" data-title="使用pyinstaller嵌入静态资源" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2021/06/17/pyinstaller-static-files/index/" data-id="clhp7rti8006vs2qrcp3678bk" data-title="使用pyinstaller嵌入静态资源" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
