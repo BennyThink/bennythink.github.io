@@ -73,6 +73,115 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-pyinstaller-static-files/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/17/pyinstaller-static-files/index/" class="article-date">
+  <time class="dt-published" datetime="2021-06-17T00:00:00.000Z" itemprop="datePublished">2021-06-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/17/pyinstaller-static-files/index/">使用pyinstaller嵌入静态资源</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>在使用Go时，我经常会羡慕Go的出色的静态编译能力，更具体的说，纯Go写的程序会编译成一个零依赖的二进制文件，同时也可以非常轻松的做到交叉编译。甚至是，我可以把一些资源文件也编译到这个文件中。比如在 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/DailyGakki">DailyGakki</a> 中，我便通过go-bindata把图片塞到了二进制文件中。暂且不提这样对文件大小、对性能有什么影响，只有一个文件就能过实现全部功能，是不是听起来很棒。</p>
+<p>那么python能做到这点吗？当然也是能的啦，只是不是原生支持的啦。Python有一个东西叫做 pyinstaller，它会把python运行时的东西都打包起来，比如我们有这样一个程序<code>test.py</code>：</p>
+<p>import time</p>
+<p>def main():<br>    print(“Hello world at “, time.asctime())</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    main()</p>
+<p>要打包成一个文件，就会用到<code>-F</code>参数：</p>
+<p>pyinstaller -F test.py</p>
+<p>pyinstaller 会生成一个<code>spec</code>文件，然后会在<code>dist</code>目录下生成一个<code>test</code>（对应windows就是<code>test.exe</code>），直接运行这个exe就好了。把这个exe拷贝到同平台其他电脑上，也是可以运行的。</p>
+<p>当然，需要注意的是，别看这里也直接生成了二进制文件，但是这个二进制文件并不是加密的哦，用一些工具可以很容易的找到源代码的。</p>
+<h2 id="ModuleNotFoundError"><a href="#ModuleNotFoundError" class="headerlink" title="ModuleNotFoundError"></a>ModuleNotFoundError</h2><p>由于Python是动态语言，我们可能会在运行时使用<code>importlib</code>或者<code>__import__</code>来import一些模块，花式操作。比如有如下代码：</p>
+<p># test_lib.py<br>def even():<br>    print(0, 2, 4, 6, 8)</p>
+<p>def odd():<br>    print(1, 3, 5, 7, 9)</p>
+<h1 id="test-py"><a href="#test-py" class="headerlink" title="test.py"></a>test.py</h1><p>import time<br>import importlib</p>
+<p>def main():<br>    module &#x3D; importlib.import_module(“test_lib”)<br>    if time.localtime().tm_sec % 2 &#x3D;&#x3D; 0:<br>        func_name &#x3D; “even”<br>    else:<br>        func_name &#x3D; “odd”</p>
+<pre><code>fun = getattr(module, func\_name)
+fun()
+</code></pre>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    main()</p>
+<p>没问题吧，动态导入module嘛，常规操作</p>
+<p>❯ python3 test.py ⏎<br>1 3 5 7 9</p>
+<p>当我们使用pyinstaller时是会无报错完成的，但是当我们运行时：</p>
+<p>❯ dist&#x2F;test<br>Traceback (most recent call last):<br>File “test.py”, line 26, in <module><br>main()<br>File “test.py”, line 15, in main<br>module &#x3D; importlib.import_module(“test_lib”)<br>File “importlib&#x2F;__init__.py”, line 127, in import_module<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1030, in _gcd_import<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1007, in _find_and_load<br>File “&lt;frozen importlib._bootstrap&gt;”, line 984, in _find_and_load_unlocked<br>ModuleNotFoundError: No module named ‘test_lib’<br>[91513] Failed to execute script test</module></p>
+<p>我们会发现无法执行</p>
+<p>其实原因很简单啦。pyinstaller在build binary时，会有一个analysis的步骤去分析都有哪些module，使用<code>__import__</code>和<code>importlib</code>，甚至是<code>exec</code>、<code>eval</code>的都是无法被检测到的，所以在运行时就会报错啦。想要解决也很简单，<code>hidden-imports</code> 即可：</p>
+<p>pyinstaller -F –hidden-import&#x3D;test_lib test.py</p>
+<p>❯ dist&#x2F;test<br>1 3 5 7 9</p>
+<p>这时就会发现没问题啦。</p>
+<p>当然啦，这个参数也可以写在那个spec中的，后面会介绍的哦。</p>
+<h2 id="嵌入资源文件"><a href="#嵌入资源文件" class="headerlink" title="嵌入资源文件"></a>嵌入资源文件</h2><p>如果我想把一些资源文件，比如html、css，甚至是sqlite嵌入到这个binary中，该怎么做呢？</p>
+<p>pyinstaller提供了一个叫做 data 的东西，可以用于嵌入任何东西哦。当然了你要是把一段电影放进去，那咱也没什么意见，就运行时慢呗，毕竟还是要解压缩的。</p>
+<p>考虑如下代码，<code>text.txt</code>是同级目录的一个普通文本文件</p>
+<p>with open(“text.txt”) as f:<br>    text &#x3D; f.read()</p>
+<p>print(text)</p>
+<p>❯ .&#x2F;test_bin<br>Traceback (most recent call last):<br>File “test_bin.py”, line 10, in <module><br>FileNotFoundError: [Errno 2] No such file or directory: ‘text.txt’<br>[98107] Failed to execute script test_bin</module></p>
+<p>我们会发现，哎呀，文件不在，找不到～</p>
+<p>那么一种方法是，binary同级目录塞一个<code>text.txt</code>，这个方法就很简单了。另外一种做法是我们把这个txt塞进binary里！</p>
+<p>命令行参数使用 <code>--add-data</code>，同时我们需要小改一下代码来使用绝对路径</p>
+<p>import os</p>
+<p>root_path &#x3D; os.path.dirname(__file__)<br>file_path &#x3D; os.path.join(root_path, “text.txt”)<br>with open(file_path) as f:<br>    text &#x3D; f.read()</p>
+<p>print(text)</p>
+<h1 id="然后这样哦"><a href="#然后这样哦" class="headerlink" title="然后这样哦"></a>然后这样哦</h1><p>pyinstaller -F –add-data “text.txt:.” test_bin.py</p>
+<p><code>--add-data</code>的参数格式是 <code>src:dst</code>，<code>.</code>的含义是与py文件同级，如果你的脚本是打开的<code>test/test.txt</code>，那么就要 <code>test/test.txt:test/</code>哦。</p>
+<p>benny@BennyのMBP:~&#x2F;PycharmProjects&#x2F;untitled&#x2F;dist $ .&#x2F;test_bin<br>this is a text file 1234</p>
+<p>没问题哦。当然啦，只要你想玩，可以用<code>*</code>做通配符的哦。</p>
+<h2 id="spec文件"><a href="#spec文件" class="headerlink" title="spec文件"></a>spec文件</h2><p>虽然说，在命令行中加参数总是能够解决我们的问题，但是这样每次输入长长的命令也真的是太累啦。有没有更简单的方法呢？当然有啦。比如你看是不是有一个test.spec?每次在你运行 <code>pyinstaller xxx.py</code> 时都会生成一个这样的文件。在这个spec中会有datas和hidenimport的选项，那就简单啦！</p>
+<p>a &#x3D; Analysis([‘test.py’],<br>pathex&#x3D;[‘&#x2F;Users&#x2F;benny&#x2F;PycharmProjects&#x2F;untitled’],<br>binaries&#x3D;[],<br>datas&#x3D;[<br>(‘text.txt’, ‘.’),<br>],<br>hiddenimports&#x3D;[“test_lib”],<br>hookspath&#x3D;[],<br>runtime_hooks&#x3D;[],<br>excludes&#x3D;[],<br>win_no_prefer_redirects&#x3D;False,<br>win_private_assemblies&#x3D;False,<br>cipher&#x3D;block_cipher,<br>noarchive&#x3D;False)</p>
+<p>[v_blue]吐槽一下，data不是datum的复数形式嘛，这个datas是什么鬼哟哈哈哈[&#x2F;v_blue] 没问题，让我们重新运行一次！请记得要用这个spec文件而不是py文件哦。</p>
+<p>pyinstaller -F test.spec</p>
+<p>❯ .&#x2F;test<br>0 2 4 6 8<br>this is a text file 1234</p>
+<p>[benny@BennyのMBP] ~&#x2F;PycharmProjects&#x2F;untitled&#x2F;dist<br>❯ .&#x2F;test<br>1 3 5 7 9<br>this is a text file 1234</p>
+<p>一点问题都没有呐！这个data我们也可以弄得很复杂，比如这样的</p>
+<p>[<br>  ( ‘src&#x2F;README.txt’, ‘.’ ),<br>  ( ‘&#x2F;mygame&#x2F;data’, ‘data’ ),<br>  ( ‘&#x2F;mygame&#x2F;sfx&#x2F;*.mp3’, ‘sfx’ )<br>]</p>
+<h2 id="一些后话"><a href="#一些后话" class="headerlink" title="一些后话"></a>一些后话</h2><p>我们可以用datas选项嵌入文件，我们其实也可以用binaries选项嵌入一些dll&#x2F;so&#x2F;dylib文件。比如说，我可以用msf那一套生成一个反弹的dll，然后……</p>
+<p>binaries&#x3D;[ ( ‘reverse_shell.dll’, ‘.’ ) ]</p>
+<p>🤣🤣🤣🤣</p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>我的YYeTsWeb就使用这种方式嵌入了很多html&#x2F;css&#x2F;js，以及SQLite数据库。也就是只要下载回来这个文件，双击一下，你的本地就可以有一个能够运行的yyets啦！别怪我没说，运行陌生的exe文件是很危险的，说不准就有人丢了一个奇怪的dll文件进去。不过我没有这么做啦，信不信由你好了。</p>
+<p>yyetsweb依赖一些环境变量，所以直接双击<code>start_windows.bat</code>就好了；macOS用户可以用<code>start_unix.sh</code>。至于Linux用户，你都用Linux了，还用得着我弄的小白一键启动？自己搞去。</p>
+<p><img src="/images/2021061722350131.jpeg"></p>
+<p>这个exe可能启动会比较慢，boostrap过程解压缩比较耗时，毕竟是会冒出来一个几百兆的SQLite文件呢。macOS上由于<a target="_blank" rel="noopener" href="https://support.apple.com/en-us/HT202491">GateKeeper</a>机制的存在，估计就更慢了吧🙄️</p>
+<p>运行效果，偷懒，我就直接用了旧版页面，没有把新版也搞过来。</p>
+<p><img src="/images/2021061722350312.jpeg"></p>
+<p>资源页面也是旧版的</p>
+<p><img src="/images/2021061722350345.jpeg"></p>
+<p>反正怎么说，可以离线使用了，哪天万一网站挂了，手里有这个文件也不慌呀～</p>
+<p>下载地址可以看 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/releases/tag/2021-06-17">GitHub Release</a></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>Using Spec Files <a target="_blank" rel="noopener" href="https://pyinstaller.readthedocs.io/en/stable/spec-files.html">https://pyinstaller.readthedocs.io/en/stable/spec-files.html</a></p>
+<p>When Things Go Wrong <a target="_blank" rel="noopener" href="https://pyinstaller.readthedocs.io/en/stable/when-things-go-wrong.html">https://pyinstaller.readthedocs.io/en/stable/when-things-go-wrong.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/17/pyinstaller-static-files/index/" data-id="clhp7rti8006vs2qrcp3678bk" data-title="使用pyinstaller嵌入静态资源" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-aeru/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/05/aeru/index/" class="article-date">
@@ -1018,116 +1127,6 @@ return file\_id
 
 
   
-    <article id="post-dev-deploy-bot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/10/30/dev-deploy-bot/index/" class="article-date">
-  <time class="dt-published" datetime="2020-10-30T00:00:00.000Z" itemprop="datePublished">2020-10-30</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/10/30/dev-deploy-bot/index/">我是如何优雅的开发、部署并管理多个Telegram Bot的？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><strong>并不优雅</strong></p>
-<p>大家都知道，最近我一直痴迷于开发各种并无卵用的Telegram Bot。那么这一过程，就包含了开发、部署和管理这三个过程，本文就简单的说下这段时间的经验之谈吧</p>
-<h2 id="开发-Telegram-Bot"><a href="#开发-Telegram-Bot" class="headerlink" title="开发 Telegram Bot"></a>开发 Telegram Bot</h2><blockquote>
-<p>神说：要有这个bot，于是就有了这个bot</p>
-</blockquote>
-<p>开发bot，最重要的一点就是进行技术选型。“技术选型”看起来很玄乎，其实就是为了实现这个bot，我们要选用什么语言，使用什么库等等。</p>
-<p>当然一切都要从需求出发，从我的角度而言，首选语言是Go——因为静态类型，静态编译之后很适合放到Docker Image里，并且只要凭借想象力编程就基本没问题了；如果Go无法达到我的预期，那就只好选Python了；如果连Python也做不好，那这个bot就可以丢掉了。</p>
-<p>当然，在最终选定时，需要根据需求进行一些基础的调研，拿<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet">TeleTweet</a>为例，基础阶段它的需求有这些：</p>
-<ul>
-<li>能够把Telegram消息发送到Twitter</li>
-<li>支持图片tweet</li>
-</ul>
-<p>对于Go&#x2F;Python与其生态的对比</p>
-<p>Go：</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/tucnak/telebot">Telebot</a> 纯Go实现的支持Bot API的库，维护很积极，文档也比较丰富</li>
-<li><a target="_blank" rel="noopener" href="https://github.com/Arman92/go-tdlib">go-tdlib</a> Telegram官方tdlib的json bindings，文档几乎为0，同时需要先编译tdlib</li>
-<li><a target="_blank" rel="noopener" href="https://github.com/dghubble/go-twitter">go-twitter</a> 功能尚可，文档缺失，并且不支持UploadMedia</li>
-</ul>
-<p>Python：</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/eternnoir/pyTelegramBotAPI">pytelegrambotapi</a> 非常知名的Bot API wrapper，文档丰富，维护积极</li>
-<li><a target="_blank" rel="noopener" href="https://github.com/LonamiWebs/Telethon">Telethon</a> 使用纯Python实现的MTProto，注释即文档，维护积极，支持bot和client</li>
-<li><a target="_blank" rel="noopener" href="https://github.com/bear/python-twitter">python-twitter</a> 还能凑合用的一个Twitter API wrapper，该有的功能都有，支持UploadMedia</li>
-</ul>
-<p>那么对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet">TeleTweet</a>而言，选择Python就是更明智的选择；对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">NCMBot</a>，由于需要使用Client API，因此选用Python+Telethon也是比较优雅的选择；对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/archiver">Archiver</a>，没有太多特殊的地方，用Go就可以了。</p>
-<h2 id="部署Telegram-Bot"><a href="#部署Telegram-Bot" class="headerlink" title="部署Telegram Bot"></a>部署Telegram Bot</h2><p>开发完成之后，bot是总要部署到某台服务器上的。由于我自己有很多bot，因此根据情况不同我把他们划分成了两类：</p>
-<h3 id="Legacy-Bot"><a href="#Legacy-Bot" class="headerlink" title="Legacy Bot"></a>Legacy Bot</h3><p>一些历史遗留下来的bot，基本没有继续的开发计划，处于即将被Archive的状态，有些甚至连说明都没有，完全是拿来自用?所以就丢着呗！</p>
-<h3 id="Modern-Bot"><a href="#Modern-Bot" class="headerlink" title="Modern Bot"></a>Modern Bot</h3><p>最近一段时间开发的bot，有持续的维护计划，运行稳定，表现良好。</p>
-<p>对于第一类bot，我选择让它们留在一台新加坡的机器上，原来是怎么跑的就怎么跑，一点都不动；</p>
-<p>对于第二类bot，我把它们全部放到了一台日本的机器上。</p>
-<p>对于第二类bot，如何运行它们又成为了一个问题。</p>
-<p>好吧，现在这些bot，只要还能说话的，我都给丢到一台英国的大鸡鸡上了。</p>
-<h3 id="systemd-service"><a href="#systemd-service" class="headerlink" title="systemd service"></a>systemd service</h3><p>使用Python开发的bot，那么就是老生常谈的_virtualenv+systemd_，实际操作下来有些繁琐，尤其是配置systemd总是有一些蜜汁情况，比如说环境变量啦，比如说用户啦；使用Go开发的bot，那么也就不外乎是clone下来源代码，然后<code>go build .</code> ，然后继续配置systemd。这样的话当bot一旦多起来，甚至以后要换服务器，那么就会更麻烦，所有上述操作都要全部重新再来一遍，非常痛苦?</p>
-<h3 id="docker-docker-compose"><a href="#docker-docker-compose" class="headerlink" title="docker + docker-compose"></a>docker + docker-compose</h3><p>那么如果用docker去分发部署是不是就很方便了？毕竟第二类bot都是有<code>Dockerfile</code>的。</p>
-<p>没错的，就是这样——使用<code>Dockerfile</code>构建出docker image，直接docker run就可以了。</p>
-<p>更进一步，我可以把这堆bot都丢到<code>docker-compose</code>中，一个<code>docker-compose up -d</code>就可以了。</p>
-<p>当然，构建docker image时，是有很多技巧的，这个就以后再说了。</p>
-<h2 id="管理、维护bot"><a href="#管理、维护bot" class="headerlink" title="管理、维护bot"></a>管理、维护bot</h2><h3 id="使用Makefile"><a href="#使用Makefile" class="headerlink" title="使用Makefile"></a>使用Makefile</h3><p>开发工作总是要不断迭代的，那么如果添加了新功能，，我该如何更新服务器上bot呢？</p>
-<p>有些bot，我创建了一个<code>Makefile</code>，里面是这么写的：</p>
-<p>default:<br>    @echo “Updating codes…”<br>    git pull<br>    @echo “Restarting service…”<br>    systemctl daemon-reload<br>    systemctl restart TeleTweet<br>    @echo “You’re good to go.”<br>    systemctl status TeleTweet</p>
-<p>很简单，很黄很暴力是不是，只要ssh到服务上，跳到对应的目录，一个<code>make</code>然后就可以关窗放狗咬人走人了。</p>
-<p>对于使用Go的bot，也不过是<code>go build .</code> 之类的，比如<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/DailyGakki">DailyGakki</a>是这样写的：</p>
-<p>default:<br>    git pull<br>    @echo “Installing dependencies…”<br>    @go get -u github.com&#x2F;go-bindata&#x2F;go-bindata&#x2F;…<br>    @echo “Build static files…”<br>    make asset<br>    @echo “Build current platform executable…”<br>    go build -o DailyGakki .</p>
-<p>asset:<br>    @~&#x2F;go&#x2F;bin&#x2F;go-bindata -o assets.go images&#x2F;…</p>
-<p>反正也是本机使用，没必要用<code>CGO_ENABLED=0</code>以及额外配置<code>ldflags</code></p>
-<p>如果想要查看Bot的运行状态呢？那么只能<code>systemctl status daily-gakki</code>这样啦！</p>
-<p><img src="/images/2020102917340981.png"></p>
-<h3 id="使用docker-docker-compose"><a href="#使用docker-docker-compose" class="headerlink" title="使用docker+docker-compose"></a>使用docker+docker-compose</h3><p>如果使用docker的话，那么一切问题就简单了。push完代码之后，等待docker hub build成功之后，ssh到服务器上：</p>
-<p>docker pull xxx<br>docker restart container_name</p>
-<p>使用docker-compose也就不过pull了之后</p>
-<p>docker-compose up -d service_name</p>
-<p>查看状态？</p>
-<p>docker-compose ps</p>
-<p><img src="/images/2020102917341023.png"></p>
-<p>或者</p>
-<p>docker stats</p>
-<p><img src="/images/2020102917341268.png"></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>由此可见，在整个bot瞎搞的过程中，使用docker来进行分发部署管理还是非常方便的。当数量多起来，要比传统的systemd、supervisor之类的方便得多。</p>
-<p>当然docker也有缺点，比如磁盘空间比较宝贵的盆友们，有些时候docker image就可能没那么理想，毕竟有些image只能包含rootfs。提到这点，如果是Python开发的bot，做一个通用的image，包含了这些bot所有需要使用的library也不是不可以的。</p>
-<p>另外一个难点，docker容易新手劝退，比如说volumes有时比较有趣，一个不小心就很容易写错，然后就gg啦😂</p>
-<p>不过，如果能够用Go开发，那么docker image甚至可以使用<a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/multistage-build/">multi-stage build</a>的手段。像下面这样：</p>
-<p><img src="/images/2020102917341448.png"></p>
-<p>一眼就能看出来哪些是用Go写的了吧！非常exciting。</p>
-<p>更进一步，我甚至准备了一个<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/BotsRunner">Repository</a>，专门用来存放这些bot的<code>docker-compose.yml</code>。</p>
-<p>哪怕哪天换机器了，我也只需要把这个目录拷贝走，然后一个<code>docker-compose up -d</code>就可以继续装死了。</p>
-<hr>
-<p>好的，以上就是我要说的全部内容，有关于我究竟开发了哪些bot，可以看这篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/telegram-bot-collections.html">《有趣的 Telegram Bot》</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/10/30/dev-deploy-bot/index/" data-id="clhp7rtf9001vs2qr2byb78o9" data-title="我是如何优雅的开发、部署并管理多个Telegram Bot的？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1185,6 +1184,10 @@ return file\_id
       <ul>
         
           <li>
+            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+          </li>
+        
+          <li>
             <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
           </li>
         
@@ -1198,10 +1201,6 @@ return file\_id
         
           <li>
             <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
-          </li>
-        
-          <li>
-            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
           </li>
         
       </ul>

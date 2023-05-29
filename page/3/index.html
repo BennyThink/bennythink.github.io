@@ -73,6 +73,74 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-telegram-cjk-search/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/04/05/telegram-cjk-search/index/" class="article-date">
+  <time class="dt-published" datetime="2022-04-05T00:00:00.000Z" itemprop="datePublished">2022-04-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/04/05/telegram-cjk-search/index/">让Telegram支持中文搜索！</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>众所周知，Telegram是一款非常优秀的即时通信工具，可比那个不知名的绿色图标的软件好多了。Telegram不仅使用更安全，应用程序也很小，还支持多客户端登录，消息跨平台无限制同步。</p>
+<p><img src="/images/2022040513585338.jpeg"></p>
+<p>尽管Telegram这么棒，但是对于中国用户来说，最致命的一个缺点就是搜索。这一点对不是用分词的CJK用户来说也是一样的。想要搜索点什么东西，那简直就是要了命了，必须要输入整个句子。</p>
+<h2 id="有啥办法可以解决这个问题吗？"><a href="#有啥办法可以解决这个问题吗？" class="headerlink" title="有啥办法可以解决这个问题吗？"></a>有啥办法可以解决这个问题吗？</h2><p>一个最常见的方法是，使用Telegram Desktop，注意是Telegram Desktop，用C++写的那个，导出聊天记录为json，然后搜索。</p>
+<p>可这样也太繁琐了吧！有没有什么更好的方案呢……</p>
+<p>一个方法是魔改Telegram的客户端，反正也是开源的，能搜本地数据库就搜本地的吧，至于需要请求服务器搜索的，那大概率是没救了。可惜我既不会swift也不会c++，更何况我估计以我的小脑瓜我也看不懂他们的代码……</p>
+<p>另一个方法就是自己保存一份！还记得Telegram支持多客户端登录吗，那我们如果拿来一个client用来把文字消息保存到数据库中，后续再从数据库中查询，那不就有了嘛！</p>
+<p>[v_error]嗯，这么做像极了某绿色软件：「看了会被开除，我们不保存聊天记录」 [&#x2F;v_error] 说干就干！</p>
+<p><img src="/images/2022040513585313.jpeg"></p>
+<h2 id="技术选型"><a href="#技术选型" class="headerlink" title="技术选型"></a>技术选型</h2><p>需要用MTProto协议，那么最好就是用纯Python实现的pyrogram了，用TDLib什么的太麻烦了。</p>
+<p>数据库就用ElasticSearch吧，全文检索更方便。  算了算了，ES惹不起，用MongoDB吧</p>
+<p>一个client，登录账号，把收和发的消息保存到数据库中。</p>
+<p>一个bot，用于从数据库中检索数据。</p>
+<p>加上一些身份验证之类的。</p>
+<h2 id="使用截图"><a href="#使用截图" class="headerlink" title="使用截图"></a>使用截图</h2><p>详细功能说明可以移步GitHub</p>
+<p><img src="/images/2022040513585435.jpeg"></p>
+<p><img src="/images/2022040513585636.png"></p>
+<p>从此以后CJK再无烦恼😂</p>
+<p>总计代码也就400多行！</p>
+<p>由于这种操作涉及到个人聊天记录，是非常敏感且重要的信息，因此不提供任何公开bot，需要自己部署一份。</p>
+<p>看这ES跑得多欢快，就像脱缰的野马一样，配合上kibana这个劝退的工具简直天生一对😠</p>
+<p><img src="/images/2022040513585967.png"></p>
+<h2 id="开源地址"><a href="#开源地址" class="headerlink" title="开源地址"></a>开源地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/SearchGram">https://github.com/tgbot-collection/SearchGram</a></p>
+<p>放到了这里，😂还打算做 chat history import的功能，就是今天太累了……蹲一个PR吧。</p>
+<p>具体部署方法在那边也有，写的应该比较详细了。这里就不复述了。</p>
+<p>能用就行，从此再也不怕搜不到聊天记录了.jpg</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/04/05/telegram-cjk-search/index/" data-id="clhp7rtl8009is2qr2ov67jsh" data-title="让Telegram支持中文搜索！" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-zph01-pm25-voc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/02/22/zph01-pm25-voc/index/" class="article-date">
@@ -1122,146 +1190,6 @@ psutil.Process().kill()
 
 
   
-    <article id="post-fix-ax3600/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/11/01/fix-ax3600/index/" class="article-date">
-  <time class="dt-published" datetime="2021-11-01T00:00:00.000Z" itemprop="datePublished">2021-11-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/11/01/fix-ax3600/index/">小米AX3600救砖</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>天下苦秦久矣！我也因为AX56U痛苦不已。不知道是固件的原因还是什么原因，内网延迟几千毫秒。</p>
-<p><img src="/images/2021110120064369.jpeg"></p>
-<p>二话不说便出资上闲鱼上淘了一个AX3600。没买AX6000因为6000有些缩水，CPU、闪存都缩水了，背板带宽只有1Gbps。酸奶倒是对这个大家伙有些好奇。</p>
-<p><img src="/images/2021110120064461.jpeg"></p>
-<p>刷机过程就按照教程来，先降级小米的固件，开SSH，然后刷qdsk，再刷qdsk，然后刷openwrt。看着openwrt没什么问题，我就想着刷自己编译的固件，毕竟自己的固件功能最精简！</p>
-<h2 id="编译环境"><a href="#编译环境" class="headerlink" title="编译环境"></a>编译环境</h2><p>我用的是这个repo <a target="_blank" rel="noopener" href="https://github.com/coolsnowwolf/lede">https://github.com/coolsnowwolf/lede</a></p>
-<p>编译这种事，当然要找个多CPU多内存的设备啦。而且当然要用docker啦，毕竟我们只要build artifacts！写一个Dockerfile装好所有工具链，需要的时候commit 一下就好。</p>
-<p>这个Dockerfile比较简单，我就不贴出来了。分享一个已经build好的base image，有需要的小伙伴可以自行下载，已经加好了科学上网的源，适合在海外VPS上跑起：</p>
-<p>docker pull bennythink&#x2F;lede</p>
-<h1 id="或者"><a href="#或者" class="headerlink" title="或者"></a>或者</h1><p>docker pull ghcr.io&#x2F;bennythink&#x2F;lede</p>
-<p>如何使用？直接</p>
-<p>docker run –rm -it bennythink&#x2F;lede bash</p>
-<p>然后看steps.txt就好了，构建结束docker cp，或者直接 -v到&#x2F;lede&#x2F;bin也可以。</p>
-<p>另外我还有一个已经build好了的image，大小是22G，如果你也是AX3600，那么可以拉下来试试，应该编译很快，毕竟不用下载各种依赖</p>
-<p>docker pull ghcr.io&#x2F;bennythink&#x2F;lede:eff9437-20211101</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/users/BennyThink/packages/container/package/lede">https://github.com/users/BennyThink/packages/container/package/lede</a></p>
-<h2 id="拆机救砖"><a href="#拆机救砖" class="headerlink" title="拆机救砖"></a>拆机救砖</h2><p>刷完自己编译的固件就变砖了，小米救砖工具也没修好……</p>
-<p>于是只能买了TTL工具。</p>
-<p>先要拆机，AX3600非常不好拆，并且拆机前没有人告诉你底部四角防滑贴纸和说明贴纸下面有螺丝。</p>
-<p>准备好TTL工具，我用的是FT232，AX3600左侧有四个口，根据说明分别是VCC，GND，RX，TX。FT232的TX要接路由器的RX，RX要接TX，GND接GND，VCC不接，调到1.8v</p>
-<p><img src="/images/2021110120064522.jpeg"></p>
-<p>用杜邦线连接就可以</p>
-<p>然后电脑这里，如果是macOS&#x2F;Linux的话，直接用screen就好，通过lsusb&#x2F;lspci或者系统信息-USB可以看到设备名称，之后将路由器通电开机，执行如下命令就可以了</p>
-<p>screen -L &#x2F;dev&#x2F;cu.usbserial-A50285BI 115200 –L</p>
-<p>Windows 需要用Putty，在设备管理器中确认COM口</p>
-<h2 id="进入uboot"><a href="#进入uboot" class="headerlink" title="进入uboot"></a>进入uboot</h2><p>正常来说路由器启动后就会进入uboot，默认有5秒延迟，按回车键就可以中断引导，然后就可以进入一个命令行界面救砖啦。</p>
-<p>如果screen提示no tty、device busy什么的，可能是杜邦线没插进，再检查看看</p>
-<h2 id="准备tftp"><a href="#准备tftp" class="headerlink" title="准备tftp"></a>准备tftp</h2><p>macOS自带一个tftp，使用如下命令启动</p>
-<p>sudo launchctl load -w &#x2F;System&#x2F;Library&#x2F;LaunchDaemons&#x2F;tftp.plist</p>
-<p>把后缀是ubi的nand factory复制到<code>/private/tftpboot</code>中（需要sudo）</p>
-<p>停止可以用这个命令</p>
-<p>sudo launchctl unload -w &#x2F;System&#x2F;Library&#x2F;LaunchDaemons&#x2F;tftp.plist</p>
-<h2 id="uboot刷分区"><a href="#uboot刷分区" class="headerlink" title="uboot刷分区"></a>uboot刷分区</h2><h3 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h3><p>网线连接电脑和路由器LAN，电脑设置IP 192.168.31.100，然后在uboot中执行如下命令</p>
-<p>setenv serverip 192.168.31.100<br>setenv ipaddr 192.168.31.1</p>
-<h3 id="加载固件"><a href="#加载固件" class="headerlink" title="加载固件"></a>加载固件</h3><p>然后加载固件到内存中</p>
-<p>tftpboot 1.ubi</p>
-<p>此时能看到屏幕上在走进度条，如果你没走，提示tftp server died或者卡住了，那多半是tftp服务器没配置好。</p>
-<p>大概能看到这样的输出：</p>
-<blockquote>
-<p><strong>Load address: 0x44000000</strong></p>
-<p>done</p>
-<p>Bytes transferred &#x3D; 31457280 (<strong>1e00000 hex</strong>)</p>
-<p>ipq807x_eth_halt: done</p>
-</blockquote>
-<p>进度条走完之后，会留下一个数字，byte transferred 31457280（<strong>1e00000 hex</strong>）也就是固件的大小，同时最开始load address还会告诉你固件的起始地址，我这里是<code>0x44000000</code>。这两个数值很重要，要记下来</p>
-<h3 id="获取分区信息"><a href="#获取分区信息" class="headerlink" title="获取分区信息"></a>获取分区信息</h3><p>用<code>smeminfo</code>可以获取分区信息</p>
-<blockquote>
-<p>IPQ807x# smeminfo</p>
-<p>flash_type: 0x2</p>
-<p>flash_index: 0x0</p>
-<p>flash_chip_select: 0x0</p>
-<p>flash_block_size: 0x20000</p>
-<p>flash_density: 0x100000</p>
-<p>partition table offset 0x0</p>
-<p>No.: Name Attributes Start Size</p>
-<p>0: 0:SBL1 0x0000ffff 0x0 0x100000</p>
-<p>1: 0:MIBIB 0x0000ffff 0x100000 0x100000</p>
-<p>2: 0:QSEE 0x0000ffff 0x200000 0x300000</p>
-<p>3: 0:DEVCFG 0x0000ffff 0x500000 0x80000</p>
-<p>4: 0:RPM 0x0000ffff 0x580000 0x80000</p>
-<p>5: 0:CDT 0x0000ffff 0x600000 0x80000</p>
-<p>6: 0:APPSBLENV 0x0000ffff 0x680000 0x80000</p>
-<p>7: 0:APPSBL 0x0000ffff 0x700000 0x100000</p>
-<p>8: 0:ART 0x0000ffff 0x800000 0x80000</p>
-<p>9: bdata 0x0000ffff 0x880000 0x80000</p>
-<p>10: crash 0x0000ffff 0x900000 0x80000</p>
-<p>11: crash_syslog 0x0000ffff 0x980000 0x80000</p>
-<p>12: rootfs 0x0000ffff <strong>0xa00000 0x23c0000</strong></p>
-<p>13: rootfs_1 0x0000ffff <strong>0x2dc0000 0x8000000</strong></p>
-<p>14: overlay 0x0000ffff 0xadc0000 0x1ec0000</p>
-<p>15: rsvd0 0x0000ffff 0xcc80000 0x80000</p>
-<p>16: 0:WIFIFW 0x0000ffff 0xcd00000 0x900000</p>
-<p>IPQ807x#</p>
-</blockquote>
-<p>我们需要关注12和13分区的起始和结束地址，这两个非常重要，每个人都可能不同。</p>
-<p>由于我搞了双系统（类似Android的A&#x2F;B分区），因此能看到rootfs和rootfs_1。当前我要刷的分区是13分区。</p>
-<h3 id="清除分区内容"><a href="#清除分区内容" class="headerlink" title="清除分区内容"></a>清除分区内容</h3><p>保险起见，先给rootfs抹掉，自己对应起始结束地址</p>
-<p>nand erase 0xa00000 0x23c0000<br>nand erase 0x2dc0000 0x8000000</p>
-<h3 id="写入固件"><a href="#写入固件" class="headerlink" title="写入固件"></a>写入固件</h3><p>写到rootfs_1中，使用<code>nand write</code>命令，这个命令接受三个参数，分别是固件内存地址，分区起始地址，固件大小。对我来说，写到rootfs_1也就是</p>
-<p>nand write 0x44000000 0x2dc0000 0x1e00000</p>
-<p>写到rootfs就是</p>
-<p>nand write 0x44000000 0xa00000 0x1e00000</p>
-<p>然后断电开机，就会发现神奇的救回来啦！</p>
-<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>之后我想用<code>ubiformat</code>给小米的固件刷到rootfs</p>
-<p>ubiformat &#x2F;dev&#x2F;mtd12 -y -f &#x2F;tmp&#x2F;xiaomi1.1.12.ubi</p>
-<p>但是发现刷完无法切换</p>
-<p>fw_setenv flag_last_success 0<br>fw_setenv flag_boot_rootfs 0</p>
-<p>使用这个命令切不过去，即使在uboot中<code>nand write</code>似乎也不行。无所谓啦，反正都用openwrt的，并且这个时候在openwrt中刷自己编译的sysupgrade就没问题，可能是我第一次选的是nand-factory所以变砖了吧……</p>
-<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><h3 id="Wi-Fi断流"><a href="#Wi-Fi断流" class="headerlink" title="Wi-Fi断流"></a>Wi-Fi断流</h3><p>在我的MBP16上，存在Wi-Fi断流问题，具体表现是Wi-Fi连接信号满格，但是却无法ping通任何地址，关闭Wi-Fi再开才可以。</p>
-<p>其他设备没问题，怀疑是MBP16有什么特殊的兼容性问题？</p>
-<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>感觉似乎openwrt存在内存泄漏的问题，什么也没干就剩这么点了。当然我懂，内存这东西用起来了才好，要不然闲置就是浪费，只要尽量少用swap就好，毕竟路由器上的swap那可是闪存，不仅慢还会磨损。</p>
-<p>感谢群友指教，openwrt默认开了zram，也就是把内存的一部分拿来压缩用，默认是系统管理大小，于是这里我看到虚拟内存202M，其实就是从RAM中拿出来的。在系统-系统中如果手动指定一个值并重启，上面的内存数值就正常了。</p>
-<p><img src="/images/2021110120064567.png"></p>
-<p>至少内网几千毫秒的延迟修好了！</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://www.right.com.cn/FORUM/thread-6119565-1-1.html">https://www.right.com.cn/FORUM/thread-6119565-1-1.html</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.right.com.cn/forum/thread-5044604-1-1.html">https://www.right.com.cn/forum/thread-5044604-1-1.html</a></p>
-<p>警告：似乎由于什么奇怪的原因，小米设备的支持被删除了，可以看这个commit <a target="_blank" rel="noopener" href="https://github.com/coolsnowwolf/lede/commit/edbd8d2e9839357f3a4f0a06174d243f362b1544">https://github.com/coolsnowwolf/lede/commit/edbd8d2e9839357f3a4f0a06174d243f362b1544</a></p>
-<p>git reset –hard 20a437026ae6fb7834063dbc56685b11023f06c9 可解决</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/11/01/fix-ax3600/index/" data-id="clhp7rtgb002us2qr6rqlgnt1" data-title="小米AX3600救砖" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1319,6 +1247,10 @@ psutil.Process().kill()
       <ul>
         
           <li>
+            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+          </li>
+        
+          <li>
             <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
           </li>
         
@@ -1332,10 +1264,6 @@ psutil.Process().kill()
         
           <li>
             <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
-          </li>
-        
-          <li>
-            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
           </li>
         
       </ul>

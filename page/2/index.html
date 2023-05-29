@@ -73,6 +73,141 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-container-smtp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/02/07/container-smtp/index/" class="article-date">
+  <time class="dt-published" datetime="2023-02-07T00:00:00.000Z" itemprop="datePublished">2023-02-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/02/07/container-smtp/index/">为什么我的容器连不上riseup的邮件服务器了？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几天前，我开放了<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/home">人人影视下载站</a>的用户注册功能，并且新用户在注册后需要验证邮箱才能发表评论。开放注册可能会提高用户的活跃度，但是又总有用户发一些不合适的东西，因此有必要提高一点注册门槛。</p>
+<p>后端的接口大概在半年前就写好了，我最近才学了一点点 React做好了邮件验证的功能。</p>
+<h2 id="如何用发邮件"><a href="#如何用发邮件" class="headerlink" title="如何用发邮件"></a>如何用发邮件</h2><p>我用的是riseup来发，基本如下几步：</p>
+<ol>
+<li>去域名注册商那边添加一个email forward，因为后需要验证</li>
+<li>去riseup添加一个alias</li>
+<li>去DNS那边添加一个SPF 记录<code>v=spf1 include:riseup.net +all</code>，如果同时还想用email forward，那就添加 include就好了，比如说我的是这样的<code>v=spf1 include:_spf.mx.cloudflare.net include:riseup.net +all</code></li>
+<li>用SMTP协议，可以先用mailhog做测试，确定没问题来之后切到riseup，代码大概这样</li>
+</ol>
+<p>import smtplib<br>from email.header import Header<br>from email.mime.text import MIMEText<br>from email.utils import formataddr, parseaddr</p>
+<p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
+<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; “username”<br>    password &#x3D; “password”<br>    host &#x3D; “mail.riseup.net”<br>    port &#x3D; 465<br>    from_addr &#x3D; “<a href="mailto:&#121;&#121;&#x65;&#116;&#115;&#x40;&#100;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#112;&#112;">&#121;&#121;&#x65;&#116;&#115;&#x40;&#100;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#112;&#112;</a>“</p>
+<pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
+msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
+msg\[&#39;To&#39;\] = \_format\_addr(to)
+msg\[&#39;Subject&#39;\] = Header(subject, &#39;utf-8&#39;).encode()
+
+if port == &quot;1025&quot;:
+    server = smtplib.SMTP(host, int(port))
+else:
+
+    server = smtplib.SMTP\_SSL(host, int(port))
+server.login(user, password)
+server.sendmail(from\_addr, \[to\], msg.as\_string())
+server.quit()
+</code></pre>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#x65;&#110;&#110;&#121;&#x2e;&#116;&#104;&#105;&#110;&#x6b;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#98;&#x65;&#110;&#110;&#121;&#x2e;&#116;&#104;&#105;&#110;&#x6b;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;</a>“, “test subject”, “test body”)</p>
+<p>收到的邮件也比较理想，一般来说不会进spam</p>
+<p><img src="/images/2023020703173685.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>前几天做测试的时候一切顺利，上线的时候本来以为没什么大问题，结果今天却收到了一个用户的反馈，说收不到邮件，试了各种邮箱，检查了垃圾箱，也没有收到。</p>
+<h2 id="排查问题"><a href="#排查问题" class="headerlink" title="排查问题"></a>排查问题</h2><p>加了几条log之后发现在容器中 smtplib.SMTP_SSL 会直接卡住，如果按ctrl + c会收到这样的报错</p>
+<p>Traceback(most recent call last):<br>  File “”, line 1, in<br>  File “&#x2F;YYeTsBot&#x2F;yyetsweb&#x2F;utils.py”, line 51, in send_mail<br>    server &#x3D; smtplib.SMTP_SSL(host, int(port))<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 1050, in __init__<br>    SMTP.__init__(self, host, port, local_hostname, timeout,<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 255, in __init__<br>    (code, msg)&#x3D;self.connect(host, port)<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 341, in connect<br>    self.sock&#x3D;self._get_socket(host, port, self.timeout)<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 1057, in _get_socket<br>    new_socket&#x3D;self.context.wrap_socket(new_socket,<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 513, in wrap_socket<br>    return self.sslsocket_class._create(<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 1071, in _create<br>    self.do_handshake()<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 1342, in do_handshake<br>    self._sslobj.do_handshake()<br>ssl.SSLZeroReturnError: TLS&#x2F;SSL connection has been closed(EOF)(_ssl.c: 997)</p>
+<p>奇怪哦，那就排除法做几个测试，首先在容器内nc一下看看</p>
+<p>&#x2F; # nc -v mail.riseup.net 465<br>mail.riseup.net (198.252.153.21:465) open</p>
+<p>通的耶！那容器内连试试？</p>
+<p>[root:~]# docker run –rm -it python:alpine sh<br>&#x2F; # python<br>Python 3.11.1 (main, Feb 4 2023, 01:59:37) [GCC 12.2.1 20220924] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>果不其然，卡住了。去宿主机试试看呢？</p>
+<p>[root:~]# python<br>Python 3.8.10 (default, Nov 14 2022, 12:59:47)<br>[GCC 9.4.0] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)<br>&lt;smtplib.SMTP_SSL object at 0xffffa1148610&gt;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>没问题哎。看着上面有TLS&#x2F;SSL connection has been closed(EOF)，难道是OpenSSL的问题，试试 <code>python</code>而不是<code>python:alpine</code> 呢？</p>
+<p>也不行。</p>
+<p>是因为arm64有bug吗？但是我的电脑没问题啊🤔找了一台x86_64的试了一下也没问题。</p>
+<p>这么排除下来，问题就是容器的网络了。默认来说docker的默认网络上bridge模式。Bridge是通过iptables去做转发的，之前在<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">《我的ufw怎么又不好用了？使用docker时如何拒绝非cloudflare访问》</a>中提到过。</p>
+<p>切换到host模式试试看？</p>
+<p>[root:~]# docker run –rm –network host -it python:alpine sh<br>&#x2F; # python<br>Python 3.11.1 (main, Feb 4 2023, 01:59:37) [GCC 12.2.1 20220924] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)<br>&lt;smtplib.SMTP_SSL object at 0xffff96122ed0&gt;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>果然，那为什么bridge模式不行host就可以呢？</p>
+<p>看了一眼iptables，突然看到这么一条</p>
+<p>Chain PREROUTING (policy ACCEPT)<br>target prot opt source destination</p>
+<p>REDIRECT tcp – anywhere anywhere tcp dpts:telnet:finger redir ports 16698<br>REDIRECT tcp – anywhere anywhere tcp dpts:81:442 redir ports 16698<br>REDIRECT tcp – anywhere anywhere tcp dpts:snpp:1000 redir ports 16698<br>DOCKER all – anywhere anywhere ADDRTYPE match dst-type LOCAL</p>
+<p>这不是之前为了方便梯子使用，把23-1000中除了80和443的端口都给转发到本地的16698了吗？😓</p>
+<p>删掉这条规则就好了。</p>
+<h2 id="其他的发邮件的办法"><a href="#其他的发邮件的办法" class="headerlink" title="其他的发邮件的办法"></a>其他的发邮件的办法</h2><p>比如说自建，mailgun，sendgrid之类的，我个人觉得sendgrid比较不错，免费用户每天可以发100封。另外一个mailersend一个月可以发12000。同样都可以用SMTP协议手搓邮件。</p>
+<h2 id="人人影视分享站运行状况分享"><a href="#人人影视分享站运行状况分享" class="headerlink" title="人人影视分享站运行状况分享"></a>人人影视分享站运行状况分享</h2><p>人人影视分享站大概2021年2月初开始上线，6月的时候在 <a target="_blank" rel="noopener" href="https://github.com/wyx1818">zuiyu</a>的帮助下用React重做了前端，已经跑了整整两年啦。</p>
+<h3 id="两年里的收获"><a href="#两年里的收获" class="headerlink" title="两年里的收获"></a>两年里的收获</h3><ul>
+<li>总计21000条评论，有很多热心网友都会把新出的剧集网盘分享贴到评论区，非常优秀！</li>
+<li>37000个用户😂虽然可能大部分用户都不活跃</li>
+<li>每日大概有几千个访问</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">YYeTsBot项目</a>收获了12.4K的star和1.7k的fork，写在简历上很有趣😂</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsFE">前端YYeTsFE</a> 收获了182个star和49个fork</li>
+<li><a target="_blank" rel="noopener" href="https://afdian.net/a/BennyThink">爱发电</a>得到了一些热心网友的帮助，足够域名和服务器的费用了，也不枉费我N多个小时的努力</li>
+<li>加了Adsense，如果可以的话希望各位能关掉广告屏蔽器。<strong>以后我的猫猫们就是广大网友们养的了！</strong></li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/02/2023020703250152.jpg"><img src="/images/2023020703250152.jpg" alt="猫"></a></p>
+<h3 id="未来一段时间想要做的事情"><a href="#未来一段时间想要做的事情" class="headerlink" title="未来一段时间想要做的事情"></a>未来一段时间想要做的事情</h3><ul>
+<li>把网站继续开下去，尽量活下去</li>
+<li>优化前端，提升易用性</li>
+<li>提升访问量，这很刑！</li>
+<li>希望能找到人和我一起维护，这样你也是某个10K+ star的项目都维护者了 🤩，要不我这开源有什么意思嘛</li>
+</ul>
+<p> </p>
+<p>欢迎给个star或者点个广告～</p>
+<p><a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">https://yyets.dmesg.app/</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">https://github.com/tgbot-collection/YYeTsBot</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/02/07/container-smtp/index/" data-id="clhp7rtfp001ys2qr1go0h41t" data-title="为什么我的容器连不上riseup的邮件服务器了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-stripe-telegram/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/01/07/stripe-telegram/index/" class="article-date">
@@ -849,74 +984,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
 
 
   
-    <article id="post-telegram-cjk-search/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/04/05/telegram-cjk-search/index/" class="article-date">
-  <time class="dt-published" datetime="2022-04-05T00:00:00.000Z" itemprop="datePublished">2022-04-05</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/04/05/telegram-cjk-search/index/">让Telegram支持中文搜索！</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>众所周知，Telegram是一款非常优秀的即时通信工具，可比那个不知名的绿色图标的软件好多了。Telegram不仅使用更安全，应用程序也很小，还支持多客户端登录，消息跨平台无限制同步。</p>
-<p><img src="/images/2022040513585338.jpeg"></p>
-<p>尽管Telegram这么棒，但是对于中国用户来说，最致命的一个缺点就是搜索。这一点对不是用分词的CJK用户来说也是一样的。想要搜索点什么东西，那简直就是要了命了，必须要输入整个句子。</p>
-<h2 id="有啥办法可以解决这个问题吗？"><a href="#有啥办法可以解决这个问题吗？" class="headerlink" title="有啥办法可以解决这个问题吗？"></a>有啥办法可以解决这个问题吗？</h2><p>一个最常见的方法是，使用Telegram Desktop，注意是Telegram Desktop，用C++写的那个，导出聊天记录为json，然后搜索。</p>
-<p>可这样也太繁琐了吧！有没有什么更好的方案呢……</p>
-<p>一个方法是魔改Telegram的客户端，反正也是开源的，能搜本地数据库就搜本地的吧，至于需要请求服务器搜索的，那大概率是没救了。可惜我既不会swift也不会c++，更何况我估计以我的小脑瓜我也看不懂他们的代码……</p>
-<p>另一个方法就是自己保存一份！还记得Telegram支持多客户端登录吗，那我们如果拿来一个client用来把文字消息保存到数据库中，后续再从数据库中查询，那不就有了嘛！</p>
-<p>[v_error]嗯，这么做像极了某绿色软件：「看了会被开除，我们不保存聊天记录」 [&#x2F;v_error] 说干就干！</p>
-<p><img src="/images/2022040513585313.jpeg"></p>
-<h2 id="技术选型"><a href="#技术选型" class="headerlink" title="技术选型"></a>技术选型</h2><p>需要用MTProto协议，那么最好就是用纯Python实现的pyrogram了，用TDLib什么的太麻烦了。</p>
-<p>数据库就用ElasticSearch吧，全文检索更方便。  算了算了，ES惹不起，用MongoDB吧</p>
-<p>一个client，登录账号，把收和发的消息保存到数据库中。</p>
-<p>一个bot，用于从数据库中检索数据。</p>
-<p>加上一些身份验证之类的。</p>
-<h2 id="使用截图"><a href="#使用截图" class="headerlink" title="使用截图"></a>使用截图</h2><p>详细功能说明可以移步GitHub</p>
-<p><img src="/images/2022040513585435.jpeg"></p>
-<p><img src="/images/2022040513585636.png"></p>
-<p>从此以后CJK再无烦恼😂</p>
-<p>总计代码也就400多行！</p>
-<p>由于这种操作涉及到个人聊天记录，是非常敏感且重要的信息，因此不提供任何公开bot，需要自己部署一份。</p>
-<p>看这ES跑得多欢快，就像脱缰的野马一样，配合上kibana这个劝退的工具简直天生一对😠</p>
-<p><img src="/images/2022040513585967.png"></p>
-<h2 id="开源地址"><a href="#开源地址" class="headerlink" title="开源地址"></a>开源地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/SearchGram">https://github.com/tgbot-collection/SearchGram</a></p>
-<p>放到了这里，😂还打算做 chat history import的功能，就是今天太累了……蹲一个PR吧。</p>
-<p>具体部署方法在那边也有，写的应该比较详细了。这里就不复述了。</p>
-<p>能用就行，从此再也不怕搜不到聊天记录了.jpg</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/04/05/telegram-cjk-search/index/" data-id="clhp7rtl8009is2qr2ov67jsh" data-title="让Telegram支持中文搜索！" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -974,6 +1041,10 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
       <ul>
         
           <li>
+            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+          </li>
+        
+          <li>
             <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
           </li>
         
@@ -987,10 +1058,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
         
           <li>
             <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
-          </li>
-        
-          <li>
-            <a href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
           </li>
         
       </ul>
