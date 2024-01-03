@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Node.js 18升级：双栈协议踩坑 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="很久之前我就发现了一个现象，有些时候我在使用 nc去探测本地的某些服务是否开启时，会有两个输出，第一次拒绝第二次成功，输出如下所示： $ nc -v localhost 12345 nc: connectx to localhost port 12345 (tcp) failed: Connection refusedConnection to localhost port 12345 [tcp&amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node.js 18升级：双栈协议踩坑">
+<meta property="og:url" content="http://example.com/2023/11/26/nodejs-dual-stack/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="很久之前我就发现了一个现象，有些时候我在使用 nc去探测本地的某些服务是否开启时，会有两个输出，第一次拒绝第二次成功，输出如下所示： $ nc -v localhost 12345 nc: connectx to localhost port 12345 (tcp) failed: Connection refusedConnection to localhost port 12345 [tcp&amp;">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2023112603044820.jpeg">
+<meta property="og:image" content="http://example.com/images/2023112603044973.png">
+<meta property="article:published_time" content="2023-11-26T00:00:00.000Z">
+<meta property="article:modified_time" content="2024-01-03T08:03:59.494Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2023112603044820.jpeg">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-nodejs-dual-stack/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/11/26/nodejs-dual-stack/index/" class="article-date">
+  <time class="dt-published" datetime="2023-11-26T00:00:00.000Z" itemprop="datePublished">2023-11-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Node.js 18升级：双栈协议踩坑
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>很久之前我就发现了一个现象，有些时候我在使用 nc去探测本地的某些服务是否开启时，会有两个输出，第一次拒绝第二次成功，输出如下所示：</p>
+<p>$ nc -v localhost 12345</p>
+<p>nc: connectx to localhost port 12345 (tcp) failed: Connection refused<br>Connection to localhost port 12345 [tcp&#x2F;italk] succeeded!</p>
+<p>很奇怪，但是又不是不能用，就一直没去深究，甚至连一点点思考都没有。</p>
+<p>前几天在把项目的 Node.js 从16升级到18时，突然发现能用 redbird 连不上后端的一个服务了。</p>
+<p>于是我就继续 <code>nc</code> 了一下，使用 nc 是作为网络工程师的基本技能。结果输出和上面一样，第一次拒绝第二次成功。</p>
+<p>想了几分钟突然懂了，我的服务只监听在了 IPv4的地址，并没有监听 IPv6的地址，而<code>localhost</code> 通常会同时解析为 IPv6的本地环回地址 <code>::1</code> 和 IPv4的<code>127.0.0.1</code> 。同时对于大部分应用程序而言，在双栈的情况下会优先尝试 IPv6，如果失败那么再回落到 IPv4.</p>
+<p>$ ping localhost</p>
+<p>PING localhost (127.0.0.1): 56 data bytes<br>64 bytes from 127.0.0.1: icmp_seq&#x3D;0 ttl&#x3D;64 time&#x3D;0.115 ms<br>^C<br>— localhost ping statistics —<br>1 packets transmitted, 1 packets received, 0.0% packet loss<br>round-trip min&#x2F;avg&#x2F;max&#x2F;stddev &#x3D; 0.115&#x2F;0.115&#x2F;0.115&#x2F;nan ms</p>
+<p>benny@Yogurt ~<br>$ ping6 localhost<br>PING6(56&#x3D;40+8+8 bytes) ::1 –&gt; ::1<br>16 bytes from ::1, icmp_seq&#x3D;0 hlim&#x3D;64 time&#x3D;0.053 ms</p>
+<p>当时也没多想，猜测就是 redbird 由于什么原因只尝试了 IPv6 的地址。那就简单点改 hosts 让 <code>localhost</code> 只解析到 <code>127.0.0.1</code>就好了。 [v_tips]可是我没有 IPv6地址呀？ 没关系，即便你没有被分配IPv6地址，只要没有明确禁用IPv6，如 net.ipv6.conf.all.disable_ipv6 &#x3D; 1 那么 ::1 等就是有的！ [&#x2F;v_tips]</p>
+<p>这样改 hosts 确实管用，但是知其然，更要知其所以然……</p>
+<p>在开始之前，我们需要了解几个概念</p>
+<h2 id="127-0-0-1-与-1"><a href="#127-0-0-1-与-1" class="headerlink" title="127.0.0.1 与 ::1"></a>127.0.0.1 与 ::1</h2><p>为表示本地计算机所保留的IP地址，对于 IPv4而言，其范围是 <code>127.0.0.0/8</code>，其地址范围为 <code>127.0.0.0</code> ～ <code>127.255.255.255</code>，除去开头的0表示网络位和结尾255表示广播地址，其余所有地址都可以表示本机。</p>
+<p>~: ping 127.255.255.254</p>
+<p>PING 127.255.255.254 (127.255.255.254) 56(84) bytes of data.<br>64 bytes from 127.255.255.254: icmp_seq&#x3D;1 ttl&#x3D;64 time&#x3D;0.028 ms<br>^C<br>— 127.255.255.254 ping statistics —<br>1 packets transmitted, 1 received, 0% packet loss, time 0ms<br>rtt min&#x2F;avg&#x2F;max&#x2F;mdev &#x3D; 0.028&#x2F;0.028&#x2F;0.028&#x2F;0.000 ms</p>
+<p>~: ping 127.8.9.2<br>PING 127.8.9.2 (127.8.9.2) 56(84) bytes of data.<br>64 bytes from 127.8.9.2: icmp_seq&#x3D;1 ttl&#x3D;64 time&#x3D;0.045 ms<br>64 bytes from 127.8.9.2: icmp_seq&#x3D;2 ttl&#x3D;64 time&#x3D;0.039 ms</p>
+<p>至少在 Linux下是这样的！<code>127.0.0.1</code>是常用的标准环回地址，其他地址并不是所有操作系统都支持。</p>
+<p>对于 IPv6 来说，事情就简单了，一个 <code>::1</code> 没有其他的花样。</p>
+<p>如果我们的应用程序监听在 <code>127.0.0.1</code>，那么意味着只有本机，更准确的说来自于 <code>127.0.0.1</code> 的请求才会被接受；类似地，监听在 <code>::1</code> 也是一样，意味着只有来自 <code>::1</code> 的请求才会被接受。</p>
+<p>我们可以使用 nc来做这样一个实验，k表示连接后不断开，l表示listen</p>
+<p>nc -klv 127.0.0.1 12345</p>
+<p>然后另开一个窗口 <code>nc -v 127.0.0.1 12345</code></p>
+<p>$ nc -v 127.0.0.1 12345<br>Connection to 127.0.0.1 port 12345 [tcp&#x2F;italk] succeeded!<br>^C</p>
+<p>benny@Yogurt: ~<br>$ nc -v ::1 12345<br>nc: connectx to ::1 port 12345 (tcp) failed: Connection refused</p>
+<p>你看，虽然都是一台电脑，但是 <code>::1</code> 却不行，如果你有 docker，<code>docker0</code>网桥的地址是<code>172.17.0.1</code>，开个容器试试</p>
+<p>~ # ping 172.17.0.1<br>PING 172.17.0.1 (172.17.0.1): 56 data bytes<br>64 bytes from 172.17.0.1: seq&#x3D;0 ttl&#x3D;64 time&#x3D;0.213 ms<br>^C<br>— 172.17.0.1 ping statistics —<br>1 packets transmitted, 1 packets received, 0% packet loss<br>round-trip min&#x2F;avg&#x2F;max &#x3D; 0.213&#x2F;0.213&#x2F;0.213 ms</p>
+<p>~ # nc -vv 172.17.0.1 12345<br>nc: 172.17.0.1 (172.17.0.1:12345): Connection refused<br>sent 0, rcvd 0</p>
+<p>也不行！因为请求不是从 127 来的而是172！如果想要从容器内可以访问，那么nc就要监听在网桥的地址，如 <code>nc -klv 172.17.0.1</code></p>
+<p>[v_act]咱也不知道为啥要给loopback分配那么多地址，能把这些拿出来做其他的用途可能会更有趣。[&#x2F;v_act]</p>
+<h2 id="0-0-0-0与"><a href="#0-0-0-0与" class="headerlink" title="0.0.0.0与 ::"></a>0.0.0.0与 ::</h2><p>[v_act]这里的 0.0.0.0 不是在指默认路由，指的是本机所有的 IPv4地址，:: 类似地指的是本机所有的IPv6 地址。[&#x2F;v_act]</p>
+<p>当你的应用监听在 <code>0.0.0.0</code>时，所有的可达的IPv4地址都可以访问到。比如说，本机，docker 容器，你的路由器等等都可以。我们可以试试看<code>nc -klv 0.0.0.0 12345</code></p>
+<h3 id="从MacBook连到-PVE-的虚拟机"><a href="#从MacBook连到-PVE-的虚拟机" class="headerlink" title="从MacBook连到 PVE 的虚拟机"></a>从MacBook连到 PVE 的虚拟机</h3><p>[18:17:02] benny:~ $ nc -v 192.168.7.55 12345<br>Connection to 192.168.7.55 port 12345 [tcp&#x2F;italk] succeeded!</p>
+<h3 id="从PVE的虚拟机的容器连网桥"><a href="#从PVE的虚拟机的容器连网桥" class="headerlink" title="从PVE的虚拟机的容器连网桥"></a>从PVE的虚拟机的容器连网桥</h3><p>~ # cat &#x2F;etc&#x2F;issue<br>Welcome to Alpine Linux 3.18<br>Kernel \r on an \m (\l)</p>
+<p>~ # nc -v 172.17.0.1 12345<br>172.17.0.1 (172.17.0.1:12345) open</p>
+<p>噢！有一点需要注意，如果你是 macOS或者Windows的话，由于这两者并不原生支持 docker，所以他们的docker实际上是跑在虚拟机里的。此时你 <code>nc -v 172.17.0.1</code> 也是不行的，因为这里<code>172.17.0.1</code> 代表的是虚拟机的网桥，而不是你的电脑的网桥。此时你需要 <code>host.docker.internal</code>这个内部域名。 [v_blue]Windows 的话，具体情况我没测试，因为有 Hyper V和WSL两种情况。[&#x2F;v_blue]</p>
+<h3 id="如果此时我们在本机通过-1-尝试连接"><a href="#如果此时我们在本机通过-1-尝试连接" class="headerlink" title="如果此时我们在本机通过 ::1 尝试连接"></a>如果此时我们在本机通过 <code>::1</code> 尝试连接</h3><p>~ ➤ nc -v ::1 12345<br>nc: connectx to ::1 port 12345 (tcp) failed: Connection refused</p>
+<p>当然不行了，nc都明确指明只监听 IPv4的，那么通过v6自然连不上</p>
+<p> </p>
+<p>那么我们如果指定 nc 只监听 IPv6，那么是不是 <code>nc -v 127.0.0.1 12345</code> 就不行了呢？</p>
+<p>nc -klv :: 12345</p>
+<p>再开一个新窗口</p>
+<p>~ ➤ nc -v 127.0.0.1 12345<br>Connection to 127.0.0.1 port 12345 [tcp&#x2F;italk] succeeded!<br>^C</p>
+<p>~ ➤ nc -v ::1 12345<br>Connection to ::1 port 12345 [tcp&#x2F;italk] succeeded!</p>
+<p>啊，竟然都可以，意味着无论是IPv4还是IPv6都可以连接！</p>
+<p>[v_blue]nc -klv localhost 12345 呢？这取决于 localhost 的解析结果[&#x2F;v_blue]</p>
+<p>这是为什么呢？</p>
+<h2 id="net-ipv6-bindv6only"><a href="#net-ipv6-bindv6only" class="headerlink" title="net.ipv6.bindv6only"></a>net.ipv6.bindv6only</h2><p>这是 Linux 内核的一个参数，用于定义监听IPv6地址时的行为。默认情况下，这个值是0 禁用，也就意味着，如果你监听了<code>::</code> 那么也相当于监听了 <code>0.0.0.0</code></p>
+<p>从 <code>netstat</code> 中我们可以看出</p>
+<h3 id="如果是-的话"><a href="#如果是-的话" class="headerlink" title="如果是 :: 的话"></a>如果是 :: 的话</h3><p>tcp6 0 0 :::12345 :::* LISTEN 1925847&#x2F;nc</p>
+<h3 id="如果是-0-0-0-0的话"><a href="#如果是-0-0-0-0的话" class="headerlink" title="如果是 0.0.0.0的话"></a>如果是 0.0.0.0的话</h3><p>tcp 0 0 0.0.0.0:12345 0.0.0.0:* LISTEN 1926110&#x2F;nc</p>
+<h3 id="如果我们通过-sysctl-启用这个参数"><a href="#如果我们通过-sysctl-启用这个参数" class="headerlink" title="如果我们通过 sysctl 启用这个参数"></a>如果我们通过 <code>sysctl</code> 启用这个参数</h3><p>sysctl net.ipv6.bindv6only&#x3D;1</p>
+<p>然后再次监听 <code>nc -klv :: 12345</code></p>
+<p>再次通过 nc去连接 <code>127.0.0.1</code></p>
+<p>nc -v 127.0.0.1 12345<br>nc: connect to 127.0.0.1 port 12345 (tcp) failed: Connection refused</p>
+<p>就会发现连不上了，因为此时只监听 IPv6的地址，对于IPv4的对应端口并没有程序在监听。</p>
+<p>在绝大多数 Linux 发行版中， <code>net.ipv6.bindv6only</code> 的默认值都是0，也就意味着监听在 <code>::</code> 也同样意味着监听在 <code>0.0.0.0</code> ；换句话说，在这种情况下，看到 <code>tcp6 :::port</code> 也就意味着通过 IPv4 也可以连接上。</p>
+<p>macOS也同样有这样的行为，至于Windows嘛……可能也是，我没有Windows的机器来做测试。</p>
+<h2 id="特殊情况"><a href="#特殊情况" class="headerlink" title="特殊情况"></a>特殊情况</h2><p>对于大多数应用程序，<code>localhost</code> 无非就是对应 <code>::1</code> 和或 <code>127.0.0.1</code> .但是MySQL是个例外，当你用 <code>localhost</code> 时，MySQL会通过 UNIX套接字（<code>/var/run/mysqld/mysqld.sock</code>） 去连接</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><ul>
+<li>监听 <code>127.0.0.1</code> 意味着只有从 127来的请求可以接受，<code>::1</code> 同理</li>
+<li>在大多数情况下 <code>net.ipv6.bindv6only=0</code>为默认值。 监听 <code>::</code> 同时意味着监听<code>0.0.0.0</code></li>
+<li>在未明确禁用 IPv6的情况下，即便你没有IPv6 地址，那么大多数情况下 <code>localhost</code> 也会被 hosts定义到 <code>::1</code> 和 <code>127.0.0.1</code>；并且你也能监听在 <code>::</code></li>
+<li>MySQL的localhost是套接字</li>
+<li>如果同时解析到了IPv6和IPv4，那么应该优先 IPv6；如果IPv6连接失败，那么理想情况是应该回落到 IPv4，所谓“<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-cn/Happy_Eyeballs">快乐眼球（Happy eyeballs）</a>”算法</li>
+</ul>
+<hr>
+<h2 id="Node-js-？？？"><a href="#Node-js-？？？" class="headerlink" title="Node.js ？？？"></a>Node.js ？？？</h2><p>你以为事情到这里就结束了吗？并没有。</p>
+<p>明明应该支持快乐眼球算法的，但是后端只监听了 <code>0.0.0.0</code> 为什么 redbird的配置中写 <code>localhost</code>还是失败了呢？并且在使用 Node.js 16的时候没问题，18就有问题了。</p>
+<h3 id="重新使用-nc-监听到-0-0-0-0"><a href="#重新使用-nc-监听到-0-0-0-0" class="headerlink" title="重新使用 nc 监听到 0.0.0.0"></a>重新使用 nc 监听到 <code>0.0.0.0</code></h3><p>nc -klv 0.0.0.0 12345</p>
+<p>并且已经确认只有 IPv4可达，在 <code>nc -v localhost 12345</code> 时会先失败再成功</p>
+<h3 id="使用如下简单的-Node-js-代码来测试"><a href="#使用如下简单的-Node-js-代码来测试" class="headerlink" title="使用如下简单的 Node.js 代码来测试"></a>使用如下简单的 Node.js 代码来测试</h3><p>const net &#x3D; require(“net”);<br>const client &#x3D; new net.Socket();<br>client.connect(12345, “localhost”, function () {<br>    client.write(`node js ${process.version}\n`);<br>    console.log(“Connected”);<br>    process.exit(0);<br>});</p>
+<p><img src="/images/2023112603044820.jpeg" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>这是什么情况？</p>
+<p><img src="/images/2023112603044973.png" alt="貓貓蟲咖波-開心隨你(上) - Download Stickers from Sigstick"></p>
+<p>$ for i in {12..21}; do nvm use $i &amp;&amp; node test.js; done<br>Now using node v12.22.12 (npm v6.14.16)<br>Connected<br>Now using node v13.14.0 (npm v6.14.4)<br>Connected<br>Now using node v14.21.3 (npm v6.14.18)<br>Connected<br>Now using node v15.14.0 (npm v7.7.6)<br>Connected<br>Now using node v16.20.2 (npm v8.19.4)<br>Connected<br>Now using node v17.9.1 (npm v8.11.0)<br>node:events:505<br>      throw er; &#x2F;&#x2F; Unhandled ‘error’ event<br>      ^</p>
+<p>Error: connect ECONNREFUSED ::1:12345<br>    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1195:16)<br>Emitted ‘error’ event on Socket instance at:<br>    at emitErrorNT (node:internal&#x2F;streams&#x2F;destroy:164:8)<br>    at emitErrorCloseNT (node:internal&#x2F;streams&#x2F;destroy:129:3)<br>    at processTicksAndRejections (node:internal&#x2F;process&#x2F;task_queues:83:21) {<br>  errno: -61,<br>  code: ‘ECONNREFUSED’,<br>  syscall: ‘connect’,<br>  address: ‘::1’,<br>  port: 12345<br>}</p>
+<p>Node.js v17.9.1<br>Now using node v18.18.2 (npm v9.8.1)<br>node:events:495<br>      throw er; &#x2F;&#x2F; Unhandled ‘error’ event<br>      ^</p>
+<p>Error: connect ECONNREFUSED ::1:12345<br>    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1555:16)<br>Emitted ‘error’ event on Socket instance at:<br>    at emitErrorNT (node:internal&#x2F;streams&#x2F;destroy:151:8)<br>    at emitErrorCloseNT (node:internal&#x2F;streams&#x2F;destroy:116:3)<br>    at process.processTicksAndRejections (node:internal&#x2F;process&#x2F;task_queues:82:21) {<br>  errno: -61,<br>  code: ‘ECONNREFUSED’,<br>  syscall: ‘connect’,<br>  address: ‘::1’,<br>  port: 12345<br>}</p>
+<p>Node.js v18.18.2<br>Now using node v19.9.0 (npm v9.6.3)<br>node:events:491<br>      throw er; &#x2F;&#x2F; Unhandled ‘error’ event<br>      ^</p>
+<p>Error: connect ECONNREFUSED ::1:12345<br>    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1532:16)<br>Emitted ‘error’ event on Socket instance at:<br>    at emitErrorNT (node:internal&#x2F;streams&#x2F;destroy:151:8)<br>    at emitErrorCloseNT (node:internal&#x2F;streams&#x2F;destroy:116:3)<br>    at process.processTicksAndRejections (node:internal&#x2F;process&#x2F;task_queues:82:21) {<br>  errno: -61,<br>  code: ‘ECONNREFUSED’,<br>  syscall: ‘connect’,<br>  address: ‘::1’,<br>  port: 12345<br>}</p>
+<p>Node.js v19.9.0<br>Now using node v20.10.0 (npm v10.2.3)<br>Connected<br>Now using node v21.2.0 (npm v10.2.3)<br>Connected</p>
+<p>咳，不过是Node.js自从17就弄坏了快乐眼球算法，18、19也是坏着的，直到20才修好。16之前的版本全是好的。</p>
+<p>18是LTS啊，哎，这难免有点太<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1728062988765335859">草台班子</a>了吧。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/nodejs/node/issues/41625">https://github.com/nodejs/node/issues/41625</a> <a target="_blank" rel="noopener" href="https://github.com/nodejs/node/issues/40702">https://github.com/nodejs/node/issues/40702</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/11/26/nodejs-dual-stack/index/" data-id="clqxhsveg0002w1qr4j6o89d1" data-title="Node.js 18升级：双栈协议踩坑" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2023/12/09/tron-trx/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          使用 Tron(TRX) 收款
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2023/11/25/steam-deck-stuck/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Steam Deck 启动游戏卡 logo</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+          </li>
+        
+          <li>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+          </li>
+        
+          <li>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+          </li>
+        
+          <li>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+          </li>
+        
+          <li>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

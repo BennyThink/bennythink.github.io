@@ -73,6 +73,516 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ubuntu16-04-wifi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/23/ubuntu16-04-wifi/index/" class="article-date">
+  <time class="dt-published" datetime="2016-04-23T00:00:00.000Z" itemprop="datePublished">2016-04-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/23/ubuntu16-04-wifi/index/">Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天Canonical放出了Ubuntu 16.04，代号Xenial Xerus。究竟改了啥我是不清楚，反正装着玩嘛，作为小白的我今天就测试了一下下，发现了一个从14.04开始就存在的bug——<strong>无法开启无线</strong>。</p>
+<p>具体症状就是，Ubuntu认得我的网卡，但是开启无线的时候，却毫无反应；设置里开启可以看到开了立刻又关了。 [v_blue]请注意，如果是Ubuntu没你无线网卡的驱动，自己下载make去吧。[&#x2F;v_blue]</p>
+<p>通过研究可以发现，Ubuntu是认得我的无线网卡<strong>AR9485</strong>，是一些设置上的问题导致无法使用。通过Ubuntu Community、forum和自己的探索，终于找到了解决方案！各位看官就跟我来看我是怎么解决这个问题的。</p>
+<p>首先按照当初14.04的办法，打开终端执行</p>
+<p>sudo rmmod acer-wmi</p>
+<p>之后注销下</p>
+<p>理论上来说就应该可以了，我们来看个图：</p>
+<p><img src="/images/042316_1056_Ubuntu16041.png"></p>
+<p>提示设备未就绪，什么鬼！</p>
+<p>继续打</p>
+<p>rfkill list all</p>
+<p><img src="/images/042316_1056_Ubuntu16042.png"></p>
+<p>发现无线网卡0的 Soft blocked是yes，也就是产生了软阻塞。</p>
+<p>下面还有个Hard blocked，这都是什么意思呢？</p>
+<p>大家可能有注意到，大部分笔记本都是有一个组合键控制WiFi开关的（比如说我的是Fn+F2），有一些甚至是硬件开关。这里的 Hard blocked指的就是这个硬件开关，如果是yes，那就是无线网卡关闭啦。而Soft blocked指的是系统层面的”开关”</p>
+<p>注意：这里有些人可能都会是yes，请用组合键打开自己的无线网卡！</p>
+<p>那我们就把第一个的yes改成no不就成了……</p>
+<p>没错就是这样</p>
+<p>rfkill unblock all</p>
+<p>正常来说你的无线网卡就正常了，可以搜索到无线信号了；不正常你就注销&#x2F;重启下<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/04/2016042312445854.png"><img src="/images/2016042312445854-638x1024.png" alt="21"></a></p>
+<p>难道一个unblock就解决问题了吗？不信我再block给你看</p>
+<p><img src="/images/042316_1056_Ubuntu16044.png"></p>
+<p>可是每次开机都这么执行一遍，很痛苦的哎，还得注销呢……</p>
+<p>那就跟我来！</p>
+<p>sudo nano &#x2F;etc&#x2F;modprobe.d&#x2F;blacklist.conf</p>
+<p>最后一行加入</p>
+<p>blacklist acer-wmi</p>
+<p>如图所示</p>
+<p><img src="/images/042316_1056_Ubuntu16045.png"></p>
+<p>Ctrl + X保存退出。之后就万事大吉什么都不用你管啦！</p>
+<p>好像这Ubuntu 16.04也没感觉到有啥长进……但是Bug 10却有很多长进……就不说进入桌面右下角不是少音量就是少网络连接要不就是没有IME了 :mad:  :mad:</p>
+<p><img src="/images/042316_1056_Ubuntu16046.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/04/23/ubuntu16-04-wifi/index/" data-id="clhp7rtmq00ags2qrhvf4ejkr" data-title="Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-encryption-gpg-veracrypt/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/03/encryption-gpg-veracrypt/index/" class="article-date">
+  <time class="dt-published" datetime="2016-04-03T00:00:00.000Z" itemprop="datePublished">2016-04-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/03/encryption-gpg-veracrypt/index/">2016版：密码学科普，兼谈GnuPG和VeraCrypt</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="零-荐书"><a href="#零-荐书" class="headerlink" title="零.荐书"></a>零.荐书</h2><p>近期看了本结城浩的《图解密码技术》，感觉真心不错，翻到了自己最开始写的幼稚无比的文章，简直无语啦。有必要将此文章推倒重来……也怪那个时候我还不会写文章！所以，嘿嘿，重新写咯！</p>
+<h2 id="一-加密术的必要性"><a href="#一-加密术的必要性" class="headerlink" title="一.加密术的必要性"></a>一.加密术的必要性</h2><p>有些同学以为，自己既不是影视明星，又不是恐怖分子，不需要采用文件加密之类的工具，那就大错特错啦。俺大致介绍一下，文件加密的用武之地。</p>
+<p>强烈推荐阅读编程随想博文，原文地址为：<a target="_blank" rel="noopener" href="http://program-think.blogspot.com/2011/05/file-encryption-overview.html">http://program-think.blogspot.com/2011/05/file-encryption-overview.html</a></p>
+<h3 id="防范失窃"><a href="#防范失窃" class="headerlink" title="防范失窃"></a>防范失窃</h3><p>失窃，这年头移动设备越来越多流行，设备丢了，被顺走的可能也会增加。想想啊，东西一丢，上面的各种隐私资料、甚至包括浏览器自动保存的账号密码，不就都泄露了吗？</p>
+<h3 id="保护个人隐私"><a href="#保护个人隐私" class="headerlink" title="保护个人隐私"></a>保护个人隐私</h3><p>不要说自己是个光明正大的人，有什么隐私可以保护？如果是这样，为何要用信封呢？怎么不脱光光出去呢？</p>
+<p>另外，有些人家里是公用电脑的，那你上网下的小黄片、或者是艳照什么的，被看到了多不好，所以也要加密的。</p>
+<h3 id="加密个人数据"><a href="#加密个人数据" class="headerlink" title="加密个人数据"></a>加密个人数据</h3><p>一些东西备份到移动硬盘上，某天要借人，但是你又不想让他看到你的东西——或者上传到各种”云盘”，党国嘛，是很关心俺们屁民的隐私的。具体原因你懂的。</p>
+<h3 id="对抗极权统治"><a href="#对抗极权统治" class="headerlink" title="对抗极权统治"></a>对抗极权统治</h3><p>这一点，恐怕是现代密码学发展到今天最伟大的用途之一：终于有了一种工具与方式，可以让普通到不能普通的人和国家机器斗争，尤其是极权的国家机器。</p>
+<p>如果你是某些习惯抹黑党国的人（党国本来就黑，还抹什么啊），或者是民权人士、持不同政见者，那被查水表之后，电脑被收走，说不定要牵扯出多少人。</p>
+<h2 id="二-密码泛谈"><a href="#二-密码泛谈" class="headerlink" title="二.密码泛谈"></a>二.密码泛谈</h2><h3 id="对称密码"><a href="#对称密码" class="headerlink" title="对称密码"></a>对称密码</h3><p>对称密码全名叫做”对称密钥加密”，是密码学中的一类加密算法。这类算法在加密和解密时使用相同的密钥，或是使用两个可以简单地相互推算的密钥。非常著名的标准有DES（已经不再推荐使用、三重DES、AES）。对称密码有ECB、CBC、CFB、OFB、CTR五种分组模式。有兴趣的小伙伴可以去自行维基。</p>
+<h3 id="非对称密码"><a href="#非对称密码" class="headerlink" title="非对称密码"></a>非对称密码</h3><p>在对称密码中，存在一个非常bug的问题：如何配送密钥。直接发送密钥吧，很容易被窃取到；面交似乎还挺费事的。再给密钥进行加密，也不过是转移了安全配送的对象而已。</p>
+<p>为了解决这种配送密钥的问题，人们总结出了以下几种方法：</p>
+<p><strong>事先预共享密钥、密钥分配中心、Diffie-Hellman密钥交换、公钥密码。</strong></p>
+<p>我们要说的就是这个公钥密码，也被称作非对称加密。在这种密码学方法中，需要一对密钥，一个是私人密钥，另一个则是公开密钥。我们称公开的密钥为公钥；不公开的密钥为私钥。这两个密钥是数学相关的，用某用户公钥加密后所得的信息，只能用该用户的私钥才能解密。如果知道了其中一个，并不能计算出另外一个。因此如果公开了一对密钥中的一个，并不会危害到另外一个的秘密性质。</p>
+<p>通常，我们都使用公钥进行加密、而私钥进行解密；但是也有一个例外，在签名上，我们就使用私钥加密、公钥解密。为何如此？我写了一个工具，用私钥签了名，只有我才可以签名，而持有公钥的大众都可以对其进行验证</p>
+<p>对称加密中，私钥就像是一把钥匙。可以用钥匙把东西锁到盒子里（加密），也可以用钥匙打开盒子（解密）。对称加密的密钥可以加密、解密。这也就意味着如果私钥泄露，隐私不在。那么问题就来了，你怎么保证私钥可以被安全传输而不被第三方获取？</p>
+<p>非对称加密中，密钥体系分成公约和私钥。顾名思义，公开的密钥和私有的密钥。公钥是公开出去的，任何人都可以用这个公钥来加密文件，但是加密之后只能用私钥才能解开。这也就意味着，只要私钥保存好，那么加密就是接近完美的。</p>
+<h3 id="混合密码系统"><a href="#混合密码系统" class="headerlink" title="混合密码系统"></a>混合密码系统</h3><p>通常来说，公钥密码的运算速度要远远比不上对称密码的运算速度，而且公钥密码也往往需要更长的长度才足以保证不被暴力破解。混合密码体系是什么呢？</p>
+<p>简而言之，就是我想要用对称密码的密钥来进行加密，首先就要把密钥分享给对方。那么就让对方生成一个密钥对，将公钥公开给我，然后我用他的公钥加密我的会话密钥，当然这是对称密码的密钥，然后将加密之后的结果返还给对方，也只有他才可以解密，这样他就得到了我的对称密码的密钥，之后就可以愉快的通信啦。</p>
+<p>实际上，上述所述，恰恰是SSL&#x2F;TLS的做法中的一部分。</p>
+<p>有童鞋可能会问，那遇到中间人咋办？如果有童鞋这么想，那是真的要表扬下！抵抗中间人劫持，这就是消息认证码、数字签名、证书的事情了！</p>
+<h2 id="三-GnuPG实战：非对称密码"><a href="#三-GnuPG实战：非对称密码" class="headerlink" title="三.GnuPG实战：非对称密码"></a>三.GnuPG实战：非对称密码</h2><h3 id="加密文件："><a href="#加密文件：" class="headerlink" title="加密文件："></a>加密文件：</h3><h4 id="创建密钥对"><a href="#创建密钥对" class="headerlink" title="创建密钥对"></a>创建密钥对</h4><p>首先，你得准备个<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/gpg4win-2.2.6.exe">GPG</a>，然后你得安装，然后捏，你得给它打开（名为Kleopatra），哦，My lady in red, is dancing with me~</p>
+<p>这非对称加密啊，你不就得弄俩密钥出来么是吧。那怎么弄出来呢？大部分人都喜欢看图，那么我们就以图为准吧。</p>
+<p>依次点击File-New Certificate-Create a personal OpenPGP pair</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%BC%80%E5%A7%8B.png"><img src="/images/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%BC%80%E5%A7%8B.png" alt="创建密钥开始"></a></p>
+<p>两个必填项，最后一个comment强烈建议填写下，免得忘记是干嘛的了。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9%E8%BF%87%E7%A8%8B.png"><img src="/images/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9%E8%BF%87%E7%A8%8B.png" alt="创建密钥对过程"></a></p>
+<p>点击Advanced Settings可以设置高级选项，关于RSA这种基于分解质因数的数学上几乎不可能原理，大家伙可以自行搜索。RSA的密钥长度默认2048位的就已经够强大了，目前的RSA暴破的世界纪录是768bits。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E9%AB%98%E7%BA%A7%E8%AE%BE%E7%BD%AE.png"><img src="/images/%E9%AB%98%E7%BA%A7%E8%AE%BE%E7%BD%AE.png" alt="高级设置"></a></p>
+<p>点击Next，Create Key，咦，竟然要输入个密码？这个密码是用来保护私钥的，哪怕私钥丢失，不知道密码也是无法解密滴。国际惯例，别用123456qwertyuio这类弱密码。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E8%AE%BE%E7%BD%AE%E5%AF%86%E7%A0%81.png"><img src="/images/%E8%AE%BE%E7%BD%AE%E5%AF%86%E7%A0%81.png" alt="设置密码"></a></p>
+<p>哟，创建成功啦，可以考虑把私钥备份下。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9.png"><img src="/images/%E5%88%9B%E5%BB%BA%E5%AF%86%E9%92%A5%E5%AF%B9.png" alt="创建密钥对"></a></p>
+<p>前面提到过，公钥是用来加密的，可是刚才导出的是私钥啊，公钥呢？别急，选中证书，右键，Export Certificate就可以啦。用记事本打开那个asc文件，里面的内容就是公钥，可以放到博客、网页上，别人就可以用这个来加密文件发给你。</p>
+<h4 id="使用公钥加密文件"><a href="#使用公钥加密文件" class="headerlink" title="使用公钥加密文件"></a>使用公钥加密文件</h4><p>上一步已经到处了公钥，这里我就暂时化身为别人，用公钥加密一个文件。</p>
+<p>加密方需要打开GPG，File-Import Certificate导入别人发给你的公钥。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%AF%BC%E5%85%A5%E5%85%AC%E9%92%A5.png"><img src="/images/%E5%AF%BC%E5%85%A5%E5%85%AC%E9%92%A5.png" alt="导入公钥"></a></p>
+<p>之后加密文件，选择File-Sign&#x2F;Encrypt Files，选择要加密的文件</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A41.png"><img src="/images/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A41.png" alt="加密步骤1"></a></p>
+<p>点击Next，选择证书（公钥），然后点add添加进去。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E9%80%89%E6%8B%A9%E5%8A%A0%E5%AF%86%E7%A7%81%E9%92%A5.png"><img src="/images/%E9%80%89%E6%8B%A9%E5%8A%A0%E5%AF%86%E7%A7%81%E9%92%A5.png" alt="选择加密私钥"></a></p>
+<p>之后点击Encrypt，提示说，加密之后，你自己就看不了啦！好的我们确定继续。如果勾选了加密之后删除源文件，又会提示，会删掉源文件呀！</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A42.png"><img src="/images/%E5%8A%A0%E5%AF%86%E6%AD%A5%E9%AA%A42.png" alt="加密步骤2"></a></p>
+<p>根据不同的文件大小，加密也会用不同的时间。加密完成后将会在源文件目录下生成一个扩展名为pgp的文件，把这个文件发给你的朋友吧！（也就是给你公钥的那个人）。</p>
+<p>因为非对称加密只有用私钥才能解密，所以你大可以把这个文件公开了，没对应的私钥，是解密不了滴！</p>
+<h4 id="使用私钥解密文件"><a href="#使用私钥解密文件" class="headerlink" title="使用私钥解密文件"></a>使用私钥解密文件</h4><p>哟我那个狐朋狗友给我回信了，快来看看吧！</p>
+<p>File-Decrypt&#x2F;Verify Files，选择文件，点击Decrypt&#x2F;Verify，选择对应的私钥，输入为私钥设置的密码（为了保护私钥不泄露），好的解密成功了，你的文件回来了。</p>
+<hr>
+<p>其实，非对称的加密速度是很慢的，大概只有对称的及百分之一。但是，GnuPG的最大用途可能就是<strong>加密邮件</strong>了吧！哪怕邮箱密码泄露了，邮件内容也不会被看懂。我的GPG公钥<a target="_blank" rel="noopener" href="https://dmesg.app/my-gpg">在这里</a>，从网站导航上你也可以看到。如果你给我用这玩意发邮件了，我就会觉得你很牛逼，很厉害的样子。当然啦，别忘记再邮件里附上你的公钥！</p>
+<h3 id="我们来演示下！加密邮件"><a href="#我们来演示下！加密邮件" class="headerlink" title="我们来演示下！加密邮件"></a>我们来演示下！加密邮件</h3><p>[v_blue]友情提示： 如果你与一个人第一次使用GPG，推荐将PGP Message贴到邮件正文中并在附件中添加你的公钥（或是在邮件内容中指引对方下载你的公钥）；或者将邮件内容和你的公钥打包加密。当你确定对方有Enigmail这类插件的时候，再使用对应的插件、工具。以免你的邮件变成天书。[&#x2F;v_blue]</p>
+<p>下面我们简单的试试PGP Message吧！ 首先，要创建密钥对，然后把公钥共享出去。这里我用虚拟机来替代与我秘密通信的坏人。</p>
+<p>将公钥拖进Kleopatra的界面里，就可以看到Imort Certificate，选择这项，之后会看到自己的列表里出现了这一项公钥。</p>
+<p><img src="/images/040316_0603_1.png"></p>
+<p>之后呢，我们自然要用某种文本编辑器写我们的邮件。某坏人就写了好多好多字，然后按下Ctrl + C放到剪贴板里。</p>
+<p>之后此坏蛋就点了Clipboard-Encrypt</p>
+<p><img src="/images/040316_0603_2.png"></p>
+<p>点击左下角的Add Recipient，好家伙，竟然没有博主本人的公钥？别急，右上角选择All certificate就有了。</p>
+<p><img src="/images/040316_0603_3.png"></p>
+<p>底下会出现一行警告，这密钥你这坏人只有<strong>公钥</strong>啊，<strong>加密了你就解不开了啊</strong>。</p>
+<p>点Next，加密成功。咦？咋回事？怎么成功了？文件呢？</p>
+<p>别急，剪贴板里呢。</p>
+<p>粘贴一下看看。反正是个人类都看不懂了……</p>
+<p><img src="/images/040316_0603_4.png"></p>
+<p>邮件又回到了本人这里，加密了之后，那我有私钥，咋解密呢？Ctrl + C复制下，Clipboard – Decryt&#x2F;Verify，输入你的私钥密码。</p>
+<p>提示操作成功，没有找到签名，什么鬼？</p>
+<p>还是别急，粘贴下就有了……</p>
+<p><img src="/images/040316_0603_5.png"></p>
+<p>成功复原邮件，yeah！</p>
+<h2 id="四-VeraCrypt实战"><a href="#四-VeraCrypt实战" class="headerlink" title="四.VeraCrypt实战"></a>四.VeraCrypt实战</h2><p><a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/VeraCrypt%20Setup%201.14.exe">VeraCrypt</a>这货就是大名鼎鼎的TrueCrypt的后身。官网为<a target="_blank" rel="noopener" href="http://veracrypt.codeplex.com/">http://veracrypt.codeplex.com/</a></p>
+<h3 id="创建加密卷"><a href="#创建加密卷" class="headerlink" title="创建加密卷"></a>创建加密卷</h3><p>首先还得下载，之后呢，可以选择安装，或者Extract（提取），这货就瞬间变成绿色软件了。这两者有啥区别呢？安装版本可以加密系统盘。编程随想总结了四篇非常棒的TrueCrypt文章，本人已将其保存为mhtml，有兴趣可以下载阅读。</p>
+<p>在这只介绍下<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/VeraCrypt%20Setup%201.14.exe">VeraCrypt</a>的简单用法。</p>
+<p>打开它，看不惯英文就Settings-Language，选择简体中文。点击主界面下方的创建加密卷，看图走。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151612.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151612.png" alt="QQ截图20150924151612"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151625.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151625.png" alt="QQ截图20150924151625"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151722.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151722.png" alt="QQ截图20150924151722"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151758.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151758.png" alt="QQ截图20150924151758"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151840.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151840.png" alt="QQ截图20150924151840"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924151859.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924151859.png" alt="QQ截图20150924151859"></a></p>
+<p>密码：一定要很复杂哦！人永远是最大的弱点嘛。</p>
+<p>密钥文件，VC很牛逼的地方就是可以选择一个或者多个文件作为密钥，哪怕只知道密码、没有文件也是无法解密滴！其中，密钥文件可以随机生成，也可以随意选择自己的文件，比如说歌曲啊程序啊等等，但是一定要妥善保存。</p>
+<p>随意移动鼠标，越长越好，一般来说半分钟就足够啦，然后点击格式化。此处不会格式化你的分区，只会格式化那个设置好的卷文件（在这里我的是test）。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924152110.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924152110.png" alt="QQ截图20150924152110"></a></p>
+<p>好哒加密卷创建完了，E盘下也看到了那么个100M的文件，那么怎么加密数据呢？</p>
+<h3 id="挂载加密卷"><a href="#挂载加密卷" class="headerlink" title="挂载加密卷"></a>挂载加密卷</h3><p>加密卷-选择文件，选择刚刚创建的加密卷文件，点加载，输入密码、如果有的话还要加入密钥文件。</p>
+<p>稍等一会，会发现资源管理器里已经蹦出来了一个新的盘符，还等什么，这就和平常的分区一模一样，爱干什么干什么，用完记得点击卸载！</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924152421.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924152421.png" alt="QQ截图20150924152421"></a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924152444.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924152444.png" alt="QQ截图20150924152444"></a></p>
+<p>加密卷文件可以复制到U盘里，移动使用。</p>
+<h3 id="隐藏卷"><a href="#隐藏卷" class="headerlink" title="隐藏卷"></a>隐藏卷</h3><p>你这和上面的也没区别啊 ，我被人拿枪顶着，还得老老实实的打密码啊。</p>
+<p>接下来就来隐藏卷了。</p>
+<p>怎么解释呢？有这么一个卷，一个叫外层加密卷，一个叫内层隐藏卷。两个卷拥有不同的密码以及Keyfiles。当你输入外层密码，打开的是外层的东西，输入内层密码，打开的是内层的东西。这样当被胁迫的时候，就可以很不情愿的输入外层密码，让胁迫者看到一些无关紧要的文件从而躲过一劫。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/QQ%E6%88%AA%E5%9B%BE20150924153540.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20150924153540.png" alt="QQ截图20150924153540"></a></p>
+<p>说了一堆废话，隐藏卷咋弄？</p>
+<p>还是“创建加密卷”，加密卷类型选择隐藏的，有常规模式和直接模式。常规模式就是，我新弄个文件作为加密卷；直接模式，使用现有的。跟着向导来，先输入设置外层，再设置内层。被胁迫的时候不要输入错啦！</p>
+<p>之后挂载的时候，输入外部卷密码，打开外部卷。输入内部卷密码，打开内部卷。</p>
+<p>注意，外部卷容量总要大于内部卷，而且如果向外部卷写入大量文件，很有可能影响内部卷。具体请参阅<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/TrueCrypt_program-think.7z">编程随想博文</a>。已经帮打包好了，解压缩密码为program-think</p>
+<h2 id="五-写后谈"><a href="#五-写后谈" class="headerlink" title="五.写后谈"></a>五.写后谈</h2><h3 id="1-隐蔽式安全性"><a href="#1-隐蔽式安全性" class="headerlink" title="1.隐蔽式安全性"></a>1.隐蔽式安全性</h3><p>密码学中，有很多违背人类常识的悖论：越是公开的算法，反而越安全；那些号称保密的算法，其安全性往往不堪一击。密码算法的秘密早晚会被公之于世：好似加密再牛逼的游戏最终都难逃破解一样，君不见DVD的DRM、RSA公司的RC4。那些依赖算法保密而”保密”的加密，一旦算法泄露，也就没有秘密可言了；而那些根本就没想保密的算法，公开算法对其加密性也没有影响。</p>
+<h3 id="2-密码学只是信息安全的一部分"><a href="#2-密码学只是信息安全的一部分" class="headerlink" title="2.密码学只是信息安全的一部分"></a>2.密码学只是信息安全的一部分</h3><p>某博主说得好，你的密码经得住破解但是你人经得住揍吗？</p>
+<p>加密在某种程度上来说，是”防君子不防小人”的。越是安全的系统，其最大的弱点往往越在于人。</p>
+<h3 id="3-任何密码总有被破解的一天"><a href="#3-任何密码总有被破解的一天" class="headerlink" title="3.任何密码总有被破解的一天"></a>3.任何密码总有被破解的一天</h3><p>只要尝遍所有可能的密钥，也就意味着破解——只不过有的需要几分钟，有的需要1000年。密码学的保密指的是在有限意义的时间内无法破解，你丫都死了我破解了之后怎么给你的尸骨定罪吗？</p>
+<h3 id="4-密码学的发展是全人类的福祉"><a href="#4-密码学的发展是全人类的福祉" class="headerlink" title="4.密码学的发展是全人类的福祉"></a>4.密码学的发展是全人类的福祉</h3><p>引用<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">《如何防范网络审计》</a>里的话：</p>
+<blockquote>
+<p>要不是密码学的发展，哪能给一个普通人和国家机器、哪怕是全世界的人斗争的可能？ 在信息时代之前，就几乎已经注定了个人几乎无法匹敌政府，个人往往在任何一个方面都是非常渺小的…… 举个例子，一个人能造什么武器？顶多是把枪，而政府却能制造出飞机坦克甚至是核武器。 不光是”武器”，其它领域（比如交通工具）也差不多。在信息时代之前，个人吖那个渺小。 信息时代之后，其实大部分领域也并没有什么变化。你现在能造出来坦克？能玩的出来高铁？别逗了。 但是密码学是个例外。 多亏了当初PGP创始人Philip Zimmermann的抗争，他抵着被无数爱国者们骂成卖国贼的心理压力、抵着被FBI抓走坐牢的压力，义无反顾的发布了PGP——当然，靠着宪法修正案第一条他出口了一本书，书里的内容就是PGP的源代码。（二战以来，密码学一直被大部分国家认作军事机密，所以是禁止出口的。大家晓得图灵不） 如今，随意一个人都可以在网上下载到一些非常优秀的加密工具，稍微学习几分钟，就可以进行<strong>高高高高高强度加密</strong>。而政府方面即使用上超级计算机，也只好干瞪眼。 当然了这无法解密是说，在有意义的时间内无法解密，比如说一百年一千年。 在密码学上，俺们屁民，是和政府们平起平坐的。</p>
+</blockquote>
+<h2 id="六-我的GPG公钥"><a href="#六-我的GPG公钥" class="headerlink" title="六.我的GPG公钥"></a>六.我的GPG公钥</h2><p>为了显得我很牛逼很厉害，在这里我再次奉上<a target="_blank" rel="noopener" href="https://dmesg.app/my-gpg">我的公钥</a>，大家戳去看看。你可以选择兼容Enigmail的工具，也可以直接贴PGP Message，或者附件加密。但是无论如何都<strong>不要忘记附加你的公钥</strong>。某天如果你这么发邮件了，我会觉得你这个人超厉害的。我猜在上面的菜单里你也看到了大大的公钥这两个字。</p>
+<h2 id="七-备注补遗"><a href="#七-备注补遗" class="headerlink" title="七.备注补遗"></a>七.备注补遗</h2><p>如果你使用Linux发行版，那么你也同样可以使用GPG的！ 对称加密来说，VeraCrypt有Linux版，也可以<a target="_blank" rel="noopener" href="https://dmesg.app/ubuntu-compile-vc.html">自行编译</a>； 非对称加密来说，Gnmoe环境下可以使用Seahorse，加密解密PGP Message可以使用<code>gpg2 -d</code>和<code>gpg2 -e -a</code>（加a选项使用ASCII Armor免得成乱码），这里就不讲教程了，既然已经入了Linux，还不会自己折腾这个嘛！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/04/03/encryption-gpg-veracrypt/index/" data-id="clhp7rtg1002is2qr8znr7r6c" data-title="2016版：密码学科普，兼谈GnuPG和VeraCrypt" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-domain-lucky-too-lucky/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/30/domain-lucky-too-lucky/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-30T00:00:00.000Z" itemprop="datePublished">2016-03-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>►<a class="article-category-link" href="/categories/justsay/gfw/">gfw</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/30/domain-lucky-too-lucky/index/">互联网域名管理办法：有生之年和三生有幸</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>疫苗的事过去了没？对俺们搞IT的人，还有更火的一件事情。</p>
+<p>我们来谈谈天朝工信部最近的《互联网域名管理办法》</p>
+<p>不懂行的人可能完全不知道这是什么玩意，甚至会有无脑<a target="_blank" rel="noopener" href="http://world.huanqiu.com/exclusive/2016-03/8791525.html">花样洗地的文章</a>。</p>
+<p>你这也是真不容易，whois到头才发现这么一个在国内注册的国内大站。</p>
+<p> </p>
+<p>我也不是那么懂行，呵呵，但是我可以告诉你，TMD这就是<strong>倒挡</strong>踩死油门！</p>
+<p>域名是啥？<a target="_blank" rel="noopener" href="http://www.baidu.com就是个域名,需要有dns将其转换成ip,因为计算机只认ip不认域名./">www.baidu.com就是个域名，需要有DNS将其转换成IP，因为计算机只认IP不认域名。</a></p>
+<hr>
+<p>情况呢，是这样的：</p>
+<p>话说以前，很早的时候，域名可以随意注册的，空间可以随意买的，怎么解析、解析到哪，不管。</p>
+<p>后来敬爱的党妈妈觉得这不行啊，这谁都整个网站，说点啥我不喜欢的事，我还不好查水表，不行，我得管管。于是乎，在撵走了Google之前或者之后，出台了一个域名备案——CN这个域名啊，你得备案，把你的身份信息什么的都给我，我才给你解析。但是com这种国际域名呀，解析到国外我们还是暂时允许的……</p>
+<p>再后来呢，就是今天：既然你要在大陆开网站，嘿嘿嘿，那你域名要在大陆注册，解析也要解析到大陆，嘿嘿嘿嘿嘿。</p>
+<hr>
+<p> </p>
+<p>事情就是这么个事情，这TMD就是脑门一热一拍屁股，这TMD就是白名单的前奏！等这事落实了，我建议某部门先拔了百度啊搜狐啊网易的网线，反正他们都是在国外域名商注册的。</p>
+<p>其实这些国内的还不是问题，微软、苹果、英特尔等等这些对于中国经济发展非常重要的外资或者跨国企业——没有哪家跨国企业能接受自己的主域名被中国企业控制，这也意味着将外资互联网企业赶出中国。</p>
+<p>这中国企业就是节操在银河系之外的阿里。</p>
+<p>我无数次的说过，所有带”根”的东西，尽量别让中国（政府）染指——根域名服务器、根证书都是血淋漓的例子。</p>
+<p>引用月光博客的话，</p>
+<blockquote>
+<p>根据《中国互联网域名管理办法（修订征求意见稿）》第五十条，擅自篡改域名解析信息或者将域名解析指向他人IP地址的，可以视情节轻重并处一万元以上三万元以下的罚款，我举报中国有一个神秘部门，擅自将Facebook的域名解析到一个阿塞拜疆的IP地址，请对其罚款一万元。</p>
+</blockquote>
+<p>我勇敢的打开了<a target="_blank" rel="noopener" href="http://zqyj.chinalaw.gov.cn/index">国务院法务办公室</a>想投上我这无足轻重的反对票——请你们好点建设服务器，我知道你们手法拙劣，但是也不带这么玩的啊！一投票就让我回到首页。<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/41864611">大家可以看知乎这里</a></p>
+<p>还好，今晚我勇敢的成功的给37条投上反对票。</p>
+<p>我想起了几年前的事。2012年，国际电联在阿联酋开了个会，国际电信世界大会，以失败告终——互联网躲过一劫。那一年Google开了一个”<a target="_blank" rel="noopener" href="https://www.google.com/intl/zh-CN/takeaction/">Take action</a>“ 的页面，呼吁人们反对某个提案——是某几个龌龊国家提出的。值得庆幸的是，但美国等西方国家拒绝在新协议上签字。会议具体情况，<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2012/12/wcit-12.html">编程随想的博客写到了</a></p>
+<p>那一次全世界人们努力躲过了一劫，这一次中国人民呢？</p>
+<p>在德国，起初他们追杀共产主义者，我没有说话——因为我不是共产主义者；接着他们追杀犹太人，我没有说话——因为我不是犹太人；后来他们追杀工会成员，我没有说话——因为我不是工会成员；此后他们追杀天主教徒，我没有说话——因为我是新教教徒；最后他们奔我而来，却再也没有人站出来为我说话了。</p>
+<p>现在啊，古巴都能上Google了，大概只剩下朝鲜和某国了。</p>
+<hr>
+<p> </p>
+<p>以后我们要是自由了，我一定要跟子孙后代们好好讲讲，当初你爷爷我是多牛逼，遁地飞天穿墙都会，你们，差远了。</p>
+<p> </p>
+<p>最后，我只想说一句话，<strong>有生之年，我能够看到这种倒退，也是三生有幸。</strong></p>
+<p>其中有何意义，请各位慢慢揣度……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/30/domain-lucky-too-lucky/index/" data-id="clhp7rtft0023s2qr3395gx83" data-title="互联网域名管理办法：有生之年和三生有幸" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-diskgenius-mbr2gpt/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/19/diskgenius-mbr2gpt/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-19T00:00:00.000Z" itemprop="datePublished">2016-03-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/19/diskgenius-mbr2gpt/index/">DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>话说，前几天比较忙，因为从Windows 7迁移到Windows 10——顺路从MBR改成了GPT，解决了以前的一个问题。</p>
+<p>以前写过一篇<a target="_blank" rel="noopener" href="https://dmesg.app/newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi.html">《[新手向]无需重装，Windows 7 由BIOS改成UEFI启动》</a></p>
+<p>其实我自己在弄的时候就遇见了这么一个问题：</p>
+<p><img src="/images/031916_1157_DiskGeniusM1.png"></p>
+<blockquote>
+<p>磁盘的首、尾部分没有转换到GUID分区表所必须的空间（除了MBR扇区外还需要各33个扇区）。请先删除分区或者对分区进行调整后再转换。</p>
+</blockquote>
+<p>这个问题属实棘手，怎么搜索也都没解决方案……后来经过我的研究，终于找到了解决解决方案——而且不会丢任何文件！</p>
+<p>DiskGenius提示首、尾部分没有所必须的空间，那咱们就手动的弄出来点空间呗……</p>
+<p>首先必须先启动到PE，然后大部分人的硬盘应该是有很多个分区的，我们就选择最后一个分区，右键-调整分区大小。</p>
+<p>不用多，给后面空出来点，前面也给空出来点就可以。</p>
+<p><img src="/images/031916_1157_DiskGeniusM2.png"></p>
+<p>调整之后硬盘的这个条前后就多出了空白的空间。</p>
+<p><img src="/images/031916_1157_DiskGeniusM3.png"></p>
+<p>再试试转换，噢耶！</p>
+<p><img src="/images/031916_1157_DiskGeniusM4.png"></p>
+<p>你看是GPT了吧！</p>
+<p>后面的空间嘛……愿意就合并回去，不愿意就拉倒。</p>
+<p>一不小心又暴露了我是虚拟机测试的……但是我想说，真实情况也差不多是这样。</p>
+<p>那我是怎么创造出来这种无法转换的情况呢？</p>
+<p>其实很简单啊，一个空白的硬盘，你一个扇区都不丢一点空间都不留的，都给分了就可以了……</p>
+<p> </p>
+<p>管理，献上我的壁纸！啦啦啦！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016031912040444.jpg"><img src="/images/2016031912040444.jpg" alt="Battlefield (57)"></a></p>
+<p>Battlefield 3 - 碎剑者行动→_→英文我忘记了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/19/diskgenius-mbr2gpt/index/" data-id="clhp7rtf7001ls2qrd5o356th" data-title="DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-timeline-subtitles/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/12/timeline-subtitles/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-12T00:00:00.000Z" itemprop="datePublished">2016-03-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/12/timeline-subtitles/index/">[新手向]如何制作时间轴、字幕和压制影片</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>作为一名字幕组的小小翻译，其实我老早就想写写制作字幕的方法了，结果一直拖到今天。</p>
+<p>今天就以最简单的方式来教教大家如何制作双语字幕，还有卡轴、压制等~</p>
+<p> </p>
+<h2 id="一-扫个盲，编码格式、封装格式"><a href="#一-扫个盲，编码格式、封装格式" class="headerlink" title="一.扫个盲，编码格式、封装格式"></a>一.扫个盲，编码格式、封装格式</h2><p>先来搞清楚一个概念，视频&#x2F;音频编码格式、封装格式。我不是这个领域的绝对专家，但是解释下概念还是可以做到的。</p>
+<h3 id="视频编码格式"><a href="#视频编码格式" class="headerlink" title="视频编码格式"></a>视频编码格式</h3><p>就是一种编码视频的标准（这不是废话吗），目前最流行的莫过于AVC（通常我们叫它H.264）了，还有DivX等等。</p>
+<h3 id="音频编码格式"><a href="#音频编码格式" class="headerlink" title="音频编码格式"></a>音频编码格式</h3><p>就是编码音频的标准，又是一句废话，目前很流行的有AC3，DTS，AAC——很不幸的是前两者是杜比公司的专利，所以很多软件为了避免版权问题，都不会【直接提供】这两者的解码器，所以就会造成”只有图像没有声音”的假象，在iOS上这个现象会更明显。</p>
+<h3 id="封装格式"><a href="#封装格式" class="headerlink" title="封装格式"></a>封装格式</h3><p>我们常见的mp4、mkv、avi等结尾的视频，其实这个”mp4”是封装格式。封装格式是什么意思呢？我们知道一部视频里最起码要有视频流、音频流，可能还会有字幕等其他的”流”。如果把所有的”流”比作水，那么封装格式就是装水的杯子——有的”杯子”设计的很好，就可以装很多种不同的”水”并且利于饮用；而有些杯子设计的不好，可能会像滴管一样，很糟心的。</p>
+<p>现在除非专业人士，否则大部分人都是不太懂这三个”格式”的区别的，但是时刻铭记在心，一个视频文件的扩展名并不代表他的编码格式，AVC可以封装到mkv里，DivX也可以。当然，绝大部分有良心的制作者们都喜欢mkv搭配AVC这种。</p>
+<p>播放器能否流畅完整的播放一个视频也是由这三者共同制约的。</p>
+<p><img src="/images/031216_0537_1.png"></p>
+<p>可以看到这个视频的封装格式是MPEG-4，也就是扩展名是mp4，视频和音频编码分别是AVC、AAC</p>
+<p>其实这个扫盲根本就是废话，不喜欢看就略过嘛……</p>
+<p> </p>
+<h2 id="二-制作字幕的简介"><a href="#二-制作字幕的简介" class="headerlink" title="二.制作字幕的简介"></a>二.制作字幕的简介</h2><p>以我的经历来说，通常会有轴组的人先处理时间轴使字幕和说话配上，然后由翻译进行翻译，然后校对、特效、压制。自己的话只能一人包揽，说着很难但其实很简单。</p>
+<p>先祭上我们组都在使用的字幕处理工具：<strong>TimeMachine</strong>，此工具是使用了Windows Media Player作为播放界面的，所以只要WMP能播放的视频都可以的。加上外挂字幕插件之后会直接在播放窗口上显示字幕，就不用来回切换播放器了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/201603120605578.jpg"><img src="/images/201603120605578-1024x552.jpg" alt="主界面"></a></p>
+<p>界面还是很简洁实用的！</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z'/]TimeM%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z&#39;\]TimeM下载地址\[/dl\]</a></p>
+<p>PS，此工具是由VS2008编译而来，所以在最新的Windows 10上可能不是那么好用，而且有时会抽风不显示字幕，此时需要重装VodSub……</p>
+<p>为此，我将此工具的代码上传到GitHub以GPLv2开源，希望有能力的人能够继续开发此工具（不用试了，我从05试到了15全都编译出错），希望组织不会找到我哈哈哈</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/TimeM'/]%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/TimeM&#39;\]开源项目地址\[/gt\]</a></p>
+<p> </p>
+<h2 id="三-卡轴"><a href="#三-卡轴" class="headerlink" title="三.卡轴"></a>三.卡轴</h2><p>做时间轴是一个比较苦的活。我假设你的TM已经能够播放视频了，这是最起码的条件！</p>
+<p>我们用TM打开一个范例视频，好像没什么反应哎！对，你只能看到一个准备就绪。</p>
+<p><img src="/images/031216_0537_3.png"></p>
+<p>此时在左侧选择新字幕，我们就插入个50行吧！</p>
+<p><img src="/images/031216_0537_4.png"></p>
+<p>之后要注意保存的文件名，假如视频文件叫做1.mp4，字幕就要叫1.srt，这样播放器就会默认加载字幕。因为srt结构比较简单，方便查错校正什么的嘛。</p>
+<p><img src="/images/031216_0537_5.png"></p>
+<p>下面的编辑窗口就出现了50个空行。</p>
+<p>记住两个快捷键，F8和F9。F8对应轴开始的时间，F9对应轴结束的时间。</p>
+<p><img src="/images/031216_0537_6.png"></p>
+<p>现在开始播放视频，并且使字幕定位在第一行，类似下图这样。</p>
+<p><img src="/images/031216_0537_7.png"></p>
+<p>人物开始说话，就按F8，觉得这一行差不多够字数了，就按F9，然后什么都不用管，人物再说，就F8记录下一个轴的开始，F9记录结束。TM会自动往下选择下一个空轴的。</p>
+<p><img src="/images/031216_0537_8.png"></p>
+<p>粉色的圈起来的是每次按F9都会往下跳。</p>
+<p>可能有的人反应比较慢，导致开始说话过了0.x秒字幕才出现，那怎么办呢？很简单，设计个延迟就可以啦！</p>
+<p>设置-软件选项-字幕选项。根据自身情况设置吧！</p>
+<p><img src="/images/031216_0537_9.png"></p>
+<p>这样一直卡轴，直到最后，就算做完了时间轴的工作</p>
+<p>[v_blue]Tips： 通常来说，美剧&#x2F;电影等都是提供CC字幕的，也就是说英文字幕绝大部分都不是听译出来的。当然CC字幕的格式惨不忍睹，是需要进行大量修改的。[&#x2F;v_blue]</p>
+<p> </p>
+<h2 id="四-翻译"><a href="#四-翻译" class="headerlink" title="四.翻译"></a>四.翻译</h2><p>翻译这一步嘛，不只是翻译那么简单。翻译的信达雅是一方面，格式的统一也是一方面。</p>
+<p>上面提到了对CC的处理，这点基本各大字幕组的处理都差不多：</p>
+<p>删掉冗余字幕、标点符号初步统一、语气词感叹词等。</p>
+<p>字幕格式，不同组的要求就不同了。大致说下我们组的规则以便参考：</p>
+<blockquote>
+<p>**1.**不论何时， 严禁出现中文标点！ **2.**中文行断句无需标点句号逗号等，只需两段话之间空两格即可。 **3.**中文行出现书籍、杂志、影视作品名称等。 必须加书名号《》 **4.**特殊引用加英文引号””，比如说讽刺啊反语等。 **5.**外国人名之间加· **6.**对话格式如果一个时间轴里面有两个人的对话，字幕中对话一般没有对话的标记，所以，翻译需要自行加符号-来区分，英文对话之间-后面需要空一格，中文对话的-后面则不用空格， 如： 00:01:25,241 –&gt; 00:01:27,527 -你摸什么呢 -动脉 - What are you looking for? - A pulse. 一个时间轴里面有两个人对话前面要使用横断线-号分开，以区别是两人说的话，并且两人对白中间要用空格隔开。中文空两格，英文空一格。 **7.**大小写，这个嘛就是英语功底的事情了…… **8.**字幕长度，我们推荐的是英文不超过65字幕，中文不超过18字符，免得字幕变成两行影响效果。如果太长，那么就要根据意群进行分割。 **9.**硬字幕，一些说明头衔、学校等字幕，需要再翻一下方便观众理解，插入新轴用{\an8}置顶内容即可。插入按钮在倒数第四个。</p>
+</blockquote>
+<p>拆分字幕方法：</p>
+<p>在要拆分的字母上右键，自定义拆分</p>
+<p><img src="/images/031216_0537_10.png"></p>
+<p>选择好分割的位置，然后点击确定，之后点击新增，把中文的也分割了，确定就好。</p>
+<p><img src="/images/031216_0537_11.png"></p>
+<p>需要注意的是分割之后这两个轴可能会对不上，所以建议重新看看。</p>
+<p> </p>
+<h2 id="五-后期"><a href="#五-后期" class="headerlink" title="五.后期"></a>五.后期</h2><p>我呐，不是做后期的，但是一点特效都没有的字幕我是忍受不了的！简单的设置下字幕的字体、字形，我一般都使用SrtEdit，aegisub这种东西太高级用不来……</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z'/]SrtEdit%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z&#39;\]SrtEdit下载地址\[/dl\]</a></p>
+<p>由于srt对字幕特效的支持有限，所以我通常先将其转换为ass格式，用SrtEdit打开字幕，另存为，选择ass即可。</p>
+<p>之后Ctrl+A全选字幕，格式-文本特效编辑</p>
+<p><img src="/images/031216_0537_12.png"></p>
+<p>大家伙就看着办吧！其他特效也看着办吧</p>
+<p><img src="/images/031216_0537_13.png"></p>
+<p>要注意，如果你使用的字体文件在别的电脑上不存在，那么就会变成默认的字体——这也是为什么我们要压制的原因。</p>
+<p>这是我选择的英文字体Ubuntu Mono，中文字体幼圆。</p>
+<p><img src="/images/031216_0537_14.png"></p>
+<p>要注意的是，KMPlayer需要选项-字幕处理-多重字幕&#x2F;其他，选择“高级”选项卡，第一栏里选中开启、实时渲染、保持三项才可以显示字幕的字体。</p>
+<p> </p>
+<h2 id="六-压制"><a href="#六-压制" class="headerlink" title="六.压制"></a>六.压制</h2><p>前面预备知识里提过，一个封装格式里面可以带有很多信息，其中也自然而然的包括字幕。个人比较喜欢mkv这种封装格式。</p>
+<p>有一个工具叫做mkvtoolnix，可以看到一个mkv文件里有哪些东西。双击mmg.exe，将视频文件拖入，可以看到这个视频有两个流。</p>
+<p><img src="/images/031216_0537_15.png"></p>
+<p>有些电影是”国英粤”三个音频轨，如果只想要英语，就取消对应的勾选，然后开始混流即可。</p>
+<p>所以在这里，压制就有了两种办法：</p>
+<p>一种是简单的把字幕放到这个”容器”里，仍旧<strong>无法避免</strong>在没有对应字体的电脑上无法显示特效；</p>
+<p>另一种则是重新编码，把字幕作为视频流的一部分，这样字体特效无论放到哪都不会丢了。那些喜欢纯净的不要字幕的就会挑剔了。</p>
+<h3 id="第一种办法"><a href="#第一种办法" class="headerlink" title="第一种办法"></a>第一种办法</h3><p>直接用mkvtoolnix混流就可以了，把字幕添加进去，混流，基本上几分钟就可以完成；</p>
+<h3 id="第二种办法"><a href="#第二种办法" class="headerlink" title="第二种办法"></a>第二种办法</h3><p>就要用到俺组开发的傻瓜压制工具，通常来说会花费很长时间——当初我压制《阿凡达》花费了差不多三四个小时。</p>
+<p>首先需要安装AviSynthPlus-r1576和VC，在setup里有。</p>
+<p>然后打开压制工具，左上角选择新建任务，选择对应的视频和字幕，确定。</p>
+<p><img src="/images/031216_0537_16.png"></p>
+<p>右上角选择压制之后的分辨率即可。至于码率什么的，都是不用管的！</p>
+<p>64位操作系统选择x64会更好~</p>
+<p>PS，如果某位喜欢1080P的压制，可是这里又没有1080P的，那怎么办呢？</p>
+<p>其实很简单，打开encode文件夹，会发现有很多批处理文件。我已经为你们准备好了压制1080P的批处理了。</p>
+<p>该怎么办还用说吗~~修改完直接把视频拖上去就可以了。</p>
+<p>[v_error]警告 视频文件名最好不要带空格哦，毕竟windows这家伙不会拿\转义嘛……[&#x2F;v_error]</p>
+<p><img src="/images/031216_0537_17.png"></p>
+<p>压制过程是非常耗费CPU的，那个喜欢浮点运算的GPU呢？</p>
+<p><img src="/images/031216_0537_18.png"></p>
+<p>真的是1080P</p>
+<p><img src="/images/031216_0537_19.png"></p>
+<p>mmg分析表示，字幕已经成了视频的一部分。</p>
+<p>如果想要裁剪视频，简单的可以拿格式工厂来做到……另外，格式工厂转换格式的时候加字幕貌似有些bug…… [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z'/]mkvtoolnix/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z&#39;\]mkvtoolnix\[/dl\]</a></p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176%27%5C%5D%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176&#39;\]压片工具\[/dl\]</a></p>
+<h3 id="第三种方法：高手必备的ffmpeg"><a href="#第三种方法：高手必备的ffmpeg" class="headerlink" title="第三种方法：高手必备的ffmpeg"></a>第三种方法：高手必备的ffmpeg</h3><p>好吧，<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/2">看这里就好了</a>。</p>
+<h2 id="七-后话"><a href="#七-后话" class="headerlink" title="七.后话"></a>七.后话</h2><p>本文提到的所有工具打包下载，多贴心啊！ [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506%27%5C%5D%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E6%89%93%E5%8C%85%E4%B8%8B%E8%BD%BD%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506&#39;\]字幕处理工具打包下载\[/dl\]</a></p>
+<p>附：特别喜欢的一段演讲，尽管是游戏里的而且我还没玩过……Assassins Creed 2 - Ezio’s Speech </p>
+<p>[v_act]There are those who will take that freedom from us, and too many of you gladly give it. But it is our ability to choose whatever you think is true that makes us human. Choose your own way![&#x2F;v_act]</p>
+<p> </p>
+<h2 id="八-晒壁纸"><a href="#八-晒壁纸" class="headerlink" title="八.晒壁纸"></a>八.晒壁纸</h2><p>又到了晒壁纸的时候……</p>
+<p>然而并没有壁纸可以，哈哈哈。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/12/timeline-subtitles/index/" data-id="clhp7rtma00a0s2qr55nv4j1f" data-title="[新手向]如何制作时间轴、字幕和压制影片" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-prevent-from-network-audit/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/03/03/prevent-from-network-audit/index/" class="article-date">
@@ -475,468 +985,11 @@
 
 
   
-    <article id="post-ssh-welcome-funny-command/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/16/ssh-welcome-funny-command/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-16T00:00:00.000Z" itemprop="datePublished">2016-02-16</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/16/ssh-welcome-funny-command/index/">草泥马SSH登录信息、几个好玩的Linux命令</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="分享个好玩的Ubuntu-Server-SSH登录欢迎信息"><a href="#分享个好玩的Ubuntu-Server-SSH登录欢迎信息" class="headerlink" title="分享个好玩的Ubuntu Server SSH登录欢迎信息"></a>分享个好玩的Ubuntu Server SSH登录欢迎信息</h1><p>还有几个好玩的Linux软件</p>
-<p>先萌妹镇着！</p>
-<p><img src="/images/021516_0518_SSH1.jpg"></p>
-<p>Ubuntu登录欢迎信息保存在&#x2F;etc&#x2F;update-motd.d下</p>
-<p>其中的文件可以自己修改。我就修改帮助信息10-help-text啦！</p>
-<p>按道理说，直接在那个文件里echo “欢迎信息”就可以了，但是不知道为啥总报错。所以之后创建一个文件，然后在那里执行下啦。</p>
-<p>由于Windows和Linux对于回车、换行的处理不同，所以我直接把我的欢迎信息放出来下载吧！</p>
-<p>cd &#x2F;etc&#x2F;update-motd.d<br>wget <a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/cnm.sh">http://7xljcn.com1.z0.glb.clouddn.com/cnm.sh</a><br>nano 10-help-text</p>
-<p>注释掉全部内容，添加如下内容</p>
-<p>sh &#x2F;etc&#x2F;update-motd.d&#x2F;cnm.sh</p>
-<p>看效果图！</p>
-<p><img src="/images/021516_0518_SSH2.png"></p>
-<p>另外，有个工具叫jp2a，可以把图片转成ASCII字符画。</p>
-<p>sudo apt-get install jp2a<br>jp2a test.jpg</p>
-<p>好好的一个萌妹变成什么样子了。其实这里用Photoshop处理下，去掉复杂的背景，改成铅笔画这类的，出来的字符画效果会更好。</p>
-<p><img src="/images/021516_0518_SSH3.png"></p>
-<p>顺便写个脚本， 可以把jp2a的输出结果制作成可以执行的脚本文件。 如果想看到彩色的字符画，就加上–colors 再把这个文件在10-help-text添加执行就可以了</p>
-<p>#&#x2F;bin&#x2F;sh<br>echo ‘echo “ ‘ &gt; welcome.sh<br>jp2a test.jpg &gt;&gt; welcome.sh<br>echo ‘“‘ &gt;&gt; welcome.sh</p>
-<p>注意，当前SSH窗口多大，jp2a就会生成多大的字符画；默认图片文件名是test.jpg，生成的欢迎脚本叫做welcome.sh</p>
-<p>不需要图形化界面的</p>
-<h1 id="几个好玩的软件"><a href="#几个好玩的软件" class="headerlink" title="几个好玩的软件"></a>几个好玩的软件</h1><h2 id="toilet-字符画"><a href="#toilet-字符画" class="headerlink" title="toilet 字符画"></a>toilet 字符画</h2><p>sudo apt-get install toilet</p>
-<p><img src="/images/021616_0218_1.png"></p>
-<h2 id="cowsay-牛说"><a href="#cowsay-牛说" class="headerlink" title="cowsay 牛说"></a>cowsay 牛说</h2><p>sudo apt-get install cowsay</p>
-<p><img src="/images/021616_0218_2.png"></p>
-<h2 id="lolcat-彩色的cat"><a href="#lolcat-彩色的cat" class="headerlink" title="lolcat 彩色的cat"></a>lolcat 彩色的cat</h2><p>可以和fortune、screenfetch等搭配使用</p>
-<p>sudo apt-get install lolcat</p>
-<p><img src="/images/021616_0218_3.png"></p>
-<h2 id="fortune随机显示名言什么的。"><a href="#fortune随机显示名言什么的。" class="headerlink" title="fortune随机显示名言什么的。"></a>fortune随机显示名言什么的。</h2><p>sudo apt-get install fortune</p>
-<p>fortune-zh可以显示中文</p>
-<p><img src="/images/021616_0218_4.png"></p>
-<p> </p>
-<h2 id="linuxlogo显示系统信息"><a href="#linuxlogo显示系统信息" class="headerlink" title="linuxlogo显示系统信息"></a>linuxlogo显示系统信息</h2><p>可以配合lolcat</p>
-<p>sudo apt-get install screenfetch linuxlogo<br>linuxlogo|lolcat</p>
-<p><img src="/images/021616_0218_5.png"></p>
-<h2 id="the-fuck"><a href="#the-fuck" class="headerlink" title="the fuck"></a>the fuck</h2><p>这家伙挺好玩的！</p>
-<p>先放上GitHub页<a target="_blank" rel="noopener" href="https://github.com/nvbn/thefuck">https://github.com/nvbn/thefuck</a></p>
-<p>GitHub上已经写了很明确的安装方法了，这里搬运一下：</p>
-<h3 id="方法一。一键安装脚本（Ubuntu-amp-Mac）"><a href="#方法一。一键安装脚本（Ubuntu-amp-Mac）" class="headerlink" title="方法一。一键安装脚本（Ubuntu &amp; Mac）"></a>方法一。一键安装脚本（Ubuntu &amp; Mac）</h3><p>wget -O - <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/nvbn/thefuck/master/install.sh">https://raw.githubusercontent.com/nvbn/thefuck/master/install.sh</a> | sh - &amp;&amp; $0</p>
-<h3 id="方法二。包管理器安装（Ubuntu-amp-Debian）"><a href="#方法二。包管理器安装（Ubuntu-amp-Debian）" class="headerlink" title="方法二。包管理器安装（Ubuntu &amp; Debian）"></a>方法二。包管理器安装（Ubuntu &amp; Debian）</h3><p>sudo apt-get install python-pip python-dev<br>sudo pip install psutil thefuck</p>
-<p>安装后的配置（一键安装脚本无需配置）</p>
-<p>nano ~&#x2F;.bashrc</p>
-<p>最后一行添加</p>
-<p>eval $(thefuck –alias)</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016021602324086.jpg"><img src="/images/2016021602324086.jpg" alt="QQ截图20160216102753"></a></p>
-<p>自动纠错了哈哈哈~</p>
-<h2 id="还有个，放到终端里试试哈。"><a href="#还有个，放到终端里试试哈。" class="headerlink" title="还有个，放到终端里试试哈。"></a>还有个，放到终端里试试哈。</h2><p>echo ‘</p>
-<p>..XXX. .XXX..</p>
-<p>.XXXXY.TXXXX.</p>
-<p>XXXXXYXTXXXXX</p>
-<p>.VXXVYXTVXXX.</p>
-<p>`.TYXTXYXTV .</p>
-<p>` ,YVTXYYV .,</p>
-<p>`…XXXXX`..,</p>
-<p>.`…XXX…,.</p>
-<p>..`   V   ,.’ | tr ‘.\`, VYTX’ ‘ ()__() ‘</p>
-<h2 id="需要x-org的"><a href="#需要x-org的" class="headerlink" title="需要x.org的"></a>需要x.org的</h2><p>oneko</p>
-<p>一只跟着光标走的小猫</p>
-<p>xeyes一双盯着光标的眼睛</p>
-<p>xcowsay 图形化的cowsay</p>
-<p>sudo apt-get install oneko等等即可。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/16/ssh-welcome-funny-command/index/" data-id="clhp7rtkd0092s2qr035ve222" data-title="草泥马SSH登录信息、几个好玩的Linux命令" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-cron-mysql-autorestart/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/15/cron-mysql-autorestart/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-15T00:00:00.000Z" itemprop="datePublished">2016-02-15</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/15/cron-mysql-autorestart/index/">利用cron监测mysql状态并自动重启</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>话说以前（→_→至少有两个多月了）有一段时间，服务器负载过大导致MySQL服务被kill，作为一个具有灵性的码农，怎么能每天刷自己的博客手动重启呢？</p>
-<p><img src="/images/021516_0235_cronmysql1.png"></p>
-<p>恰巧近几天学习了点shell编程，在配合到cron，简要的写一个监测MySQL运行状态，如果挂了就自动开启的脚本！</p>
-<p>下面上代码：</p>
-<p>#!&#x2F;bin&#x2F;sh<br>pidof mysqld &gt;&#x2F;dev&#x2F;null<br>if [ $? -eq 0 ]<br>then<br>echo “It is running.”<br>else<br>echo “At `date` MySQL Server was stopped”&gt;&gt; &#x2F;home&#x2F;mysql_log<br>service mysql start<br>fi</p>
-<p>下面是对代码的解释：</p>
-<p>pidof mysqld可以得出mysql的PID，如果mysql进程（mysqld）不存在，就不会有结果。</p>
-<p>&gt;重定向到黑洞里</p>
-<p>$?的意思是上一个命令的退出值，通常来说0代表成功，1代表通用未知错误。所以在这里，假如mysqld不存在，那么$?就会是1</p>
-<p>-eq是等于，shell执行$?是否等于0的判断，等于就是在运行，不等于就是没运行。</p>
-<p>用echo和反引号并重定向到文件写日志，&gt;代表覆写，&gt;&gt;代表追加。后面日志路径大家伙看着改</p>
-<p>将这段代码保存为restart_mysql.sh放到某个目录，俺就给放到&#x2F;home啦 :lol:  :lol: </p>
-<p>，然后终端crontab –e，最后一行添加如下内容</p>
-<p>意思是每隔两分钟运行一遍脚本。</p>
-<p>*&#x2F;2 * * * * sh &#x2F;home&#x2F;restart_mysql.sh</p>
-<p>俺这人比较懒，就没给脚本加上可执行权限，所以直接以”传参”的形式给sh了。</p>
-<p>重启cron服务</p>
-<p>service cron restart</p>
-<p>亲测好用</p>
-<p><img src="/images/021516_0235_cronmysql3.png"></p>
-<p>如果你真的是懒得不能再懒了，那么就执行下面这句吧…root权限哦。当然了我其实是不太推荐的啦。</p>
-<p>wget <a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/restart/_mysql/_installation.sh">http://7xljcn.com1.z0.glb.clouddn.com/restart\_mysql\_installation.sh</a> &amp;&amp; sh .&#x2F;restart_mysql_installation.sh</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/15/cron-mysql-autorestart/index/" data-id="clhp7rtf4001es2qr062pd3li" data-title="利用cron监测mysql状态并自动重启" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-rm-dd-chmod-sudoers-root/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/10/rm-dd-chmod-sudoers-root/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-10T00:00:00.000Z" itemprop="datePublished">2016-02-10</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/10/rm-dd-chmod-sudoers-root/index/">rm –rf /, dd, chmod, sudoers和root权限的一些小事</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>预先警告一下，这些命令都是<strong>十分危险</strong>的，请不要在自己的电脑上尝试！</p>
-<p>话说几个星期前，圈里爆出来这么一个事：一名Arch用户尝试使用rm –rf &#x2F;删除已有的arch然后重装，结果这条命令却成功的毁了他的固件。rm删掉了&#x2F;sys&#x2F;firmware&#x2F;efivars的内容……</p>
-<p>更详细的讨论可以看这里：</p>
-<p><a target="_blank" rel="noopener" href="https://www.reddit.com/r/linux/comments/43ls7j/no_post_after_rm_rf_systemd_uefi/">https://www.reddit.com/r/linux/comments/43ls7j/no_post_after_rm_rf_systemd_uefi&#x2F;</a></p>
-<hr>
-<p>传说中Linux是怎么自杀的，就是用的rm –rf &#x2F;，递归强制删除根目录下所有文件和目录。当然要root权限才能干这个事，Ubuntu还要加–no-preserve-root参数。</p>
-<p>sudo rm -rf –no-preserve-root &#x2F;</p>
-<p><img src="/images/021016_0304_rmrfdds1.png"></p>
-<p>可以看到左侧的dock没了，语言支持没了，ls、rm等在命令没了（因为&#x2F;usr&#x2F;bin,&#x2F;sbin都被删掉了）。唯一还在的是bash内建命令……关了此终端之后，就彻底game over了。</p>
-<hr>
-<p>除此之外还有dd，dd是一个很强大的命令，裸读写，把指定的输入文件拷贝到指定的输出文件中，而且可以无视文件系统。if（此处不是如果，而是infile）指定来源，of指定目的，常常用它来备份文件或者制作镜像。但是这个命令如果滥用下…</p>
-<p>dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;&#x2F;dev&#x2F;sda</p>
-<p>[v_blue]&#x2F;dev&#x2F;zero是啥？ &#x2F;dev&#x2F;zero是Linux的一个”伪文件”，它会提供连续不断的null，要多少有多少。比如说初始化文件的时候。 类似的有个&#x2F;dev&#x2F;null，这家伙外号”无底洞”、”黑洞”，什么东西放进去都没了，而且永远不会吃撑，比如说某些命令的输出结果就可以给它吃掉[&#x2F;v_blue]</p>
-<p>这句话的意思是，读取0放到sda里……直接抹掉硬盘的内容。</p>
-<p>而且更可怕的是，假想这种情况：某人双硬盘（sda，sdb），想把某个iso写到U盘上（sdc），结果一不小心就写成了of&#x3D;sdb，恰巧sda是Linux的&#x2F;所在磁盘，于是乎……和数据说拜拜，这里连root权限都没用上。</p>
-<p>dd前要三思啊！要把of看三遍啊！使劲用df看磁盘信息啊！</p>
-<hr>
-<p>还有一个神级蛋疼的命令，chmod，用于改变文件的权限。和rm类似以下，sudo chmod –R 777 &#x2F;，此命令会将递归的将&#x2F;下所有文件的权限都设置成777（设置成000会更酸爽）。乍一看好像没什么，文件都还在。但是，Linux是一个权限管理比较严格的系统，有些文件是需要正确权限才可以运行的，像ssh，sudo等。</p>
-<p>[v_blue]那三个数字是什么意思？ 4读 2写 1执行，第一个数字表示属主（文件的所有者，文件的主人，谁创建的），第二个数字表示同组用户，第三个数字表示其他用户。当然，这里的”其他用户”不包括root，因为root拥有一切权限。775的意思就是，属主可以读写执行（4+2+1&#x3D;7），同组可以读写执行，其他用户只可以读和执行。[&#x2F;v_blue]</p>
-<p><img src="/images/021016_0304_rmrfdds2.png"></p>
-<p>这是chmod –R 000&#x2F;的后果，<strong>失去了对一切文件的访问权限</strong>，当前的终端都没了，壁纸都没了！要远比777可怕的多。此时唯一的解救方法就是用liveCD重新改权限了。</p>
-<p>再次警告下，这些命令<strong>十分危险</strong>，如要尝试请在和宿主机<strong>完全隔离</strong>的虚拟机上进行。完全隔离的意思就是，别装VMTools那类工具！</p>
-<p>可是问题来了，这些命令这么危险，为什么还要存在呢？</p>
-<p>其实这只是一种滥用，或者说是一时疏忽大意造成的灾难性后果。</p>
-<p>rm –rf &#x2F;*（因为带了r参数，所以此时&#x2F;*和&#x2F;含义并无区别）更多情况下是对rm –rf .&#x2F;*的误打。注意后一个命令在&#x2F;之前 有个.，Linux中.&#x2F;表示当前目录，所以这句话的意思的删除当前目录下的所有文件和文件夹。很常见的一个操作了。</p>
-<p>chmod也是一样，chmod –R 777 .&#x2F;*改变当前目录下所有文件目录的权限为777。</p>
-<hr>
-<p>可是这些事情本不该发生的，哪怕少打了一个.也不至于如此（更何况Ubuntu在rm –rf &#x2F;时还要加上–no-preserve-root）。为什么我们却看到了如此多的惨案呢？那是因为他们使用了root权限！</p>
-<p>root权限就是上帝，无所不能。这也是很多书籍都<strong>强烈建议</strong>使用普通权限的用户，需要root时用sudo<strong>暂时提权</strong>到root的原因。</p>
-<p>提到sudo，也就要提到sudoers了。比如说你新添加了一个用户给别人用，但是他也需要使用到root权限，可是常使用root权限太危险了，那我就给他sudo吧！</p>
-<p>创建用户benny，设置密码</p>
-<p>sudo useradd benny<br>sudo passwd benny</p>
-<p>输入benny用户的密码。</p>
-<p><img src="/images/021016_0304_rmrfdds3.png"></p>
-<p>然后切换到benny，ls下&#x2F;root</p>
-<p>su benny<br>sudo ls &#x2F;root</p>
-<p>（root用户的家目录&#x2F;root只有root才可以访问，我们可以在此测试下是否提权到root了）</p>
-<p><img src="/images/021016_0304_rmrfdds4.png"></p>
-<p>天啊，好害怕，竟然还打小报告！</p>
-<p>这是为什么，因为你新建的用户名没在sudoers里，&#x2F;etc&#x2F;sudoers定义了用户的权限，当然包括是否可以提权了。sudoers为440权限，属主可以读，同组可以读，其他人无权限。这也就是说，只有root才可以编辑。编辑就是写，权限2）此文件。</p>
-<p>好学的小伙伴可能会上网搜索sudoers，其中很多文章建议先chmod成777权限，编辑，然后在改回440权限。但是我强烈建议<strong>不要这么做</strong>！为什么！一是因为对新手来说，很容易没办法改回权限；二是因为脱裤子放屁。</p>
-<p>sudo只有在440权限的时候才可以使用，如果你现在是普通用户，看到那篇文章可能修改sudoers权限为777，于是你的命令是</p>
-<p>sudo chmod 777 &#x2F;etc&#x2F;sudoers</p>
-<p>777权限你的用户就可以编辑了，编辑完，当你再想改回权限时</p>
-<p>sudo chmod 440 &#x2F;etc&#x2F;sudoers</p>
-<p>会发现这么提示：</p>
-<p><img src="/images/021016_0304_rmrfdds5.png"></p>
-<p>任何sudo都会这么提示！</p>
-<p>你再也没办法使用sudo了！如果你使用的是Ubuntu等系统，那就更悲剧了，因为Ubuntu默认的root用户默认是被禁用的。。这也就意味着当你输入su试图切换到root时永远也无法输入正确的密码。这也就是在说你需要liveCD才能当上帝了。</p>
-<p>正确的办法是_sudo –s永久切换到root_，然后再改权限……</p>
-<p>可是问题来了，既然都是root了，还改权限干嘛啊！直接nano得了呗！脱裤子放屁干嘛啊！</p>
-<p>可可是，用文本编辑器修改sudoers是<strong>不科学的</strong>，假如你写错了，编辑器又不会提示你任何错误。</p>
-<p>但是当你sudo的时候……</p>
-<p><img src="/images/021016_0304_rmrfdds6.png"></p>
-<p>一样的悲剧。</p>
-<p>如果你看了sudoers文件，注意到最上面的注释，会看到这么一句：</p>
-<p><img src="/images/021016_0304_rmrfdds7.png"></p>
-<p>此文件必须使用”visudo”命令以root身份编辑。</p>
-<p>用visudo的<strong>万无一失</strong>的，假如你不小心弄出了语法错误（此处的“万无一失”是指的不作死）：</p>
-<p><img src="/images/021016_0304_rmrfdds8.png"></p>
-<p>visudo提示有语法错误，并且依旧有重新编辑的机会！还有后悔药！</p>
-<p>如果没有语法错误，visudo会正常退出。</p>
-<p>当然请不要作死给Allow members of group sudo to excute any command注释了……</p>
-<p>因为visudo只会检查语法错误。</p>
-<hr>
-<p> </p>
-<p>说了这么多废话，正确创建一个用户benny、给它提权到root的方法如下：</p>
-<p>创建用户</p>
-<p>sudo useradd benny<br>sudo passwd benny</p>
-<p>两次确认给benny设置密码</p>
-<p>执行visudo</p>
-<p>sudo visudo</p>
-<p>在Allow members of group sudo to excute any command下仿造上面一行添加：</p>
-<p>benny ALL&#x3D;(ALL:ALL) ALL</p>
-<p>ctrl + x退出保存。</p>
-<p><img src="/images/021016_0304_rmrfdds9.png"></p>
-<p>其实仿造admin那个写也可以，我暂时还没搞懂少一个:ALL有何影响。</p>
-<p>切换到新创建的benny用户</p>
-<p>su benny</p>
-<p>测试权限</p>
-<p>sudo ls &#x2F;root</p>
-<p><img src="/images/021016_0304_rmrfdds10.png"></p>
-<p>没有提示Permission denied.</p>
-<p>如果没有权限，应该是这样提示的：</p>
-<p><img src="/images/021016_0304_rmrfdds11.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/10/rm-dd-chmod-sudoers-root/index/" data-id="clhp7rtil007rs2qrfmrdfp63" data-title="rm –rf /, dd, chmod, sudoers和root权限的一些小事" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-auto-backup-to-qiniu/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/06/auto-backup-to-qiniu/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-06T00:00:00.000Z" itemprop="datePublished">2016-02-06</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/06/auto-backup-to-qiniu/index/">[新手向]自动备份网站及数据库至七牛云存储</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>昨天一激动，就写了个<a target="_blank" rel="noopener" href="https://dmesg.app/cron-automatic-compression-regularly-deleted-apache-logs.html">自动删除、压缩Apache日志</a>的脚本。今天更激动，就写了个利用七牛云存储备份网站的脚本。其实都是简单的不能再简单的了，哎~~</p>
-<p>七牛云存储对待标准用户（通过身份认证即可）提供10G存储空间、10G下载流量、10万Put、100万Get，一般应用是够了~如果看官你是高校在校学生，那么还可以申请”<a target="_blank" rel="noopener" href="http://hd.qiniu.com/qingcong/pack">青葱计划</a>“，之后更是有一年期1000元七牛抵用券，想用完都没门了！</p>
-<p> </p>
-<h2 id="零。适用条件"><a href="#零。适用条件" class="headerlink" title="零。适用条件"></a>零。适用条件</h2><p>凡是用LAMP、LNMP建站的都可以~其实，只要数据库是MySQL就可以。因为在脚本里使用了mysqldump，其他数据库可能要换成别的命令。</p>
-<p> </p>
-<h2 id="一。为啥要备份呢"><a href="#一。为啥要备份呢" class="headerlink" title="一。为啥要备份呢"></a>一。为啥要备份呢</h2><p>一般博客，咱不太可能天天备份，没必要而且还占用空间。咱就采取<strong>七天为一个周期</strong>、以<strong>日期作为备份文件名</strong>的周期性备份。要是话唠还可以改成三天、两天一备份，这都是后面一个数字的问题。</p>
-<p>备份的意义有多重要就不说了，那些不懂得备份的人都是在丢了数据之后从自杀边缘走回来才懂得此条真理的~</p>
-<p>为了防止VPS服务商宕机、或者跑路、或者某天自己折腾完蛋了恰巧没做快照甚至是VPS提供商不提供快照功能，做备份是十分必须的。七牛和你的VPS同时挂了那就去买个彩票吧，做啥博客站呀~</p>
-<p>而且，我常常说，“<strong>懒人创造了世界</strong>”。你看卡尔·本茨那家伙不就偷懒不爱走路吗发明了汽车，你看莱特兄弟不就是嫌弃汽车啥的太慢就发明了飞机吗。我不就是嫌弃手工打包、下载、上传费事吗，就写了个这么个小脚本。</p>
-<p> </p>
-<h2 id="二。准备工作"><a href="#二。准备工作" class="headerlink" title="二。准备工作"></a>二。准备工作</h2><h3 id="1-七牛云存储账号一个"><a href="#1-七牛云存储账号一个" class="headerlink" title="1.七牛云存储账号一个"></a>1.七牛云存储账号一个</h3><p><a target="_blank" rel="noopener" href="http://www.qiniu.com/">http://www.qiniu.com/</a></p>
-<p>建议新建一个<strong>私有空间</strong>，仅在恢复数据的时候再切换到公开空间免得泄露网站文件。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016020612145734.png"><img src="/images/2016020612145734.png" alt="QQ截图20160206201444"></a></p>
-<h3 id="2-整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟"><a href="#2-整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟" class="headerlink" title="2.整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟"></a>2.整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟</h3><h3 id="3-想明白要备份的网站目录在哪里"><a href="#3-想明白要备份的网站目录在哪里" class="headerlink" title="3.想明白要备份的网站目录在哪里"></a>3.想明白要备份的网站目录在哪里</h3><h2 id="三。Here-we-go"><a href="#三。Here-we-go" class="headerlink" title="三。Here we go"></a>三。Here we go</h2><p>假设网站目录在&#x2F;home&#x2F;wwwroot，phpmyadmin在&#x2F;home&#x2F;wwwroot&#x2F;phpmyadmin&#x2F;</p>
-<h3 id="在-x2F-home下创建一个wwwbackup作为备份文件夹-qiniu作为七牛同步工具文件夹。"><a href="#在-x2F-home下创建一个wwwbackup作为备份文件夹-qiniu作为七牛同步工具文件夹。" class="headerlink" title="在&#x2F;home下创建一个wwwbackup作为备份文件夹,qiniu作为七牛同步工具文件夹。"></a>在&#x2F;home下创建一个wwwbackup作为备份文件夹,qiniu作为七牛同步工具文件夹。</h3><p>mkdir &#x2F;home&#x2F;wwwbackup<br>mkdir &#x2F;home&#x2F;qiniu</p>
-<h3 id="切换到qiniu目录，下载七牛Linux同步工具。"><a href="#切换到qiniu目录，下载七牛Linux同步工具。" class="headerlink" title="切换到qiniu目录，下载七牛Linux同步工具。"></a>切换到qiniu目录，下载七牛Linux同步工具。</h3><p>[v_error]2016年7月27日更新 七牛官方已经停止开发qrsync，可以使用qshell替代。 详情见参考<a target="_blank" rel="noopener" href="https://dmesg.app/vps-google-drive.html">《使用海外vps中转Google Drive文件》</a>[&#x2F;v_error] 本着不留垃圾的原则我就rm了下。32位64位不通用，请自行切换</p>
-<p>本次以32位为例说明。（64位<a target="_blank" rel="noopener" href="http://devtools.qiniu.com/qiniu-devtools-linux_amd64-current.tar.gz">下载点这</a> ）</p>
-<p>cd &#x2F;home&#x2F;qiniu&#x2F;<br>wget <a target="_blank" rel="noopener" href="http://devtools.qiniu.com/qiniu-devtools-linux/_386-current.tar.gz">http://devtools.qiniu.com/qiniu-devtools-linux\_386-current.tar.gz</a><br>tar xvf qiniu-devtools-linux_386-current.tar.gz<br>rm -f qiniu-devtools-linux_386-current.tar.gz</p>
-<h3 id="建立配置文件（在-x2F-home-x2F-qiniu-x2F-下）"><a href="#建立配置文件（在-x2F-home-x2F-qiniu-x2F-下）" class="headerlink" title="建立配置文件（在&#x2F;home&#x2F;qiniu&#x2F;下）"></a>建立配置文件（在&#x2F;home&#x2F;qiniu&#x2F;下）</h3><p>nano conf.json</p>
-<p>输入如下内容保存：其中accesskey、secret key和bucket请自行去<a target="_blank" rel="noopener" href="https://portal.qiniu.com/setting/key">https://portal.qiniu.com/setting/key</a>获取并替换。</p>
-<p> </p>
-<p>{<br>    “src”: “&#x2F;home&#x2F;wwwbackup”,<br>    “dest”: “qiniu:access_key&#x3D;2delala不给看啦啦啦alalalLdfz&amp;secret_key&#x3D;UtqLN啦啦啦啦啦不给看fB3cuo4z9-qmcmOwAq8YFO3PKnvClJfTOHM&amp;bucket&#x3D;blog-backup”,<br>    “debug_level”: 1<br>}</p>
-<h3 id="给qrsync增加可执行权限。"><a href="#给qrsync增加可执行权限。" class="headerlink" title="给qrsync增加可执行权限。"></a>给qrsync增加可执行权限。</h3><p>chmod +x qrsync</p>
-<h3 id="切换到上层目录-创建备份脚本。"><a href="#切换到上层目录-创建备份脚本。" class="headerlink" title="切换到上层目录,创建备份脚本。"></a>切换到上层目录,创建备份脚本。</h3><p>cd ..<br>nano backup.sh</p>
-<p>内容如下：</p>
-<p>#!&#x2F;bin&#x2F;sh<br>rm &#x2F;home&#x2F;wwwroot&#x2F;default&#x2F;phpmyadmin&#x2F;save&#x2F;*<br>mysqldump -u root -p ohyeah –password&#x3D;123456789 &gt; &#x2F;home&#x2F;wwwroot&#x2F;default&#x2F;phpmyadmin&#x2F;save&#x2F;`date +%Y%m%d`.sql<br>tar -jcpf &#x2F;home&#x2F;wwwbackup&#x2F;`date +%Y%m%d`.tar.bz2 &#x2F;home&#x2F;wwwroot &gt;&#x2F;dev&#x2F;null 2&gt;&amp;1<br>&#x2F;home&#x2F;qiniu&#x2F;qrsync &#x2F;home&#x2F;qiniu&#x2F;conf.json</p>
-<p>Ctrl + X 退出保存。</p>
-<p>考虑到某些小伙伴可能喜欢有个备份日志，那就用echo重定向下好啦~~</p>
-<p>[v_blue]2016-02-07补充 如果手里还有另一台VPS，那么也可以顺手给上传到另一台VPS上，命令如下（注意第一次连接需要手动打yes） scp -i 私钥 &#x2F;home&#x2F;wwwbackup&#x2F;`date +%Y%m%d`.tar.bz2 用户名@公网IP:&#x2F;home&#x2F;blog-backup[&#x2F;v_blue]</p>
-<p>参数说明：</p>
-<p><strong>mysqldump</strong>：其中<strong>-p</strong> 后面ohyeah为要备份的数据库名字，<strong>-u</strong> 为用户名，一般来说就是root，**--password&#x3D;**为密码。&#x2F;home&#x2F;wwwroot&#x2F;default&#x2F;phpmyadmin&#x2F;save&#x2F;为导出数据库备份文件的存储路径。</p>
-<p>考虑到随着时间的增长，某个数据库的冗余备份也越来越多，所以采取了先清空原来已有备份、再重新到处对应数据库的方法。</p>
-<p><strong>tar</strong>：打包网站目录。后面的 &gt;&#x2F;dev&#x2F;null 2&gt;&amp;1意思是我要把输出丢到黑洞里~~</p>
-<p>如果要给压缩包加密码，那么就用</p>
-<p>cd &#x2F;home&#x2F;wwwbackup&#x2F;<br>tar -jcpf &#x2F;home&#x2F;wwwroot |openssl des3 -salt -k secretpassword | dd of&#x3D;`date +%Y%m%d`.des3</p>
-<p>解包用</p>
-<p>dd if&#x3D;test.des3 |openssl des3 -d -k secretpassword|tarzxf -</p>
-<p>请注意<strong>test.des3</strong>为压缩包名字，<strong>secretpassword</strong>为密码</p>
-<p> </p>
-<p>这是我的目录结构，不要嘲笑我怎么没加vhost用了个丑丑的default，</p>
-<p><img src="/images/020616_1200_1.png"></p>
-<h2 id="四。测试"><a href="#四。测试" class="headerlink" title="四。测试"></a>四。测试</h2><p>sh &#x2F;home&#x2F;backup.sh</p>
-<p>本终端没反应就对了。因为我把tar的输出都丢到黑洞里了，只有qrsync的输出暂时给我们测试用。另开一个ssh看top和nethogs即可知道运行状态。</p>
-<p>博主俺又忘记截图了。</p>
-<h2 id="五。添加cron"><a href="#五。添加cron" class="headerlink" title="五。添加cron"></a>五。添加cron</h2><p>crontab –e</p>
-<p>最后一行添加如下内容：</p>
-<p>0 0 *&#x2F;7 * * sh &#x2F;home&#x2F;backup.sh</p>
-<p>如果想10天一次，就把7改成10即可。将会在每隔七天0时0分（考虑到此时大家都在睡觉，降低服务器负载）压缩网站目录、上传到七牛云。</p>
-<p>重启cron</p>
-<p>service cron restart</p>
-<p>本次任务成功完成。</p>
-<p>来看看上传时的动态</p>
-<p><img src="/images/020616_1200_2.png"></p>
-<p>nethogs忘记截图了哈哈哈。平均速度在1M~2.5M的样子，我的服务器在日本东京。这个速度很棒的了，看看Node Query的记录吧！</p>
-<p><img src="/images/020616_1200_3.png"></p>
-<h2 id="六。后话"><a href="#六。后话" class="headerlink" title="六。后话"></a>六。后话</h2><p>童鞋们记得<strong>灵活的变换目录</strong>哦，这是作为Geeker最基本的素质了~</p>
-<p>另外，假如七牛标准用户还觉得不够用，还不想付钱，那么也可以试试更财大气粗的”<a target="_blank" rel="noopener" href="http://wantu.taobao.com/space/index.htm">阿里百川顽兔</a>“，100G的存储空间、100G月流量总是够玩了吧！</p>
-<p>初次入门阿里百川不知道怎么弄配置文件？见此篇博文：<a target="_blank" rel="noopener" href="https://dmesg.app/all-new-taesync-gui.html">《阿里百川图形化上传工具taesync》</a></p>
-<p>非常不幸的是阿里百川提供的上传工具是用Java开发的，博主俺比较懒，就不测试了。</p>
-<p>大体方法都是一样的…..就是事先写好配置文件，然后修改下执行路径。剩下都是一样一样的了~~</p>
-<p> </p>
-<p>最后问大家一个问题</p>
-<p>&#x2F;&#x2F;想一个人该怎么办？<br>#想一个人该怎么办？<br>–想一个人该怎么办？<br>&#x2F;*想一个人该怎么办？*&#x2F;<br>‘想一个人该怎么办？</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/06/auto-backup-to-qiniu/index/" data-id="clhp7rted000hs2qr7pr3hahk" data-title="[新手向]自动备份网站及数据库至七牛云存储" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-softether-443-conflicts-with-web-server/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/02/softether-443-conflicts-with-web-server/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-02T00:00:00.000Z" itemprop="datePublished">2016-02-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/02/softether-443-conflicts-with-web-server/index/">SoftEther 443端口与web服务器冲突解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>先前写了一篇利用SoftEther VPN Server搭建PPTP、L2TP、OpenVPN的文章（<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">https://dmesg.app/softether-vpnserver.html</a></p>
-<p>），原谅我那时候不会用代码高亮。后来发现，在开启了https的web服务器上是无法进行管理的。在设置密码的那一步报错退出了。如下图：</p>
-<p><img src="/images/020216_0812_SoftEther441.png"></p>
-<p>为什么呢？因为<strong>命令行模式下</strong>SoftEther默认使用443端口与连接到管理端，而443已经被我的web服务器占用了，所以自然会fail了。那怎么办呢……有三种办法：</p>
-<h2 id="第一种办法"><a href="#第一种办法" class="headerlink" title="第一种办法"></a>第一种办法</h2><p>暂时停掉web server，在命令行里设置密码，然后客户端管理工具连接，再ServerPasswordSet设置个服务器管理密码。然后更改端口，重开web server。比较繁琐。</p>
-<h2 id="第二种办法"><a href="#第二种办法" class="headerlink" title="第二种办法"></a>第二种办法</h2><p>Hostname of IP Address of destination时直接输入</p>
-<p>localhost:5555</p>
-<p>之后回车就可以成功了，然后就一样了。</p>
-<h2 id="第三种办法"><a href="#第三种办法" class="headerlink" title="第三种办法"></a>第三种办法</h2><p>更简单，而且同样很管用！</p>
-<p>.&#x2F;vpnserver start</p>
-<p>启动VPN服务，之后在工具里直接留空密码连接：</p>
-<p><img src="/images/020216_0812_SoftEther442.png"></p>
-<p>之后连接会要求输入密码。</p>
-<p>你们看连接上了。这一步如果连接失败请尝试992、1194、5555端口。</p>
-<p>之后服务器里会看到443端口错误。修改成其他端口或者不用理会都可以。</p>
-<p><img src="/images/020216_0812_SoftEther444.png"></p>
-<p>之后就和前文一样了。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/02/softether-443-conflicts-with-web-server/index/" data-id="clhp7rtk0008ss2qrbcjq9341" data-title="SoftEther 443端口与web服务器冲突解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/17/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/19/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/17/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/19/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -976,7 +1029,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -989,23 +1042,23 @@
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

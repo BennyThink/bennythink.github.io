@@ -73,6 +73,568 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-container-no-network/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/26/container-no-network/index/" class="article-date">
+  <time class="dt-published" datetime="2021-01-26T00:00:00.000Z" itemprop="datePublished">2021-01-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/26/container-no-network/index/">什么鬼啊，我的容器怎么无法访问外网了</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>大概几个星期前，在把<a target="_blank" rel="noopener" href="https://t.me/yyets_bot">YYeTs Bot</a>迁移到香港时，发现在容器里竟然无法访问外部网络。</p>
+<p>由于之前看到有报道称香港的某些ISP对某域名进行了污染，因此此时就立刻想到了，是不是aws的上游也对 api.telegram.org 进行了污染？</p>
+<p>容器里没法<code>curl</code>。<code>apk update</code>了一下，发现竟然无法update，难道是alpine挂了吗？Ubuntu也是，这俩一起炸？概率太低了吧。新加坡的那台机器也是同样的问题，但是日本就没问题。同样都在亚洲，大家有什么差别吗？难道是整个东南亚的海底光缆全炸了？可是没见到有人说东南亚的机房炸了啊，况且就算炸了，那也应该会找别的路由出去啊，就算丢包也不会直接炸光啊。</p>
+<p><img src="/images/2021012415374384.jpeg"></p>
+<p>就算你是柯蒂斯·李梅，手里有着一百架B-2轰炸机，也不能炸的这么彻底啊。</p>
+<p>试了一下，宿主机能够访问啊，那就是没问题的。一定是某些配置不对。重新安装了docker engine，结果也还一样，香港和新加坡的机器就是不好用，但是日本可用。</p>
+<hr>
+<p>搜了一下，可能是没开<code>ipv4.forward</code>?但是我一般是开启这个的呀，而且我开了啊……</p>
+<p>后来在网上翻到这样一篇文章，<a target="_blank" rel="noopener" href="https://pytimer.github.io/2019/11/docker%E5%AE%B9%E5%99%A8%E6%97%A0%E6%B3%95%E8%BF%9E%E6%8E%A5%E5%A4%96%E9%83%A8%E7%BD%91%E7%BB%9C%E5%8E%9F%E5%9B%A0%E6%8E%92%E6%9F%A5/">《Docker容器无法连接外部网络原因排查》</a>，了解到bridge网络docker是通过iptables转发流量的。</p>
+<p>此时，我突然意识到，我的这两台服务器似乎都设置了大量的本地端口转发，恰巧也覆盖了80和443这两个端口……把这个规则删掉，重启docker engine。好的，村通网了。</p>
+<p>罪魁祸首的这条命令</p>
+<p>iptables -t nat -A PREROUTING -p tcp –dport 23:1000 -j REDIRECT –to-ports 16698</p>
+<p>事实证明，是我的想象力太丰富了。来一拳就好了。</p>
+<p><img src="/images/2021012415374219.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/26/container-no-network/index/" data-id="clhp7rtex001as2qr7bzu7of0" data-title="什么鬼啊，我的容器怎么无法访问外网了" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-no-yyets/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/24/no-yyets/index/" class="article-date">
+  <time class="dt-published" datetime="2021-01-24T00:00:00.000Z" itemprop="datePublished">2021-01-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/24/no-yyets/index/">没了人人影视，我们该怎么办？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="太长不看版："><a href="#太长不看版：" class="headerlink" title="太长不看版："></a>太长不看版：</h1><p>我把资源都爬下来了。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://t.me/yyets_bot">Telegram Bot</a></li>
+<li><a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">资源分享搜索</a></li>
+</ul>
+<hr>
+<p>2021年1月4日，人人影视发布公告称“正在清理内容，所有客户端均无法正常使用”。</p>
+<p><img src="/images/202101241458034.png"></p>
+<p>过了段时间，网友们发现，本来在资源页面中可以跳转到的分享页面，基本上全部消失了。</p>
+<p>不过好在人人影视的分享API还是能够正常使用的，因此<a target="_blank" rel="noopener" href="https://t.me/yyets_bot">我的 bot</a>也还正常。</p>
+<p>[v_error] 2021年2月4日：你们都知道了。 [&#x2F;v_error]</p>
+<h2 id="归档人人影视"><a href="#归档人人影视" class="headerlink" title="归档人人影视"></a>归档人人影视</h2><p>为了避免出现问题，我便想把整个人人影视的资源都归档出来。简单的观察了一下人人影视的资源格式，如这个URL：<code>http://www.rrys2020.com/resource/40000</code></p>
+<p>其实就可以发现，只要resource后的数字从1开始不停地遍历，就可以获取到全部资源了。你看，这就是不使用UUID的结果，被我这种磨人的小妖精发现了吧！</p>
+<p>[v_blue]（关于使用UUID还是自增主键，可以看看这篇<a target="_blank" rel="noopener" href="https://nova.moe/laravel-use-uuid-as-primary-key-with-custom-authentication-fields/">《Laravel 使用 UUID 作为用户表主键并使用自定义用户表字段》</a>） [&#x2F;v_blue]</p>
+<p>那么现在就很简单了，从1开始遍历，遍历到最新的剧集的ID为止，通过分享API拿到数据，然后存储到数据库里。为了避免出现rate limit，加上随机休眠；为了加快遍历速度，还要考虑并发。这两者看起来是矛盾的组合，也确实挺难调和的。同时为了让界面更友好，使用一个简单的进度条来告知进度。</p>
+<p>真的是非常简单的，有兴趣的可以参考这里的源代码</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/tree/master/BagAndDrag'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/tgbot-collection/YYeTsBot/tree/master/BagAndDrag&#39;\]开源地址\[/gt\]</a></p>
+<p>ping了一下，人人影视的主站和分享站API都在香港阿里云上，那么用香港的aws去跑是最好的。最终我把这些资源都跑了下来，存到了MySQL中并发布了出去，然后推特发了出去。</p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1348614240098086913?s=20">https://twitter.com/BennyThinks/status/1348614240098086913?s=20</a></p>
+<p>这么一发布，没想到竟然让我的channel订阅者人数加一个0，Twitter follower翻倍。真是受宠若惊😂。</p>
+<p>[v_tips]一点点小发现：人人影视第一部翻译的剧集，是《越狱》。ID是10004 [&#x2F;v_tips]</p>
+<h2 id="被机器人轰炸是一种怎样的感觉？"><a href="#被机器人轰炸是一种怎样的感觉？" class="headerlink" title="被机器人轰炸是一种怎样的感觉？"></a>被机器人轰炸是一种怎样的感觉？</h2><p>突然一下子多了这么like，bot的使用量也开始飙升。</p>
+<p>最开始为了方便修复bug，我设置了一个“向开发者提交错误信息”的功能，大概是这样子的：</p>
+<p><img src="/images/2021012414580636.png"></p>
+<p><strong>点一点按钮谁不会嘛，点一点又不会消耗很多精力，作为一个资深的伸手党，这一切不符合预期的结果肯定不是我的错，那我就点一下就好了，一下不好用，那么我就点两下三下。反正既不吃亏也不上当。</strong></p>
+<p>也许有一些人是这样想的吧！</p>
+<p>结果这次就开始不停地收到各种报错信息，都有什么样子的呢？</p>
+<ul>
+<li>喜洋洋与灰太狼</li>
+<li>战狼，流浪地球</li>
+<li>权利的游戏</li>
+<li>各种莫名其妙的我也不记得是什么了</li>
+<li>ahsjhsads然后瞬间block bot的</li>
+</ul>
+<p>etc…</p>
+<p>第三种打了错别字的还可以理解，剩下的是在难为我胖虎吗？😡🤬</p>
+<p>原有的设计是，出现错误报告的时候，我需要登录到vps上，使用一个messenger.py 来回复，但是这样就很麻烦，不仅要ssh还要去container里，而且需要在电脑旁。后来我<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/605086c909d3180e13b10f618cc7043fd2f95922">优化了一下</a>，直接在Telegram里就可以回复，我看到的大概是这样的：</p>
+<p><img src="/images/2021012414580984.png"></p>
+<p>可是有些用户依旧在汇报这种根本就是无法处理的问题，有的甚至还点两次，非常无奈的我就……我让你点两次试试看！😠</p>
+<p><img src="/images/2021012414581266.png"></p>
+<p>甚至最后我还开发了<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/3a852eacba56dfc667236ee235ffef98298f77c0">一键生气和一键回怼</a>功能</p>
+<p><img src="/images/2021012414581525.png"></p>
+<p>然而并无卵用，该点的还是会点……😂这么不相信我的代码质量吗？😱本来还想，要不我弄个黑名单的功能，想了想还是算了，直接<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/dbcf4819dbac7300848be940f386f5e8fda91522">默认关闭了这项功能</a>就可以了。</p>
+<p>在这件事情中，我学习到了，总是有一部分人是不会认真读说明的。🤣</p>
+<p>气鼓鼓🤨</p>
+<p><img src="/images/2021012414581872.png"></p>
+<h2 id="人人影视网站间歇性访问问题"><a href="#人人影视网站间歇性访问问题" class="headerlink" title="人人影视网站间歇性访问问题"></a>人人影视网站间歇性访问问题</h2><p>为了方便部署，我的所有Bot是使用<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/BotsRunner">docker-compose</a>启动的，丢在了一台英国的大鸡鸡上。毕竟Bot API Endpoint在荷兰，英国访问过去会比较快。再加上这是大鸡鸡，内存和CPU资源都很充足的。</p>
+<p>某天（1月17日），突然发现bot的回应很慢，然后发现是<a target="_blank" rel="noopener" href="https://t.me/mikuri520/682">从英国访问人人影视有点艰难</a>，经常出现connection reset等情况。</p>
+<p>看了一下香港和新加坡还是比较稳定的，于是就一个rsync把YYeTs bot迁移到了新加坡。</p>
+<p>同时，为了避免某天人人影视真的炸掉，我开发了一个<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/e5ceaa19deef7549899d42f6f3c442e91e8a4b3b">Offline模式</a>（😂被我rebase了之后，时间好像不对了），使用环境变量来控制是否启用。最终数据来源就是上面归档的那些数据。</p>
+<p>那么数据存在哪里呢？老早之前就听Nova大佬说<a target="_blank" rel="noopener" href="https://nova.moe/first-touch-with-cf-workers/">Cloudflare worker怎么怎么香</a>。于是我便很<a target="_blank" rel="noopener" href="https://t.me/mikuri520/693">暴力的撸</a>了一个非常原始的页面，有多原始呢？</p>
+<p><img src="/images/2021012414581926.jpeg"></p>
+<p>直接返回json可还行😂</p>
+<p><img src="/images/202101241458206.png"></p>
+<p>此时，人人影视专用链接 <code>yyets://</code> 还是能够在客户端里下载的，速度还不错的说。</p>
+<p>しかし，此时我还不知道，我用<code>wrangler bulk:put</code>的数据其实是不全的……因为<code>wrangler bulk</code>虽然有10000个kv的限制，但是Cloudflare对于免费用户，每天还是只有1000的限制的。所以其实我以为两天能够导入完整的17517条数据，其实只有2000🤦‍♀️</p>
+<h2 id="人人影视网站无法访问"><a href="#人人影视网站无法访问" class="headerlink" title="人人影视网站无法访问"></a>人人影视网站无法访问</h2><p>随后，我又添加了<a target="_blank" rel="noopener" href="https://www.zimuxia.cn/">FIX字幕侠</a>的支持。在搞它的过程中，发现这家伙竟然是拿WordPress搞的！那有WordPress的Public API，还爬个毛线啊，直接把整个<code>wp.posts</code>端回来了……🤔</p>
+<p><img src="/images/2021012414582138.png"></p>
+<p>しかし。。。好吧，通过插件把Public API禁用了，并且这个插件还有Bug😂。不过这下子也发现了用的是 <a target="_blank" rel="noopener" href="https://lnmp.org/">LNMP一键安装</a>啊。那就只好搞常规的爬虫+Redis了。</p>
+<p>搞完FIX的第二天，突然发现<a target="_blank" rel="noopener" href="https://t.me/mikuri520/691">人人影视无法访问了</a>。主站无法访问，分享站的API也挂掉了。当然，服务器还在，还能ping通。那就只好切换到fix啦！</p>
+<p><img src="/images/2021012414582245.jpeg"></p>
+<p>再后来，我用了很多时间去优化，甚至搞出来了优先级搜索，FIX找不到，再去人人影视搜索。甚至还可以指定字幕组搜索。比如说这样：</p>
+<p><img src="/images/2021012414582413.png"></p>
+<p>有时发现Bot没有回复，但是进程也没有退出，就是纯粹的卡死了。是由于任务太多，访问网站又很慢，然后pyTelegramBotAPI的线程池满了吗？也许以后可以考虑把爬虫这部分功能集成到celery中。</p>
+<p>当下，喜欢简单暴力的我我又用Client API写了一个health check🤦‍♀️</p>
+<h2 id="更友好的Worker-Website"><a href="#更友好的Worker-Website" class="headerlink" title="更友好的Worker Website"></a>更友好的Worker Website</h2><p>在人人影视挂掉的当天，我发现了其实人人影视只是部分URL是挂掉的，某些资源还是可以很容易的get回来的。got002.com 也是同理，只是API坏掉了，页面资源还在。</p>
+<p>于是我就发挥了我的小偷技能，把这些资源都搞了回来，然后一顿操作猛如虎，把这个仿真的人人影视分享站搞到了Cloudflare Worker上。</p>
+<p><img src="/images/2021012414582733.png"></p>
+<blockquote>
+<p><strong>Dr. Brand:</strong> Lazarus came back from the dead.</p>
+<p><strong>Cooper:</strong> Sure, but he had to die in the first place.</p>
+</blockquote>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="https://t.me/mikuri520/694">这个Worker也不再简陋了</a>。甚至还有一个更酷的搜索页面和更短的域名<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">https://yyets.dmesg.app/</a> ：</p>
+<p><img src="/images/202101241458298.png"></p>
+<p>我甚至还无聊到加上了资源分享页面访问量的统计😂这个代码写得超烂的，啊！</p>
+<p>别说，这个Worker的访问量还真是挺多的。放心，够用的！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/01/2021012415125085.png"><img src="/images/2021012415125085.png"></a></p>
+<p>最近24小时有62.9K的访问量，反正比我博客都多出来好几个0就是了。哦对，这个数据是完整的，因为我有钞能力呀！🦸‍♀️</p>
+<p><img src="/images/2021012414583184.png"></p>
+<h2 id="那么现在该怎么办"><a href="#那么现在该怎么办" class="headerlink" title="那么现在该怎么办"></a>那么现在该怎么办</h2><p>通过切换到FIX、使用YYeTsOffline作为fallback，糊了一个Worker Website，目前是差不多够用的。</p>
+<p>那么以后该怎么办，难道我们真的只能告别人人影视了吗？</p>
+<p>由于我现在已经不是人人影视字幕组的成员了，以下内容也只是推测。我本人还是持比较乐观的态度的。</p>
+<h3 id="人人影视只是部分页面坏掉了"><a href="#人人影视只是部分页面坏掉了" class="headerlink" title="人人影视只是部分页面坏掉了"></a>人人影视只是部分页面坏掉了</h3><p>这一点我在上面提到了，实测起来只是部分页面“故意坏掉”了，有一些页面还是有一定概率可以返回的，比如说</p>
+<ul>
+<li>部分资源页面，如 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/resource/41579">http://www.rrys2020.com/resource/41579</a></li>
+<li>播出表 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/tv/schedule">http://www.rrys2020.com/tv/schedule</a></li>
+<li>排榜榜 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/html/top/week.html">http://www.rrys2020.com/html/top/week.html</a></li>
+<li>公告 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/Announcement">http://www.rrys2020.com/Announcement</a></li>
+<li>字幕分享 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/subtitle/66221">http://www.rrys2020.com/subtitle/66221</a></li>
+<li>收藏 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/user/fav">http://www.rrys2020.com/user/fav</a> 甚至在收藏里还能看到下载地址！</li>
+</ul>
+<p>你看下面这个图，还能签到呢</p>
+<p><img src="/images/2021012414583230.png"></p>
+<p>2021年1月30日更新：网站已经ping不通了</p>
+<p>Obrien-hk:~ # ping got002.com                                                                                                12:23.35 Sat Jan 30 2021 &gt;&gt;&gt;<br>PING got002.com (47.52.153.161) 56(84) bytes of data.<br>^C<br>— got002.com ping statistics —<br>17 packets transmitted, 0 received, 100% packet loss, time 16389ms</p>
+<p>ps1_fortune:2: command not found: fortune<br>Obrien-hk:~ # ping <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">www.rrys2020.com</a>                                                                                          12:23.54 Sat Jan 30 2021 &gt;&gt;&gt;<br>PING <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">www.rrys2020.com</a> (47.52.174.174) 56(84) bytes of data.<br>^C<br>— <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">www.rrys2020.com</a> ping statistics —<br>22 packets transmitted, 0 received, 100% packet loss, time 21482ms</p>
+<p>ps1_fortune:2: command not found: fortune</p>
+<h3 id="人人影视还在正常翻译新剧吗？"><a href="#人人影视还在正常翻译新剧吗？" class="headerlink" title="人人影视还在正常翻译新剧吗？"></a>人人影视还在正常翻译新剧吗？</h3><p>既然某些页面是坏掉的，那么是不是针对不同等级的用户使用了不同的策略？或者说有另外一个“马甲站”在发布新的资源？毕竟，服务器ping起来没问题，那么看起来就是应用端有一些限制了吧？</p>
+<p>我个人看来，还在翻译的，但有没有压制，就不知道了……并且，人人影视客户端已经无法下载 yyets的专用链接了。可能是“tracker”关掉了吧？</p>
+<p><img src="/images/2021012414583317.png"></p>
+<h2 id="不如这么办……"><a href="#不如这么办……" class="headerlink" title="不如这么办……"></a>不如这么办……</h2><p>尽管我归档了人人影视的资源，但是还是缺少了新鲜的血液。</p>
+<h3 id="使用外挂字幕"><a href="#使用外挂字幕" class="headerlink" title="使用外挂字幕"></a>使用外挂字幕</h3><p>目前来看，人人影视依旧还在翻译，字幕也上传到了subhd。那么可以自己下载片源然后外挂字幕了。当然，如果看日剧的话，追新番也还是好着的，这点就很让人开心了。</p>
+<h3 id="使用FIX"><a href="#使用FIX" class="headerlink" title="使用FIX"></a>使用FIX</h3><p>FIX的翻译质量也还不错的，作为替代选择很不错哦。</p>
+<h3 id="使用bot、Worker"><a href="#使用bot、Worker" class="headerlink" title="使用bot、Worker"></a>使用bot、Worker</h3><p>worker只包含了归档的资源，bot会优先搜索FIX，然后如果没有搜索到才会去搜索Worker。看起来也还是不错的呢。</p>
+<h2 id="汇总"><a href="#汇总" class="headerlink" title="汇总"></a>汇总</h2><ul>
+<li>❌ 人人影视主站 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">http://www.rrys2020.com/</a></li>
+<li>❌人人影视资源列表 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/resourcelist">http://www.rrys2020.com/resourcelist</a></li>
+<li>❌ 人人影视字幕列表 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/subtitle">http://www.rrys2020.com/subtitle</a></li>
+<li>✅ 磁力站（很慢） <a target="_blank" rel="noopener" href="http://www.mag234.com/home.html">http://www.mag234.com/home.html</a></li>
+<li>✅ 追新番 <a target="_blank" rel="noopener" href="http://www.zhuixinfan.com/main.php">http://www.zhuixinfan.com/main.php</a></li>
+<li>✅ YYeTs资源归档 <a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">https://yyets.dmesg.app/</a></li>
+<li>✅ YYeTs Bot <a target="_blank" rel="noopener" href="http://t.me/yyets_bot">http://t.me/yyets_bot</a></li>
+<li>✅ FIX 字幕侠 <a target="_blank" rel="noopener" href="https://www.zimuxia.cn/">https://www.zimuxia.cn/</a></li>
+</ul>
+<h2 id="开源项目"><a href="#开源项目" class="headerlink" title="开源项目"></a>开源项目</h2><p>由于个人的精力总是有限的，有兴趣的小伙伴可以帮忙开发维护 YYeTs Bot，地址在这里。如果有帮助到你的话，点个star🌟就可以了。如果想要donate😂那……难度可能有点高，但也不是不可能，看下<a target="_blank" rel="noopener" href="https://dmesg.app/donate">导航栏的支持我</a>？</p>
+<p>本项目目前需要……</p>
+<ul>
+<li>整理FIX资源 <code>BagAndDrag</code></li>
+<li>添加其他字幕组支持 <code>yyets/fansub.py</code></li>
+<li>测试用例 <code>tests/*.py</code></li>
+<li>Cloudflare Worker优化 <code>worker/worker-site</code></li>
+</ul>
+<p>开发的话，其实蛮简单的，比如说对于添加其他字幕组的支持，只需要继承BaseFansub，类名写好，实现search_preview和search_result，然后在FANSUB_ORDER里添加你的类名，就可以了。是否要实现缓存，这都是看你个人情况的……</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/tgbot-collection/YYeTsBot&#39;\]开源地址\[/gt\]</a></p>
+<p> </p>
+<p><strong>哦对了，公共资源请不要滥用。比如说爬虫啊什么的，说得像你能爬下来一样🙄️</strong></p>
+<h2 id="一点点感慨"><a href="#一点点感慨" class="headerlink" title="一点点感慨"></a>一点点感慨</h2><p>以下内容<a target="_blank" rel="noopener" href="https://t.me/mikuri520/711">发布于我的Channel：</a></p>
+<blockquote>
+<p>想起来一件趣事。之前看过一部电影《我是传奇》 I Am Legend。</p>
+<p>这部电影有两个结局，一个是男主活下来，人类与“僵尸”共存，一个是男主牺牲找到解药，人类幸存。</p>
+<p>几年前，和前女友异地感情不顺利的时候，每天在想办法找话题和她聊天保持亲密关系，于是就和她讨论起这个电影，问她更喜欢哪一个结局。</p>
+<p>我说，我更喜欢男主牺牲拯救人类的结局。我更喜欢这个结局，不是因为这样会让男主看起来很伟大，是拯救了人类的英雄。</p>
+<p>而是我认为第二个结局“僵尸”们看起来是不具备进行高级生产的能力的，尽管从电影中可以看到“僵尸”是有一些感情和智力的，但是我认为这个水平依旧无法达到现代人类所能达到的生产能力水平。</p>
+<p>举个例子，人类能够使用自然资源制造出砖块，然后堆砌出墙壁，最终建造房子；然而对于“僵尸”们而言，他们并不具备这种能力，尽管他们的力气很大，但是力气大并不能创造出来力气更大的机器呀。所以从人类发展的角度来讲，我还是更喜欢人类幸存的结局。</p>
+<p>她似乎很赞同我的观点。这么多年过去了，也不知道她过得还好不好。前几天还梦到了她🙁</p>
+<p>今天提到这里，是因为男主牺牲的结局里，最后一句台词是这样的：</p>
+<p><strong>We are his legacy. This is his Legend.</strong></p>
+<p>就像我爬下来的数据一样，这些，是人人影视的遗产。这些，是人人影视的传奇。</p>
+</blockquote>
+<hr>
+<p>最萌不过三岛花😘</p>
+<p><img src="/images/2021012414583596.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/24/no-yyets/index/" data-id="clhp7rthv0065s2qr4v8jdjku" data-title="没了人人影视，我们该怎么办？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-nigeru-sp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/04/nigeru-sp/index/" class="article-date">
+  <time class="dt-published" datetime="2021-01-04T00:00:00.000Z" itemprop="datePublished">2021-01-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/04/nigeru-sp/index/">《逃避可耻却有用》新春SP</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天《逃避可耻却有用》的新春SP终于放送了。全片长2小时，主要讲了二人事实婚姻之后的生娃的事情。</p>
+<p>2小时的影片里塞进去了很多内容，如性别平等、夫妻同姓、女性职场、育儿假，LGBT等等，当然也少不了狗粮。遗憾的是上述普世价值观只是蜻蜓点水的提了一下，并没有进行深刻的探讨。</p>
+<p>想起来也是啊，SP中所表现的上述内容真的只是浅尝辄止，随便哪一个都可以讨论出一集的时长，如果这样拍下去这个SP可能就要从早看到晚，哦不可以拍Season 2了。</p>
+<p>不过我觉得能够提出问题就很不错了，提出问题，让人们意识到这个问题是切实存在的，然后寻找问题的解决答案而不是解决提出问题的人。这样才可以促进社会进步。</p>
+<h2 id="夫妻同姓"><a href="#夫妻同姓" class="headerlink" title="夫妻同姓"></a>夫妻同姓</h2><p>像一些欧美国家一样，日本现在也有改夫姓的传统。这一切要从明治维新时说起。</p>
+<p>最开始，大部分日本人都是没有姓氏的。19世纪中期，明治维新之后，日本政府立志改革，要建设文明开化的现代国家。后来强制规定必须有姓氏，否则会罚款。于是传说，天皇下令必须取姓的时候，在田里种地的人，那就叫田中了；家里在山脚下，那就叫山下了；家里有个大松树，那就叫松下好了。</p>
+<p>之后，19世纪末，日本政府在1898年颁布的《户籍法》中规定，“每户都要有固定姓氏，子承父姓，妻从夫姓；分家后仍用原姓，不得任意更改”。二战后的新《民事法》，虽然规定夫妻双方可以根据婚前所定，或随夫姓、或随妻姓，但大多数日本女子婚后仍随夫姓；如果女子婚后不改夫姓，会在亲子关系、财产继承等很多方面遇到麻烦。</p>
+<p><img src="/images/2021010417110946.jpeg"></p>
+<p>大大方方的一户两姓</p>
+<p>平匡和实栗之前是“事实婚姻”，并没有入籍，因此也不用考虑这些问题，但是在有了孩子之后，就要去考虑了，要不然没法入籍。</p>
+<p>在这个问题上，夫妻二人考虑的事情是“怎样做是对彼此最有利的”，考虑到改姓之后对工作和生活有怎样的影响，而不是一味的循规蹈矩。对于平匡和实栗而言，所谓“男权”、“女权”是不存在的，他们所追求的是尊重每一个个体，尊重每一个人的想法与努力，并相应的给予肯定与鼓励。</p>
+<p>实栗认为，自己有哥哥，平匡是独生子，并且平匡是靠技术吃饭的改了姓不太好。因此决定跟夫姓</p>
+<p><img src="/images/2021010417111257.jpeg"></p>
+<h2 id="后盾？"><a href="#后盾？" class="headerlink" title="后盾？"></a>后盾？</h2><p>在办完入籍手续之后，平匡对实栗说“我会努力做好你的后盾，有什么事尽管和我说”。</p>
+<p>个人感觉，如果一个男人能够这样说，那么其实也算很温暖的了吧，如果能过做到那就更好了，足够被称作暖男了，总好过撒手不管的那种。</p>
+<p>可是我们的喜欢耍小聪明的实栗可不是这样想的。实栗有点小生气，说：</p>
+<p>帮忙？我们不是一起做父母吗？我也是第一次做妈妈什么都不懂，你怎么能让我自己一个人学习，然后对你发号施令呢？</p>
+<p>实际上，女性在生育过程中所承担的责任是往往要大于男性的，也会承担更多的负担，无论是产前还是产后，无论是生理上还是心理上。</p>
+<p>人们往往认为，如果男性能够做一些事情，就已经很好了，而女性做得再多都会被认为是理所当然的。这真的是有点失衡了。</p>
+<p>想想，职场女性是怎样兼顾家庭与工作的呢？也许《坡道上的家》是一种答案。</p>
+<p>“我们要一起学习，一起做父母，所谓夫妻不就应该是这样吗？”。夫妻两人相互扶持，一起经营家庭，各顶半边天。养孩子，要两口子和社会一起出力。</p>
+<p><img src="/images/2021010417111516.jpeg"></p>
+<h2 id="职场"><a href="#职场" class="headerlink" title="职场"></a>职场</h2><h3 id="这个team-leader怎么回事"><a href="#这个team-leader怎么回事" class="headerlink" title="这个team leader怎么回事"></a>这个team leader怎么回事</h3><p>“听说你老婆很年轻。下次我也要找个年轻的，没有劣化，水嫩嫩的那种。”</p>
+<p>面对这样的话，平匡一脸不解地硬是憝了回去。😂虽说没有半泽那么狠，但是还是很勇敢的。</p>
+<h3 id="产假"><a href="#产假" class="headerlink" title="产假"></a>产假</h3><p>“都已经令和时代了，为什么生孩子还要排队啊，为什么公司不会增派人手啊。”</p>
+<p>“产假吗？那森山不在的时候，他的工作谁来做啊”</p>
+<p>“你要休一个月产假？男的休产假也帮不上忙”</p>
+<h3 id="不能请假这件事情"><a href="#不能请假这件事情" class="headerlink" title="不能请假这件事情"></a>不能请假这件事情</h3><p>本来就不对劲！</p>
+<p><img src="/images/2021010417111838.jpeg"></p>
+<h2 id="孕后反应"><a href="#孕后反应" class="headerlink" title="孕后反应"></a>孕后反应</h2><p>实栗因为严重的孕后反应，没法工作，也没法做家务，也没法陪ゆりちゃん去医院，甚至连快递都做不到。因此实栗成为了著名的诗人</p>
+<p>就算脚抽筋周围也无人，作者津崎实栗</p>
+<p><img src="/images/2021010417111998.jpeg"></p>
+<p>就算尿失禁周围也无人😂</p>
+<p><img src="/images/2021010417112158.jpeg"></p>
+<p>在新年之夜，二人甚至因为一点小问题吵架了🤯</p>
+<h2 id="我好辛苦啊"><a href="#我好辛苦啊" class="headerlink" title="我好辛苦啊"></a>我好辛苦啊</h2><p>因为没办法做家务，实栗叫了家政，尽管新年夜要加钱……</p>
+<p>“生完孩子以后，我们还会遇到很多问题，到时候借助周围的力量一起去克服，好吗”，实栗在说完这句话的时候，平匡就背过去抹眼泪了。😭我也在抹眼泪啊😭</p>
+<p><img src="/images/2021010417112256.jpeg"></p>
+<p>“你很辛苦吧，你肯定很辛苦，一个人负责家务活，还要努力工作。觉得辛苦的时候就说出来吧。”</p>
+<p><img src="/images/2021010417112475.jpeg"></p>
+<p>这种，“男人一定要坚强”想法是否真的站得住脚？</p>
+<p>男人一定要坚强，不可以哭，也不懂得如何倾诉，不能像女人一样闲聊吐槽，这可能是社会施加的诅咒吧。</p>
+<p>尽管人们往往这样认为，但是实栗从来不认为平匡迁就自己，努力工作，还要做家务是理所当然的。觉得辛苦的时候就倾诉吧，无论男人还是女人。</p>
+<p><img src="/images/2021010417112617.jpeg"></p>
+<p>つらい。😭</p>
+<h2 id="孩子的名字"><a href="#孩子的名字" class="headerlink" title="孩子的名字"></a>孩子的名字</h2><p>孩子的名字是父母给予的第一份礼物。</p>
+<p>要不起个男女通用的名字吧，以后也许会在成长过程中改变性别。</p>
+<p><img src="/images/2021010417112731.jpeg"></p>
+<h2 id="新冠肺炎"><a href="#新冠肺炎" class="headerlink" title="新冠肺炎"></a>新冠肺炎</h2><p>新冠肺炎爆发之后，夫妻俩决定让实栗回娘家，尽可能降低接触到病毒的几率。在分离之前，二人本想拥抱，但是看了看孩子，还是没有拥抱。</p>
+<p><img src="/images/2021010417112927.png"></p>
+<p>疫情爆发之后，平匡在网上看到人们猜疑，诋毁，攻击对方，不禁问自己：人类居然能够愚蠢到这种境界吗，我也会这样吗？</p>
+<p><img src="/images/2021010417113356.jpeg"></p>
+<p>在过去的2020年，我也目睹过很多类似的事情：网络暴力，身份信息被出道，被人说“千里投毒”等等，这些事情，就是我所亲身经历的。人类居然能愚蠢到这种境界吗？</p>
+<p>有这样一个场景记得很清楚：</p>
+<p>政府宣布了紧急状态，娘家网络通讯设备坏掉了，平匡买好了想要送到娘家，路上看到了带孩子遛弯的实栗，然后一直看着他们的身影没敢打招呼，有一点“大禹治水三过家门而不入”的感觉。此时此刻的他非常理性，知道自己只是个快递员，不能做别的事情。平匡悄悄地把东西放到娘家门口，然后走了。</p>
+<p><img src="/images/2021010417113474.jpeg"></p>
+<p>实栗发现后，跑出去找平匡，最终在桥上，隔着很远，认出了对方。😭😭</p>
+<p>生きていれば　また会える。</p>
+<p><img src="/images/2021010417113461.jpeg"></p>
+<p>这个桥可以步行吗？</p>
+<h2 id="一些有趣的地方"><a href="#一些有趣的地方" class="headerlink" title="一些有趣的地方"></a>一些有趣的地方</h2><h3 id="我平匡家有娇妻，才不要程序员鼓励师咧"><a href="#我平匡家有娇妻，才不要程序员鼓励师咧" class="headerlink" title="我平匡家有娇妻，才不要程序员鼓励师咧"></a>我平匡家有娇妻，才不要程序员鼓励师咧</h3><p><img src="/images/2021010417113672.jpeg"></p>
+<h3 id="葡萄柚果冻哪里有卖的啊？"><a href="#葡萄柚果冻哪里有卖的啊？" class="headerlink" title="葡萄柚果冻哪里有卖的啊？"></a>葡萄柚果冻哪里有卖的啊？</h3><p>喂你别走啊！好不容易买回来，实栗已经睡了，哎……</p>
+<p><img src="/images/2021010417113751.jpeg"></p>
+<h3 id="下次见面时再追求我一次？"><a href="#下次见面时再追求我一次？" class="headerlink" title="下次见面时再追求我一次？"></a>下次见面时再追求我一次？</h3><p>这狗粮真是太甜了吧！</p>
+<p><img src="/images/2021010417113812.jpeg"></p>
+<h3 id="新的恋ダンス"><a href="#新的恋ダンス" class="headerlink" title="新的恋ダンス"></a>新的恋ダンス</h3><p>太萌了太萌了高萌预警，我老婆披着麻袋都那么好看啊！</p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=C0p5Q5qFTss%EF%BC%88YouTube%E7%9A%84%E5%B7%B2%E7%BB%8F%E8%A2%ABDMCA%E4%BA%86%F0%9F%98%82%EF%BC%89">https://www.youtube.com/watch?v=C0p5Q5qFTss（YouTube的已经被DMCA了😂）</a></p>
+<p> </p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>无论是选择结婚生子，还是一个人活下去，都没有关系。</p>
+<p>看完觉得好感动的，也感到了更独孤、更空虚，仿佛2021年已经过完了一样。世界上怎么会有人能这么可爱，我实在太喜欢Gakki 了，在可爱面前无条件投降。想娶回家天天摸头😘😘😘</p>
+<p>这一对夫妇好幸福啊，他们一起努力，以经营公司的方式来经营家庭，从不认为对方所作所为是理所当然的，尊重理解对方的选择与想法，及时肯定对方的努力。</p>
+<p>平匡和实栗完全就是我所想要的样子。希望源さん在生活中也是这样一个温柔的人呢。</p>
+<p><img src="/images/2021010417114041.jpeg"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/04/nigeru-sp/index/" data-id="clhp7rthr005rs2qr8oftgixx" data-title="《逃避可耻却有用》新春SP" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-2020-conclusion/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/31/2020-conclusion/index/" class="article-date">
+  <time class="dt-published" datetime="2020-12-31T00:00:00.000Z" itemprop="datePublished">2020-12-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/31/2020-conclusion/index/">2020年终总结</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>2020年快结束了。这一年对于我来说，是“改变之年”。离开了熟悉的故乡，离开了家人，换了一份新的工作，认识了屈指可数的新朋友，学习了一些有趣的新知识。与此同时，新冠肺炎依旧在肆虐，慢慢已经养成了出门不用化妆反正也是戴口罩没人看得见的习惯。</p>
+<h2 id="2020年的改变"><a href="#2020年的改变" class="headerlink" title="2020年的改变"></a>2020年的改变</h2><p>一直以来，我都是非常抗拒改变的人，因为我的内心很胆小怯懦，很不喜欢和人面对面的打交道。如果能够得过且过的、健康的、有质量的活下去，那么也就可以这样继续了。</p>
+<p>也正是因为如此，自打毕业开始我便留在了故乡，未曾想过什么太大的改变。</p>
+<p>直到今年，因为想要“right the wrong”以及 Nova的怂恿，来到了上海。</p>
+<p>在解决了安身之处之后，生活也就开始变得稳定了，工作，解决问题（不可以解决提出问题的人哦，这样就是食人族了），周末。然后就变得和以往一样。工作很棒，生活还和以前一样，只不过有了更多的独处时间。</p>
+<p>在生活中，我猜，我之所以抗拒改变，一个原因是心理舒适区，另外一个原因是对未知的恐慌。因为改变会带来变化，如果变化所带来的收益远远小于解决变化所消耗的精力，那么就显得有些得不偿失了。</p>
+<p>在生活上，对待改变的态度可能就这样，我自己也没有做出什么太大的努力。怎么也都是宅着，无外乎置换一些生活用品，养成一些新的习惯，除此之外最大的也就是搬家了。</p>
+<p>在技术上，我倒是在努力鞭策自己做出改变，毕竟这个改变不需要付出太多体力，只需要坐着思考实践就可以了。我觉得2020年最大的变化就是，我把我的大部分的服务都是用docker跑起来了。</p>
+<p>各位读者们现在在读的本文，所有由我运行的Telegram Bot，以及其他的几个站点，目前都是使用docker的。迁移的过程比较麻烦，花费了几天的时间，甚至还宣布失败了一次，不过最终还是成功完美迁移，对于以后维护上的便利性还是非常有帮助的。我认为这次改变是非常值得的。</p>
+<p><img src="/images/2020122913534578.png"></p>
+<p>另外，值得一提的是，2020年，我总计发布了13篇博文（不算本文），还好没有给被打脸的机会，值得窃喜。</p>
+<h2 id="2021年的展望"><a href="#2021年的展望" class="headerlink" title="2021年的展望"></a>2021年的展望</h2><p>2021年，我应该更多思考一下人生的问题吧：我究竟想要什么？我究竟要不要烂在这里？做一个“精致的利己主义者”吗？</p>
+<p>  [video play&#x3D;’0’]<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/12/2020122914045013.mp4/[/video/]">https://dmesg.app/wp-content/uploads/2020/12/2020122914045013.mp4\[/video\]</a></p>
+<p>我想要的东西，是否值得我去做出更大的改变，去面对从未有过的未知？我该如何下定决心，我该如何清楚认识到我究竟想要什么？</p>
+<p>2021年，大体上还是希望希望世界和平，无灾无难，我老婆更美吧！🥺ぴえん</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/31/2020-conclusion/index/" data-id="clhp7rtdh0000s2qr42o1dj7q" data-title="2020年终总结" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-tgbot2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/25/tgbot2/index/" class="article-date">
+  <time class="dt-published" datetime="2020-12-25T00:00:00.000Z" itemprop="datePublished">2020-12-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/25/tgbot2/index/">[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>三年前，我开始了写这一系列，没想到过了3年，竟然也没几个人去看！连个捧场的都没有</p>
+<p>这三年，Telegram也迎来了一些更新，这篇文章当然不会挨个介绍每一个新特性以及相关的用法了，我只会把自己开发过程中提到的地方记录一下。官方文档写的挺清楚了，基本上每一点都介绍的很详细😂</p>
+<p>前两篇</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot0.html">[Telegram bot 系列]0：用 Python 写一个 Telegram Bot 简单的回话 bot</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot1.html">[Telegram bot 系列]1：requests 库、Inline Keyboard、Reply Keyboard 与其他细节</a></p>
+<h2 id="回顾：如何开发一个Telegram-Bot"><a href="#回顾：如何开发一个Telegram-Bot" class="headerlink" title="回顾：如何开发一个Telegram Bot"></a>回顾：如何开发一个Telegram Bot</h2><h3 id="开发语言"><a href="#开发语言" class="headerlink" title="开发语言"></a>开发语言</h3><p>爱用啥用啥，Python、Go等都没问题的，甚至直接curl都是可以的。毕竟Restful，怎么都可以。</p>
+<h3 id="开发方式"><a href="#开发方式" class="headerlink" title="开发方式"></a>开发方式</h3><p>想要开发Telegram Bot，从途径上来说有两种方法。</p>
+<p>第一种方法是使用Bot API，REST接口，入口在荷兰，使用起来比较容易。</p>
+<p>第二种方法是使用MTProto协议，这个会比较困难，需要有一定的异步编程基础。著名的<a target="_blank" rel="noopener" href="https://github.com/LonamiWebs/Telethon">telethon</a>就是干这个的。</p>
+<p>大部分情况下使用第一种就足够满足需求了，本系列也会一直以第一种方法为主。</p>
+<h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><p>对于Bot而言，最重要的事情就是“事件”，比如说当用户发送一个纯文本的消息，那么对于Bot来说就是一种类型的事件；当用户发送了一个图片，这又是另外一种事件；用户编辑了消息，删除了消息，也同样对应不同的事件。甚至，当用户点击InlineKeyBoardButton，这也是一种特殊事件。</p>
+<p>因此，开发一个bot，也就是根据传入的事件不同来进行各种操作，然后给用户反括，比如回复消息，发送文件，整体的流程差不多就是这样的。</p>
+<p>Telegram Bot事件类型挺多的，大概一共有这些类型：</p>
+<p>&#x2F;&#x2F; Handler: func(*Message)<br>OnText &#x3D; “\atext”<br>OnPhoto &#x3D; “\aphoto”<br>OnAudio &#x3D; “\aaudio”<br>OnAnimation &#x3D; “\aanimation”<br>OnDocument &#x3D; “\adocument”<br>OnSticker &#x3D; “\asticker”<br>OnVideo &#x3D; “\avideo”<br>OnVoice &#x3D; “\avoice”<br>OnVideoNote &#x3D; “\avideo_note”<br>OnContact &#x3D; “\acontact”<br>OnLocation &#x3D; “\alocation”<br>OnVenue &#x3D; “\avenue”<br>OnEdited &#x3D; “\aedited”<br>OnPinned &#x3D; “\apinned”<br>OnChannelPost &#x3D; “\achan_post”<br>OnEditedChannelPost &#x3D; “\achan_edited_post”<br>OnDice &#x3D; “\adice”<br>OnInvoice &#x3D; “\ainvoice”<br>OnPayment &#x3D; “\apayment”</p>
+<p>&#x2F;&#x2F; Will fire when bot is added to a group.<br>OnAddedToGroup &#x3D; “\aadded_to_group”</p>
+<p>&#x2F;&#x2F; Group events:<br>OnUserJoined &#x3D; “\auser_joined”<br>OnUserLeft &#x3D; “\auser_left”<br>OnNewGroupTitle &#x3D; “\anew_chat_title”<br>OnNewGroupPhoto &#x3D; “\anew_chat_photo”<br>OnGroupPhotoDeleted &#x3D; “\achat_photo_del”</p>
+<p>&#x2F;&#x2F; Migration happens when group switches to<br>&#x2F;&#x2F; a supergroup. You might want to update<br>&#x2F;&#x2F; your internal references to this chat<br>&#x2F;&#x2F; upon switching as its ID will change.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(from, to int64)<br>OnMigration &#x3D; “\amigration”</p>
+<p>&#x2F;&#x2F; Will fire on callback requests.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Callback)<br>OnCallback &#x3D; “\acallback”</p>
+<p>&#x2F;&#x2F; Will fire on incoming inline queries.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Query)<br>OnQuery &#x3D; “\aquery”</p>
+<p>&#x2F;&#x2F; Will fire on chosen inline results.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ChosenInlineResult)<br>OnChosenInlineResult &#x3D; “\achosen_inline_result”</p>
+<p>&#x2F;&#x2F; Will fire on ShippingQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ShippingQuery)<br>OnShipping &#x3D; “\ashipping_query”</p>
+<p>&#x2F;&#x2F; Will fire on PreCheckoutQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PreCheckoutQuery)<br>OnCheckout &#x3D; “\apre_checkout_query”</p>
+<p>&#x2F;&#x2F; Will fire on Poll.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Poll)<br>OnPoll &#x3D; “\apoll”</p>
+<p>&#x2F;&#x2F; Will fire on PollAnswer.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PollAnswer)<br>OnPollAnswer &#x3D; “\apoll_answer”</p>
+<p>看到名字就知道是什么意思，就不说了。</p>
+<h3 id="运行方式"><a href="#运行方式" class="headerlink" title="运行方式"></a>运行方式</h3><p>要么使用polling方式，定期轮询API Server，要么设置webhook，发生事件时Telegram会向设置的地址发送POST请求，请求的BODY里会有对应的数据结构。</p>
+<h2 id="Media-Group"><a href="#Media-Group" class="headerlink" title="Media Group"></a>Media Group</h2><p>Telegram目前已经支持将图片、文件、视频等作为一组发送，比如说我发送了3张照片为一组，在这种情况下，Bot 所收到的事件就是三个onPhoto，然后这三个事件有一个共同的字段<code>media_group_id</code>，至于<code>caption</code>落在第几个事件里？不知道，遍历完就知道了。</p>
+<p>划重点：这三个事件几乎是同时到达的。所以有些需求，比如说提取出这组照片里的file_id和caption，最简单的办法就是共享一个全局的字典，以<code>user_id</code>和<code>media_group_id</code>作为key，那么这个时候就要考虑用锁的机制来让这三个事件变成串行的。一个例子<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet/blob/master/teletweet/bot.py#L125">可以看这里</a></p>
+<h2 id="下载媒体文件"><a href="#下载媒体文件" class="headerlink" title="下载媒体文件"></a>下载媒体文件</h2><p>对于Telegram而言，无论是文件，还是图片、视频，都有一个<code>file_id</code>用于唯一代表这个文件。当然，每个类型会有一些细微的不同，比如视频文件会包含分辨率，图片会有预览图，文件会有mime-type。</p>
+<p>想要下载文件，可以分为三步</p>
+<ol>
+<li>拿到对应的对象，比如说想要下载图片，那么就是<code>message.photo</code>，想要下载视频，那么就是<code>message.video</code></li>
+<li>拿到file_id，参考下对应的数据结构，拿到对应的<code>file_id</code>，比如说<code>message.video.file_id</code></li>
+<li>进行下载，保存到本地</li>
+</ol>
+<p>具体可以参考如下代码，用其他语言也差不多，套路都是一样的：</p>
+<p>def download_file_from_id(file_id):<br>    file_info &#x3D; bot.get_file(file_id)<br>    content &#x3D; bot.download_file(file_info.file_path)</p>
+<pre><code>temp = tempfile.NamedTemporaryFile(delete=False)
+temp.write(content)
+return temp
+</code></pre>
+<p>def get_file_id(message) -&gt; str:<br>    if message.photo:<br>        object_type &#x3D; “photo”<br>    elif message.video:<br>        object_type &#x3D; “video”<br>    elif message.document:<br>        object_type &#x3D; “document”<br>    else:<br>        object_type &#x3D; “”</p>
+<pre><code>try:
+    file\_id = getattr(message, object\_type)\[-1\].file\_id
+except Exception:
+    file\_id = getattr(message, object\_type).file\_id
+return file\_id
+</code></pre>
+<p>需要注意一点，<code>message.photo</code>的结果是一个list，第一个元素是预览图，最后一个元素是正常大小（720P）的图片</p>
+<p>另外更需要注意的一点：Telegram对于Bot可以上传、下载的文件、图片等大小有限制，具体可以查文档找找，所以如果用户发送了一个2G的文件，bot这边很有可能是无法下载的……但是Bot可以转发啊！要处理这种情况，只能用client api了，bot收到这种类型的文件，转发给一个正常用户，正常用户处理完，将结果发给bot，bot再转发给初始用户。</p>
+<p>这种曲线救国的方式，如果确保整个链条是完整的，可以<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">参考NCMBot的代码</a>。一定要引起注意的是，有些用户的隐私设置中不允许任何人查看转发信息，因此不可以依赖forwarded_message这个字段！bot一定要想办法自己记录下来某条消息（文件）的对应的初始用户是谁。</p>
+<h2 id="Next-Step"><a href="#Next-Step" class="headerlink" title="Next Step"></a>Next Step</h2><p>有些时候，我们可能需要一个wizard性质的一步一步的向导，简单的话，类似下图这种效果：</p>
+<p><img src="/images/2020122516061518.png"></p>
+<p><img src="/images/2020122516061860.png"></p>
+<p>BotFather也是这样设计的。</p>
+<p>这个时候就需要一种“Next Step”的概念，要一步一步来才可以。如果使用pytelegrambotapi的话，那么就很简单了，直接使用<code>bot.register_next_step_handler</code>就可以了。示例代码如下：</p>
+<p>@bot.message_handler(commands&#x3D;[‘sign_in’])<br>def sign_in_handler(message):<br>    bot.send_message(message.chat.id, “next step”, parse_mode&#x3D;’markdown’)<br>    bot.register_next_step_handler(message, next_step_add_auth)</p>
+<p>def next_step_add_auth(message):<br>    bot.send_chat_action(message.chat.id, ‘typing’)<br>    bot.send_message(message.chat.id, “this step”, parse_mode&#x3D;’markdown’)</p>
+<p>如果wrapper不支持next step，那就只能自己设计一个状态机了。需要设计一个临时的数据结构，至少要表明用户的下一步操作应该是什么，然后拦截对应的事件，做dispatch。</p>
+<p>具体<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/KeepMeBot/blob/93244cdae53a77a3232ece9e4e5e053418d386ac/handler.go#L63">可以看这里</a>，太长了就不贴了</p>
+<h2 id="部署维护"><a href="#部署维护" class="headerlink" title="部署维护"></a>部署维护</h2><p>之前开发的bot，每次上线都要写一个systemd service文件，然后<code>systemctl daemon-reload</code>，很麻烦，迁移到其他机器也很麻烦。后来渐渐开始用docker，就很方便了。直接把一堆bot都丢到一个<code>docker-compose.yml</code>中，一个<code>up</code>就可以了。迁移服务器时只要rsync走，重新up就可以。具体可以看<a target="_blank" rel="noopener" href="https://dmesg.app/dev-deploy-bot.html">《我是如何优雅的开发、部署并管理多个 Telegram Bot 的》</a></p>
+<h3 id="Dockerfile与docker-image"><a href="#Dockerfile与docker-image" class="headerlink" title="Dockerfile与docker image"></a>Dockerfile与docker image</h3><p>之前，不知道在哪看到的文章，说docker image的layer有限制，不能超过127层(还是多少层的)，层越少越好。因此很多人可能都有一个疯狂一行式的习惯，把所有操作全都一个RUN解决了，不停的用&amp;&amp;和\。</p>
+<p>一个非常典型的例子大概如下：</p>
+<p>FROM python:alpine</p>
+<p>RUN apk update \<br>&amp;&amp; apk add git ffmpeg flac –no-cache \<br>&amp;&amp; git clone <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ExpressBot">https://github.com/tgbot-collection/ExpressBot</a> \<br>&amp;&amp; pip3 install –no-cache-dir -r &#x2F;ExpressBot&#x2F;requirements.txt</p>
+<p>WORKDIR &#x2F;ExpressBot</p>
+<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
+<p>现在想想，这™️的是谁说的，出来让我暴打一顿，可真是害人不浅呐！</p>
+<p>现在docker engine的layer是否有层数限制我不了解，但是层越少越好，这点要怎么理解？</p>
+<p>比如说，有人看到官网文档<a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices">Best practices for writing Dockerfiles</a>里这么说的：</p>
+<blockquote>
+<p><strong>Minimize</strong> the number of layers</p>
+<p>In older versions of Docker, it was <strong>important</strong> that you minimized the number卧槽这™️什么玩意这也太长了吧看不下去了啊，能不能来个中文，啊好困。行吧，反正有一个minimize，还说 important，那直接无条件一层达人不就得了。</p>
+</blockquote>
+<p>愚以为，宫中之事 技术学习中是非常忌讳这种囫囵吞枣的阅读方式的。</p>
+<h3 id="如何正确的使用RUN"><a href="#如何正确的使用RUN" class="headerlink" title="如何正确的使用RUN"></a>如何正确的使用RUN</h3><p>为什么要存在layer，一个最直观的原因就是，大家可以共用同样的layer，这样pull起来也快很多啊。另外还有一个原因就是，如果某一个layer已经有了，那么在build image的时候，直接拿来用不就好了？毕竟安装东西很慢啊，有些可能还是要去编译的，就更慢了。</p>
+<p>写Dockerfile不要怕多创建layer，不要总是一层达人（这里使用了夸张的修辞手法，<code>FROM</code>也是要一层的，这里指的是一个<code>RUN</code>指令）</p>
+<p>怎么来了解这个事情呢？</p>
+<p>首先要知道，docker只有<code>RUN</code>、<code>COPY</code>、<code>ADD</code>这三个命令会创建新的layer。</p>
+<p>其次，以Python为例，一个Python程序的运行环境大概可以这样划分：</p>
+<ol>
+<li>基础的操作系统</li>
+<li>某版本的Python解释器及对应的一些系统级使用apt安装的库，比如gcc，git，各种lib比如说libssl</li>
+<li>对应的Python第三方库，比如说flask，requests</li>
+<li>代码</li>
+</ol>
+<p>那么具体分析一下，就可以发现，1和2是基本不会变的，3变的概率比较大，但是不会很频繁，4是经常变化的。那么我们的Dockerfile就应该同样保证1和2作为一层，3作为1层，4作为一层。</p>
+<p>其次要知道，docker在build的时候，默认会使用缓存的，但是需要注意的是，如果低层的缓存失效了，那么后面的全部都要重新跑。</p>
+<p>也就是说，在上面的例子中，如果我只改代码，那么对应的是4，那么123都会使用缓存，4重新跑一次。但是如果我修改了2，那么234都要重新跑，即使我没有修改3和4。哦对了，2020年了，没有人会傻到用文件的访问时间、修改时间来判断你有没有改这个文件。docker使用的是checksum(SHA256)啦。</p>
+<p>总结一下，应该把<strong>同样变化频率的命令放在一起作为一条RUN</strong>，然后把<strong>不常变化的放在上面，经常变化的放在下面</strong>，这样才是最优解。</p>
+<p>那么对应如上Dockerfile，就可以这样优化一下：</p>
+<p>FROM python:alpine</p>
+<h1 id="安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"><a href="#安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo" class="headerlink" title="安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"></a>安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo</h1><p>RUN apk update &amp;&amp; apk add –no-cache ffmpeg flac # 加上–no-cache</p>
+<h1 id="拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod"><a href="#拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod" class="headerlink" title="拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod"></a>拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod</h1><p>COPY requirements.txt &#x2F;tmp&#x2F;requirements.txt</p>
+<h1 id="安装-Python的库，然后删掉它，如果是go，可以用go-mod-download"><a href="#安装-Python的库，然后删掉它，如果是go，可以用go-mod-download" class="headerlink" title="安装 Python的库，然后删掉它，如果是go，可以用go mod download"></a>安装 Python的库，然后删掉它，如果是go，可以用go mod download</h1><h1 id="如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以"><a href="#如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以" class="headerlink" title="如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以"></a>如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以</h1><p>RUN pip install –no-cache-dir -r &#x2F;tmp&#x2F;requirements.txt &amp;&amp; rm &#x2F;tmp&#x2F;requirements.txt</p>
+<h1 id="把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝"><a href="#把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝" class="headerlink" title="把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝"></a>把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝</h1><p>COPY . &#x2F;ExpressBot</p>
+<p>WORKDIR &#x2F;ExpressBot</p>
+<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
+<p>这样就可以用到cache啦</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/12/2020122516243648.jpeg"><img src="/images/2020122516243648.jpeg"></a></p>
+<p>具体改进都写到了注释里了。需要注意的是，<code>.git</code>也会被拷贝，对于一个有很多commit的项目来说……还是整个<code>.dockerignore</code>吧！</p>
+<p>这样一波操作下来，确实是多了几层，但是下次我改代码，docker hub就不用全部重新跑了，一个简单的COPY就完事。</p>
+<p>呃，当然，build rule也要开启build caching哦</p>
+<p><img src="/images/2020122516062048.png"></p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers">Best practices for writing Dockerfiles</a></p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>祝大家圣诞快乐🎅希望你的圣诞老人没有在打电动</p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/xbox/status/1342213462521380864?s=21">https://twitter.com/xbox/status/1342213462521380864?s=21</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/25/tgbot2/index/" data-id="clhp7rtm5009qs2qrbn1ydxkk" data-title="[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-dev-deploy-bot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2020/10/30/dev-deploy-bot/index/" class="article-date">
@@ -618,796 +1180,11 @@
 
 
   
-    <article id="post-home-cam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/07/16/home-cam/index/" class="article-date">
-  <time class="dt-published" datetime="2020-07-16T00:00:00.000Z" itemprop="datePublished">2020-07-16</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/07/16/home-cam/index/">家用简单监控系统</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>可盐可甜的小土豆终于出现啦！?????</p>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近几天，<a target="_blank" rel="noopener" href="https://github.com/DIYgod/RSSHub">RSSHub</a>作者<a target="_blank" rel="noopener" href="https://twitter.com/DIYgod">DIYGod</a>控诉<a target="_blank" rel="noopener" href="https://twitter.com/DIYgod/status/1282159796578250752?s=20">自如管家非法入侵</a>。听到这个消息时我感到非常的震惊。事后自如的反应更是像极了某些有关部门：避重就轻，混淆事实，毫无悔改之意。感觉自如就仿佛在说：你的控诉充满了对自如的偏见，和所谓的不知从什么地方来的傲慢，我是完全不能接受的。</p>
-<p>尽管和DIYGod在生活中并不认识，甚至在网络上也基本没有交集，但是这件事情却依旧让我感到很愤怒。就像DIYGod的控诉一样，凭什么我合法租住的房子要被自如强行入侵？</p>
-<p><img src="/images/2020071622285859.jpeg"></p>
-<p>图片来源<a target="_blank" rel="noopener" href="https://twitter.com/DIYgod/status/1282365434344304643?s=20">DIYGod的Twitter</a></p>
-<p>尽管我没什么人气，也不认识什么大人物，尽管我只是无名之辈，但是我依旧认为我应该为他发声，哪怕只是微不足道的一个转推，哪怕只是一段无力的声讨与支持。如果今天我不为他发声，那么下次，类似的事情发生在我的身上时，谁又会为我发声？起初，他们追杀共产主义者……</p>
-<p><img src="/images/2020071622290278.jpeg"></p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/silence-is-harmful.html">沉默，是最大的伤害</a>。</p>
-<h2 id="又一背景"><a href="#又一背景" class="headerlink" title="又一背景"></a>又一背景</h2><p>目前，我所租住的地方，也是类似的单人公寓，同样是密码锁。密码锁说起来就很让人害怕，如果被黑了，被劫持了，电量耗尽，或者是像DIYGod一样，被所谓的管家以“担心你安全“的理由非法入侵，那么该怎么办？</p>
-<p>当我人在家里等时候，使用一些物理措施，比如防盗链、顶门器等是一种预防措施；如果不在家，那么这些操作就不太好搞了。使用摄像头监控是一种马后炮的方案，但是如果有必要，视频也可以作为证据。防患于未然吧。</p>
-<h2 id="要求"><a href="#要求" class="headerlink" title="要求"></a>要求</h2><p>既然要做到防患于未然，再加上个人空间的视频属于极度隐私的数据，那么这样一套简单的监控系统就要达到以下要求：</p>
-<ul>
-<li>廉价：不能太贵了，我一个普通的社畜承担不起高昂的费用，包括设备购置费用和后续维护费用</li>
-<li>简单：摆在那就行了，不需要人工干预</li>
-<li>安全：录像不可以丢给任何国内的毒瘤厂商，即使的国外的云厂商也要谨慎考虑</li>
-<li>可靠：即使入侵者迅速发现了我有监控，在几分钟之内把我的摄像头和存储设备砸了，我也能尽可能的恢复捕捉到的录像</li>
-<li>稳定：需要7*24小时运行，或者至少也要做到7*12小时运行</li>
-<li>小巧：设备本身不会占用太大空间，毕竟房子本身就不大</li>
-<li>清晰：2020年了，不能480P吧，编码怎么也得H264吧，能H265最好</li>
-</ul>
-<p>根据以上要求，淘宝上也进行了一些搜索，目前基本上有这么几种选择?：</p>
-<ul>
-<li>监控+录像机，录像机太贵了，后续费用也很高，放弃，数据可能不安全</li>
-<li>普通USB摄像头：Linux兼容性可能会有问题，可能无法7*24工作，清晰度不够。但是非常安全，数据全部都是我的。</li>
-<li>网络摄像头：部分可能需要买毒瘤厂商的存储，可能会偷偷上传数据，或者被黑，但是基本都支持RTSP之类的流媒体传输协议</li>
-</ul>
-<p>所谓网络摄像头，基本上是通过Wi-Fi，或者以太网连接，供电一般是DC直流，有些可能还可以PoE（但是我并没有PoE交换机）</p>
-<p>普通USB摄像头存在一个难点，很难通过ESXi直通给虚拟机，直通之后虚拟机可能采集图像会比较困难。因此只能选择支持RTSP等串流的网络摄像头。至于安全问题？作为曾经的Network Engineer，怎么能被这种问题难倒？VLAN隔离走起?。</p>
-<h2 id="摄像头安装配置"><a href="#摄像头安装配置" class="headerlink" title="摄像头安装配置"></a>摄像头安装配置</h2><p>这部分就不用多说了。?</p>
-<h2 id="配置VM"><a href="#配置VM" class="headerlink" title="配置VM"></a>配置VM</h2><p>在家里的ESXi上开一个虚拟机，打开自动启动，装好Ubuntu，配置好LVM。这也不多说了。?</p>
-<h2 id="捕获视频"><a href="#捕获视频" class="headerlink" title="捕获视频"></a>捕获视频</h2><p>既然要捕获视频，当然要选择ffmpeg了。使用apt安装也可以，大概需要占用500-600M的空间，或者直接官网下载static build也行，在这个场景下没什么太大区别。</p>
-<p>使用ffmpeg捕获，方法大致如下</p>
-<p>ffmpeg -rtsp_transport tcp -i $RTSP -vcodec copy -r 1 -t 600 -y &#x2F;video&#x2F;1.mp4</p>
-<p>参数t表示捕获时间，r表示帧数，RSTP表示设备的URL格式，比如说我这里就是<code>rtsp://192.168.7.234:554/user=admin&amp;password=admin&amp;channel=Channel&amp;stream=Stream.sdp?real_stream</code> [v_notice] 奇怪的是，这里我用r参数限制帧数，并没有起作用，反而是摄像头设置的帧数永远是录制的帧数。 [&#x2F;v_notice] 题外话：</p>
-<p>如果想捕获比如说IPTV的视频流，直接用<code>ffmpeg -i URL</code>就可以了</p>
-<h2 id="同步视频"><a href="#同步视频" class="headerlink" title="同步视频"></a>同步视频</h2><p>考虑到视频存储在本机，万一被一窝端了，那就白搞了。因此需要想办法把视频同步到其他地方，比较好的方法是同步到VPS上，所以这里应用了rsync，命令也很简单</p>
-<p>rsync -avz –delete &#x2F;video&#x2F; user@host:&#x2F;video&#x2F;</p>
-<p>差分同步怕什么。如果是海外的机器，建议上个proxychains之类的</p>
-<p>哦对了，如果用proxychains，并且每次连接的时候都报key differ的警告，可以<code>~/.ssh/config</code> 加这么一行</p>
-<p>Host *<br>  StrictHostKeyChecking no</p>
-<h2 id="Housekeeper"><a href="#Housekeeper" class="headerlink" title="Housekeeper"></a>Housekeeper</h2><p>毕竟咱也不是大户人家，盘子还是有限的。那我们就要一种house keeper的机制，不仅要删除本机的旧视频，也要删除VPS上的。这个时候，当然要用到find了，高手还可以搭配exec和xargs哦！</p>
-<p>find &#x2F;video -mindepth 1 -mtime +30 -delete</p>
-<p>此命令会删除创建时间在30天之前到文件</p>
-<h2 id="搓搓搓"><a href="#搓搓搓" class="headerlink" title="搓搓搓"></a>搓搓搓</h2><p>这样一套下来，其实就差不多了，更近一步来说：</p>
-<ol>
-<li>ffmpeg 从早上8点开始捕获视频</li>
-<li>rsync每分钟同步视频到VPS</li>
-<li>housekeeper清理过期文件</li>
-</ol>
-<p>这样的话，最长也就是一分钟左右的空档，比较稳妥</p>
-<h2 id="安全加固之网络优化"><a href="#安全加固之网络优化" class="headerlink" title="安全加固之网络优化"></a>安全加固之网络优化</h2><p>我们必须要把摄像头隔离起来。要做的事情就是无法让它访问公网，所有流量只能在192.169.4.0&#x2F;24这个网段里走，同时内网其他机器能够任意访问摄像头。IPv6也同理</p>
-<p>作为一名优秀的网络工程师?，使用VLAN确实是一种…反正我搞不明白的方法，谁会搞谁搞吧…?</p>
-<p>如果您的路由器特别厉害，一个就要好几千几万的一堆口，上面印着八九条竖线，大概是这样的.ılı.ılı.，建议您拨打400 810 8886进行咨询或<a target="_blank" rel="noopener" href="https://www.cisco.com/c/en/us/support/index.html">使用这个网站</a>提交您的问题???</p>
-<p>如果你的路由器的比较厉害，也是个Linux Kernel的话，并且kernel version&gt;&#x3D;2.6，那么可以直接上iptables；</p>
-<p>如果你的路由器一点都不厉害，可能就是个塑料盒上面写着LINK什么Mecu什么，那么????本少侠束手无策，软路由可破。</p>
-<p>想要用iptables阻止某设备访问外网，只需要在filter操作就可以了，如果以IP作为条件过滤</p>
-<p>iptables -t filter -I FORWARD 1 -s 192.168.7.183 -j DROP</p>
-<p>一定要记得用I插入到开头</p>
-<p>如果想要根据Mac地址过滤，那么就用<code>-m mac</code>匹配原地址就好了</p>
-<p>iptables -t filter -I FORWARD 1 -m mac –mac-source 00:0c:29:0c:0d:46 -j DROP</p>
-<p>如果你有IPv6的话，根据IP过滤时也要记得使用<code>ip6tables</code>。不过这就很惨了，因为ISP分配的IPv6的地址经常可能会变</p>
-<p>同理，如果有IPv6，根据mac过滤就是下图这样</p>
-<p>ip6tables -t filter -I FORWARD 1 -m mac –mac-source 00:0c:29:0c:0d:46 -j DROP</p>
-<p>其他相关命令：</p>
-<p># 显示iptables行号<br>iptables -L –line-numbers</p>
-<p>删除iptabless行号为1的规则<br>iptables -D FORWARD 1</p>
-<p>具体效果可以看如下视频</p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=vNtng-vSCZ0">https://www.youtube.com/watch?v=vNtng-vSCZ0</a></p>
-<p>当然了，如果你的固件比较智能，可能也许有这样的设置</p>
-<p><img src="/images/2020071622290372.png"></p>
-<h2 id="安全加固之存储设备加密"><a href="#安全加固之存储设备加密" class="headerlink" title="安全加固之存储设备加密"></a>安全加固之存储设备加密</h2><p>ESXi上的VM存储加密就很好玩了，LUKS on LVM，LVM on LUKS，LVM on VC，VC on LVM，只要您开心，还可以VC+LUKS on LVM，只要一份钱，却能够得到双份的快乐哦，这么好的事情，上哪里找去?</p>
-<p>各种姿势，各种加密，包您满意包您开心?，不满意还可以<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2020/06/Linux-Logical-Volume-Manager.html">点击这里咨询退款的哦</a>。</p>
-<p>简单起见，我们就用LUKS了，基本上所有发行版都自带。</p>
-<p>如果你的CPU支持AES指令集，那简直更好了，可以通过<code>lscpu</code>进行确认</p>
-<p><code>cryptsetup benchmark</code> 可以进行benchmark</p>
-<p>简单的说，如果想要对设备加密，包括逻辑卷、物理设备，那么可以这样用</p>
-<p>cryptsetup luksFormat &#x2F;dev&#x2F;sdb1<br>cryptsetup luksFormat &#x2F;dev&#x2F;mapper&#x2F;vg-lv1</p>
-<p>之后我们需要把这个卷挂载起来，命令也非常简单</p>
-<p>cryptsetup luksOpen &#x2F;dev&#x2F;dev&#x2F;sdb1 data1</p>
-<p>这样操作之后，我们就能在<code>/dev/mapper</code>下看到一个名为<code>data1</code>的设备了，此时就可以mkfs、mount了</p>
-<p>mkfs.ext4 &#x2F;dev&#x2F;mapper&#x2F;data1<br>mount &#x2F;dev&#x2F;mapper&#x2F;data1 &#x2F;mnt&#x2F;data1</p>
-<p>用完了之后想要卸载，可以先<code>umount</code>，然后<code>cryptsetup luksClose data1</code></p>
-<p>查看状态 可以用<code>cryptsetup status data1</code></p>
-<p>如果是文件型加密卷，那么操作也基本一致</p>
-<p>cryptsetup luksFormat &#x2F;path&#x2F;to&#x2F;luks.vol</p>
-<p>后续就一样了。</p>
-<p>但是我们更想要的操作是，在OS启动的时候自动解密、自动挂载。这是否能够做到呢？</p>
-<p>实际上，这就有点纠结了。就像“操作系统也是一个程序，是谁启动的它啊”</p>
-<p>对于我的需求来说，只需要在boot的时候，能够在console让我输入密码就够了</p>
-<p>那么此时需要配置<code>/etc/fstab</code> 和<code>/etc/crypttab</code></p>
-<p># 查看UUID<br>cryptsetup luksUUID &#x2F;dev&#x2F;mapper&#x2F;data1</p>
-<h1 id="然后更改crypttab"><a href="#然后更改crypttab" class="headerlink" title="然后更改crypttab"></a>然后更改crypttab</h1><p>data1 &#x2F;dev&#x2F;disk&#x2F;by-uuid&#x2F;36aa7b97-f773-4fcb-8031-f40e42facc4b none luks</p>
-<p>#然后加fstab<br>&#x2F;dev&#x2F;mapper&#x2F;data1 &#x2F;video&#x2F; ext4 defaults 0 0</p>
-<p>重启之后就可以了</p>
-<p><img src="/images/2020071622290512.jpeg"></p>
-<p>如果是文件型的加密卷，那么也同样有办法，<code>crypttab</code>中</p>
-<p>data1 &#x2F;home&#x2F;data.vol none luks</p>
-<p>LVM怎么用就不多说了，pv、vg、lv这都很简单了。重点说下LUKS和VeraCrypt在CLI下操作</p>
-<h2 id="参考配置"><a href="#参考配置" class="headerlink" title="参考配置"></a>参考配置</h2><p>crontab配置</p>
-<p>*&#x2F;15 8-20 * * * bash &#x2F;root&#x2F;scripts&#x2F;record.sh<br>* 8-20 * * * bash &#x2F;root&#x2F;scripts&#x2F;sync.sh</p>
-<p>Shell脚本参考链接 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/cam'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/cam&#39;\]开源地址\[/gt\]</a></p>
-<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>有一件事情需要注意的就是，录制的视频往往都比较大，咱又不是看高清影片?，所以没有必要录制太高的帧数。10帧基本上就足够了。当然?多的人随意啦</p>
-<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>有时候，在网上，我能感觉到一点点自由，能够感受到一丁点世界人权宣言中我本应该拥有的一丁点自由的权利。这也是我坚决拒绝某些公司软硬件产品的原因。本来现实已经足够让我绝望了，如果在数字世界中，都要感受到一模一样的氛围，那还不如抵制到底。</p>
-<p>岁月一点都不静好。</p>
-<p>对于有技术手段的人来说，通过各种各样的技术也许可以缓解社会问题。但是，对于那些不懂的人呢？当社会出现问题之后，如果用技术手段去解决，那么也无法根治。更何况，总有人认为，杀光天下的公鸡就好了。</p>
-<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://blog.k8s.li/ffmepg-rtsp.html">使用 FFmpeg 远程读取 rtsp 监控视频流</a></p>
-<p><a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2020/06/Linux-Logical-Volume-Manager.html">扫盲 Linux 逻辑卷管理（LVM）——兼谈 RAID 以及“磁盘加密工具的整合”</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/07/16/home-cam/index/" data-id="clhp7rtgq003ts2qrhmx3bmsc" data-title="家用简单监控系统" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-new-domain-life/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/04/25/new-domain-life/index/" class="article-date">
-  <time class="dt-published" datetime="2020-04-25T00:00:00.000Z" itemprop="datePublished">2020-04-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/04/25/new-domain-life/index/">新的域名与未知的生活</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>太长不看：</p>
-<p>我换域名了，新域名dmesg.app，旧的bennythink.com会自动301到dmesg.app。没别的什么事情。就这样</p>
-<p>完整版：</p>
-<p>你好，抬头看看地址栏，如果发现域名好像有些不对，也不要慌张哦。</p>
-<p>也许有人记得，从2020年1月7日起，<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1214369246324543488">我的博客被墙了</a>，DNS污染。说真的，被墙其实是意料之中的结果，写过很多抨击某些现象的文章，写过一系列翻墙工具集合，曾经成为百度“翻墙”、“科学上网”搜索结果的前几名。难怪被墙了，这都已经很仁慈了吧。</p>
-<p>发现被墙之后，自己对博客就开始变得心灰意冷了。到如今，随着一系列正确或者错误的决定，我终于离开了自己熟悉的地方，也决定使用新的域名。</p>
-<h2 id="我的故事"><a href="#我的故事" class="headerlink" title="我的故事"></a>我的故事</h2><h3 id="域名的故事"><a href="#域名的故事" class="headerlink" title="域名的故事"></a>域名的故事</h3><p>在本博刚刚开张的之前，考虑到需要找一个code name，那么首先要有Benny，其次还要有另外一个词语。本来我是想叫BennyFight的，可惜这个名字已经在Gmail上被抢注了。参考编程随想，所以只好叫BennyThink了。</p>
-<p>既然咱叫BennyThink，再加上那时候还比较傻，于是注册了 bennythink.com 这个很长很不好记的域名，哪里懂域名长短。</p>
-<p>然后5年过去了。5年里，我注册了不少有意思的短域名，希望着自己能够成为?赚一笔钱。当然了，由于幸存者偏差的存在，赚钱的终究还是一小部分人，并没有人来找我买。甚至连金将军都没有注意到我的 3fat.kim，于是我的域名们就都过期了……</p>
-<p><img src="/images/2020042521575211.png"></p>
-<p>最近一次，从namesilo上购入了dmesg.app 。dmesg就是那个我们都知道的命令，可以显示一些Linux内核相关的信息。</p>
-<p><img src="/images/2020042521575379.png"></p>
-<p>还不是穷，买不起更短的域名。</p>
-<h3 id="工作的故事"><a href="#工作的故事" class="headerlink" title="工作的故事"></a>工作的故事</h3><p>同样还是几年前，当我还在读书的时候，偶然拿到了<a target="_blank" rel="noopener" href="https://www.bennythink.com/internship.html">Cisco的实习生</a>的机会。由于家人的因素，在加上自己比较怂，于是便留了下来，成为了Cisco的员工。</p>
-<p>在Cisco的工作是非常幸福的，可以说是人生中非常开心的一段时间了。优异的网络环境——今天装作香港人，明天就可以装作日本人，印度人；真正的弹性工作制。很难忘的一段经历。</p>
-<p>最终，我离开了Cisco。经过一个短暂的弯路和挫折之后，我离开了自己生活了七八年的城市，离开了熟悉的家人朋友，为了自己的一点点暂时还不切实际的想法，去往远方的城市。感觉就像是很多年前上大学时一样，只不过是放大了十倍的离别。<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1251422699621978113?s=20">离开所熟悉的一切，在陌生的地方认识陌生人</a>。?</p>
-<p>我真的好想念我的小宝贝呀。</p>
-<h3 id="赛点"><a href="#赛点" class="headerlink" title="赛点"></a>赛点</h3><p>网球比赛中，如果发出一个球刚好碰在网上，如果球没过网，你输了，如果球过网了，你赢了。这完全取决于运气。</p>
-<p>——《赛末点》</p>
-<p>还在上学的时候，看过斯嘉丽·约翰逊的这部电影。这就好像我现在的人生，完全取决于运气。</p>
-<h2 id="关于新的域名"><a href="#关于新的域名" class="headerlink" title="关于新的域名"></a>关于新的域名</h2><p>和旧域名没什么不同，旧域名依旧可以访问并会自动301跳转；</p>
-<p>app域名默认就是https的，本身还在HSTS Preload List中，不用担心SSL降级攻击；</p>
-<p>RSS订阅依旧是是全文输出；</p>
-<p>任何bennythink.com的域名邮箱都将随时停止使用。</p>
-<p>小土豆还是那个小土豆，新垣结衣依旧是我的老婆，只不过变得更加迷茫了而已:-</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/04/2020042522081470.jpg"><img src="/images/2020042522081470.jpg" alt="只要看到老婆在笑，就可以抹平一切不安与浮躁"></a></p>
-<p>只要看到老婆在笑，就可以抹平一切不安与浮躁?</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/04/25/new-domain-life/index/" data-id="clhp7rtho005hs2qr7273a7oj" data-title="新的域名与未知的生活" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-no-can-do/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/04/22/no-can-do/index/" class="article-date">
-  <time class="dt-published" datetime="2020-04-22T00:00:00.000Z" itemprop="datePublished">2020-04-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/04/22/no-can-do/index/">无法改变的人</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>俺建议：总是尽可能影响身边的人。只要能影响一个，够本啦；影响两个，就赚啦 :)【勿以善小而不为】</p>
-</blockquote>
-<p>很多年前的一个晚上，看到了这句话。自那时起，我就一直在思考，我能够做些什么？于是，我创建了这个博客，去告诉身边的人，有一本很好看的小说叫做《1984》，有一本很值得思考的书叫做《学会提问》，有几部韩国电影非常不错，有一个很有意思的网站叫做维基百科，手把手的教他们如何翻墙访问真正的互联网。有时，甚至在被问到“如何看待xxxx”的时候，我会告诉他们，先看某部电影，先读几本书，先搜集搜集资料，尝试着进行一些思考，也许那时候你就明白了。</p>
-<p>有些时候，甚至是，我会面对面的和他们说，和他们描述一些事实，顺带稍微夹带下自己的观点，和他们解释下，以我所了解的情况来看，为什么会发生某些事情，是什么直接促使某件事情，什么是这件事情的根本原因。他们似懂非懂的点点头，并不知道他们是把我的观点当作反驳别人的理由，还是会自己进一步思考，去查阅资料，与我进行合理的辩论，还是会直接丢到脑后：这个人好像一个精神病啊，真是话多。</p>
-<p>然后五年过去了。我开始发现，我越来越无法影响身边的人。即使是一些非常亲密的朋友，也时常会感觉到我们活在不同的平行世界里：我关注的事情他们都不关心，他们关注的事情我毫无兴趣；一旦提到某些事情，就好像自己受到了侵犯一样，如丧考妣，开始变得歇斯底里，没有任何逻辑。连正常的交流都无法进行了，更如何无关对错的探讨彼此的观点与想法？</p>
-<p>有的时候就在想，为什么啊？明明都是非常聪明人，接受过高等教育，硕士学历，博士学历，英文水平数一数二，能够解得出来复杂的方程，能够计算求解出复杂的数学公式，能够考过很多的等级认证。</p>
-<p>我猜，很大一部分原因，是因为我们所接触到的信息是不同的吧。他们看的是新闻联播，微信公众号，新浪微博。遇到什么事情，首先要去微博里面搜一搜，然后去微信里搜一搜。喂，哥哥姐姐们，搜索引擎是做什么的？有的时候，有些聪明并且勤快的小盆友，会懂的用搜索引擎搜索。行吧，用百度也没办法，条件有限。可但是，搜索到的结果，是需要做cross reference的呀，搜索到的东西，很多时候是要去搜英文的呀。搜到了恶搞新闻网站，摘抄了错误的翻译，那不是很丢脸吗。</p>
-<p>你跟他们说自由，他们会认为，自由就是胡作非为，无法无天，烧杀劫掠，他们会说，自由不是绝对的。呵呵，他们以为的自由是原始社会的肆无忌惮吧；你跟他们说墙，他们会说墙保护了我们，他们会用一百个理由说出墙存在的必要，却丝毫意识不到获取信息是基本人权；你跟他们说其他人被xxx，他们会说，被xxx的又不是你；你跟他们说你要走，你要离开这里，他们会说外面并不比里面好，他们会说其他国家疫情怎样怎样，他们会说阶级固化，改变不了什么；你跟他们说你思考了很久，你在内疚，你很难过，你在为历史而流泪，你在想为什么自己不能够做的更多，他们会变得好像很关心你一样，但是他们却并不会去思考你为什么流泪，他们会说：想得太多，活得很累，难得糊涂。可是我想活得明白啊！我不想不明不白的过完这一生啊！</p>
-<p>感觉就像是，我们对于“自由”这两字的定义就是不同的。感觉就像是，我们对于很多词语的理解就是不同的。想了想，这不就是“新话的原则”吗？词汇越来越少，字典越来越薄。既然有了good，为什么还需要有bad？</p>
-<p>他们不会去在乎其他的什么的，他们只想过好自己的小日子，只想努力赚钱，养家糊口。是啊，我也想这样。谁不想呢？我也很想平静静静地活下去啊，我也喜欢岁月静好啊。可是，沉默是最大的伤害。你的沉默、你的无动于衷，最终会演变成权力肆意扩张的方式，最终会害到自己。</p>
-<p>这些都是我的朋友，接受过高等教育、手里有着很多资质证书的年轻人。</p>
-<p> </p>
-<p><strong>もう やめる、もう疲れた。何もしない、何も求めない。</strong></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/04/22/no-can-do/index/" data-id="clhp7rths005ts2qrachy8peg" data-title="无法改变的人" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-from-pyhon-to-go/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/03/08/from-pyhon-to-go/index/" class="article-date">
-  <time class="dt-published" datetime="2020-03-08T00:00:00.000Z" itemprop="datePublished">2020-03-08</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/03/08/from-pyhon-to-go/index/">Python程序员的Golang学习笔记</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>之前在Cisco的时候，我是一名披着网络工程师头衔的后端程序员，一直使用的主力语言是Python。然后在春节前后开始学习Go，?了一年多的想法终于付出了行动，也终于努力取得了一些小成果——和<a target="_blank" rel="noopener" href="https://nova.moe/">Nova大佬?‍♂️</a>一起创造了<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go">WebP Server Go</a></p>
-<p>下面的内容就以一个Python程序员的观点与视角去介绍、了解Golang，某些地方可能描述不准确或有错误，还望纠正。内容可能并无法方方面面的覆盖Golang的各种细节，只是方便从Python过来的程序员迅速上手Go。</p>
-<h2 id="为啥要学习Golang，Golang与Python有何不同"><a href="#为啥要学习Golang，Golang与Python有何不同" class="headerlink" title="为啥要学习Golang，Golang与Python有何不同"></a>为啥要学习Golang，Golang与Python有何不同</h2><p>每个人学习某种语言都有自己的一些原因，对于我本人而言，一个非常重要的原因是，如果只会一门语言，那是不是说出去有点太寒碜了？JavaScript的话，其实也算会，但是毕竟是做后端的，NodeJS还真就不太行，各种前端框架也不太熟悉。</p>
-<p>那既然想多学一门语言，为什么又偏偏选择Go，而不是Java，C&#x2F;C++等久经沙场的语言呢？</p>
-<p>我的一个考量因素是，Golang拥有比较强的交叉编译能力，性能要好一些。尽管它还很年轻，2009年才正式发行，但是看看出身吧。出身豪门，还努力，这真是励志呢。</p>
-<p>好吧，废话少说，先说Python吧。Python是一门动态的、强类型的脚本语言；Golang是一门静态的、强类型的编译语言，Golang天生支持并发，没有GIL锁</p>
-<p>编程语言的基础都是数据类型，就像人类语言的基础是词汇一样。下面就从数据类型开始说起吧。</p>
-<h2 id="基本数据类型"><a href="#基本数据类型" class="headerlink" title="基本数据类型"></a>基本数据类型</h2><h3 id="数值类型"><a href="#数值类型" class="headerlink" title="数值类型"></a>数值类型</h3><p>Python的数值类型就太简单了，直接一个int和float，长度什么的完全看内存。</p>
-<p>Gol就有些不同，数字、浮点，包含有符号和无符号两种类型，同时可选不同大小，如int8，int16等，是不是有点回想起了上学时试卷上C语言溢出的问题？</p>
-<p>Int32就是rune，rune就是utf-8的code point</p>
-<h3 id="字符串类型"><a href="#字符串类型" class="headerlink" title="字符串类型"></a>字符串类型</h3><p>Python的字符串用单引号、双引号、三单、三双都可以表示，从含义上来说是没有区别的。</p>
-<p>Go的字符串要复杂一些，有以下情况：</p>
-<p>使用双引号表示，<code>\n</code>等字符会被解释为换行符；</p>
-<p>原生字符串，使用反引号``表示，类似Python中的<code>r</code>前缀，其中的<code>\n</code>等字符就是表示该字符，而不是换行符，并且反引号表示的字符串可以任意换行；</p>
-<p>单引号表示rune literal，和C语言中的char基本差不多（比如A就是65，还记得吧）</p>
-<p>观察以下代码</p>
-<p>var eng &#x3D; “abc”<br>var chs &#x3D; “你好吗”</p>
-<p>fmt.Println(len(eng))<br>fmt.Println(len(chs))</p>
-<p>输出分别为3和9。</p>
-<p>不同于Python，python中这两者返回值都会是3，因为一共就3个字符嘛，管你中文英文的；golang中<code>len</code>表示字节数，由于在UTF-8中文使用三子节表示，所以三个汉字对应为9。</p>
-<p>如要实现类似Python中的len，那么需要使用<code>utf8.RuneCountInString(eng)</code></p>
-<p>由于这一点的不同，在遍历时也会有类似的问题。一个需要注意的事情就是，遍历的核心是要准确的“切割”每个字，所以在<code>chs</code>这个字符串中，要遍历三次。</p>
-<p>遍历字符串，用range循环的话</p>
-<p>for k, v :&#x3D; range chs {<br>fmt.Println( k, v)<br>}</p>
-<p>循环会进行3次，因为一共时三个字；k表示索引，v的值实际上是“一串数字“，而不是我们预期的单个字符“你”。可以用string转换，或者<code>%c</code>量词</p>
-<p>用下标的话，按照常规的想法，我们会这样做</p>
-<p>for i :&#x3D; 0; i &lt; len(chs); i++ {<br>fmt.Println( chs[i])<br>}</p>
-<p>❌❌❌实际上循环会进行9次，这就错了</p>
-<p>正确的姿势应该是转换为rune数组</p>
-<p>var c &#x3D; []rune(chs)<br>for i :&#x3D; 0; i &lt; len(c); i++ {<br>fmt.Println(c[i])<br>}</p>
-<p>这样就是三次循环了。或者这样做切片</p>
-<p>for i :&#x3D; 0; i &lt; len(chs); {<br>r, size :&#x3D; utf8.DecodeRuneInString(chs[i:])<br>i +&#x3D; size<br>fmt.Println(string(r))<br>}</p>
-<p><code>DecodeRuneInString</code>会把字符串解码成“数字”。</p>
-<p>是不是觉得很懵圈，这是什么垃圾玩意！哎，反正用<code>range</code>就没毛病了。</p>
-<p>如果要取第一个字“你”，用<code>chs[0]</code>是错误的，用<code>chs[0]</code>实际上访问的是前8个字节，对于ASCII字符来说自然没问题，但是其他字符就有问题了。</p>
-<p>所以要取第一个字符咋办啊？转换为rune数组啊</p>
-<p>var c &#x3D; []rune(chs)<br>fmt.Println(c[0])</p>
-<p>如果要取最后一个字符，不可以像Python一样用-1，要用<code>c[len(c)-1]</code></p>
-<p>参考阅读 <a target="_blank" rel="noopener" href="https://berryjam.github.io/2018/03/%E4%BB%8Egolang%E5%AD%97%E7%AC%A6%E4%B8%B2string%E9%81%8D%E5%8E%86%E8%AF%B4%E8%B5%B7/">《从golang字符串string遍历说起：聊聊go语言的Strings、bytes、runes和字符》</a></p>
-<p>字符串常见操作，如搜索、替换、比较基本上都包含在了strings包中；</p>
-<p>类型转换，包含在<code>strconv</code>中，如：</p>
-<p><code>Atoi</code> 字符串转数字，<code>Itoa</code>数字转字符串</p>
-<p>或者更通用，用Format数字转字符串、Parse字符串转数字类型，举例如下，注意返回两个制，第二个是err</p>
-<p>fmt.Println(strconv.ParseInt(“4567”,10,0))<br>fmt.Println(strconv.ParseInt(“10”,2,0))<br>fmt.Println(strconv.FormatInt(1234,10))</p>
-<p>第二个参数<code>base</code>为进制，</p>
-<p>一般的，<code>base</code> 的取值为 2~36，如果 <code>base</code> 的值为 0，则会根据字符串的前缀来确定 <code>base</code> 的值：”0x” 表示 16 进制； “0” 表示 8 进制；否则就是 10 进制。</p>
-<p>第三个参数<code>bitSize</code> 表示结果的位宽（包括符号位），0 表示最大位宽。8就是int8</p>
-<p>转个类型都要这么多参数，记不住咋办！，知道自己在干嘛的话，无脑00吧（(￣◇￣;)既然都无脑了，可能也不知道自己在干嘛……</p>
-<p>同理，也有<code>ParseFloat</code>，用法与这个基本一致。</p>
-<h3 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h3><p>Python中没有常量的概念，我们一般用大写表示“常量”。</p>
-<p>Golang中使用<code>const</code>定义常量，如 <code>const pi = 3.14</code>，定义多个常量可以这样</p>
-<p>const (<br>  a &#x3D; 1<br>  b<br>  c &#x3D; 3<br>  d<br>)</p>
-<p>b和d留空，意味着会取它上面的那个常量的值，也就是1和3</p>
-<p>使用常量生成器iota可以生成相关值的常量，如下代码</p>
-<p>const (<br>  a &#x3D; iota<br>  b<br>  c<br>  d<br>)</p>
-<p>值分别为0123</p>
-<p>甚至还可以这么玩，这就是有点神仙操作了</p>
-<p>const (<br>  _ &#x3D; 1 &lt;&lt; (iota * 10)<br>  KiB<br>  MiB<br>  GiB<br>)</p>
-<p>顺便说一句，定义变量的时候，<code>a:=3</code>,  <code>var a=3</code>, <code>var a int</code>的区别咱就不说了。</p>
-<h2 id="复合数据类型"><a href="#复合数据类型" class="headerlink" title="复合数据类型"></a>复合数据类型</h2><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><p>Python中，其实也是有array这种类型的，类型都是固定的，而且还可变</p>
-<p>from array import array</p>
-<p>a &#x3D; array(‘l’, [1, 2, 3, 4, 5])<br>a.append(5)<br>a[3] &#x3D; 999</p>
-<p>在上述代码中，每一个元素都要是整型。一般来说，我们会用list来表示数组，只不过list的元素可以是不同类型。</p>
-<p>Golang中，数组可以这么用，基本上看下就明白</p>
-<p>var arr1 &#x3D; [3]int{1, 2, 3}<br>var arr2 &#x3D; […]string{“a”, “b”, “c”}<br>var arr3 &#x3D; [10]int{4: -1, 3: 5}</p>
-<p>第三个声明表示，第5个元素，值是-1，第4个元素，值是5，剩下的都是0</p>
-<p>注意，数组长度也是类型的一部分，也就是说<code>[3]int</code>和<code>[4]int</code>是不同的类型。数组的长度必须在编译时就可以确定，比如说是常量（不能是变量）</p>
-<p>数组长度是不可变的。所以别想着append了，不行的?</p>
-<h3 id="切片slice"><a href="#切片slice" class="headerlink" title="切片slice"></a>切片slice</h3><p>如果想要一种长度可变的“数组”，我们就需要slice了。Slice这玩意才有点像Python的列表，只不过Slice的元素类型也要保持一致的。</p>
-<p>那么如何创建slice呢？一般来说有这么几种做法：</p>
-<ol>
-<li>从已有数组做切片，比如说<code>var s1 = arr2[:2]</code> 需要注意的是，创建一个数组的slice，就相当于创建了一个别名，改掉slice，arr也会变。</li>
-<li>用make <code>make([]int, 3, 40)</code> 3是len，40是容量。容量这个概念很容易混淆，这个切片难道塞满了40个元素就不能再塞吗？其实是能的，这个40只是为了方便内存分配和优化的。</li>
-<li>用定义创建 <code>var slice = []int&#123;1, 2, 3&#125;</code>，空slice可以<code>var sli []int</code></li>
-</ol>
-<h3 id="Slice的copy"><a href="#Slice的copy" class="headerlink" title="Slice的copy"></a>Slice的copy</h3><p>Slice的copy很魔性，究竟有多魔性呢？我们正常以为的copy，就是取而代之。但是slice的copy不是，copy会<strong>把dst的元素依顺序复制到src中，覆盖src原有元素</strong>（如果长度够的话），<strong>剩下元素保持不变</strong>。</p>
-<p>关于slice的容量，如果通过make函数创建Slice的时候指定了容量参数，那内存管理器会根据指定的容量的值先划分一块内存空间，然后才在其中存放有数组元素，多余部分处于空闲状态，在Slice上追加元素的时候，首先会放到这块空闲的内存中，如果添加的参数个数超过了容量值，内存管理器会重新划分一块容量值为原容量值*2大小的内存空间，依次类推。这个机制的好处在能够提升运算性能，因为内存的重新划分会降低性能。</p>
-<p>Slice不可以做比较。</p>
-<h3 id="字典"><a href="#字典" class="headerlink" title="字典"></a>字典</h3><p>Python中键值对的结构被称作字典dictionary，类似的数据类型还有PHP中的关联数组，实现方式为散列表，是一种用空间换时间的方便高效率查找的数据结构。</p>
-<p>Go中对应的数据结构叫做map。</p>
-<p>Python字典的键类型必须是hashable的，但是类型可以不同；值的没有限制，是啥都行。</p>
-<p>Go中map的键值需要是同一类型的，我们如下定义，就意味着key是字符串，value是整型数字</p>
-<p>var m1 &#x3D; make(map[string]int)</p>
-<p>或者直接这么用</p>
-<p>var m2 &#x3D; map[string]int{<br>  “test1”: 1,<br>  “test2”: 2,<br>}</p>
-<p>可以这么访问<code>m1[&quot;test&quot;] = 3</code>，这个方法是安全的，不会报错。这里和Python的快速失败就不一样了。</p>
-<p>如果key不在，那么会返回value的类型的默认值，对于int来说就是0，对于string来说就是””</p>
-<p>这就让人纠结了，真是的，如果要看Key在不在map中，就要多值返回，看第二个变量</p>
-<p>if _, ok :&#x3D; m2[“key”]; ok {<br>&#x2F;&#x2F;存在<br>}</p>
-<p>遍历map可以这么玩</p>
-<p>for k, v :&#x3D; range m2 {<br>  fmt.Printf(“%s -&gt; %d\n”, k, v)<br>}</p>
-<p>map不可以用&#x3D;&#x3D;做比较</p>
-<h3 id="结构体"><a href="#结构体" class="headerlink" title="结构体"></a>结构体</h3><p>和C语言的差不多，不过遵循大写导出的规则。在进行序列话、反序列化的时候要注意</p>
-<p>type Emp struct {<br>  ID int<br>  Name string<br>}</p>
-<p>这么用</p>
-<p>e1 :&#x3D; Emp{<br>  ID: 0,<br>  Name: “11a”,<br>}</p>
-<p>结构体也可以嵌套，元素可以匿名（只有类型没有变量名）</p>
-<h2 id="JSON序列化、反序列化"><a href="#JSON序列化、反序列化" class="headerlink" title="JSON序列化、反序列化"></a>JSON序列化、反序列化</h2><p>Python中，将object转换成字符串的使用<code>json.dumps</code>，称作序列化；将字符串转换为object的使用<code>json.loads</code>，称作反序列化。另外，Python还提供了两个类似的方法，分别为<code>json.dump</code>和json.load，只不过操作对象是文件。</p>
-<p>Go中，如果想要序列化、反序列化，对应的操作分别为<code>json.Marshal()</code>和<code>json.Unmarshal()</code></p>
-<p>另外，struct中只有大写的列才可以被序列化，也就是大写导出的原则</p>
-<p>type Message struct {<br>  Name string<br>  Body string<br>  Time int64<br>}<br>m :&#x3D; Message{“Alice”, “Hello”, 1294706395881547000}<br>b, _ :&#x3D; json.Marshal(m)<br>fmt.Println(b)</p>
-<p>反序列化，需要先根据json的格式，定义好相应的struct</p>
-<p>json_str :&#x3D; `{“Name”:”Alice”,”Body”:”Hello”,”Time”:123}`<br>j :&#x3D; []byte(json_str)<br>var m Message<br>err :&#x3D; json.Unmarshal(j, &amp;m)<br>fmt.Println(m)</p>
-<p>但是序列化和反序列化，要求struct为大写，那到json里的key就大写了，有的时候我们不希望这样，这时可以使用struct tags</p>
-<p>type Message struct {<br>  Name string `json:”name”` &#x2F;&#x2F;自定义字段名称<br>  Body string `json:”body,omitempty”` &#x2F;&#x2F;当值为空时，不序列化这个字段<br>  Time int64 `json:”-“` &#x2F;&#x2F;跳过这个字段<br>}</p>
-<p>m :&#x3D; Message{“Alice”, “Hello”, 1234}<br>b, _ :&#x3D; json.Marshal(m)<br>fmt.Println(string(b))</p>
-<p>假如想反序列化任意数据，那么只能用接口了。毕竟是静态语言，不能在运行时才确定嘛。</p>
-<p>b :&#x3D; []byte(`{“Name”:”Wednesday”,”Age”:6,”Parents”:[“Gomez”,”Morticia”]}`)<br>var f interface{}<br>err :&#x3D; json.Unmarshal(b, &amp;f)<br>m :&#x3D; f.(map[string]interface{})<br>k :&#x3D; m[“Parents”].([]interface{})<br>fmt.Println(m)<br>fmt.Println(k[0])</p>
-<p>同样的，如果要用文件进行序列化、反序列化操作，需要用<code>Decoder</code>和<code>Encoder</code></p>
-<p>type Post struct {<br>  Name string `json:”name”`<br>  Age int `json:”age”`<br>}<br>jsonFile, err :&#x3D; os.Open(“post.json”)<br>if err !&#x3D; nil {<br>  fmt.Println(“Error opening json file:”, err)<br>  return<br>}</p>
-<p>defer jsonFile.Close()<br>decoder :&#x3D; json.NewDecoder(jsonFile)</p>
-<p>var post Post<br>err &#x3D; decoder.Decode(&amp;post)</p>
-<p>fmt.Println(post)</p>
-<p>参考阅读</p>
-<p><a target="_blank" rel="noopener" href="https://sanyuesha.com/2018/05/07/go-json/">https://sanyuesha.com/2018/05/07/go-json/</a></p>
-<p><a target="_blank" rel="noopener" href="https://juejin.im/post/5d2eb9ae518825451f65f751">https://juejin.im/post/5d2eb9ae518825451f65f751</a></p>
-<h2 id="输入输出"><a href="#输入输出" class="headerlink" title="输入输出"></a>输入输出</h2><p>Python的cli输入输出用的是<code>input</code>和<code>print</code>，golang用输出用的是<code>fmt.Print</code>等系列，输入要复杂点，有这些方法</p>
-<p>reader :&#x3D; bufio.NewReader(os.Stdin)<br>line, _, _ :&#x3D; reader.ReadLine()<br>&#x2F;&#x2F;或者ReadString<br>text, _ :&#x3D; reader.ReadString(‘\n’)</p>
-<p>简单点直接用<code>fmt.Scan</code>也可以。</p>
-<p>读取单个字符可以用<code>reader.ReadRune()</code></p>
-<p>或者可以用scanner</p>
-<p>scanner :&#x3D; bufio.NewScanner(os.Stdin)<br>scanner.Scan()<br>fmt.Println(scanner.Text())</p>
-<p>哎妈呀太多了，反正我是记不住……估计是用的少吧</p>
-<h2 id="第三方扩展的使用"><a href="#第三方扩展的使用" class="headerlink" title="第三方扩展的使用"></a>第三方扩展的使用</h2><h3 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h3><p>在Python中，使用pip来安装标准库中没有的扩展，基本语法就是<code>pip install package_name</code>，基本上不需要操心什么。就这么一句话，就完事，就够了，嗯，简单……</p>
-<h3 id="Golang"><a href="#Golang" class="headerlink" title="Golang"></a>Golang</h3><p>在golang中，使用go get来安装第三方扩展，但是情况要特殊一些。</p>
-<p>Golang依赖一个名为<code>GOPATH</code>的环境变量，默认<code>GOPATH</code>是<code>~/go</code>。</p>
-<ul>
-<li>未使用go module</li>
-</ul>
-<p>在未使用go module的情况下，go get会把扩展下载到<code>~/go/src</code>下</p>
-<ul>
-<li>使用go module</li>
-</ul>
-<p>在1.11之后才开始支持gomodule，同时需要设置<code>GO111MODULE=on</code>或<code>auto</code></p>
-<p>在开启并使用gomodule的情况下，扩展会被下载到<code>~/go/pkg/mod</code>下；</p>
-<p>同时，你的项目需要一个<code>go.mod</code>文件来指明需要哪些扩展。</p>
-<p>如果使用GoLand的话，preferences-go-go modules即可开启。</p>
-<p>与Python类似，golang的import查找路径也是系统标准库-<code>GOPATH/src</code>或<code>pkg/mod</code>，当前工作目录。</p>
-<p>使用的话</p>
-<p>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize">https://github.com/360EntSecGroup-Skylar/excelize</a></p>
-<p>#如果需要特定版本<br>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize/v2">https://github.com/360EntSecGroup-Skylar/excelize/v2</a><br>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1">https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1</a></p>
-<p>#甚至可以特定commit<br>go get <a target="_blank" rel="noopener" href="https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1@e3702bed2">https://github.com/360EntSecGroup-Skylar/excelize@v1.1.1@e3702bed2</a></p>
-<p>前几天GO发布了1.14，go module终于被扶正了。</p>
-<p>另外，对于中国程序员来说，弄个Go Proxy还是很有必要的，毕竟都是折翼天使啊</p>
-<p>export GOPROXY&#x3D;<a target="_blank" rel="noopener" href="https://goproxy.cn/">https://goproxy.cn</a></p>
-<h2 id="包的概念"><a href="#包的概念" class="headerlink" title="包的概念"></a>包的概念</h2><h3 id="Python-1"><a href="#Python-1" class="headerlink" title="Python"></a>Python</h3><p>Python中，一个目录就是一个包，Python 3的导入使用absolute import，基本语法如下</p>
-<p>import os, platform<br>import os as myos<br>from os import *<br>from os import uname, path as path2</p>
-<p>Python中，包的名字就是目录+文件名，按照层级依次导入。比较无脑，不用思考，就是和常识相符的</p>
-<h3 id="Golang-1"><a href="#Golang-1" class="headerlink" title="Golang"></a>Golang</h3><p>import “fmt”<br>import “os”<br>import mybytes “bytes”</p>
-<p>import (<br>  “strings”<br>  “strconv”<br>)</p>
-<p>能被import的必须是可导出的，换句话说，首字母为大写</p>
-<p>Golang中，包的名字是由package关键字声明的，与文件名、路径名无关。</p>
-<p>目录的名字只与import时相关，package的名字与调用时有关。文件名与什么都无关。</p>
-<p>同一个包的话，直接写里面大写的函数就能导入进来了，不需要傻乎乎的再<code>import xxx</code></p>
-<p>另外，注意下<code>go run xxx.go</code> 、<code>go run a.go b.go</code>和<code>go run .</code>哦</p>
-<h2 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h2><p>由于Python是动态语言，所以函数参数可以不指定类型，返回值也可以不指定类型。想怎么返回就怎么返回，Type Annotation也只是警告，实际上并没有强制报错的机制。</p>
-<p>Golang是静态语言，变量的类型要在编译时就确认，因此参数和返回值是要写在原型中的，错了直接编译都过不去。</p>
-<p>最简单的示例</p>
-<p>func fun(p1, p2 int, p3 string) (string, bool) {<br>  fmt.Println(p1, p2, p3)<br>  return p3, true<br>}</p>
-<p>p1和p2都是int，p3是string，返回值为string和bool。无参和无返回值自己脑补吧。另外返回值也可以带参数哦，直接空return就行了</p>
-<p>func fun(p1, p2 int) (r1, r2 int) {<br>  r1 &#x3D; p1 * 10<br>  r2 &#x3D; p2*10 + r1<br>  return<br>}</p>
-<p>golang的函数参数既不支持默认参数，也不支持位置参数。但是可以用变长参数</p>
-<p>func fun(p1 int, p2 …int)</p>
-<p>调用时形如<code>fun(1, 2, 3, 4, 5)</code>，2345都是p2的，p2是个int的slice</p>
-<p>Golang的参数都是传值的。</p>
-<p>数字、字符串、数组、struct是非引用类型，所以函数中修改不会把原有值给改掉；指针、slice、map、chan是引用类型的，你改了，那就跟着变了。</p>
-<p>为了避免slice和map的这个特性，只能想办法做浅拷贝或深拷贝了。当然最好还是避免吧</p>
-<h2 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h2><h3 id="Python-2"><a href="#Python-2" class="headerlink" title="Python"></a>Python</h3><p>Python的异常机制就是大家都会的<code>try…except…finally</code>，可能有的时候还需要else，里面配合着if-else, for-else,while-else，简直完美啊哈哈哈?。这个很简单，人人都会……</p>
-<h3 id="Golang-2"><a href="#Golang-2" class="headerlink" title="Golang"></a>Golang</h3><p>可惜的是，golang中并没有如此明确的异常捕获机制。</p>
-<p>在golang中，有很多函数调用都会返回两个值，第一个是期待的结果，第二个是<code>err</code>，如果<code>err==nil</code>，则说明没有发生错误。</p>
-<p>类似的，golang中有一个<code>defer</code>、<code>panic</code>、<code>recover</code>，倒是有点像传统上的<code>try…except…finally</code>。</p>
-<p>go 的 defer 语句是用来延迟执行函数的，而且延迟发生在调用函数 return 之后，比如</p>
-<p>func a() int {<br>  defer b()<br>  return 0<br>}</p>
-<p><code>return 0</code>执行完了之后，b才执行。</p>
-<p><code>defer</code>一般用于清理资源，功能上Python里的<code>with</code></p>
-<p><code>recover</code>则更像是Python中的<code>except</code>，<code>panic</code>则是<code>raise</code></p>
-<p>func fun() {<br>  if ok :&#x3D; recover(); ok !&#x3D; nil {<br>    fmt.Println(“recover”)<br>  }<br>}</p>
-<p>func main() {<br>  defer fun()<br>  panic(“error”)<br>}</p>
-<p>多个defer，defer从下到上执行。</p>
-<p>这玩意到底咋用，反正记住了，defer是这个函数执行完了，再走的它。recover举一个例子</p>
-<p><img src="/images/2020030819595467.png"></p>
-<p>Panic就不说了。</p>
-<h2 id="并发"><a href="#并发" class="headerlink" title="并发"></a>并发</h2><p>Python中如果要进行并发操作，我们一般会根据情况应用多进程、多线程，甚至会用上celery这类。Golang中，我们用go routine，用起来很简单，函数前加一个go关键字就可以了。</p>
-<p>func compute(value int) {<br>  for i :&#x3D; 0; i &lt; value; i++ {<br>    time.Sleep(time.Second)<br>    fmt.Println(i)<br>  }<br>}</p>
-<p>func main() {<br>  fmt.Println(“Goroutine Tutorial”)</p>
-<p>  go compute(3)<br>  go compute(3)</p>
-<p>  fmt.Scanln()<br>}</p>
-<p>当然，并发之后的这些goroutine如何控制，那就是context的事情了。咱也暂时不明白</p>
-<h3 id="通道channel"><a href="#通道channel" class="headerlink" title="通道channel"></a>通道channel</h3><p>如果goroutine想要通信，那么就要用channel啦。</p>
-<p>func CalculateValue(values chan int) {<br>  value :&#x3D; rand.Intn(10)<br>  fmt.Println(“Calculated Random Value: {}”, value)<br>  values &lt;- value<br>}</p>
-<p>func main() {<br>  fmt.Println(“Go Channel Tutorial”)</p>
-<p>  values :&#x3D; make(chan int)<br>  defer close(values)</p>
-<p>  go CalculateValue(values)</p>
-<p>  value :&#x3D; &lt;-values<br>  fmt.Println(value)<br>}</p>
-<p>总结下</p>
-<p>&#x2F;&#x2F; 创建int类型的通道<br>myChannel :&#x3D; make(chan int)</p>
-<p>&#x2F;&#x2F;把通道作为参数调用<br>go CalculateValue(myChannel)</p>
-<p>&#x2F;&#x2F; 把value变量的值送给chan<br>channel &lt;- value</p>
-<p>&#x2F;&#x2F;取值，复制给value变量<br>value :&#x3D; &lt;- channel</p>
-<p>需要注意的是，这种channel是阻塞的，被称作“无缓冲通道”。解释一下，默认的无缓冲通道，一个go routine向通道中发送了数据，那么这个goroutine就会被阻塞，下面的代码都会等待执行，直到另外一个goroutine从通道中取值为止。同理，如果一方先收了，那么也会阻塞直到另外的goroutine发送，因此无缓冲通道也可以称作同步通道。</p>
-<p>那咋办啊，假如还想射后不理，那就需要用到缓冲通道。</p>
-<p>bufferedChannel :&#x3D; make(chan int, 3)</p>
-<p>满了之后，当然就是继续阻塞啦。</p>
-<p>巧妙的，我利用了通道的阻塞的这个特性，为WebP Server增加Prefetch使用CPU核心数的限制，注意看23、24和42行，也不知道这算不算是正经的用法</p>
-<p><img src="/images/2020030819595599.png"></p>
-<h2 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h2><p>Go 语言提供了另外一种数据类型即接口，它把所有的具有共性的方法定义在一起，任何其他类型只要实现了这些方法就是实现了这个接口。</p>
-<p>反正我是没怎么看懂……</p>
-<p>package main</p>
-<p>import “fmt”</p>
-<p>&#x2F;&#x2F; 实现一个鸭子<br>type Duck interface {<br>  Swim() &#x2F;&#x2F; 游泳<br>  Feathers() &#x2F;&#x2F; 羽毛<br>}</p>
-<p>&#x2F;&#x2F; 实现一个会叫的鸭子，因为嵌入了Duck，所以也有swim和feathers方法<br>type QuackDuck interface {<br>  Quack() &#x2F;&#x2F; 嘎嘎叫<br>  Duck &#x2F;&#x2F; 嵌入接口<br>}</p>
-<p>&#x2F;&#x2F;真实鸭子的实现<br>type RealDuck struct{}</p>
-<p>func (RealDuck) Swim() {<br>  fmt.Println(“用鸭璞向后划水”)<br>}</p>
-<p>func (RealDuck) Feathers() {<br>  fmt.Println(“遇到水也不会湿的羽毛”)<br>}</p>
-<p>func (RealDuck) Quack() {<br>  fmt.Println(“嘎~ 嘎~ 嘎~”)<br>}</p>
-<p>&#x2F;&#x2F; 玩具鸭的实现<br>type ToyDuck struct{}</p>
-<p>func (ToyDuck) Swim() {<br>  fmt.Println(“以固定的速度向前移动”)<br>}</p>
-<p>func (ToyDuck) Feathers() {<br>  fmt.Println(“白色的固定的塑料羽毛”)<br>}</p>
-<p>func main() {<br>var duck1 Duck<br>duck1 &#x3D; RealDuck{}<br>duck1.Swim()<br>duck1.Feathers()</p>
-<p>&#x2F;&#x2F;duck1.Quack() &#x2F;&#x2F;报错，Duck没有Quack方法</p>
-<p>var duck2 Duck<br>duck2 &#x3D; ToyDuck{}<br>duck2.Swim()<br>duck2.Feathers()<br>&#x2F;&#x2F;duck2.Quack() &#x2F;&#x2F;报错，Duck没有Quack方法</p>
-<p>var duck3 QuackDuck<br>duck3 &#x3D; RealDuck{}<br>duck3.Swim()<br>duck3.Feathers()<br>duck3.Quack()</p>
-<p>var duck4 QuackDuck<br>duck4 &#x3D; ToyDuck{} &#x2F;&#x2F;类型错误<br>duck4.Swim()<br>duck4.Feathers()<br>duck4.Quack()<br>}</p>
-<p><a target="_blank" rel="noopener" href="https://blog.biezhi.me/2019/01/learn-golang-interfaces.html">https://blog.biezhi.me/2019/01/learn-golang-interfaces.html</a></p>
-<h2 id="OOP"><a href="#OOP" class="headerlink" title="OOP"></a>OOP</h2><p>Golang其实并不是那么严格的面向对象的语言，不过struct中嵌入其他struct，就很接近class这个概念了。准确的来说，这种特性是组合，而不是继承。</p>
-<p>定义方法时，格式是这样的 func (结构体名) 方法名{}，比如<code>func (c Cat) sleep()</code></p>
-<p>package main</p>
-<p>import (<br>  “fmt”<br>  “strconv”<br>)</p>
-<p>&#x2F;&#x2F; 动物类<br>type Animal struct {<br>  name string<br>  subject string<br>}</p>
-<p>&#x2F;&#x2F; 动物的公共方法<br>func (a *Animal) eat(food string) {<br>  fmt.Println(a.name + “喜欢吃：” + food + “,它属于:” + a.subject)<br>}</p>
-<p>&#x2F;&#x2F; 猫类，继承动物类<br>type Cat struct {<br>  &#x2F;&#x2F; 继承动物的属性和方法<br>  Animal<br>  &#x2F;&#x2F; 猫自己的属性<br>  age int<br>}</p>
-<p>&#x2F;&#x2F; 猫类独有的方法<br>func (c Cat) sleep() {<br>  fmt.Println(c.name + “ 今年” + strconv.Itoa(c.age) + “岁了,特别喜欢睡觉”)<br>}</p>
-<p>func main() {<br>  &#x2F;&#x2F; 创建一个动物类<br>  animal :&#x3D; Animal{name: “动物”, subject: “动物科”}<br>  animal.eat(“肉”)</p>
-<p>  &#x2F;&#x2F; 创建一个猫类<br>  cat :&#x3D; Cat{Animal: Animal{name: “咪咪”, subject: “猫科”}, age: 1}<br>  cat.eat(“鱼”)<br>  cat.sleep()<br>}</p>
-<p>反正我也没咋弄明白……参考阅读</p>
-<p><a target="_blank" rel="noopener" href="https://learnku.com/articles/32295">https://learnku.com/articles/32295</a></p>
-<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><p>Python中，对文件进行操作，使用open打开，配合不同的操作模式，然后使用read、write方法进行读写。</p>
-<p>Golang中，对文件操作最简单的可以使用io&#x2F;ioutil</p>
-<p>&#x2F;&#x2F;读：<br>data, _ :&#x3D; ioutil.ReadFile(“test.txt”)<br>&#x2F;&#x2F;写：<br>content :&#x3D; []byte(“hello word 你好真好”)<br>err :&#x3D; ioutil.WriteFile(“test.txt”, content, 0755)<br>if err !&#x3D; nil {<br>  fmt.Println(err)<br>}</p>
-<p>文件不存在，会创建；存在，覆盖。</p>
-<p>如果我们想追加的话，可以这样</p>
-<p>f, _ :&#x3D; os.OpenFile(“test.txt”, os.O_APPEND|os.O_WRONLY, 0777)<br>f.WriteString(“hello1234”)<br>f.Close()</p>
-<p>第二个参数指定文件模式。想要一行一行的读，那么用bufio里的Read系列（<code>ReadBytes</code>、<code>ReadString</code> 和 <code>ReadLine</code>）就可以了，不过要特别注意换行符的问题</p>
-<p>f, _ :&#x3D; os.Open(“test.txt”)<br>b:&#x3D;bufio.NewReader(f)<br>for {<br>  a, _, c :&#x3D; b.ReadLine()<br>  if c &#x3D;&#x3D; io.EOF {<br>    break<br>  }<br>fmt.Println(string(a))<br>}</p>
-<p>当然了， 有一个非常严重的问题：golang假定所读的文件都是UTF-8编码的，所以在windows下如果这么读一个记事本创建的文本文档，那自然就乱码了。</p>
-<p>需要这几个库</p>
-<p>golang.org&#x2F;x&#x2F;text&#x2F;transform</p>
-<p>golang.org&#x2F;x&#x2F;text&#x2F;encoding&#x2F;simplifiedchines</p>
-<p>可以用<code>transform.NewReader</code>进行操作</p>
-<p>f, _ :&#x3D; os.Open(“test.txt”)<br>r :&#x3D; transform.NewReader(f, simplifiedchinese.GBK.NewDecoder())<br>d, _ :&#x3D; ioutil.ReadAll(r)<br>fmt.Println(string(d))</p>
-<p>也可以这样先读成bytes，然后再转</p>
-<p>b, _ :&#x3D; ioutil.ReadFile(“test.txt”)<br>reader :&#x3D; transform.NewReader(bytes.NewReader(b), simplifiedchinese.GBK.NewDecoder())<br>d, _ :&#x3D; ioutil.ReadAll(reader)<br>fmt.Println(string(d))</p>
-<h2 id="目录操作"><a href="#目录操作" class="headerlink" title="目录操作"></a>目录操作</h2><p>Python中，目录操作，包括创建，重命名，改变权限等可以用os模块，路径相关操作可以用<code>os.path</code>或者是<code>pathlib</code>。</p>
-<p>Golang中，对目录操作，基本上也可以应用os模块。</p>
-<p>对路径操作，基本上用<code>path/filepath</code>就差不多了</p>
-<p>基本上看到就能猜到什么意思。</p>
-<p><code>Dir</code>获取目录名，<code>base</code>获取文件名，<code>Join</code>拼接路径，<code>filepath.Separator</code>是换行符，<code>Split</code>把路径分割成文件和目录，<code>Clean</code>规范化路径，去掉多余的&#x2F;什么的</p>
-<p>咋获取当前目录啊？<code>os.Args</code>里就有啦。f<code>ilepath.Abs(filepath.Dir(os.Args[0]))</code>就成。</p>
-<h2 id="时间日期标准库"><a href="#时间日期标准库" class="headerlink" title="时间日期标准库"></a>时间日期标准库</h2><p>Python中，如果要进行时间相关的操作，一般会应用time标准库。基本上常用的操作就是字符串-时间互相转换，获取当前时间戳，把时间戳转换成日期，把日期转换为时间戳。</p>
-<p>Golang中也有一个time库，基本用法总结下</p>
-<p>&#x2F;&#x2F;显示当前时间戳<br>time.Now().Unix()</p>
-<p>&#x2F;&#x2F;时间戳转换成time结构<br>time.Unix(10,0)</p>
-<p>&#x2F;&#x2F;字符串转日期，需要注意Parse在缺少时区信息时，会默认0时区，所以会差8小时<br>time.Parse(“2006-01-02 15:04:05”, “2020-02-01 14:08:00”)</p>
-<p>&#x2F;&#x2F;要想不差8小时，那咱就<br>time.ParseInLocation(“2006-01-02 15:04:05”, “2020-02-01 14:08:00”,time.Local)</p>
-<p>这就没问题了。<code>2006-01-02 15:04:05</code>是固定格式，类似传统的ymdhms，记不住啊记不住啊！</p>
-<p>日期转换为字符串</p>
-<p>t.Format(“今天是2006年”)</p>
-<p>附带功能</p>
-<p><code>time.Now()</code>附带了<code>After</code>、<code>Before</code>、<code>Sub</code>、<code>Add</code>等方法，方便时间运算</p>
-<h2 id="执行系统命令"><a href="#执行系统命令" class="headerlink" title="执行系统命令"></a>执行系统命令</h2><p>Python里这个方法很多，<code>os.system()</code>，<code>subprocess</code>等等。Golang有一个<code>exec</code></p>
-<p>out, _ :&#x3D; exec.Command(“ls”).Output()<br>fmt.Println(string(out))</p>
-<h2 id="Web框架"><a href="#Web框架" class="headerlink" title="Web框架"></a>Web框架</h2><p>在用Python的时候，我一般会选择tornado作为web框架，主要原因就是tornado的性能比较好，支持异步非阻塞，并且可以很方便的通过self来进行各种操作。Golang的web框架也很多，比如说beego，echo，gin。</p>
-<p>当然了，golang自带的<code>net/http</code>模块本身本身提供了很多功能，我们可以应用它创建一个web服务器，如下代码即可</p>
-<p>func IndexHandler(w http.ResponseWriter, r *http.Request) {<br>  fmt.Fprintln(w, “hello world”)<br>}</p>
-<p>func main() {<br>  http.HandleFunc(“&#x2F;“, IndexHandler)<br>  err :&#x3D; http.ListenAndServe(“127.0.0.1:8000”, nil)<br>  fmt.Println(err)<br>}</p>
-<p>经过一些纠结，我选择了gin……</p>
-<h3 id="基础用法"><a href="#基础用法" class="headerlink" title="基础用法"></a>基础用法</h3><p>package main</p>
-<p>import “github.com&#x2F;gin-gonic&#x2F;gin”</p>
-<p>func main() {<br>  r :&#x3D; gin.Default()<br>  r.GET(“&#x2F;ping”, func(c *gin.Context) {<br>    c.JSON(200, gin.H{<br>        “message”: “pong”,<br>  })<br> })</p>
-<p>  r.Run() &#x2F;&#x2F; listen and serve on 0.0.0.0:8080 (for windows “localhost:8080”)<br>}</p>
-<p>这里r.GET就是路由，后面这里用了匿名函数，当然不想用匿名函数也成。</p>
-<p>如果要支持其他http方法，那就这样</p>
-<p>r.POST(“&#x2F;ping”,ping)</p>
-<h3 id="返回数据"><a href="#返回数据" class="headerlink" title="返回数据"></a>返回数据</h3><p><code>c.String, c.JSON等</code></p>
-<h3 id="获取url参数"><a href="#获取url参数" class="headerlink" title="获取url参数"></a>获取url参数</h3><ul>
-<li>Get参数</li>
-</ul>
-<p>c.Query(key)</p>
-<ul>
-<li>post参数</li>
-</ul>
-<p>c.PostForm(“name”)</p>
-<ul>
-<li>上传文件</li>
-</ul>
-<p>file, _ :&#x3D; c.FormFile(“file”)<br>err :&#x3D; c.SaveUploadedFile(file, file.Filename)</p>
-<ul>
-<li>获取raw body</li>
-</ul>
-<p>c.GetRawData()</p>
-<ul>
-<li>静态文件</li>
-</ul>
-<p>router.Static(“&#x2F;assets”, “.&#x2F;assets”)<br>router.StaticFS(“&#x2F;more_static”, http.Dir(“my_file_system”))<br>router.StaticFile(“&#x2F;favicon.ico”, “.&#x2F;resources&#x2F;favicon.ico”)</p>
-<ul>
-<li>http重定向</li>
-</ul>
-<p>c.Redirect(http.StatusMovedPermanently, “<a target="_blank" rel="noopener" href="http://www.google.com/">http://www.google.com/</a>“)</p>
-<ul>
-<li>路由重定向</li>
-</ul>
-<p>c.Request.URL.Path &#x3D; “&#x2F;test2”<br>r.HandleContext(c)</p>
-<ul>
-<li>cookie</li>
-</ul>
-<p>cookie, err :&#x3D; c.Cookie(“gin_cookie”)<br>c.SetCookie(“gin_cookie”, “test”, 3600, “&#x2F;“, “localhost”, http.SameSiteLaxMode, false, true)</p>
-<h2 id="Requests"><a href="#Requests" class="headerlink" title="Requests"></a>Requests</h2><p>Python中，我们一般使用requests获取http资源，当然用urllib也可以，只不过稍微有些繁琐</p>
-<p>同理，golang的net&#x2F;http库已经提供了最基础的操作。</p>
-<p>resp, _ :&#x3D; http.Get(“<a href="http://example.com/">http://example.com/</a>“)<br>data, _ :&#x3D; ioutil.ReadAll(resp.Body)<br>fmt.Println(string(data))<br>resp.Body.Close()</p>
-<p>啊对了，如果返回的是json的话，<code>resp.Body</code>可以直接被<code>Unmarshal</code>的哦</p>
-<p>还有一个人封装的grequests，用起来也不错</p>
-<p>&#x2F;&#x2F;发get<br>resp, err :&#x3D; grequests.Get(“<a target="_blank" rel="noopener" href="http://httpbin.org/get">http://httpbin.org/get</a>“, nil)<br>if err !&#x3D; nil {<br>  log.Fatalln(“Unable to make request: “, err)<br>}</p>
-<p>fmt.Println(resp.String())</p>
-<p>&#x2F;&#x2F;发post<br>d :&#x3D; grequests.RequestOptions{<br>Data: map[string]string{“hello”: “world”},<br>}<br>resp, err :&#x3D; grequests.Post(“<a target="_blank" rel="noopener" href="http://httpbin.org/post">http://httpbin.org/post</a>“, &amp;d)<br>if err !&#x3D; nil {<br>  log.Fatalln(“Unable to make request: “, err)<br>}</p>
-<p>fmt.Println(resp.String())</p>
-<p>文档<a target="_blank" rel="noopener" href="https://pkg.go.dev/github.com/levigross/grequests">https://pkg.go.dev/github.com/levigross/grequests</a></p>
-<h2 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h2><p>Python连接MySQL我们一般用pymysql，建立连接，获取游标，执行查询。Golang也基本差不多，需要提前安装这个模块<code>go get -u github.com/go-sql-driver/mysql</code></p>
-<p>import (<br>“database&#x2F;sql”<br>“fmt”</p>
-<p>_ “github.com&#x2F;go-sql-driver&#x2F;mysql”<br>)</p>
-<p>建立连接，典型的连接是这样的，当然有些参数是可以省略的。</p>
-<p>db, _ :&#x3D; sql.Open(“mysql”, “root:root@tcp(127.0.0.1:3306)&#x2F;test?charset&#x3D;utf8mb4”)<br>defer db.Close()</p>
-<p>&#x2F;&#x2F;插入，直接这样参数化查询，返回一个result，一个error<br>db.Exec(“INSERT INTO user VALUES (?,?)”, “Benny”, 18)<br>&#x2F;&#x2F;或者下面这这样用prepare，没啥区别<br>stmt, _ :&#x3D; db.Prepare(“INSERT INTO user VALUES (?,?)”)<br>stmt.Exec(“Amy”, 19)</p>
-<p>&#x2F;&#x2F; 删除，可以这么玩<br>db.Exec(“DELETE FROM user WHERE name&#x3D;?”, “Amy”)<br>&#x2F;&#x2F; 修改，我猜你已经猜到了吧<br>db.Exec(“UPDATE user SET age&#x3D;? WHERE name&#x3D;?”, 19, “Benny”)</p>
-<p>&#x2F;&#x2F; 查询，Query用于返回结果集，上面的Exec就不能在这里用了，可以想象成Python的execute之后再fetch<br>data, _ :&#x3D; db.Query(“select version();”)<br>for data.Next() {<br>  var v string<br>  data.Scan(&amp;v)<br>  fmt.Println(v)<br>}</p>
-<p>&#x2F;&#x2F; 再举一个例子?，查询一个表的数据，这个时候我们如果定义struct就更好了是吧<br>type User struct {<br>  name string<br>  age int<br>}<br>data, _ :&#x3D; db.Query(“SELECT * FROM user”)<br>var s []User<br>for data.Next() {<br>  var user User<br>  data.Scan(&amp;user.name, &amp;user.age)<br>  s &#x3D; append(s, user)<br>}<br>fmt.Println(s)</p>
-<p>插入的时候想要用类似pymysql的<code>executemany</code>？不好意思，得自己实现了</p>
-<p>如果需要事务，那么可以这样</p>
-<p>tx, _ :&#x3D; db.Begin()<br>tx.Exec(“INSERT INTO image VALUES (?,?)”, “abc”, “def”)</p>
-<p>tx.Commit()<br>tx.Rollback()</p>
-<h2 id="MongoDB"><a href="#MongoDB" class="headerlink" title="MongoDB"></a>MongoDB</h2><p>MongoDB官方维护了一个mongo-go-driver，使用<code>go get go.mongodb.org/mongo-driver</code>即可安装</p>
-<p>Golang毕竟还是静态类型的语言，因此用mongodb还是有点折磨人的?</p>
-<h3 id="连接数据库"><a href="#连接数据库" class="headerlink" title="连接数据库"></a>连接数据库</h3><p>用起来，这样就建立了到数据库的连接</p>
-<p>ctx, _ :&#x3D; context.WithTimeout(context.Background(), 2*time.Second)<br>client, err :&#x3D; mongo.Connect(ctx, options.Client().ApplyURI(“mongodb:&#x2F;&#x2F;localhost:27017”))<br>if err !&#x3D; nil {<br>  fmt.Println(err)<br>}</p>
-<p>defer client.Disconnect(ctx)</p>
-<p>这个URI，实际上就是mongodb的<a target="_blank" rel="noopener" href="https://docs.mongodb.com/manual/reference/connection-string/">连接字符串</a>，定义如下</p>
-<p>mongodb:&#x2F;&#x2F;[username:password@]host1[:port1][,…hostN[:portN]][&#x2F;[database][?options]]</p>
-<p>举例如下，如果数据库带认证，那么就要选择2和3了。</p>
-<p>mongodb:&#x2F;&#x2F;mongodb0.example.com:27017&#x2F;admin<br>mongodb:&#x2F;&#x2F;myDBReader:D1fficultP%<a href="mailto:&#52;&#x30;&#115;&#x73;&#x77;&#x30;&#114;&#100;&#64;&#x6d;&#x6f;&#x6e;&#103;&#111;&#x64;&#x62;&#48;&#46;&#x65;&#120;&#x61;&#x6d;&#112;&#108;&#x65;&#x2e;&#99;&#x6f;&#x6d;">&#52;&#x30;&#115;&#x73;&#x77;&#x30;&#114;&#100;&#64;&#x6d;&#x6f;&#x6e;&#103;&#111;&#x64;&#x62;&#48;&#46;&#x65;&#120;&#x61;&#x6d;&#112;&#108;&#x65;&#x2e;&#99;&#x6f;&#x6d;</a>:27017&#x2F;admin<br>mongodb:&#x2F;&#x2F;user:<a href="mailto:&#x70;&#97;&#115;&#x73;&#x77;&#111;&#x72;&#x64;&#64;&#101;&#x78;&#x61;&#109;&#112;&#x6c;&#101;&#x2e;&#99;&#x6f;&#x6d;">&#x70;&#97;&#115;&#x73;&#x77;&#111;&#x72;&#x64;&#64;&#101;&#x78;&#x61;&#109;&#112;&#x6c;&#101;&#x2e;&#99;&#x6f;&#x6d;</a>&#x2F;?authSource&#x3D;the_database&amp;authMechanism&#x3D;SCRAM-SHA-1”</p>
-<p>连接成功之后，我们需要选择数据库，选择集合</p>
-<p>db:&#x3D;client.Database(“go”)<br>accountCol:&#x3D;db.Collection(“account”)</p>
-<h3 id="bson"><a href="#bson" class="headerlink" title="bson"></a>bson</h3><p>之后这个col就可以让我们操作数据库了，但是我们需要提前熟悉一下golang中的bson</p>
-<p>总共有4种类型，分别为DMAE</p>
-<p>D表示BSON文档，有序kv</p>
-<p>M与D相同，只是无序</p>
-<p>A数组</p>
-<p>E单个文档，只能有一对kv</p>
-<p>d :&#x3D; bson.D{<br>  {“Name”, “mark”},<br>  {“Age”, 12},<br>}<br>fmt.Println(d)</p>
-<p>&#x2F;&#x2F; bson.M是一个map 无序的key-value集合，在不要求顺序的情况下可以替代bson.D<br>m :&#x3D; bson.M{<br>  “name”: “mark”,<br>  “age”: 12,<br>}<br>fmt.Println(m)</p>
-<p>&#x2F;&#x2F; bson.A 是一个数组<br>a :&#x3D; bson.A{<br>  “jack”, “rose”, “jobs”,<br>}<br>fmt.Println(a)</p>
-<p>&#x2F;&#x2F; bson.E是只能包含一个key-value的map<br>e :&#x3D; bson.E{<br>  “name”, “mark”,<br>}<br>fmt.Println(e)</p>
-<h3 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h3><p>查找一个，用<code>FindOne</code>就够了，第二个参数是查询条件，当然了我们要decode给一个定义好的变量</p>
-<p>var result Account<br>col.FindOne(ctx, bson.D{}).Decode(&amp;result)<br>fmt.Println(result)</p>
-<h3 id="查询多个"><a href="#查询多个" class="headerlink" title="查询多个"></a>查询多个</h3><p>var results []Account<br>cur, _ :&#x3D; col.Find(ctx, bson.D{})<br>for cur.Next(ctx) {<br>  var result Account<br>  cur.Decode(&amp;result)<br>  results &#x3D; append(results, result)<br>}<br>cur.Close(ctx)<br>fmt.Println(results)</p>
-<h3 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h3><p>var data&#x3D;Account{<br>  Name: “Sally”,<br>  Age: 12,<br>  Gender: “female”,<br>}<br>col.InsertOne(ctx,data)</p>
-<h3 id="插入多个"><a href="#插入多个" class="headerlink" title="插入多个"></a>插入多个</h3><p>var data &#x3D; []interface{}{<br>  Account{<br>    Name: “Benny2”,<br>    Age: 10,<br>    Gender: “1”,<br>  },<br>  Account{<br>    Name: “Benny3”,<br>    Age: 40,<br>    Gender: “12”,<br>  },<br>}<br>col.InsertMany(ctx, data)</p>
-<h3 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h3><p>col.UpdateOne(ctx,<br>  bson.M{“name”: “Benny”},<br>  bson.M{“$set”: bson.M{“name”: “Benny!”}},<br>)</p>
-<p>col.UpdateMany(ctx,<br>  bson.M{“name”: “Benny!”},<br> bson.M{“$set”: bson.M{“age”: 14}},<br>)</p>
-<h3 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h3><p>col.ReplaceOne(ctx,<br>  bson.M{“name”: “Sally”},<br>  bson.D</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/03/08/from-pyhon-to-go/index/" data-id="clhp7rtgc002zs2qr16t03p0j" data-title="Python程序员的Golang学习笔记" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-flying-webp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/03/01/flying-webp/index/" class="article-date">
-  <time class="dt-published" datetime="2020-03-01T00:00:00.000Z" itemprop="datePublished">2020-03-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/03/01/flying-webp/index/">个人网站无缝切换图片到webp</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>咱都知道，webp是一种非常优秀的图片格式，相比较png&#x2F;jpg，webp的图片体积要小，图像质量却基本没有什么下降。网站如果使用webp，那么自然也会减少图片文件的加载时间。</p>
-<p>大部分发行版里都应该有个工具叫做cwebp，咱可以用cwebp转换下看下具体效果</p>
-<p>~&#x2F;Downloads&#x2F;test cwebp yui.png -q 80 -o result.webp</p>
-<h1 id="省略若干提示信息"><a href="#省略若干提示信息" class="headerlink" title="省略若干提示信息"></a>省略若干提示信息</h1><p>~&#x2F;Downloads&#x2F;test ls -lh<br>total 8160<br>-rw-r–r– 1 benny staff 335K Mar 1 20:06 result.webp<br>-rw-r--r--@ 1 benny staff 3.7M May 2 2019 yui.png</p>
-<p>新文件大概是原来的8%左右，是不是很优秀！</p>
-<p>但是如果一个一个转……聪明的你可能想要写个脚本递归转换，然后还要相应的修改数据库什么的，这样可是有点麻烦呢。那么有没有什么直接的方式呢？这就好像是，开飞机没油了，只能找个机场落地加油，然后再起飞。能不能像下面这张图这样子?？</p>
-<p><img src="/images/2020030120431833.jpeg"></p>
-<p>这种技术呢，叫做空中加油。你看，咱都不用落地就能加油。On-the-fly哦</p>
-<p>那么我们的……答案当然是有的啦??那就是本文的重点，这个工具就是由<a target="_blank" rel="noopener" href="https://nova.moe/">Nova童鞋</a>、<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>、<a target="_blank" rel="noopener" href="https://blog.0xbbc.com/">cocoa</a>以及Benny小盆友一起鼓捣的webp_server_go啦！</p>
-<p>不如先看看这里吧??</p>
-<p><a target="_blank" rel="noopener" href="https://webp.sh/#/">https://webp.sh/#/</a> </p>
-<p>放心，从[caniuse](<a target="_blank" rel="noopener" href="https://caniuse.com/">https://caniuse.com/</a>“ \l “search&#x3D;webp)的统计来看，主流浏览器都支持webp了，如果遇到Safari这样的奇葩，咱直接返回了原图</p>
-<p><img src="/images/2020030120431998.png"></p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>使用方法很简单哦，<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go/releases">从这里下载binary</a>（或者自己build也行，deb和rpm也会稍后提供），创建如下json配置文件</p>
-<p>{<br>“HOST”: “127.0.0.1”,<br>“PORT”: “3333”,<br>“QUALITY”: “80”,<br>“IMG_PATH”: “&#x2F;path&#x2F;to&#x2F;pics”,<br>“ALLOWED_TYPES”: [“jpg”,”png”,”jpeg”]<br>}</p>
-<p>每一个配置项都很容易懂懂吧！如果不需要监听公网，那<code>HOST</code>就写127，藏在nginx后面。<code>ALLOWED_TYPES</code>是转换的图片类型，实际上目前最多用的也就是jpg和png了，暂时还未添加对bmp对支持。</p>
-<p>我用WordPress，那么IMG_PATH就可以写<code>/var/www/html</code>这种，不用写到<code>wp-content/uploads</code>哦。</p>
-<p>然后</p>
-<p>.&#x2F;webp-server -config &#x2F;path&#x2F;to&#x2F;config.json</p>
-<p>Ok! 你的3333端口已经被我接管了。接下来配置下nginx什么的，比如WordPress可以这么配置，在server段中哦</p>
-<p>location ^~ &#x2F;wp-content&#x2F;uploads&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3333/">http://127.0.0.1:3333</a>;<br>}</p>
-<p>然后就可以起飞啦！</p>
-<p>哦对了，不用担心，一张图片只会被转换一次，除非原图片变了，才会重新转换。</p>
-<p>[v_blue]?呃……就是个转换图片的东西……？ ?‍♀️No, it’s more than that.[&#x2F;v_blue]</p>
-<h2 id="持久运行"><a href="#持久运行" class="headerlink" title="持久运行"></a>持久运行</h2><p>都知道，session和shell是绑定的，所以总不能一直开着终端吧？那么简单的话，我们可以用screen来解决这个问题</p>
-<p>screen -S webp<br>.&#x2F;webp-server –config &#x2F;path&#x2F;to&#x2F;config.json</p>
-<p>甚至我们可以使用systemd</p>
-<p>cp init&#x2F;webps.service &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;<br>systemctl daemon-reload<br>systemctl enable webps.service<br>systemctl start webps.service</p>
-<h2 id="预缓存功能"><a href="#预缓存功能" class="headerlink" title="预缓存功能"></a>预缓存功能</h2><p>咱可能是有很多图片的，如果收到请求的时候去转换，那么其实会慢的，那怎么办！</p>
-<p><code>./webp-server --prefetch</code>，这样就会帮你预先转换图片哦！到时候请求来了直接返回，经济方便又实惠。</p>
-<p>批量转换进行中</p>
-<p><img src="/images/202003012043237.png"></p>
-<p>臣妾无法转换php文件为webp呀?️</p>
-<p>转换时，你的CPU处于被支配的痛苦中……</p>
-<p><img src="/images/2020030120432442.png"></p>
-<h2 id="使用效果图"><a href="#使用效果图" class="headerlink" title="使用效果图"></a>使用效果图</h2><p><img src="/images/2020030120432636.png"></p>
-<h2 id="benchmark"><a href="#benchmark" class="headerlink" title="benchmark"></a>benchmark</h2><h3 id="用老婆照片做benchmark"><a href="#用老婆照片做benchmark" class="headerlink" title="用老婆照片做benchmark"></a>用老婆照片做benchmark</h3><p>179张，各式各样的壁纸</p>
-<p>这个是原图</p>
-<p><img src="/images/2020030120432648.png"></p>
-<p>这个是转换之后的大小，大概只有原来的13%</p>
-<p><img src="/images/2020030120432797.png"></p>
-<h3 id="1-4M"><a href="#1-4M" class="headerlink" title="1-4M"></a>1-4M</h3><p>（感谢<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>提供的图片）</p>
-<p>压缩比为9.3%</p>
-<p><img src="/images/2020030120432897.png"></p>
-<h3 id="4-32M"><a href="#4-32M" class="headerlink" title="4-32M"></a>4-32M</h3><p>压缩比为6.7%</p>
-<p><img src="/images/2020030120433042.png"></p>
-<h3 id="500K-1M"><a href="#500K-1M" class="headerlink" title="500K-1M"></a>500K-1M</h3><p>14.68%</p>
-<p><img src="/images/2020030120433161.png"></p>
-<h3 id="500K"><a href="#500K" class="headerlink" title="500K"></a>500K</h3><p>23.3%</p>
-<p><img src="/images/2020030120433299.png"></p>
-<h3 id="手机拍摄的人像"><a href="#手机拍摄的人像" class="headerlink" title="手机拍摄的人像"></a>手机拍摄的人像</h3><p>小部分是Pixel 3拍摄的，剩下是其他手机&#x2F;相机拍摄的人像。</p>
-<p>16%</p>
-<p><img src="/images/202003012043334.png"></p>
-<p>所以基本上，大概图片大小会变为原来的20%左右。</p>
-<h2 id="嗯哼？"><a href="#嗯哼？" class="headerlink" title="嗯哼？"></a>嗯哼？</h2><p>欢迎star、fork！欢迎提出建议，功能优化等等，不过建议使用英文哦！</p>
-<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p>开源地址： <a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go">https://github.com/webp-sh/webp_server_go</a> 官方网站：<a target="_blank" rel="noopener" href="https://webp.sh/">https://webp.sh/</a></p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp/_server/_go'/]%E5%BF%AB%E6%9D%A5%E6%88%B3%E7%AB%A0%E9%B1%BC%E7%8C%AB/[/gt/]">https://github.com/webp-sh/webp\_server\_go&#39;\]快来戳章鱼猫\[/gt\]</a></p>
-<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://nova.moe/re-introduce-webp-server/">让站点图片加载速度更快——引入 WebP Server 无缝转换图片为 WebP</a> ??‍♂️</p>
-<p><a target="_blank" rel="noopener" href="https://await.moe/2020/02/webp-server-in-rust/">WebP Server in Rust、</a><a target="_blank" rel="noopener" href="https://await.moe/2020/02/note-about-encountered-memory-changes-for-no-reason-in-golang/">记 Golang 下遇到的一回「毫无由头」的内存更改</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/03/01/flying-webp/index/" data-id="clhp7rtgb002ws2qr19dt6gr9" data-title="个人网站无缝切换图片到webp" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/5/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/7/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/5/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/7/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1447,7 +1224,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1460,23 +1237,23 @@
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

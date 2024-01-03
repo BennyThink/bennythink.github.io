@@ -73,6 +73,449 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-riseup-alias-email/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/29/riseup-alias-email/index/" class="article-date">
+  <time class="dt-published" datetime="2021-07-29T00:00:00.000Z" itemprop="datePublished">2021-07-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/29/riseup-alias-email/index/">riseup如何使用自己域名邮箱发邮件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>先说说一些收邮件的方法吧</p>
+<h2 id="收邮件-–-Email-Forwarding"><a href="#收邮件-–-Email-Forwarding" class="headerlink" title="收邮件 – Email Forwarding"></a>收邮件 – Email Forwarding</h2><p>收邮件的话，最简单的办法就是去注册商哪里设置一个Email Forwarding，比如namesilo中可以这样设置：</p>
+<p><img src="/images/2021072919313862.png"></p>
+<p>等几分钟生效，发给 <a href="mailto:benny@dmesg.app">benny@dmesg.app</a> 的邮件就会被转发给我的Gmail啦。</p>
+<h2 id="收邮件-–-自建"><a href="#收邮件-–-自建" class="headerlink" title="收邮件 – 自建"></a>收邮件 – 自建</h2><p>也可以选择自建，比如说用iRedMail。配置起来是挺麻烦的，但是会让人很有成就感。同时也可以发邮件了。缺点就是有很多时候会被当成SPAM，需要进一步设置DKIM呀什么的。</p>
+<h2 id="收邮件-–-企业邮箱"><a href="#收邮件-–-企业邮箱" class="headerlink" title="收邮件 – 企业邮箱"></a>收邮件 – 企业邮箱</h2><p>比如用Gsuite啦，腾讯企业邮箱啦，都很容易，改个MX就行。</p>
+<h2 id="发邮件"><a href="#发邮件" class="headerlink" title="发邮件"></a>发邮件</h2><p>发邮件相比之下就要麻烦点了，可选的方案有自建、企业邮箱。还有就是可以让riseup帮忙发！当然啦，用Gmail也是可以的。</p>
+<p>用riseup发邮件的话，需要先让你的邮箱能够收到邮件，无论你是通过Email Forwarding还是企业邮箱，总之要能收到邮件。</p>
+<p>然后设置alias，在这个页面中 <a target="_blank" rel="noopener" href="https://account.riseup.net/mail/aliases">https://account.riseup.net/mail/aliases</a></p>
+<p><img src="/images/2021072919314134.png"></p>
+<p>确认邮箱并且已经生效之后，之后去邮箱的identities里添加一下这个邮箱</p>
+<p><img src="/images/2021072919314274.png"></p>
+<p>然后在riseup的web页面就可以用这个邮箱发邮件啦</p>
+<p><img src="/images/2021072919314467.png"></p>
+<p>想要用代码来解决的话，也很简单，Python的话直接用自带的smtplib就可以了</p>
+<p><code>from_addr</code>就是加的那个alias，别想着加一个 <a href="mailto:&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>，不行的（这种情况倒是可以用mailhog自娱自乐）。</p>
+<p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
+<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; os.getenv(“email_user”)<br>    password &#x3D; os.getenv(“email_password”)<br>    host &#x3D; os.getenv(“email_host”) or “localhost”<br>    port &#x3D; os.getenv(“email_port”) or “1025”  # mailhog<br>    from_addr &#x3D; os.getenv(“from_addr”) or “<a href="mailto:&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;">&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;</a>“</p>
+<pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
+msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
+msg\[&#39;To&#39;\] = \_format\_addr(to)
+msg\[&#39;Subject&#39;\] = Header(subject, &#39;utf-8&#39;).encode()
+
+if port == &quot;1025&quot;:
+    server = smtplib.SMTP(host, port)
+else:
+    server = smtplib.SMTP\_SSL(host, port)
+server.login(user, password)
+server.sendmail(from\_addr, \[to\], msg.as\_string())
+server.quit()
+</code></pre>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a>“, “subj”, ‘aaaa<br>bbb’)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/29/riseup-alias-email/index/" data-id="clhp7rtik007ps2qrfb710m85" data-title="riseup如何使用自己域名邮箱发邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-github-actions-docker-image/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/04/github-actions-docker-image/index/" class="article-date">
+  <time class="dt-published" datetime="2021-07-04T00:00:00.000Z" itemprop="datePublished">2021-07-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/04/github-actions-docker-image/index/">使用GitHub Actions构建Multi-arch Docker image</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_notice]参考配置，直接把这个文件丢到你的repository下，就可以用啦</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/BennyThink/ActionTest/blob/master/.github/workflows/builder.yaml">https://github.com/BennyThink/ActionTest/blob/master/.github/workflows/builder.yaml</a> [&#x2F;v_notice] 这个世界对arm是如此的不友好：</p>
+<blockquote>
+<p>standard_init_linux.go:178: exec user process caused “exec format error”</p>
+</blockquote>
+<p>大部分docker image都是为了amd64构建的，那么这些image无法在arm64上运行，如果运行就会出现如上报错。</p>
+<p>有一种构建方式，叫做 Multi-arch，在docker hub上看到是这样的</p>
+<p><img src="/images/202107042101132.png"></p>
+<p>构建起来也挺简单，需要安装buildx，Linux需要额外开启binfmt_misc，创建新的构建器，然后buildx开始构建，整体命令大概如下：</p>
+<p># 开启buildx<br>export DOCKER_CLI_EXPERIMENTAL&#x3D;enabled</p>
+<h1 id="验证buildx"><a href="#验证buildx" class="headerlink" title="验证buildx"></a>验证buildx</h1><p>docker buildx version</p>
+<h1 id="如果上述命令报错，未安装-buildx，需要手动安装一下"><a href="#如果上述命令报错，未安装-buildx，需要手动安装一下" class="headerlink" title="如果上述命令报错，未安装 buildx，需要手动安装一下"></a>如果上述命令报错，未安装 buildx，需要手动安装一下</h1><p>mkdir -p ~&#x2F;.docker&#x2F;cli-plugins<br>wget -O ~&#x2F;.docker&#x2F;cli-plugins&#x2F;docker-buildx <a target="_blank" rel="noopener" href="https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64">https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64</a><br>chmod a+x ~&#x2F;.docker&#x2F;cli-plugins&#x2F;docker-buildx</p>
+<h1 id="开启-binfmt-misc，-Linux-only"><a href="#开启-binfmt-misc，-Linux-only" class="headerlink" title="开启 binfmt_misc， Linux only"></a>开启 binfmt_misc， Linux only</h1><p>docker run –rm –privileged docker&#x2F;binfmt:66f9012c56a8316f9244ffd7622d7c21c1f6f28d</p>
+<h1 id="验证qemu"><a href="#验证qemu" class="headerlink" title="验证qemu"></a>验证qemu</h1><p>ls -al &#x2F;proc&#x2F;sys&#x2F;fs&#x2F;binfmt_misc&#x2F;<br>cat &#x2F;proc&#x2F;sys&#x2F;fs&#x2F;binfmt_misc&#x2F;qemu-aarch64</p>
+<h1 id="创建新的构建器"><a href="#创建新的构建器" class="headerlink" title="创建新的构建器"></a>创建新的构建器</h1><p>docker buildx create –use –name mybuilder</p>
+<h1 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h1><p>docker buildx build -t bennythink&#x2F;test –platform&#x3D;linux&#x2F;arm,linux&#x2F;arm64,linux&#x2F;amd64 . –push</p>
+<p>当然了不能每次都这样手动构建，可是Docker Hub的自动构建不仅要停了，还不能这么构建。那么剩下的比较优雅的解决方案就是 GitHub Actions啦。</p>
+<p>整个流程也很简单。</p>
+<ol>
+<li>checkout代码，如有需要也要准备好submodule</li>
+<li>配置buildx、QEMU什么的</li>
+<li>构建</li>
+<li>推送到Docker Hub</li>
+</ol>
+<p>build-push-action文档已经写的很好啦，我简单复制粘贴一下</p>
+<h2 id="checkout"><a href="#checkout" class="headerlink" title="checkout"></a>checkout</h2><p>使用 actions&#x2F;checkout@v2</p>
+<p>- name: Checkout<br>  uses: actions&#x2F;checkout@v2<br>  with:<br>    submodules: true</p>
+<p>如果没有submodule的话，整个step可以删掉，build-push-action会自动checkout</p>
+<h2 id="配置buildx"><a href="#配置buildx" class="headerlink" title="配置buildx"></a>配置buildx</h2><p>- name: Set up QEMU<br>  uses: docker&#x2F;setup-qemu-action@v1</p>
+<ul>
+<li>name: Set up Docker Buildx<br>uses: docker&#x2F;setup-buildx-action@v1</li>
+</ul>
+<p>然后登录到Docker Hub，需要在repository – settings中设置secrets</p>
+<p>- name: Login to DockerHub<br>  uses: docker&#x2F;login-action@v1<br>  with:<br>    username: $<br>    password: $</p>
+<h2 id="构建推送"><a href="#构建推送" class="headerlink" title="构建推送"></a>构建推送</h2><p>- name: Build and push<br>  uses: docker&#x2F;build-push-action@v2<br>  with:<br>    context: .<br>    platforms: linux&#x2F;amd64,linux&#x2F;arm64<br>    push: true<br>    tags: bennythink&#x2F;yyetsbot:latest</p>
+<p>这样一波操作之后，每次push之后，GitHub Actions就会自动运行，然后Docker Hub上就可以有amd64&#x2F;arm64的image啦。</p>
+<p>几乎是0排队，再也不用“构建100秒，排队90秒”啦。</p>
+<h2 id="使用cache"><a href="#使用cache" class="headerlink" title="使用cache"></a>使用cache</h2><p>GitHub Actions似乎也能利用build cache，这样可以大幅增加构建速度</p>
+<p>参考这里可以配置一下</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md#github-cache">https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md#github-cache</a></p>
+<h2 id="获取secret"><a href="#获取secret" class="headerlink" title="获取secret"></a>获取secret</h2><p>使用如下形式就可以获取到secrets中配置的值</p>
+<p>$</p>
+<p>可以配置环境变量中，在build时可以访问。同时也可以在某一个step中的run手动运行任意命令，来达到build hooks的效果。比如：</p>
+<p>- name: Run hooks<br>  env:<br>    SENTRY_ORG: $<br>  run: echo $SENTRY_ORG &gt;&gt; &#x2F;tmp&#x2F;1.txty</p>
+<p>[v_blue]要记得区分构建时环境变量、运行时环境变量还有build-arg哦。[&#x2F;v_blue]</p>
+<h2 id="Yarn-There-appears-to-be-trouble-with-your-network-connection-Retrying"><a href="#Yarn-There-appears-to-be-trouble-with-your-network-connection-Retrying" class="headerlink" title="Yarn - There appears to be trouble with your network connection. Retrying"></a>Yarn - There appears to be trouble with your network connection. Retrying</h2><p>我在构建时经常会出这种错，毕竟是在QEMU中跑的node，所以会很慢。一个可行的解决方案就是加长超时时间</p>
+<p>yarn –network-timeout 100000</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>build-push-action <a target="_blank" rel="noopener" href="https://github.com/docker/build-push-action">https://github.com/docker/build-push-action</a></p>
+<p>YYeTsBot workflow <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/blob/master/.github/workflows/builder.yaml">https://github.com/tgbot-collection/YYeTsBot/blob/master/.github/workflows/builder.yaml</a></p>
+<p>如何构建多架构 Docker 镜像？ <a target="_blank" rel="noopener" href="https://www.infoq.cn/article/v9qj0fjj6hsgyq0lphxg">https://www.infoq.cn/article/v9qj0fjj6hsgyq0lphxg</a></p>
+<p>🤨等我有空的，就把我自己的经常维护的项目都docker image都弄到GitHub Actions上！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/04/github-actions-docker-image/index/" data-id="clhp7rtge0036s2qra9xab40s" data-title="使用GitHub Actions构建Multi-arch Docker image" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-r7000-ng386/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/27/r7000-ng386/index/" class="article-date">
+  <time class="dt-published" datetime="2021-06-27T00:00:00.000Z" itemprop="datePublished">2021-06-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/27/r7000-ng386/index/">NETGEAR R7000升级NG386踩坑笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>一直以来，我的NETGEAR R700使用的是Legacy的380固件，反正也能用，不差什么。但是一直都有一个很严重的问题，就是会panic然后自己重启。最频繁的情况下可能每开机几分钟就重启一次。</p>
+<p>经过我的测试，发现这种情况会在大流量BT时比较频繁出现，Xbox下载游戏就从来不会。如果此时我在路由器上抓包，那么出现的概率似乎就更高了。</p>
+<p>今天实在忍不了了，就想着升级一波吧。主要参考了这篇教程：</p>
+<p><a target="_blank" rel="noopener" href="https://koolshare.cn/thread-193031-1-1.html">https://koolshare.cn/thread-193031-1-1.html</a></p>
+<p>反正没少踩坑。</p>
+<p><img src="/images/202106272044406.png"></p>
+<h2 id="改cfe的mac地址"><a href="#改cfe的mac地址" class="headerlink" title="改cfe的mac地址"></a>改cfe的mac地址</h2><p>我有点没咋看明白他的意思，但是我猜测了一下，应该是去找原来路由器的eth0和eth1的mac地址，最后+4应该是把mac地址最后一位运算一下，比如最后一位是F3，那么就写F7.好歹我也曾是Enginerring - Network，这点问题还能难得倒我？</p>
+<p>至少我是这么搞的……然后刷进去了。</p>
+<p>在CFEEDIT里可以看到有这样的IP，记住啦</p>
+<p>lan_ipaddr&#x3D;192.168.1.1<br>lan_netmask&#x3D;255.255.255.0</p>
+<h2 id="无法进入miniWeb-Server"><a href="#无法进入miniWeb-Server" class="headerlink" title="无法进入miniWeb Server"></a>无法进入miniWeb Server</h2><p>连网线，改IP。这个IP其实就应该是上面CFE的那个IP</p>
+<p>手动设定IP为192.168.1.11，ping 192.168.1.1，然后我ping通了，但是网页打不开。都快把人家屁股捅漏了，也打不开。各种尝试都不行。我都上nmap扫端口了。😠</p>
+<p>后来实在没办法，Boot Camp启动到Windows，竟然打开了！我也不知道这是因为啥……有毒吧。🤬</p>
+<p>miniWeb Server比较慢，上传固件也很慢，慢慢等就好了</p>
+<h2 id="Wi-Fi重启自动关闭"><a href="#Wi-Fi重启自动关闭" class="headerlink" title="Wi-Fi重启自动关闭"></a>Wi-Fi重启自动关闭</h2><p>新的固件成功启动了，但是发现没Wi-Fi……在网上搜到可以在无线网络-专业设置里启用。但是每次重启之后又自动关闭了，我也不能每次都这么插网线搞啊。万一我不在家它自己重启了叫我怎么插网线啊🤬</p>
+<p>后来找到个帖子： <a target="_blank" rel="noopener" href="https://koolshare.cn/thread-109794-1-1.html">https://koolshare.cn/thread-109794-1-1.html</a></p>
+<p>算是解决了吧。似乎sleep没那么必要……，反正就放着吧也不差20秒，不想测试了。</p>
+<p>benny@router:&#x2F;tmp&#x2F;home&#x2F;root# cat &#x2F;jffs&#x2F;scripts&#x2F;init-start<br>#!&#x2F;bin&#x2F;sh<br>sleep 20<br>nvram set wl0_radio&#x3D;1<br>nvram set wl1_radio&#x3D;1<br>nvram commit</p>
+<p>service restart_wireless</p>
+<h2 id="梯子始终是❌"><a href="#梯子始终是❌" class="headerlink" title="梯子始终是❌"></a>梯子始终是❌</h2><p>用的是这个项目 <a target="_blank" rel="noopener" href="https://github.com/hq450/fancyss">https://github.com/hq450/fancyss</a></p>
+<p>下载地址在这里</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/hq450/fancyss_history_package/tree/master/fancyss_arm384">https://github.com/hq450/fancyss_history_package&#x2F;tree&#x2F;master&#x2F;fancyss_arm384</a></p>
+<p>离线安装前先把koolshare傻逼非法关键词的功能干了。</p>
+<p>但是配置完依旧是❌。后来发现它是用的httping做检测，那会不会是httping有问题？</p>
+<p>benny@router:&#x2F;tmp&#x2F;home&#x2F;root# .&#x2F;httping<br>.&#x2F;httping: can’t load library ‘libssl.so.1.0.0’</p>
+<p>果然🤔🤬🤦‍♀️</p>
+<p>去<a target="_blank" rel="noopener" href="https://firmware.koolshare.cn/binary/httping/">这里</a>下载替换一个就好了</p>
+<p>cd &#x2F;koolshare&#x2F;bin<br>wget <a target="_blank" rel="noopener" href="http://firmware.koolshare.cn/binary/httping/armv7/httping">http://firmware.koolshare.cn/binary/httping/armv7/httping</a><br>chmod +x httping</p>
+<p>但是我好像harpoxy下还是各种❌，先跑单个节点算了吧。又不是不能用</p>
+<h2 id="htop问题"><a href="#htop问题" class="headerlink" title="htop问题"></a>htop问题</h2><p>在刚刚那看到了htop，就想顺便也用上算了。</p>
+<p>Error opening terminal: xterm-256color</p>
+<p>🤨</p>
+<p>查了一下，似乎export一下就可以了</p>
+<p>export TERM&#x3D;xterm-256color</p>
+<p>那我也不能每次运行时都export啊，这玩意它也没有zsh更没有oh-my-zsh，这让我这个记忆退化的老年痴呆怎么办。找环境变量文件呗，<code>/etc/profile, /etc/environment, /tmp/etc</code>….</p>
+<p>真棒<code>/etc/profile</code>无权限写，因为这个文件系统是RO的。</p>
+<p>后来发现是这个文件……<code>/jffs/configs/profile.add</code></p>
+<h2 id="指示灯太闪"><a href="#指示灯太闪" class="headerlink" title="指示灯太闪"></a>指示灯太闪</h2><p>我一直不太喜欢指示灯，费我电不说，还闪瞎我狗眼。在设置里可以关掉。但是重启了之后又回来了……懒得研究太多了，反正这几行能管用</p>
+<p>#!&#x2F;bin&#x2F;sh<br>nvram set led_disable&#x3D;1<br>nvram commit<br>service restart_leds</p>
+<p>不过灯还是好多，之前是只有电源灯在亮，现在只是关掉了LAN 1234.啊算了就这样吧。哪天心情不好了拿黑胶带给它贴上。</p>
+<p>加到启动项<code>/jffs/scripts/services-start</code> 好像不太好用，估计是时机不对。不管了手动执行算了吧。</p>
+<h2 id="自定义启动项"><a href="#自定义启动项" class="headerlink" title="自定义启动项"></a>自定义启动项</h2><p>我的路由器上跑了一个自定义的网络相关的小程序，用Go写的，交叉编译成了armv7l的二进制，这次没想到加到<code>/jffs/scripts/services-start</code>里管用了。看来以后不用手动检查了。</p>
+<p>nohup &#x2F;jffs&#x2F;xxx&amp;</p>
+<p>管它优雅不优雅的，能跑就行。用奶子走路又怎么了啊！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062720570093.gif"><img src="/images/2021062720570093.gif"></a></p>
+<h2 id="IP与mac地址绑定"><a href="#IP与mac地址绑定" class="headerlink" title="IP与mac地址绑定"></a>IP与mac地址绑定</h2><p>我的那个程序是写死了IP地址的，刷了固件之后原来的绑定全丢了。懒得再重新编译，直接重新绑定然后重启下设备就好了。</p>
+<p>这个很好办了，WebUI上点点就好了。顺便把搜索域改成lan，我的那个程序也是写死了搜索域。别黑我了，今天就流行写死。</p>
+<p><img src="/images/2021062720444046.png"></p>
+<h2 id="日志系统"><a href="#日志系统" class="headerlink" title="日志系统"></a>日志系统</h2><p>为了更好的弄明白为什么它会自动重启，我觉得我需要把log保存起来。庆幸的是在固件的设置中可以找到远程记录服务器。那么我们只要配置一个syslog server就可以了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062812333552.png"><img src="/images/2021062812333552.png"></a></p>
+<p>这方面的选择其实挺多的，VMware vRealize Log Insights，logstash+kibana+elastic search，loki，甚至SolarisWinds也有一个kiwi log server，这些都支持syslog。但是他们的缺点就是配置起来太麻烦！我的需求太简单了，能把syslog收下来存起来方便以后看，更好的话提供一个web界面省的我每次ssh打命令那就更好了。</p>
+<p>简单的说，大部分发行版都有rsyslog这个东西，简单配置一下就可以拿来收日志了，可以参考这篇 <a target="_blank" rel="noopener" href="https://leeyr.com/330.html">https://leeyr.com/330.html</a></p>
+<p>有能力的也可以手写，比如<a target="_blank" rel="noopener" href="https://github.com/mcuadros/go-syslog">go-syslog</a>这个库，很简单，注意logformat是RFC3164</p>
+<p>package main</p>
+<p>import (<br>   “fmt”<br>   “gopkg.in&#x2F;mcuadros&#x2F;go-syslog.v2”<br>)<br>func main() {<br>   channel :&#x3D; make(syslog.LogPartsChannel)<br>   handler :&#x3D; syslog.NewChannelHandler(channel)</p>
+<p>   server :&#x3D; syslog.NewServer()<br>   server.SetFormat(syslog.RFC3164)<br>   server.SetHandler(handler)<br>   server.ListenUDP(“0.0.0.0:514”)<br>   server.Boot()</p>
+<p>   go func(channel syslog.LogPartsChannel) {<br>      for logParts :&#x3D; range channel {<br>         fmt.Println(logParts)<br>      }<br>   }(channel)</p>
+<p>   server.Wait()<br>}</p>
+<p>用起来是这样滴</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062812365940.png"><img src="/images/2021062812365940.png"></a></p>
+<p>后来在GitHub上找到一个简单的工具<a target="_blank" rel="noopener" href="https://github.com/pierredavidbelanger/raftman">raftman</a>，自带了一个简单的UI，用SQLite存数据。</p>
+<p>由于我们要用RFC3164的格式，因此稍微改下它的<code>Dockerfile</code></p>
+<p>ENTRYPOINT [“&#x2F;usr&#x2F;local&#x2F;bin&#x2F;raftman”, “-frontend”, “syslog+udp:&#x2F;&#x2F;:514?format&#x3D;RFC3164”, “-frontend”, “ui+http:&#x2F;&#x2F;:8282&#x2F;“]</p>
+<p>然后build</p>
+<p>docker build -t raftman .</p>
+<p>然后再起飞</p>
+<p>docker run -d –restart&#x3D;always –name raftman \<br>-v &#x2F;tmp:&#x2F;var&#x2F;lib&#x2F;raftman \<br>-p 514:514&#x2F;udp \<br>-p 5514:5514 \<br>-p 8181:8181 \<br>-p 8282:8282 \<br>raftman</p>
+<p>好的没问题。打开<a href="http://ip:8282就有了。">http://ip:8282就有了。</a></p>
+<p>我知道我穿越了8个小时，我也不知道为啥，懒得去看代码啦。能用就行！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062812385946.png"><img src="/images/2021062812385946.png"></a></p>
+<p>啊知道怎么fix这个啦，暴力点 <code>frontend/static/ui/index.js</code></p>
+<p>var tsFormatter &#x3D; function (s) {<br>d &#x3D; new Date(s);<br>d.setHours(d.getHours() - 8);<br>return tsFormat(d);<br>};</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>差不多就踩了这么多坑，主要还是进miniweb浪费了太多时间，也不知道用Windows好了是不是偶然。</p>
+<p>似乎可以直接升级AC68U的固件？我懒得折腾了。😠💢</p>
+<p>感觉这个koolshare改的可能还会有各种bug，再不行我就换回原版……感觉还是padavan省心啊，但是MT7620似乎性能总是差了那么点。</p>
+<p>好心累！本应该看洛基的，我却折腾了一下午这玩意……</p>
+<p>本来人家心情就不好，还踩了这么多坑……怎么不坑底躺平得了呢。😫😖</p>
+<p><strong>本文由暴躁Benny狂暴且抑郁地创作</strong></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/27/r7000-ng386/index/" data-id="clhp7rtig0079s2qr14631dao" data-title="NETGEAR R7000升级NG386踩坑笔记" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-encounter/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/22/encounter/index/" class="article-date">
+  <time class="dt-published" datetime="2021-06-22T00:00:00.000Z" itemprop="datePublished">2021-06-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/22/encounter/index/">遇见</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前段时间的端午节假期，心情非常差劲。于是我便一个人出去散步，放松一下心情顺便当作锻炼身体了。在经过家附近的商场时，安慕希在促销，挺热闹的，我就过去围观了一会。</p>
+<p>在人群中我看到了一个穿着白色连衣裙的女孩，看起来应该是工作人员。黑色的长长的头发，很优雅很有气质，是我喜欢的类型呀。于是我就在旁边装作路过的路人，默默地看了一晚上。</p>
+<p>第二天下午，我又路过了那个商场，同样看到了她。于是我就坐在旁边，从下午呆到了晚上。心情还是像第一天假期那样差劲，不过在外面总比在家里发呆好，再加上这边有养眼的姑娘，那就更好了呀。</p>
+<p>我在想，这个工作应该很辛苦吧，要一直站着，还要端着盘子去问经过的路人要不要品尝一下。我在旁边坐着都觉得很累，更何况是站着一直在忙呢。</p>
+<p>期间看到姑娘在时不时的放松一下自己，一定很累，很饿吧，八点钟了还没办法去吃饭。尽管穿着运动鞋，腿也一定酸酸的。</p>
+<p>那时，我在想，要不然我去搭讪吧，可是我又从来没这样做过，不知道该怎么说，被拒绝了怎么办。</p>
+<p>那晚，她就站在我身边，被台上的表演逗笑了。就这样犹豫着过了第二天。</p>
+<p>第三天，有一点下雨。我趁着雨停去看了，那个姑娘已经不在了。下午和晚上又分别去了一次，也没有看到她。</p>
+<p>她应该是兼职吧，三天的假期，两天时间用来兼职，一天休息。真的很辛苦啊。</p>
+<p>第四天，工作日，同样在下雨。雨停了之后我去看了一下，舞台已经撤走了，什么都没有了，一点痕迹都没有留下来。</p>
+<p>第五天，第六天……</p>
+<p>我猜，已经不会再见到这个姑娘了吧。我不知道她的名字，没有她的联系方式，甚至连她是做什么的都不知道。在这座2500万人的城市里，我再也见不到她了。</p>
+<p>就算运气好真的见到了，那又能怎样。我真的能鼓起勇气去做什么吗？还是不要再抱有任何希望了。</p>
+<p>希望对我而言，到最后，就是绝望。</p>
+<p>「喜欢的人是不可能的，想要的东西是拿不到的，未来是看不见的。」</p>
+<p>究竟要说多少次才能让自己记住这句话。明明已经知道结果了，就不要再挣扎了，不要再做无所谓的努力然后自我感动了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/03/2018030604125565.jpeg"><img src="/images/2018030604125565.jpeg" alt="平匡与实栗"></a></p>
+<p><strong>我才是那个每天都处在充满希望和坠入堕落里来回转换的人。</strong></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/22/encounter/index/" data-id="clhp7rtfu0028s2qr8aov6c7x" data-title="遇见" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-dockerhub-submodule/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/19/dockerhub-submodule/index/" class="article-date">
+  <time class="dt-published" datetime="2021-06-19T00:00:00.000Z" itemprop="datePublished">2021-06-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/19/dockerhub-submodule/index/">Docker Hub与submodule踩坑小记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>大家都懂，使用 Docker分发应用是非常舒服畅快的事情！通常来说，如果我们在GitHub开源代码，通常也就会选择Docker Hub来构建镜像。当然啦，用GitHub Action，或者自己构建再提交也是一种办法哦。</p>
+<p>怎么写Dockerfile，比如不同层级的RUN，正确应用multi stage build，那是另外一个话题啦。今天来说说在为 yyetsweb构建docker image的时候，我踩到的坑……</p>
+<h2 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h2><p>说到环境变量，首先我们要区分一下运行时环境变量和构建时环境变量。</p>
+<h3 id="运行时环境变量"><a href="#运行时环境变量" class="headerlink" title="运行时环境变量"></a>运行时环境变量</h3><p>我们在Dockerfile中使用 <code>ENV</code>定义的变量就可以算运行时环境变量啦，比如说这样：</p>
+<p>ENV TZ&#x3D;Asia&#x2F;Shanghai</p>
+<p>这个<code>TZ</code>变量会被容器中的程序直接读取使用。</p>
+<h3 id="构建时环境变量"><a href="#构建时环境变量" class="headerlink" title="构建时环境变量"></a>构建时环境变量</h3><p>在构建时会被读取使用的变量，比如说在Docker Hub会有这样的设置：</p>
+<p><img src="/images/2021061914224777.png"></p>
+<p>那么这个变量就是可以在Dockerfile里使用：</p>
+<p>RUN echo $REACT_APP_DOMAIN</p>
+<p>使用的啦。</p>
+<h2 id="我的使用"><a href="#我的使用" class="headerlink" title="我的使用"></a>我的使用</h2><p>因为前端的SPA应用要在构建时使用一些环境变量，所以我就在 Docker Hub的设置中加了这几个，但是似乎并没有生效。不知道为什么会这样，考虑到构建时会读取项目根目录下的 <code>.env</code>文件，那不如应用一下Docker Hub的hooks吧！</p>
+<p>Docker Hub的build hooks一共有这么几种：</p>
+<ul>
+<li>hooks&#x2F;post_checkout</li>
+<li>hooks&#x2F;pre_build</li>
+<li>hooks&#x2F;post_build</li>
+<li>hooks&#x2F;pre_test</li>
+<li>hooks&#x2F;post_test</li>
+<li>hooks&#x2F;pre_push (only used when executing a build rule or automated build )</li>
+<li>hooks&#x2F;post_push (only used when executing a build rule or automated build )</li>
+</ul>
+<p>每一个hook都可以包含docker命令和各种bash命令。那对于我的场景来说， 创建一个<code>pre_build</code>就可以啦</p>
+<p>#!&#x2F;bin&#x2F;bash<br>cat &lt;&lt; EOF &gt;&gt; YYeTsFE&#x2F;.env<br>SENTRY_ORG&#x3D;$SENTRY_ORG<br>SENTRY_PROJECT&#x3D;$SENTRY_PROJECT<br>SENTRY_AUTH_TOKEN&#x3D;$SENTRY_AUTH_TOKEN</p>
+<p>REACT_APP_SENTRY_DSN&#x3D;$REACT_APP_SENTRY_DSN<br>REACT_APP_DOMAIN&#x3D;$REACT_APP_DOMAIN<br>REACT_APP_GA&#x3D;$REACT_APP_GA</p>
+<h1 id="sourcemap"><a href="#sourcemap" class="headerlink" title="sourcemap"></a>sourcemap</h1><p>GENERATE_SOURCEMAP&#x3D;$GENERATE_SOURCEMAP<br>EOF</p>
+<p>完美！</p>
+<h2 id="submodule"><a href="#submodule" class="headerlink" title="submodule"></a>submodule</h2><p>使用git submodule继承其他项目是非常理想的一种开发方式。我们可以控制submodule跟踪到上游的哪一个commit，需要更新时只需要一个 <code>git submodule update --remote</code>，然后再把hash commit就可以啦。</p>
+<p>Docker Hub在build时会自动clone相应的submodule，因此常规情况下来讲，大部分情况下都是可以顺利构建的。只不过有几点需要注意：</p>
+<ol>
+<li>docker hub执行的是shallow copy，因此只有最新的commit和对应的branch会被拉下来，因此如果你的build脚本是依赖了git branch和不同的commit，那会失败的哦。这个时候要用hooks来解决</li>
+<li>private submodule需要一些额外设置，可以参考官网文档来解决</li>
+<li>在module里执行git相关的命令，很有可能失败的哦（这可能是Docker Hub的bug，也有可能是git版本的问题）。</li>
+</ol>
+<p>我要详细的说下第三点🤣</p>
+<p>在我的构建脚本中，我用了<code>git rev-parse --short HEAD</code> 来获取submodule的hash，然后把这个hash作为tag推送到sentry上。但是在构建日志中发现了这种错误：</p>
+<p>-–&gt; Running in 4c09a0ea3725</p>
+<p>yarn run v1.22.5</p>
+<p>$ (export REACT_APP_SENTRY_RELEASE&#x3D;$(git rev-parse –short HEAD); react-scripts build &amp;&amp; node scripts&#x2F;sentry.js)</p>
+<p>[91mfatal: not a git repository: &#x2F;src&#x2F;bt57w8kzzcjnpmscaemsqqq&#x2F;.git&#x2F;modules&#x2F;YYeTsFE</p>
+<p>然而在本地完全是无法复现的，整个目录树如下，我保证Docker Hub在build时也有同样的结构：</p>
+<p>$ tree -L 2 -a</p>
+<p>|– .dockerignore<br>|– .git<br>| |– HEAD<br>| |– branches<br>| |– config<br>| |– description<br>| |– hooks<br>| |– index<br>| |– info<br>| |– logs<br>| |– modules<br>| |– objects<br>| |– packed-refs<br>| `– refs<br>|– .gitattributes<br>|– .gitignore<br>|– .gitmodules<br>|– .travis.yml<br>|– Dockerfile<br>|– Makefile<br>|– README.md<br>|– YYeTsFE<br>| |– .env.example<br>| |– .git<br>| |– .gitignore<br>| |– .sentryclirc<br>| |– README.md<br>| |– package.json<br>| |– public<br>| |– scripts<br>| |– src<br>| |– tsconfig.json<br>| `– yarn.lock</p>
+<p>submodule也有.git，项目根目录也有.git，为什么就会失败呢？进行了无数次尝试，让Docker Hub一晚上疯狂构建😂</p>
+<p>后来研究了一下，submodule的.git其实是一个到父目录<code>.git/modules/ModuleName</code>的引用。</p>
+<p>~&#x2F;PycharmProjects&#x2F;YYeTsBot&#x2F;YYeTsFE (60c497b*) [02:06:51]<br>benny$ cat .git<br>gitdir: ..&#x2F;.git&#x2F;modules&#x2F;YYeTsFE</p>
+<p>然而在 Docker Hub上，这个目录是绝对路径，并且是host的路径🤦‍♂️：</p>
+<p>gitdir: &#x2F;src&#x2F;brp47ykf7wlmztspk2mtpl8&#x2F;.git&#x2F;modules&#x2F;YYeTsFE</p>
+<p>这不报错就怪了。</p>
+<p>解决方法也很简单，在hook中改掉<code>.git</code>文件，或者在Dockerfile中改掉，考虑到无法定位到问题究竟是出在Docker Hub还是git，我就选择在Dockerfile中搞啦</p>
+<p>RUN echo “gitdir: ..&#x2F;.git&#x2F;modules&#x2F;YYeTsFE” &gt; .git</p>
+<p>就这么一行代码，花了我两三个小时🌚🌚🤬</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>Docker Hub build hooks: <a target="_blank" rel="noopener" href="https://docs.docker.com/docker-hub/builds/advanced/">https://docs.docker.com/docker-hub/builds/advanced/</a></p>
+<p>YYeTsBot: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">https://github.com/tgbot-collection/YYeTsBot</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/19/dockerhub-submodule/index/" data-id="clhp7rtfx002as2qrcidr0r1z" data-title="Docker Hub与submodule踩坑小记" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-pyinstaller-static-files/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/06/17/pyinstaller-static-files/index/" class="article-date">
@@ -565,573 +1008,11 @@ fun()
 
 
   
-    <article id="post-container-no-network/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/01/26/container-no-network/index/" class="article-date">
-  <time class="dt-published" datetime="2021-01-26T00:00:00.000Z" itemprop="datePublished">2021-01-26</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/01/26/container-no-network/index/">什么鬼啊，我的容器怎么无法访问外网了</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>大概几个星期前，在把<a target="_blank" rel="noopener" href="https://t.me/yyets_bot">YYeTs Bot</a>迁移到香港时，发现在容器里竟然无法访问外部网络。</p>
-<p>由于之前看到有报道称香港的某些ISP对某域名进行了污染，因此此时就立刻想到了，是不是aws的上游也对 api.telegram.org 进行了污染？</p>
-<p>容器里没法<code>curl</code>。<code>apk update</code>了一下，发现竟然无法update，难道是alpine挂了吗？Ubuntu也是，这俩一起炸？概率太低了吧。新加坡的那台机器也是同样的问题，但是日本就没问题。同样都在亚洲，大家有什么差别吗？难道是整个东南亚的海底光缆全炸了？可是没见到有人说东南亚的机房炸了啊，况且就算炸了，那也应该会找别的路由出去啊，就算丢包也不会直接炸光啊。</p>
-<p><img src="/images/2021012415374384.jpeg"></p>
-<p>就算你是柯蒂斯·李梅，手里有着一百架B-2轰炸机，也不能炸的这么彻底啊。</p>
-<p>试了一下，宿主机能够访问啊，那就是没问题的。一定是某些配置不对。重新安装了docker engine，结果也还一样，香港和新加坡的机器就是不好用，但是日本可用。</p>
-<hr>
-<p>搜了一下，可能是没开<code>ipv4.forward</code>?但是我一般是开启这个的呀，而且我开了啊……</p>
-<p>后来在网上翻到这样一篇文章，<a target="_blank" rel="noopener" href="https://pytimer.github.io/2019/11/docker%E5%AE%B9%E5%99%A8%E6%97%A0%E6%B3%95%E8%BF%9E%E6%8E%A5%E5%A4%96%E9%83%A8%E7%BD%91%E7%BB%9C%E5%8E%9F%E5%9B%A0%E6%8E%92%E6%9F%A5/">《Docker容器无法连接外部网络原因排查》</a>，了解到bridge网络docker是通过iptables转发流量的。</p>
-<p>此时，我突然意识到，我的这两台服务器似乎都设置了大量的本地端口转发，恰巧也覆盖了80和443这两个端口……把这个规则删掉，重启docker engine。好的，村通网了。</p>
-<p>罪魁祸首的这条命令</p>
-<p>iptables -t nat -A PREROUTING -p tcp –dport 23:1000 -j REDIRECT –to-ports 16698</p>
-<p>事实证明，是我的想象力太丰富了。来一拳就好了。</p>
-<p><img src="/images/2021012415374219.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/01/26/container-no-network/index/" data-id="clhp7rtex001as2qr7bzu7of0" data-title="什么鬼啊，我的容器怎么无法访问外网了" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-no-yyets/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/01/24/no-yyets/index/" class="article-date">
-  <time class="dt-published" datetime="2021-01-24T00:00:00.000Z" itemprop="datePublished">2021-01-24</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/01/24/no-yyets/index/">没了人人影视，我们该怎么办？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="太长不看版："><a href="#太长不看版：" class="headerlink" title="太长不看版："></a>太长不看版：</h1><p>我把资源都爬下来了。</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://t.me/yyets_bot">Telegram Bot</a></li>
-<li><a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">资源分享搜索</a></li>
-</ul>
-<hr>
-<p>2021年1月4日，人人影视发布公告称“正在清理内容，所有客户端均无法正常使用”。</p>
-<p><img src="/images/202101241458034.png"></p>
-<p>过了段时间，网友们发现，本来在资源页面中可以跳转到的分享页面，基本上全部消失了。</p>
-<p>不过好在人人影视的分享API还是能够正常使用的，因此<a target="_blank" rel="noopener" href="https://t.me/yyets_bot">我的 bot</a>也还正常。</p>
-<p>[v_error] 2021年2月4日：你们都知道了。 [&#x2F;v_error]</p>
-<h2 id="归档人人影视"><a href="#归档人人影视" class="headerlink" title="归档人人影视"></a>归档人人影视</h2><p>为了避免出现问题，我便想把整个人人影视的资源都归档出来。简单的观察了一下人人影视的资源格式，如这个URL：<code>http://www.rrys2020.com/resource/40000</code></p>
-<p>其实就可以发现，只要resource后的数字从1开始不停地遍历，就可以获取到全部资源了。你看，这就是不使用UUID的结果，被我这种磨人的小妖精发现了吧！</p>
-<p>[v_blue]（关于使用UUID还是自增主键，可以看看这篇<a target="_blank" rel="noopener" href="https://nova.moe/laravel-use-uuid-as-primary-key-with-custom-authentication-fields/">《Laravel 使用 UUID 作为用户表主键并使用自定义用户表字段》</a>） [&#x2F;v_blue]</p>
-<p>那么现在就很简单了，从1开始遍历，遍历到最新的剧集的ID为止，通过分享API拿到数据，然后存储到数据库里。为了避免出现rate limit，加上随机休眠；为了加快遍历速度，还要考虑并发。这两者看起来是矛盾的组合，也确实挺难调和的。同时为了让界面更友好，使用一个简单的进度条来告知进度。</p>
-<p>真的是非常简单的，有兴趣的可以参考这里的源代码</p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/tree/master/BagAndDrag'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/tgbot-collection/YYeTsBot/tree/master/BagAndDrag&#39;\]开源地址\[/gt\]</a></p>
-<p>ping了一下，人人影视的主站和分享站API都在香港阿里云上，那么用香港的aws去跑是最好的。最终我把这些资源都跑了下来，存到了MySQL中并发布了出去，然后推特发了出去。</p>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1348614240098086913?s=20">https://twitter.com/BennyThinks/status/1348614240098086913?s=20</a></p>
-<p>这么一发布，没想到竟然让我的channel订阅者人数加一个0，Twitter follower翻倍。真是受宠若惊😂。</p>
-<p>[v_tips]一点点小发现：人人影视第一部翻译的剧集，是《越狱》。ID是10004 [&#x2F;v_tips]</p>
-<h2 id="被机器人轰炸是一种怎样的感觉？"><a href="#被机器人轰炸是一种怎样的感觉？" class="headerlink" title="被机器人轰炸是一种怎样的感觉？"></a>被机器人轰炸是一种怎样的感觉？</h2><p>突然一下子多了这么like，bot的使用量也开始飙升。</p>
-<p>最开始为了方便修复bug，我设置了一个“向开发者提交错误信息”的功能，大概是这样子的：</p>
-<p><img src="/images/2021012414580636.png"></p>
-<p><strong>点一点按钮谁不会嘛，点一点又不会消耗很多精力，作为一个资深的伸手党，这一切不符合预期的结果肯定不是我的错，那我就点一下就好了，一下不好用，那么我就点两下三下。反正既不吃亏也不上当。</strong></p>
-<p>也许有一些人是这样想的吧！</p>
-<p>结果这次就开始不停地收到各种报错信息，都有什么样子的呢？</p>
-<ul>
-<li>喜洋洋与灰太狼</li>
-<li>战狼，流浪地球</li>
-<li>权利的游戏</li>
-<li>各种莫名其妙的我也不记得是什么了</li>
-<li>ahsjhsads然后瞬间block bot的</li>
-</ul>
-<p>etc…</p>
-<p>第三种打了错别字的还可以理解，剩下的是在难为我胖虎吗？😡🤬</p>
-<p>原有的设计是，出现错误报告的时候，我需要登录到vps上，使用一个messenger.py 来回复，但是这样就很麻烦，不仅要ssh还要去container里，而且需要在电脑旁。后来我<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/605086c909d3180e13b10f618cc7043fd2f95922">优化了一下</a>，直接在Telegram里就可以回复，我看到的大概是这样的：</p>
-<p><img src="/images/2021012414580984.png"></p>
-<p>可是有些用户依旧在汇报这种根本就是无法处理的问题，有的甚至还点两次，非常无奈的我就……我让你点两次试试看！😠</p>
-<p><img src="/images/2021012414581266.png"></p>
-<p>甚至最后我还开发了<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/3a852eacba56dfc667236ee235ffef98298f77c0">一键生气和一键回怼</a>功能</p>
-<p><img src="/images/2021012414581525.png"></p>
-<p>然而并无卵用，该点的还是会点……😂这么不相信我的代码质量吗？😱本来还想，要不我弄个黑名单的功能，想了想还是算了，直接<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/dbcf4819dbac7300848be940f386f5e8fda91522">默认关闭了这项功能</a>就可以了。</p>
-<p>在这件事情中，我学习到了，总是有一部分人是不会认真读说明的。🤣</p>
-<p>气鼓鼓🤨</p>
-<p><img src="/images/2021012414581872.png"></p>
-<h2 id="人人影视网站间歇性访问问题"><a href="#人人影视网站间歇性访问问题" class="headerlink" title="人人影视网站间歇性访问问题"></a>人人影视网站间歇性访问问题</h2><p>为了方便部署，我的所有Bot是使用<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/BotsRunner">docker-compose</a>启动的，丢在了一台英国的大鸡鸡上。毕竟Bot API Endpoint在荷兰，英国访问过去会比较快。再加上这是大鸡鸡，内存和CPU资源都很充足的。</p>
-<p>某天（1月17日），突然发现bot的回应很慢，然后发现是<a target="_blank" rel="noopener" href="https://t.me/mikuri520/682">从英国访问人人影视有点艰难</a>，经常出现connection reset等情况。</p>
-<p>看了一下香港和新加坡还是比较稳定的，于是就一个rsync把YYeTs bot迁移到了新加坡。</p>
-<p>同时，为了避免某天人人影视真的炸掉，我开发了一个<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/commit/e5ceaa19deef7549899d42f6f3c442e91e8a4b3b">Offline模式</a>（😂被我rebase了之后，时间好像不对了），使用环境变量来控制是否启用。最终数据来源就是上面归档的那些数据。</p>
-<p>那么数据存在哪里呢？老早之前就听Nova大佬说<a target="_blank" rel="noopener" href="https://nova.moe/first-touch-with-cf-workers/">Cloudflare worker怎么怎么香</a>。于是我便很<a target="_blank" rel="noopener" href="https://t.me/mikuri520/693">暴力的撸</a>了一个非常原始的页面，有多原始呢？</p>
-<p><img src="/images/2021012414581926.jpeg"></p>
-<p>直接返回json可还行😂</p>
-<p><img src="/images/202101241458206.png"></p>
-<p>此时，人人影视专用链接 <code>yyets://</code> 还是能够在客户端里下载的，速度还不错的说。</p>
-<p>しかし，此时我还不知道，我用<code>wrangler bulk:put</code>的数据其实是不全的……因为<code>wrangler bulk</code>虽然有10000个kv的限制，但是Cloudflare对于免费用户，每天还是只有1000的限制的。所以其实我以为两天能够导入完整的17517条数据，其实只有2000🤦‍♀️</p>
-<h2 id="人人影视网站无法访问"><a href="#人人影视网站无法访问" class="headerlink" title="人人影视网站无法访问"></a>人人影视网站无法访问</h2><p>随后，我又添加了<a target="_blank" rel="noopener" href="https://www.zimuxia.cn/">FIX字幕侠</a>的支持。在搞它的过程中，发现这家伙竟然是拿WordPress搞的！那有WordPress的Public API，还爬个毛线啊，直接把整个<code>wp.posts</code>端回来了……🤔</p>
-<p><img src="/images/2021012414582138.png"></p>
-<p>しかし。。。好吧，通过插件把Public API禁用了，并且这个插件还有Bug😂。不过这下子也发现了用的是 <a target="_blank" rel="noopener" href="https://lnmp.org/">LNMP一键安装</a>啊。那就只好搞常规的爬虫+Redis了。</p>
-<p>搞完FIX的第二天，突然发现<a target="_blank" rel="noopener" href="https://t.me/mikuri520/691">人人影视无法访问了</a>。主站无法访问，分享站的API也挂掉了。当然，服务器还在，还能ping通。那就只好切换到fix啦！</p>
-<p><img src="/images/2021012414582245.jpeg"></p>
-<p>再后来，我用了很多时间去优化，甚至搞出来了优先级搜索，FIX找不到，再去人人影视搜索。甚至还可以指定字幕组搜索。比如说这样：</p>
-<p><img src="/images/2021012414582413.png"></p>
-<p>有时发现Bot没有回复，但是进程也没有退出，就是纯粹的卡死了。是由于任务太多，访问网站又很慢，然后pyTelegramBotAPI的线程池满了吗？也许以后可以考虑把爬虫这部分功能集成到celery中。</p>
-<p>当下，喜欢简单暴力的我我又用Client API写了一个health check🤦‍♀️</p>
-<h2 id="更友好的Worker-Website"><a href="#更友好的Worker-Website" class="headerlink" title="更友好的Worker Website"></a>更友好的Worker Website</h2><p>在人人影视挂掉的当天，我发现了其实人人影视只是部分URL是挂掉的，某些资源还是可以很容易的get回来的。got002.com 也是同理，只是API坏掉了，页面资源还在。</p>
-<p>于是我就发挥了我的小偷技能，把这些资源都搞了回来，然后一顿操作猛如虎，把这个仿真的人人影视分享站搞到了Cloudflare Worker上。</p>
-<p><img src="/images/2021012414582733.png"></p>
-<blockquote>
-<p><strong>Dr. Brand:</strong> Lazarus came back from the dead.</p>
-<p><strong>Cooper:</strong> Sure, but he had to die in the first place.</p>
-</blockquote>
-<p> </p>
-<p><a target="_blank" rel="noopener" href="https://t.me/mikuri520/694">这个Worker也不再简陋了</a>。甚至还有一个更酷的搜索页面和更短的域名<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">https://yyets.dmesg.app/</a> ：</p>
-<p><img src="/images/202101241458298.png"></p>
-<p>我甚至还无聊到加上了资源分享页面访问量的统计😂这个代码写得超烂的，啊！</p>
-<p>别说，这个Worker的访问量还真是挺多的。放心，够用的！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/01/2021012415125085.png"><img src="/images/2021012415125085.png"></a></p>
-<p>最近24小时有62.9K的访问量，反正比我博客都多出来好几个0就是了。哦对，这个数据是完整的，因为我有钞能力呀！🦸‍♀️</p>
-<p><img src="/images/2021012414583184.png"></p>
-<h2 id="那么现在该怎么办"><a href="#那么现在该怎么办" class="headerlink" title="那么现在该怎么办"></a>那么现在该怎么办</h2><p>通过切换到FIX、使用YYeTsOffline作为fallback，糊了一个Worker Website，目前是差不多够用的。</p>
-<p>那么以后该怎么办，难道我们真的只能告别人人影视了吗？</p>
-<p>由于我现在已经不是人人影视字幕组的成员了，以下内容也只是推测。我本人还是持比较乐观的态度的。</p>
-<h3 id="人人影视只是部分页面坏掉了"><a href="#人人影视只是部分页面坏掉了" class="headerlink" title="人人影视只是部分页面坏掉了"></a>人人影视只是部分页面坏掉了</h3><p>这一点我在上面提到了，实测起来只是部分页面“故意坏掉”了，有一些页面还是有一定概率可以返回的，比如说</p>
-<ul>
-<li>部分资源页面，如 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/resource/41579">http://www.rrys2020.com/resource/41579</a></li>
-<li>播出表 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/tv/schedule">http://www.rrys2020.com/tv/schedule</a></li>
-<li>排榜榜 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/html/top/week.html">http://www.rrys2020.com/html/top/week.html</a></li>
-<li>公告 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/Announcement">http://www.rrys2020.com/Announcement</a></li>
-<li>字幕分享 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/subtitle/66221">http://www.rrys2020.com/subtitle/66221</a></li>
-<li>收藏 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/user/fav">http://www.rrys2020.com/user/fav</a> 甚至在收藏里还能看到下载地址！</li>
-</ul>
-<p>你看下面这个图，还能签到呢</p>
-<p><img src="/images/2021012414583230.png"></p>
-<p>2021年1月30日更新：网站已经ping不通了</p>
-<p>Obrien-hk:~ # ping got002.com                                                                                                12:23.35 Sat Jan 30 2021 &gt;&gt;&gt;<br>PING got002.com (47.52.153.161) 56(84) bytes of data.<br>^C<br>— got002.com ping statistics —<br>17 packets transmitted, 0 received, 100% packet loss, time 16389ms</p>
-<p>ps1_fortune:2: command not found: fortune<br>Obrien-hk:~ # ping <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">www.rrys2020.com</a>                                                                                          12:23.54 Sat Jan 30 2021 &gt;&gt;&gt;<br>PING <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">www.rrys2020.com</a> (47.52.174.174) 56(84) bytes of data.<br>^C<br>— <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">www.rrys2020.com</a> ping statistics —<br>22 packets transmitted, 0 received, 100% packet loss, time 21482ms</p>
-<p>ps1_fortune:2: command not found: fortune</p>
-<h3 id="人人影视还在正常翻译新剧吗？"><a href="#人人影视还在正常翻译新剧吗？" class="headerlink" title="人人影视还在正常翻译新剧吗？"></a>人人影视还在正常翻译新剧吗？</h3><p>既然某些页面是坏掉的，那么是不是针对不同等级的用户使用了不同的策略？或者说有另外一个“马甲站”在发布新的资源？毕竟，服务器ping起来没问题，那么看起来就是应用端有一些限制了吧？</p>
-<p>我个人看来，还在翻译的，但有没有压制，就不知道了……并且，人人影视客户端已经无法下载 yyets的专用链接了。可能是“tracker”关掉了吧？</p>
-<p><img src="/images/2021012414583317.png"></p>
-<h2 id="不如这么办……"><a href="#不如这么办……" class="headerlink" title="不如这么办……"></a>不如这么办……</h2><p>尽管我归档了人人影视的资源，但是还是缺少了新鲜的血液。</p>
-<h3 id="使用外挂字幕"><a href="#使用外挂字幕" class="headerlink" title="使用外挂字幕"></a>使用外挂字幕</h3><p>目前来看，人人影视依旧还在翻译，字幕也上传到了subhd。那么可以自己下载片源然后外挂字幕了。当然，如果看日剧的话，追新番也还是好着的，这点就很让人开心了。</p>
-<h3 id="使用FIX"><a href="#使用FIX" class="headerlink" title="使用FIX"></a>使用FIX</h3><p>FIX的翻译质量也还不错的，作为替代选择很不错哦。</p>
-<h3 id="使用bot、Worker"><a href="#使用bot、Worker" class="headerlink" title="使用bot、Worker"></a>使用bot、Worker</h3><p>worker只包含了归档的资源，bot会优先搜索FIX，然后如果没有搜索到才会去搜索Worker。看起来也还是不错的呢。</p>
-<h2 id="汇总"><a href="#汇总" class="headerlink" title="汇总"></a>汇总</h2><ul>
-<li>❌ 人人影视主站 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/">http://www.rrys2020.com/</a></li>
-<li>❌人人影视资源列表 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/resourcelist">http://www.rrys2020.com/resourcelist</a></li>
-<li>❌ 人人影视字幕列表 <a target="_blank" rel="noopener" href="http://www.rrys2020.com/subtitle">http://www.rrys2020.com/subtitle</a></li>
-<li>✅ 磁力站（很慢） <a target="_blank" rel="noopener" href="http://www.mag234.com/home.html">http://www.mag234.com/home.html</a></li>
-<li>✅ 追新番 <a target="_blank" rel="noopener" href="http://www.zhuixinfan.com/main.php">http://www.zhuixinfan.com/main.php</a></li>
-<li>✅ YYeTs资源归档 <a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">https://yyets.dmesg.app/</a></li>
-<li>✅ YYeTs Bot <a target="_blank" rel="noopener" href="http://t.me/yyets_bot">http://t.me/yyets_bot</a></li>
-<li>✅ FIX 字幕侠 <a target="_blank" rel="noopener" href="https://www.zimuxia.cn/">https://www.zimuxia.cn/</a></li>
-</ul>
-<h2 id="开源项目"><a href="#开源项目" class="headerlink" title="开源项目"></a>开源项目</h2><p>由于个人的精力总是有限的，有兴趣的小伙伴可以帮忙开发维护 YYeTs Bot，地址在这里。如果有帮助到你的话，点个star🌟就可以了。如果想要donate😂那……难度可能有点高，但也不是不可能，看下<a target="_blank" rel="noopener" href="https://dmesg.app/donate">导航栏的支持我</a>？</p>
-<p>本项目目前需要……</p>
-<ul>
-<li>整理FIX资源 <code>BagAndDrag</code></li>
-<li>添加其他字幕组支持 <code>yyets/fansub.py</code></li>
-<li>测试用例 <code>tests/*.py</code></li>
-<li>Cloudflare Worker优化 <code>worker/worker-site</code></li>
-</ul>
-<p>开发的话，其实蛮简单的，比如说对于添加其他字幕组的支持，只需要继承BaseFansub，类名写好，实现search_preview和search_result，然后在FANSUB_ORDER里添加你的类名，就可以了。是否要实现缓存，这都是看你个人情况的……</p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/tgbot-collection/YYeTsBot&#39;\]开源地址\[/gt\]</a></p>
-<p> </p>
-<p><strong>哦对了，公共资源请不要滥用。比如说爬虫啊什么的，说得像你能爬下来一样🙄️</strong></p>
-<h2 id="一点点感慨"><a href="#一点点感慨" class="headerlink" title="一点点感慨"></a>一点点感慨</h2><p>以下内容<a target="_blank" rel="noopener" href="https://t.me/mikuri520/711">发布于我的Channel：</a></p>
-<blockquote>
-<p>想起来一件趣事。之前看过一部电影《我是传奇》 I Am Legend。</p>
-<p>这部电影有两个结局，一个是男主活下来，人类与“僵尸”共存，一个是男主牺牲找到解药，人类幸存。</p>
-<p>几年前，和前女友异地感情不顺利的时候，每天在想办法找话题和她聊天保持亲密关系，于是就和她讨论起这个电影，问她更喜欢哪一个结局。</p>
-<p>我说，我更喜欢男主牺牲拯救人类的结局。我更喜欢这个结局，不是因为这样会让男主看起来很伟大，是拯救了人类的英雄。</p>
-<p>而是我认为第二个结局“僵尸”们看起来是不具备进行高级生产的能力的，尽管从电影中可以看到“僵尸”是有一些感情和智力的，但是我认为这个水平依旧无法达到现代人类所能达到的生产能力水平。</p>
-<p>举个例子，人类能够使用自然资源制造出砖块，然后堆砌出墙壁，最终建造房子；然而对于“僵尸”们而言，他们并不具备这种能力，尽管他们的力气很大，但是力气大并不能创造出来力气更大的机器呀。所以从人类发展的角度来讲，我还是更喜欢人类幸存的结局。</p>
-<p>她似乎很赞同我的观点。这么多年过去了，也不知道她过得还好不好。前几天还梦到了她🙁</p>
-<p>今天提到这里，是因为男主牺牲的结局里，最后一句台词是这样的：</p>
-<p><strong>We are his legacy. This is his Legend.</strong></p>
-<p>就像我爬下来的数据一样，这些，是人人影视的遗产。这些，是人人影视的传奇。</p>
-</blockquote>
-<hr>
-<p>最萌不过三岛花😘</p>
-<p><img src="/images/2021012414583596.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/01/24/no-yyets/index/" data-id="clhp7rthv0065s2qr4v8jdjku" data-title="没了人人影视，我们该怎么办？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-nigeru-sp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/01/04/nigeru-sp/index/" class="article-date">
-  <time class="dt-published" datetime="2021-01-04T00:00:00.000Z" itemprop="datePublished">2021-01-04</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/01/04/nigeru-sp/index/">《逃避可耻却有用》新春SP</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前几天《逃避可耻却有用》的新春SP终于放送了。全片长2小时，主要讲了二人事实婚姻之后的生娃的事情。</p>
-<p>2小时的影片里塞进去了很多内容，如性别平等、夫妻同姓、女性职场、育儿假，LGBT等等，当然也少不了狗粮。遗憾的是上述普世价值观只是蜻蜓点水的提了一下，并没有进行深刻的探讨。</p>
-<p>想起来也是啊，SP中所表现的上述内容真的只是浅尝辄止，随便哪一个都可以讨论出一集的时长，如果这样拍下去这个SP可能就要从早看到晚，哦不可以拍Season 2了。</p>
-<p>不过我觉得能够提出问题就很不错了，提出问题，让人们意识到这个问题是切实存在的，然后寻找问题的解决答案而不是解决提出问题的人。这样才可以促进社会进步。</p>
-<h2 id="夫妻同姓"><a href="#夫妻同姓" class="headerlink" title="夫妻同姓"></a>夫妻同姓</h2><p>像一些欧美国家一样，日本现在也有改夫姓的传统。这一切要从明治维新时说起。</p>
-<p>最开始，大部分日本人都是没有姓氏的。19世纪中期，明治维新之后，日本政府立志改革，要建设文明开化的现代国家。后来强制规定必须有姓氏，否则会罚款。于是传说，天皇下令必须取姓的时候，在田里种地的人，那就叫田中了；家里在山脚下，那就叫山下了；家里有个大松树，那就叫松下好了。</p>
-<p>之后，19世纪末，日本政府在1898年颁布的《户籍法》中规定，“每户都要有固定姓氏，子承父姓，妻从夫姓；分家后仍用原姓，不得任意更改”。二战后的新《民事法》，虽然规定夫妻双方可以根据婚前所定，或随夫姓、或随妻姓，但大多数日本女子婚后仍随夫姓；如果女子婚后不改夫姓，会在亲子关系、财产继承等很多方面遇到麻烦。</p>
-<p><img src="/images/2021010417110946.jpeg"></p>
-<p>大大方方的一户两姓</p>
-<p>平匡和实栗之前是“事实婚姻”，并没有入籍，因此也不用考虑这些问题，但是在有了孩子之后，就要去考虑了，要不然没法入籍。</p>
-<p>在这个问题上，夫妻二人考虑的事情是“怎样做是对彼此最有利的”，考虑到改姓之后对工作和生活有怎样的影响，而不是一味的循规蹈矩。对于平匡和实栗而言，所谓“男权”、“女权”是不存在的，他们所追求的是尊重每一个个体，尊重每一个人的想法与努力，并相应的给予肯定与鼓励。</p>
-<p>实栗认为，自己有哥哥，平匡是独生子，并且平匡是靠技术吃饭的改了姓不太好。因此决定跟夫姓</p>
-<p><img src="/images/2021010417111257.jpeg"></p>
-<h2 id="后盾？"><a href="#后盾？" class="headerlink" title="后盾？"></a>后盾？</h2><p>在办完入籍手续之后，平匡对实栗说“我会努力做好你的后盾，有什么事尽管和我说”。</p>
-<p>个人感觉，如果一个男人能够这样说，那么其实也算很温暖的了吧，如果能过做到那就更好了，足够被称作暖男了，总好过撒手不管的那种。</p>
-<p>可是我们的喜欢耍小聪明的实栗可不是这样想的。实栗有点小生气，说：</p>
-<p>帮忙？我们不是一起做父母吗？我也是第一次做妈妈什么都不懂，你怎么能让我自己一个人学习，然后对你发号施令呢？</p>
-<p>实际上，女性在生育过程中所承担的责任是往往要大于男性的，也会承担更多的负担，无论是产前还是产后，无论是生理上还是心理上。</p>
-<p>人们往往认为，如果男性能够做一些事情，就已经很好了，而女性做得再多都会被认为是理所当然的。这真的是有点失衡了。</p>
-<p>想想，职场女性是怎样兼顾家庭与工作的呢？也许《坡道上的家》是一种答案。</p>
-<p>“我们要一起学习，一起做父母，所谓夫妻不就应该是这样吗？”。夫妻两人相互扶持，一起经营家庭，各顶半边天。养孩子，要两口子和社会一起出力。</p>
-<p><img src="/images/2021010417111516.jpeg"></p>
-<h2 id="职场"><a href="#职场" class="headerlink" title="职场"></a>职场</h2><h3 id="这个team-leader怎么回事"><a href="#这个team-leader怎么回事" class="headerlink" title="这个team leader怎么回事"></a>这个team leader怎么回事</h3><p>“听说你老婆很年轻。下次我也要找个年轻的，没有劣化，水嫩嫩的那种。”</p>
-<p>面对这样的话，平匡一脸不解地硬是憝了回去。😂虽说没有半泽那么狠，但是还是很勇敢的。</p>
-<h3 id="产假"><a href="#产假" class="headerlink" title="产假"></a>产假</h3><p>“都已经令和时代了，为什么生孩子还要排队啊，为什么公司不会增派人手啊。”</p>
-<p>“产假吗？那森山不在的时候，他的工作谁来做啊”</p>
-<p>“你要休一个月产假？男的休产假也帮不上忙”</p>
-<h3 id="不能请假这件事情"><a href="#不能请假这件事情" class="headerlink" title="不能请假这件事情"></a>不能请假这件事情</h3><p>本来就不对劲！</p>
-<p><img src="/images/2021010417111838.jpeg"></p>
-<h2 id="孕后反应"><a href="#孕后反应" class="headerlink" title="孕后反应"></a>孕后反应</h2><p>实栗因为严重的孕后反应，没法工作，也没法做家务，也没法陪ゆりちゃん去医院，甚至连快递都做不到。因此实栗成为了著名的诗人</p>
-<p>就算脚抽筋周围也无人，作者津崎实栗</p>
-<p><img src="/images/2021010417111998.jpeg"></p>
-<p>就算尿失禁周围也无人😂</p>
-<p><img src="/images/2021010417112158.jpeg"></p>
-<p>在新年之夜，二人甚至因为一点小问题吵架了🤯</p>
-<h2 id="我好辛苦啊"><a href="#我好辛苦啊" class="headerlink" title="我好辛苦啊"></a>我好辛苦啊</h2><p>因为没办法做家务，实栗叫了家政，尽管新年夜要加钱……</p>
-<p>“生完孩子以后，我们还会遇到很多问题，到时候借助周围的力量一起去克服，好吗”，实栗在说完这句话的时候，平匡就背过去抹眼泪了。😭我也在抹眼泪啊😭</p>
-<p><img src="/images/2021010417112256.jpeg"></p>
-<p>“你很辛苦吧，你肯定很辛苦，一个人负责家务活，还要努力工作。觉得辛苦的时候就说出来吧。”</p>
-<p><img src="/images/2021010417112475.jpeg"></p>
-<p>这种，“男人一定要坚强”想法是否真的站得住脚？</p>
-<p>男人一定要坚强，不可以哭，也不懂得如何倾诉，不能像女人一样闲聊吐槽，这可能是社会施加的诅咒吧。</p>
-<p>尽管人们往往这样认为，但是实栗从来不认为平匡迁就自己，努力工作，还要做家务是理所当然的。觉得辛苦的时候就倾诉吧，无论男人还是女人。</p>
-<p><img src="/images/2021010417112617.jpeg"></p>
-<p>つらい。😭</p>
-<h2 id="孩子的名字"><a href="#孩子的名字" class="headerlink" title="孩子的名字"></a>孩子的名字</h2><p>孩子的名字是父母给予的第一份礼物。</p>
-<p>要不起个男女通用的名字吧，以后也许会在成长过程中改变性别。</p>
-<p><img src="/images/2021010417112731.jpeg"></p>
-<h2 id="新冠肺炎"><a href="#新冠肺炎" class="headerlink" title="新冠肺炎"></a>新冠肺炎</h2><p>新冠肺炎爆发之后，夫妻俩决定让实栗回娘家，尽可能降低接触到病毒的几率。在分离之前，二人本想拥抱，但是看了看孩子，还是没有拥抱。</p>
-<p><img src="/images/2021010417112927.png"></p>
-<p>疫情爆发之后，平匡在网上看到人们猜疑，诋毁，攻击对方，不禁问自己：人类居然能够愚蠢到这种境界吗，我也会这样吗？</p>
-<p><img src="/images/2021010417113356.jpeg"></p>
-<p>在过去的2020年，我也目睹过很多类似的事情：网络暴力，身份信息被出道，被人说“千里投毒”等等，这些事情，就是我所亲身经历的。人类居然能愚蠢到这种境界吗？</p>
-<p>有这样一个场景记得很清楚：</p>
-<p>政府宣布了紧急状态，娘家网络通讯设备坏掉了，平匡买好了想要送到娘家，路上看到了带孩子遛弯的实栗，然后一直看着他们的身影没敢打招呼，有一点“大禹治水三过家门而不入”的感觉。此时此刻的他非常理性，知道自己只是个快递员，不能做别的事情。平匡悄悄地把东西放到娘家门口，然后走了。</p>
-<p><img src="/images/2021010417113474.jpeg"></p>
-<p>实栗发现后，跑出去找平匡，最终在桥上，隔着很远，认出了对方。😭😭</p>
-<p>生きていれば　また会える。</p>
-<p><img src="/images/2021010417113461.jpeg"></p>
-<p>这个桥可以步行吗？</p>
-<h2 id="一些有趣的地方"><a href="#一些有趣的地方" class="headerlink" title="一些有趣的地方"></a>一些有趣的地方</h2><h3 id="我平匡家有娇妻，才不要程序员鼓励师咧"><a href="#我平匡家有娇妻，才不要程序员鼓励师咧" class="headerlink" title="我平匡家有娇妻，才不要程序员鼓励师咧"></a>我平匡家有娇妻，才不要程序员鼓励师咧</h3><p><img src="/images/2021010417113672.jpeg"></p>
-<h3 id="葡萄柚果冻哪里有卖的啊？"><a href="#葡萄柚果冻哪里有卖的啊？" class="headerlink" title="葡萄柚果冻哪里有卖的啊？"></a>葡萄柚果冻哪里有卖的啊？</h3><p>喂你别走啊！好不容易买回来，实栗已经睡了，哎……</p>
-<p><img src="/images/2021010417113751.jpeg"></p>
-<h3 id="下次见面时再追求我一次？"><a href="#下次见面时再追求我一次？" class="headerlink" title="下次见面时再追求我一次？"></a>下次见面时再追求我一次？</h3><p>这狗粮真是太甜了吧！</p>
-<p><img src="/images/2021010417113812.jpeg"></p>
-<h3 id="新的恋ダンス"><a href="#新的恋ダンス" class="headerlink" title="新的恋ダンス"></a>新的恋ダンス</h3><p>太萌了太萌了高萌预警，我老婆披着麻袋都那么好看啊！</p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=C0p5Q5qFTss%EF%BC%88YouTube%E7%9A%84%E5%B7%B2%E7%BB%8F%E8%A2%ABDMCA%E4%BA%86%F0%9F%98%82%EF%BC%89">https://www.youtube.com/watch?v=C0p5Q5qFTss（YouTube的已经被DMCA了😂）</a></p>
-<p> </p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>无论是选择结婚生子，还是一个人活下去，都没有关系。</p>
-<p>看完觉得好感动的，也感到了更独孤、更空虚，仿佛2021年已经过完了一样。世界上怎么会有人能这么可爱，我实在太喜欢Gakki 了，在可爱面前无条件投降。想娶回家天天摸头😘😘😘</p>
-<p>这一对夫妇好幸福啊，他们一起努力，以经营公司的方式来经营家庭，从不认为对方所作所为是理所当然的，尊重理解对方的选择与想法，及时肯定对方的努力。</p>
-<p>平匡和实栗完全就是我所想要的样子。希望源さん在生活中也是这样一个温柔的人呢。</p>
-<p><img src="/images/2021010417114041.jpeg"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/01/04/nigeru-sp/index/" data-id="clhp7rthr005rs2qr8oftgixx" data-title="《逃避可耻却有用》新春SP" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-2020-conclusion/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/12/31/2020-conclusion/index/" class="article-date">
-  <time class="dt-published" datetime="2020-12-31T00:00:00.000Z" itemprop="datePublished">2020-12-31</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/12/31/2020-conclusion/index/">2020年终总结</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>2020年快结束了。这一年对于我来说，是“改变之年”。离开了熟悉的故乡，离开了家人，换了一份新的工作，认识了屈指可数的新朋友，学习了一些有趣的新知识。与此同时，新冠肺炎依旧在肆虐，慢慢已经养成了出门不用化妆反正也是戴口罩没人看得见的习惯。</p>
-<h2 id="2020年的改变"><a href="#2020年的改变" class="headerlink" title="2020年的改变"></a>2020年的改变</h2><p>一直以来，我都是非常抗拒改变的人，因为我的内心很胆小怯懦，很不喜欢和人面对面的打交道。如果能够得过且过的、健康的、有质量的活下去，那么也就可以这样继续了。</p>
-<p>也正是因为如此，自打毕业开始我便留在了故乡，未曾想过什么太大的改变。</p>
-<p>直到今年，因为想要“right the wrong”以及 Nova的怂恿，来到了上海。</p>
-<p>在解决了安身之处之后，生活也就开始变得稳定了，工作，解决问题（不可以解决提出问题的人哦，这样就是食人族了），周末。然后就变得和以往一样。工作很棒，生活还和以前一样，只不过有了更多的独处时间。</p>
-<p>在生活中，我猜，我之所以抗拒改变，一个原因是心理舒适区，另外一个原因是对未知的恐慌。因为改变会带来变化，如果变化所带来的收益远远小于解决变化所消耗的精力，那么就显得有些得不偿失了。</p>
-<p>在生活上，对待改变的态度可能就这样，我自己也没有做出什么太大的努力。怎么也都是宅着，无外乎置换一些生活用品，养成一些新的习惯，除此之外最大的也就是搬家了。</p>
-<p>在技术上，我倒是在努力鞭策自己做出改变，毕竟这个改变不需要付出太多体力，只需要坐着思考实践就可以了。我觉得2020年最大的变化就是，我把我的大部分的服务都是用docker跑起来了。</p>
-<p>各位读者们现在在读的本文，所有由我运行的Telegram Bot，以及其他的几个站点，目前都是使用docker的。迁移的过程比较麻烦，花费了几天的时间，甚至还宣布失败了一次，不过最终还是成功完美迁移，对于以后维护上的便利性还是非常有帮助的。我认为这次改变是非常值得的。</p>
-<p><img src="/images/2020122913534578.png"></p>
-<p>另外，值得一提的是，2020年，我总计发布了13篇博文（不算本文），还好没有给被打脸的机会，值得窃喜。</p>
-<h2 id="2021年的展望"><a href="#2021年的展望" class="headerlink" title="2021年的展望"></a>2021年的展望</h2><p>2021年，我应该更多思考一下人生的问题吧：我究竟想要什么？我究竟要不要烂在这里？做一个“精致的利己主义者”吗？</p>
-<p>  [video play&#x3D;’0’]<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/12/2020122914045013.mp4/[/video/]">https://dmesg.app/wp-content/uploads/2020/12/2020122914045013.mp4\[/video\]</a></p>
-<p>我想要的东西，是否值得我去做出更大的改变，去面对从未有过的未知？我该如何下定决心，我该如何清楚认识到我究竟想要什么？</p>
-<p>2021年，大体上还是希望希望世界和平，无灾无难，我老婆更美吧！🥺ぴえん</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/12/31/2020-conclusion/index/" data-id="clhp7rtdh0000s2qr42o1dj7q" data-title="2020年终总结" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-tgbot2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/12/25/tgbot2/index/" class="article-date">
-  <time class="dt-published" datetime="2020-12-25T00:00:00.000Z" itemprop="datePublished">2020-12-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/12/25/tgbot2/index/">[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>三年前，我开始了写这一系列，没想到过了3年，竟然也没几个人去看！连个捧场的都没有</p>
-<p>这三年，Telegram也迎来了一些更新，这篇文章当然不会挨个介绍每一个新特性以及相关的用法了，我只会把自己开发过程中提到的地方记录一下。官方文档写的挺清楚了，基本上每一点都介绍的很详细😂</p>
-<p>前两篇</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot0.html">[Telegram bot 系列]0：用 Python 写一个 Telegram Bot 简单的回话 bot</a></p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot1.html">[Telegram bot 系列]1：requests 库、Inline Keyboard、Reply Keyboard 与其他细节</a></p>
-<h2 id="回顾：如何开发一个Telegram-Bot"><a href="#回顾：如何开发一个Telegram-Bot" class="headerlink" title="回顾：如何开发一个Telegram Bot"></a>回顾：如何开发一个Telegram Bot</h2><h3 id="开发语言"><a href="#开发语言" class="headerlink" title="开发语言"></a>开发语言</h3><p>爱用啥用啥，Python、Go等都没问题的，甚至直接curl都是可以的。毕竟Restful，怎么都可以。</p>
-<h3 id="开发方式"><a href="#开发方式" class="headerlink" title="开发方式"></a>开发方式</h3><p>想要开发Telegram Bot，从途径上来说有两种方法。</p>
-<p>第一种方法是使用Bot API，REST接口，入口在荷兰，使用起来比较容易。</p>
-<p>第二种方法是使用MTProto协议，这个会比较困难，需要有一定的异步编程基础。著名的<a target="_blank" rel="noopener" href="https://github.com/LonamiWebs/Telethon">telethon</a>就是干这个的。</p>
-<p>大部分情况下使用第一种就足够满足需求了，本系列也会一直以第一种方法为主。</p>
-<h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><p>对于Bot而言，最重要的事情就是“事件”，比如说当用户发送一个纯文本的消息，那么对于Bot来说就是一种类型的事件；当用户发送了一个图片，这又是另外一种事件；用户编辑了消息，删除了消息，也同样对应不同的事件。甚至，当用户点击InlineKeyBoardButton，这也是一种特殊事件。</p>
-<p>因此，开发一个bot，也就是根据传入的事件不同来进行各种操作，然后给用户反括，比如回复消息，发送文件，整体的流程差不多就是这样的。</p>
-<p>Telegram Bot事件类型挺多的，大概一共有这些类型：</p>
-<p>&#x2F;&#x2F; Handler: func(*Message)<br>OnText &#x3D; “\atext”<br>OnPhoto &#x3D; “\aphoto”<br>OnAudio &#x3D; “\aaudio”<br>OnAnimation &#x3D; “\aanimation”<br>OnDocument &#x3D; “\adocument”<br>OnSticker &#x3D; “\asticker”<br>OnVideo &#x3D; “\avideo”<br>OnVoice &#x3D; “\avoice”<br>OnVideoNote &#x3D; “\avideo_note”<br>OnContact &#x3D; “\acontact”<br>OnLocation &#x3D; “\alocation”<br>OnVenue &#x3D; “\avenue”<br>OnEdited &#x3D; “\aedited”<br>OnPinned &#x3D; “\apinned”<br>OnChannelPost &#x3D; “\achan_post”<br>OnEditedChannelPost &#x3D; “\achan_edited_post”<br>OnDice &#x3D; “\adice”<br>OnInvoice &#x3D; “\ainvoice”<br>OnPayment &#x3D; “\apayment”</p>
-<p>&#x2F;&#x2F; Will fire when bot is added to a group.<br>OnAddedToGroup &#x3D; “\aadded_to_group”</p>
-<p>&#x2F;&#x2F; Group events:<br>OnUserJoined &#x3D; “\auser_joined”<br>OnUserLeft &#x3D; “\auser_left”<br>OnNewGroupTitle &#x3D; “\anew_chat_title”<br>OnNewGroupPhoto &#x3D; “\anew_chat_photo”<br>OnGroupPhotoDeleted &#x3D; “\achat_photo_del”</p>
-<p>&#x2F;&#x2F; Migration happens when group switches to<br>&#x2F;&#x2F; a supergroup. You might want to update<br>&#x2F;&#x2F; your internal references to this chat<br>&#x2F;&#x2F; upon switching as its ID will change.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(from, to int64)<br>OnMigration &#x3D; “\amigration”</p>
-<p>&#x2F;&#x2F; Will fire on callback requests.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Callback)<br>OnCallback &#x3D; “\acallback”</p>
-<p>&#x2F;&#x2F; Will fire on incoming inline queries.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Query)<br>OnQuery &#x3D; “\aquery”</p>
-<p>&#x2F;&#x2F; Will fire on chosen inline results.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ChosenInlineResult)<br>OnChosenInlineResult &#x3D; “\achosen_inline_result”</p>
-<p>&#x2F;&#x2F; Will fire on ShippingQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ShippingQuery)<br>OnShipping &#x3D; “\ashipping_query”</p>
-<p>&#x2F;&#x2F; Will fire on PreCheckoutQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PreCheckoutQuery)<br>OnCheckout &#x3D; “\apre_checkout_query”</p>
-<p>&#x2F;&#x2F; Will fire on Poll.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Poll)<br>OnPoll &#x3D; “\apoll”</p>
-<p>&#x2F;&#x2F; Will fire on PollAnswer.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PollAnswer)<br>OnPollAnswer &#x3D; “\apoll_answer”</p>
-<p>看到名字就知道是什么意思，就不说了。</p>
-<h3 id="运行方式"><a href="#运行方式" class="headerlink" title="运行方式"></a>运行方式</h3><p>要么使用polling方式，定期轮询API Server，要么设置webhook，发生事件时Telegram会向设置的地址发送POST请求，请求的BODY里会有对应的数据结构。</p>
-<h2 id="Media-Group"><a href="#Media-Group" class="headerlink" title="Media Group"></a>Media Group</h2><p>Telegram目前已经支持将图片、文件、视频等作为一组发送，比如说我发送了3张照片为一组，在这种情况下，Bot 所收到的事件就是三个onPhoto，然后这三个事件有一个共同的字段<code>media_group_id</code>，至于<code>caption</code>落在第几个事件里？不知道，遍历完就知道了。</p>
-<p>划重点：这三个事件几乎是同时到达的。所以有些需求，比如说提取出这组照片里的file_id和caption，最简单的办法就是共享一个全局的字典，以<code>user_id</code>和<code>media_group_id</code>作为key，那么这个时候就要考虑用锁的机制来让这三个事件变成串行的。一个例子<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet/blob/master/teletweet/bot.py#L125">可以看这里</a></p>
-<h2 id="下载媒体文件"><a href="#下载媒体文件" class="headerlink" title="下载媒体文件"></a>下载媒体文件</h2><p>对于Telegram而言，无论是文件，还是图片、视频，都有一个<code>file_id</code>用于唯一代表这个文件。当然，每个类型会有一些细微的不同，比如视频文件会包含分辨率，图片会有预览图，文件会有mime-type。</p>
-<p>想要下载文件，可以分为三步</p>
-<ol>
-<li>拿到对应的对象，比如说想要下载图片，那么就是<code>message.photo</code>，想要下载视频，那么就是<code>message.video</code></li>
-<li>拿到file_id，参考下对应的数据结构，拿到对应的<code>file_id</code>，比如说<code>message.video.file_id</code></li>
-<li>进行下载，保存到本地</li>
-</ol>
-<p>具体可以参考如下代码，用其他语言也差不多，套路都是一样的：</p>
-<p>def download_file_from_id(file_id):<br>    file_info &#x3D; bot.get_file(file_id)<br>    content &#x3D; bot.download_file(file_info.file_path)</p>
-<pre><code>temp = tempfile.NamedTemporaryFile(delete=False)
-temp.write(content)
-return temp
-</code></pre>
-<p>def get_file_id(message) -&gt; str:<br>    if message.photo:<br>        object_type &#x3D; “photo”<br>    elif message.video:<br>        object_type &#x3D; “video”<br>    elif message.document:<br>        object_type &#x3D; “document”<br>    else:<br>        object_type &#x3D; “”</p>
-<pre><code>try:
-    file\_id = getattr(message, object\_type)\[-1\].file\_id
-except Exception:
-    file\_id = getattr(message, object\_type).file\_id
-return file\_id
-</code></pre>
-<p>需要注意一点，<code>message.photo</code>的结果是一个list，第一个元素是预览图，最后一个元素是正常大小（720P）的图片</p>
-<p>另外更需要注意的一点：Telegram对于Bot可以上传、下载的文件、图片等大小有限制，具体可以查文档找找，所以如果用户发送了一个2G的文件，bot这边很有可能是无法下载的……但是Bot可以转发啊！要处理这种情况，只能用client api了，bot收到这种类型的文件，转发给一个正常用户，正常用户处理完，将结果发给bot，bot再转发给初始用户。</p>
-<p>这种曲线救国的方式，如果确保整个链条是完整的，可以<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">参考NCMBot的代码</a>。一定要引起注意的是，有些用户的隐私设置中不允许任何人查看转发信息，因此不可以依赖forwarded_message这个字段！bot一定要想办法自己记录下来某条消息（文件）的对应的初始用户是谁。</p>
-<h2 id="Next-Step"><a href="#Next-Step" class="headerlink" title="Next Step"></a>Next Step</h2><p>有些时候，我们可能需要一个wizard性质的一步一步的向导，简单的话，类似下图这种效果：</p>
-<p><img src="/images/2020122516061518.png"></p>
-<p><img src="/images/2020122516061860.png"></p>
-<p>BotFather也是这样设计的。</p>
-<p>这个时候就需要一种“Next Step”的概念，要一步一步来才可以。如果使用pytelegrambotapi的话，那么就很简单了，直接使用<code>bot.register_next_step_handler</code>就可以了。示例代码如下：</p>
-<p>@bot.message_handler(commands&#x3D;[‘sign_in’])<br>def sign_in_handler(message):<br>    bot.send_message(message.chat.id, “next step”, parse_mode&#x3D;’markdown’)<br>    bot.register_next_step_handler(message, next_step_add_auth)</p>
-<p>def next_step_add_auth(message):<br>    bot.send_chat_action(message.chat.id, ‘typing’)<br>    bot.send_message(message.chat.id, “this step”, parse_mode&#x3D;’markdown’)</p>
-<p>如果wrapper不支持next step，那就只能自己设计一个状态机了。需要设计一个临时的数据结构，至少要表明用户的下一步操作应该是什么，然后拦截对应的事件，做dispatch。</p>
-<p>具体<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/KeepMeBot/blob/93244cdae53a77a3232ece9e4e5e053418d386ac/handler.go#L63">可以看这里</a>，太长了就不贴了</p>
-<h2 id="部署维护"><a href="#部署维护" class="headerlink" title="部署维护"></a>部署维护</h2><p>之前开发的bot，每次上线都要写一个systemd service文件，然后<code>systemctl daemon-reload</code>，很麻烦，迁移到其他机器也很麻烦。后来渐渐开始用docker，就很方便了。直接把一堆bot都丢到一个<code>docker-compose.yml</code>中，一个<code>up</code>就可以了。迁移服务器时只要rsync走，重新up就可以。具体可以看<a target="_blank" rel="noopener" href="https://dmesg.app/dev-deploy-bot.html">《我是如何优雅的开发、部署并管理多个 Telegram Bot 的》</a></p>
-<h3 id="Dockerfile与docker-image"><a href="#Dockerfile与docker-image" class="headerlink" title="Dockerfile与docker image"></a>Dockerfile与docker image</h3><p>之前，不知道在哪看到的文章，说docker image的layer有限制，不能超过127层(还是多少层的)，层越少越好。因此很多人可能都有一个疯狂一行式的习惯，把所有操作全都一个RUN解决了，不停的用&amp;&amp;和\。</p>
-<p>一个非常典型的例子大概如下：</p>
-<p>FROM python:alpine</p>
-<p>RUN apk update \<br>&amp;&amp; apk add git ffmpeg flac –no-cache \<br>&amp;&amp; git clone <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ExpressBot">https://github.com/tgbot-collection/ExpressBot</a> \<br>&amp;&amp; pip3 install –no-cache-dir -r &#x2F;ExpressBot&#x2F;requirements.txt</p>
-<p>WORKDIR &#x2F;ExpressBot</p>
-<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
-<p>现在想想，这™️的是谁说的，出来让我暴打一顿，可真是害人不浅呐！</p>
-<p>现在docker engine的layer是否有层数限制我不了解，但是层越少越好，这点要怎么理解？</p>
-<p>比如说，有人看到官网文档<a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices">Best practices for writing Dockerfiles</a>里这么说的：</p>
-<blockquote>
-<p><strong>Minimize</strong> the number of layers</p>
-<p>In older versions of Docker, it was <strong>important</strong> that you minimized the number卧槽这™️什么玩意这也太长了吧看不下去了啊，能不能来个中文，啊好困。行吧，反正有一个minimize，还说 important，那直接无条件一层达人不就得了。</p>
-</blockquote>
-<p>愚以为，宫中之事 技术学习中是非常忌讳这种囫囵吞枣的阅读方式的。</p>
-<h3 id="如何正确的使用RUN"><a href="#如何正确的使用RUN" class="headerlink" title="如何正确的使用RUN"></a>如何正确的使用RUN</h3><p>为什么要存在layer，一个最直观的原因就是，大家可以共用同样的layer，这样pull起来也快很多啊。另外还有一个原因就是，如果某一个layer已经有了，那么在build image的时候，直接拿来用不就好了？毕竟安装东西很慢啊，有些可能还是要去编译的，就更慢了。</p>
-<p>写Dockerfile不要怕多创建layer，不要总是一层达人（这里使用了夸张的修辞手法，<code>FROM</code>也是要一层的，这里指的是一个<code>RUN</code>指令）</p>
-<p>怎么来了解这个事情呢？</p>
-<p>首先要知道，docker只有<code>RUN</code>、<code>COPY</code>、<code>ADD</code>这三个命令会创建新的layer。</p>
-<p>其次，以Python为例，一个Python程序的运行环境大概可以这样划分：</p>
-<ol>
-<li>基础的操作系统</li>
-<li>某版本的Python解释器及对应的一些系统级使用apt安装的库，比如gcc，git，各种lib比如说libssl</li>
-<li>对应的Python第三方库，比如说flask，requests</li>
-<li>代码</li>
-</ol>
-<p>那么具体分析一下，就可以发现，1和2是基本不会变的，3变的概率比较大，但是不会很频繁，4是经常变化的。那么我们的Dockerfile就应该同样保证1和2作为一层，3作为1层，4作为一层。</p>
-<p>其次要知道，docker在build的时候，默认会使用缓存的，但是需要注意的是，如果低层的缓存失效了，那么后面的全部都要重新跑。</p>
-<p>也就是说，在上面的例子中，如果我只改代码，那么对应的是4，那么123都会使用缓存，4重新跑一次。但是如果我修改了2，那么234都要重新跑，即使我没有修改3和4。哦对了，2020年了，没有人会傻到用文件的访问时间、修改时间来判断你有没有改这个文件。docker使用的是checksum(SHA256)啦。</p>
-<p>总结一下，应该把<strong>同样变化频率的命令放在一起作为一条RUN</strong>，然后把<strong>不常变化的放在上面，经常变化的放在下面</strong>，这样才是最优解。</p>
-<p>那么对应如上Dockerfile，就可以这样优化一下：</p>
-<p>FROM python:alpine</p>
-<h1 id="安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"><a href="#安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo" class="headerlink" title="安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"></a>安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo</h1><p>RUN apk update &amp;&amp; apk add –no-cache ffmpeg flac # 加上–no-cache</p>
-<h1 id="拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod"><a href="#拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod" class="headerlink" title="拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod"></a>拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod</h1><p>COPY requirements.txt &#x2F;tmp&#x2F;requirements.txt</p>
-<h1 id="安装-Python的库，然后删掉它，如果是go，可以用go-mod-download"><a href="#安装-Python的库，然后删掉它，如果是go，可以用go-mod-download" class="headerlink" title="安装 Python的库，然后删掉它，如果是go，可以用go mod download"></a>安装 Python的库，然后删掉它，如果是go，可以用go mod download</h1><h1 id="如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以"><a href="#如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以" class="headerlink" title="如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以"></a>如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以</h1><p>RUN pip install –no-cache-dir -r &#x2F;tmp&#x2F;requirements.txt &amp;&amp; rm &#x2F;tmp&#x2F;requirements.txt</p>
-<h1 id="把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝"><a href="#把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝" class="headerlink" title="把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝"></a>把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝</h1><p>COPY . &#x2F;ExpressBot</p>
-<p>WORKDIR &#x2F;ExpressBot</p>
-<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
-<p>这样就可以用到cache啦</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/12/2020122516243648.jpeg"><img src="/images/2020122516243648.jpeg"></a></p>
-<p>具体改进都写到了注释里了。需要注意的是，<code>.git</code>也会被拷贝，对于一个有很多commit的项目来说……还是整个<code>.dockerignore</code>吧！</p>
-<p>这样一波操作下来，确实是多了几层，但是下次我改代码，docker hub就不用全部重新跑了，一个简单的COPY就完事。</p>
-<p>呃，当然，build rule也要开启build caching哦</p>
-<p><img src="/images/2020122516062048.png"></p>
-<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers">Best practices for writing Dockerfiles</a></p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>祝大家圣诞快乐🎅希望你的圣诞老人没有在打电动</p>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/xbox/status/1342213462521380864?s=21">https://twitter.com/xbox/status/1342213462521380864?s=21</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/12/25/tgbot2/index/" data-id="clhp7rtm5009qs2qrbn1ydxkk" data-title="[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1171,7 +1052,7 @@ return file\_id
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1184,23 +1065,23 @@ return file\_id
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

@@ -73,6 +73,710 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-yyets/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/02/10/yyets/index/" class="article-date">
+  <time class="dt-published" datetime="2018-02-10T00:00:00.000Z" itemprop="datePublished">2018-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>►<a class="article-category-link" href="/categories/security/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/02/10/yyets/index/">解密人人影视客户端加密的视频文件：从C++ Port到Python的经过</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="https://dmesg.app/jbls.html">我可能走上了移植的不归路</a></p>
+<p>在几个月开始给ExpressBot加入人人影视的API的时候，发现有一个很神奇的API，对某个URL进行<code>curl url -C - -Lv -o xxx.mp4</code>，会下载回来一个和原始视频文件一样大小、内容却经过某种加密处理的文件。</p>
+<p>前几天经过<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot/issues/3">JasonKhew96</a>的分析，发现是人人影视对视频文件进行了加密。</p>
+<h2 id="加密原理"><a href="#加密原理" class="headerlink" title="加密原理"></a>加密原理</h2><p>一句话简单概括就是，每4096字节就加密16个字节，加密密钥是file_id+字符串zm+file_id进行一次md5</p>
+<h2 id="进一步的分析探讨"><a href="#进一步的分析探讨" class="headerlink" title="进一步的分析探讨"></a>进一步的分析探讨</h2><h3 id="分析相应JSON"><a href="#分析相应JSON" class="headerlink" title="分析相应JSON"></a>分析相应JSON</h3><p>首先，我们先看一下相应吧，大概如下所示：</p>
+<p>[<br>{<br>“file_name”: “天赋异禀.彩蛋合集.the.gifted.s01.extras.中英字幕.webrip.aac.720p.x264-人人影视.mp4”,<br>“file_size”: 61001062,<br>“fileid”: “fb755fd1b51c769bfed987e2a8c8b03ee7a8e7cc”,<br>“url”: “<a target="_blank" rel="noopener" href="https://www.zmzfile.com:9043/rt/route?fileid=fb755fd1b51c769bfed987e2a8c8b03ee7a8e7cc">https://www.zmzfile.com:9043/rt/route?fileid=fb755fd1b51c769bfed987e2a8c8b03ee7a8e7cc</a>“<br>},<br>{<br>“file_name”: “天赋异禀.the.gifted.s01e12-13.中英字幕.webrip.aac.720p.x264-人人影视.mp4”,<br>“file_size”: 995104165,<br>“fileid”: “a01975eda089190c7e43fcba5eb91371e54205a6”,<br>“url”: “<a target="_blank" rel="noopener" href="https://www.zmzfile.com:9043/rt/route?fileid=a01975eda089190c7e43fcba5eb91371e54205a6">https://www.zmzfile.com:9043/rt/route?fileid=a01975eda089190c7e43fcba5eb91371e54205a6</a>“<br>},<br>省略…………<br>]</p>
+<p>首先观察下这个fileid，40个字符，看样子应该是某个散列函数的摘要，那么应该是SHA1吧。SHA1摘要长度是160位，也就是20个字节，用十六进制表示法就是40个字符了。</p>
+<p>然而事实证明，可能并不是这样。我比对了所有已知的散列函数，都没有一样的散列值，猜测可能是加了点“作料”然后再运行的SHA1吧。不过这不重要。</p>
+<h3 id="十六进制分析"><a href="#十六进制分析" class="headerlink" title="十六进制分析"></a>十六进制分析</h3><p>为了验证文件究竟被做了怎样的修改，我们必须要准备两个版本的文件：原版的与被加密的。</p>
+<p>打开Hex Comparison比较两个文件的异同。</p>
+<p>第一处不同：</p>
+<p><img src="/images/2018021013220744.png"></p>
+<p>文件一开始就发现不同了。这个部分相当重要啦，file命令就是看这里区分文件类型的。</p>
+<p>第二处不同：</p>
+<p><img src="/images/2018021013221095.png"></p>
+<p>注意左侧的十六进制偏移，我们用计算器把它换算成十进制，发现刚好是4096.那么大胆的猜测一下，下一个不同的地方的十进制就应该是8192，对应十六进制就应该是2000，对吧？</p>
+<p><img src="/images/2018021013221251.png"></p>
+<p>没错哦，真的是这样。那么加密流程就可以这样详细描述了：</p>
+<p>将文件以4096字节进行分块，加密每一块中的前16个字节（也就是图上的一行）。如果遇到文件尾恰巧是该加密的块但是又不足16字节（这种概率真的很低），那么如何处理还暂时未知，不过按照常规的思路应该是先padding然后再走加密。</p>
+<p>有人可能要问，上面那一行不同明明是32个字符，那么就是32个字节，你怎么睁眼说瞎话呢？唉ε&#x3D;(´ο｀*)))十六进制表示法嘛，下面会细说的。</p>
+<h2 id="C-源代码的结构流程分析"><a href="#C-源代码的结构流程分析" class="headerlink" title="C++源代码的结构流程分析"></a>C++源代码的结构流程分析</h2><p>JasonKhew96提供了一个C++版本的可以成功解密文件的源代码，下载可以戳这里<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot/files/1710533/YYeTs.zip">https://github.com/BennyThink/ExpressBot/files/1710533/YYeTs.zip</a></p>
+<p>使用CLion打开进行分析，发现流程大概是这样的（我的C&#x2F;C++水平接近于0了，已经完全完蛋了(๑′ᴗ‵๑)）：</p>
+<p>主函数的里只有这两句关键代码，第一句猜测是拿到加密的Key，第二步是用Key解密文件。</p>
+<p>uint8_t *md5Test &#x3D; getMd5(argv[2]);<br>decrypt_file(md5Test, argv[1]);</p>
+<p>我们跳转到getMd5这个函数</p>
+<p>char zmzSecret[] &#x3D; “zm”;<br>char bfMd5[82] &#x3D; {};<br>strcat(bfMd5, file_id);<br>strcat(bfMd5, zmzSecret);<br>strcat(bfMd5, file_id);<br>char zmzKey[32];<br>strcpy(zmzKey, md5(bfMd5).c_str());</p>
+<p>我们发现思路很简单，就是</p>
+<p>fileid &#x3D; “d21a081cc6a32daa85310ca6aad81e378f0b736e” secret &#x3D; “zm” key &#x3D; fileid + secret + fileid</p>
+<p>也就是d21a081cc6a32daa85310ca6aad81e378f0b736ezmd21a081cc6a32daa85310ca6aad81e378f0b736e，然后对这个进行一次md5，通过跳转到<code>md5.cpp</code>中，查看对应代码，<code>return md5.hexdigest()</code>我们可以猜测到，这里返回的值是十六进制表示的md5值，也就是我们经常看到的32个字符的MD5值。</p>
+<p>小提示：</p>
+<p>[v_blue]小提示： 根据维基百科，MD5的摘要长度是128位，那么应该是128&#x2F;8&#x3D;16字节，为什么我们看到的摘要长度都是32呢？哦是这样的，MD5运算之后的结果是二进制，基本上是不可读的（无法正确显示出来），所以我们一般都会把结果转换成十六进制，这样就是可以看到的字符啦。只不过我们是4位转换一个，用两个“字符”表示， 所以128位（16字节）的摘要以16进制表示法显示是32个“字符”啦。[&#x2F;v_blue]</p>
+<p>接下来就是一段for循环，反正<strong>当时</strong>我是没太搞懂这段for循环的含义。好吧，就当我们拿到了真正的key，那么我们看下decrypt_file这个函数吧。</p>
+<p>逻辑就不细说了，基本上就是判断当前的文件指针位置，需要处理文件大小与文件尾，然后进行解密写入文件。</p>
+<h2 id="Port到Python之使用MD5计算AES-Key"><a href="#Port到Python之使用MD5计算AES-Key" class="headerlink" title="Port到Python之使用MD5计算AES Key"></a>Port到Python之使用MD5计算AES Key</h2><p>由于后面需要用到aes，所以这里就都使用<a target="_blank" rel="noopener" href="https://github.com/pyca/cryptography">cryptography</a>啦，要是只进行散列倒是可以用用自带的hashlib呢。</p>
+<p>生成摘要很简单，几行而已：</p>
+<p>from binascii import hexlify</p>
+<p>from cryptography.hazmat.backends import default_backend<br>from cryptography.hazmat.primitives import hashes</p>
+<p>digest &#x3D; hashes.Hash(hashes.MD5(), backend&#x3D;default_backend())<br>digest.update(‘hello world’)<br>print hexlify(digest.finalize())</p>
+<p>有两点需要注意：</p>
+<ol>
+<li>要记得MD5的摘要本质上是二进制，所以我们print一定是乱码的，所以我们此时要转换成十六进制表示出来；</li>
+<li>要记得<code>digest.update()</code>接受的参数是bytes类型，也就是二进制，所以如果你使用Python 2，那么直接引号包围的就是二进制了，如果你使用Python 3，那么要带b前缀，或者加上<code>encode(&#39;utf-8&#39;)</code>或者<code>bytes(your_str, encoding=&#39;utf-8&#39;)</code>。如果想要计算文件的散列值，那么直接把<code>f.read()</code>传递过去就好了。</li>
+</ol>
+<h2 id="Port到Python之使用AES-ECB"><a href="#Port到Python之使用AES-ECB" class="headerlink" title="Port到Python之使用AES-ECB"></a>Port到Python之使用AES-ECB</h2><h3 id="简单谈谈AES"><a href="#简单谈谈AES" class="headerlink" title="简单谈谈AES"></a>简单谈谈AES</h3><p>在开始之前，首先我要科普一下，AES是一种对称加密算法，所谓对称加密算法，就是指的加密解密用同一个密钥。在对称加密算法中，可以分成两种，一种是流密码，一种是分组密码（块密码），像AES就是典型的块密码，而RC4是典型的流密码。</p>
+<p>顾名思义，块密码就是将明文分成多个等长的模块（不足就padding），使用确定的算法和对称密钥对每组分别加密解密。比如说，AES的块长度固定为128比特，密钥长度则可以是128，192或256比特。也就是说，你的密钥，如果用肉眼可见的字符来说话的话，那么就必须是16字节、24字节、32字节。</p>
+<p>另外，块密码有<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F">分组模式</a>这种说法，即使是不同的分组模式、相同的密钥也会产生不同的密文。所以我们如果要精确的用AES描述加密，那么大概模式是这样的：</p>
+<p>AES-256-CFB，使用AES加密算法，密钥长度是256比特，分组模式是CFB。</p>
+<p>分组模式究竟是个啥啊，不同的分组模式之间有啥区别啊，能加密不就行了吗？</p>
+<p>不不不这样是远远不够的。由于块密码结构的特殊性，我们必须要定义每一个块与密钥之间的运算关系。像是最简单的电子密码本（Electronic codebook，ECB）模式，就是把每个块和相同的密钥进行加密运算，得到的密文再组合到一起；</p>
+<p><img src="/images/2018021013221440.png" alt="File:Ecb encryption.png"></p>
+<p>像是密码分组链接（CBC，Cipher-block chaining）模式，每个明文块先与前一个密文块进行异或后，再进行加密，第一个明文块与初始化向量进行异或再加密。</p>
+<p><img src="/images/201802101322163.png" alt="File:Cbc encryption.png"></p>
+<p>稍微思考一下下我们其实可以得出结论，ECB模式本质上是不安全的（实现最简单，没错）。为什么呢？只要明文块一样，那么得出来的密文也就一样了，无论使用多长的密钥长度都是这样的。有没有想起重放攻击，有没有想起那群<a target="_blank" rel="noopener" href="https://dmesg.app/school-6.html#title-8">自作聪明用HMAC保存密码</a>的人？</p>
+<p><img src="/images/2018021013222558.png"></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F#%E7%94%B5%E5%AD%90%E5%AF%86%E7%A0%81%E6%9C%AC%EF%BC%88ECB%EF%BC%89">图片来自于维基百科</a></p>
+<p>另外，我在推特上保存了这么一张有趣的图，挺好玩的。</p>
+<p><img src="/images/2018021013222835.png"></p>
+<h3 id="在Cryptography中使用AES"><a href="#在Cryptography中使用AES" class="headerlink" title="在Cryptography中使用AES"></a>在Cryptography中使用AES</h3><p>非常简单，如下几行代码：</p>
+<p>from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes<br>from cryptography.hazmat.backends import default_backend</p>
+<p>key&#x3D;’1111111111111111’<br>cipher &#x3D; Cipher(algorithms.AES(key), modes.ECB(), backend&#x3D;default_backend())<br>encryptor &#x3D; cipher.encryptor()<br>decryptor &#x3D; cipher.decryptor()<br>ct &#x3D; encryptor.update(“a secret message”) + encryptor.finalize()<br>print ct<br>print decryptor.update(ct) + decryptor.finalize()</p>
+<p>有几点需要注意：</p>
+<ol>
+<li>Key需要16、24或者32字节，数据类型为二进制，也就是Python 2的str，Python 3带b前缀或者encode或者bytes一下；</li>
+<li><code>modes.ECB()</code>指定分组模式为ECB模式，如果使用CBC模式，那么还要提供一个初始化向量，如<code>modes.CBC(os.urandom(16))</code>；</li>
+<li>密文也是二进制类型的，同进行hash，如果要加密文件，那么直接f.read()传递过去就好了，加密之后的返回值也是二进制；</li>
+<li>加密密钥实际上就是MD5散列值，因为MD5散列值恰巧是128比特，恰巧符合需求。需要注意的是，密钥是二进制，所以我们直接把<code>digest.finalize()</code>传过去就好了，不要再hexlify啦。</li>
+<li>理论上来说，你用什么密钥都是可以解密确定的密文的，只是正确的密钥会解密出来有意义的东西（比如说写给你的情书），错误的密钥会解密出来无意义的东西（一堆胡乱的0和1）。</li>
+</ol>
+<h2 id="Port到Python之“按位”操作文件"><a href="#Port到Python之“按位”操作文件" class="headerlink" title="Port到Python之“按位”操作文件"></a>Port到Python之“按位”操作文件</h2><p>给人的感觉，Python似乎是一种“高级”的编程语言（我这里的高级指的是对应底层的那个意思），没有指针，也没有各种精灵古怪的概念。那Python怎么按照比特操纵文件呢？</p>
+<p>其实是有的，我们想一想，对文件句柄执行read的时候，read是要一个参数的啊，如果你参数是1，那么就是读一个字节啦。</p>
+<p>所以如果要读前16个字节，那么可以这么做：</p>
+<p>raw_file &#x3D; open(‘sample.mp4’, ‘rb’)<br>print hexlify(raw_file.read(16))</p>
+<p>转换成十六进制之后，看看结果是不是和hexcompare中第一行一样的？</p>
+<p><img src="/images/2018021013223069.png"></p>
+<p>那接下来的问题就好办了，继续读4080个字节，写入文件，然后读16个解密，读4080……那……文件尾怎么办？不要担心，当我们读到文件尾的时候，<code>read()</code>的返回值就会是布尔假，我们就会有终止条件了，不用我们操心判断这那的。</p>
+<p>所以操作文件这块我们可以这么写（注意要以rb、wb模式读写文件）：</p>
+<p>data &#x3D; 1<br>while data:<br>    data &#x3D; raw_file.read(16)<br>    final_file.write(decrypt(data, key))<br>    data &#x3D; raw_file.read(4080)<br>    final_file.write(data)</p>
+<p>其中decrypt是用于解密的函数，边处理边写入文件。</p>
+<p>所以糅合一下，加上单元测试。这个玩意基本上就写完了。总计52行，很精简吧。</p>
+<h2 id="通过dnspy反编译结果"><a href="#通过dnspy反编译结果" class="headerlink" title="通过dnspy反编译结果"></a>通过dnspy反编译结果</h2><p>大概只搜索到了这么一个有用的信息块，可以清楚看到，使用AES-ECB模式，不填充？？</p>
+<p><img src="/images/2018021013223279.png"></p>
+<h2 id="本项目的代码"><a href="#本项目的代码" class="headerlink" title="本项目的代码"></a>本项目的代码</h2><p>欢迎Star、PR、Fork，目前还差一个file_id生成的问题。 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/yyets-restorer'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/yyets-restorer&#39;\]开源地址\[/gt\]</a></p>
+<h2 id="最后的一些点评"><a href="#最后的一些点评" class="headerlink" title="最后的一些点评"></a>最后的一些点评</h2><p>人人影视宣传语中有一句话我印象特别清楚：</p>
+<blockquote>
+<p>全程<strong>加密</strong>的P2P传输，保证安全，海外用户也不用担心被运营商起诉。</p>
+</blockquote>
+<p>是的就是<strong>加密</strong>这俩字，我特敏感。</p>
+<p>从开头用Postman咱能发现，是post的https地址（买了一年的泛域名证书），然后被跳转到了http的各路IP，下载回来面目全非的的文件，再进行解密。叫我怎么说呢……运营商应该不会像我这么无聊，也是个办法吧……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/02/10/yyets/index/" data-id="clhp7rtnu00bus2qr01dqfkmb" data-title="解密人人影视客户端加密的视频文件：从C++ Port到Python的经过" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-jbls/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/02/06/jbls/index/" class="article-date">
+  <time class="dt-published" datetime="2018-02-06T00:00:00.000Z" itemprop="datePublished">2018-02-06</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>►<a class="article-category-link" href="/categories/program/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/02/06/jbls/index/">JetBrains License Server原理及40行Python代码的实现</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>Repository: [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://coding.net/u/BennyThink/p/pyJetBrains/_license/_server'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://coding.net/u/BennyThink/p/pyJetBrains\_license\_server&#39;\]开源地址\[/gt\]</a></p>
+<p>[v_error]警告： 本文仅供学习参考，请勿用于其他用途。如果你喜欢JetBrains的产品，请购买正版授权。[&#x2F;v_error] [v_blue]近期license server升级，可以阅读官方的<a target="_blank" rel="noopener" href="https://www.jetbrains.com/license-server/outdated-ls/">这篇文章</a>，在2018.2.1（2018年第三季度左右发布）之后旧版服务器将无法使用，所以先别升级到2018.2.1，留在2018.2吧。关于新的激活服务器，似乎有点难度，欢迎各位提供任何可能会有帮助的资料和工具（包括但不限于本地激活器，license server，以及相关介绍文章和抓包记录等），更多详情请参考文末记录[&#x2F;v_blue]</p>
+<p>估计是个程序员都应该使用过<a target="_blank" rel="noopener" href="https://www.jetbrains.com/">JetBrains</a>的IDE（尤其是Python程序员吧）。JetBrains的产品线非常丰富，PHP的PHPStorm，前端的Webstorm，Python的Pycharm，Java的IntelliJ，Ruby的RubyMine，Go的Goland，数据库的DataGrip……</p>
+<p>几个月之前，我曾经尝试着把Java版本的License Server 移植到Python，但是失败了。但是今天我就成功了……好了不废话了，咱来一步一步的学习下怎么用40行代码写一个JetBrains License Server</p>
+<h2 id="JetBrains-License-Server激活流程"><a href="#JetBrains-License-Server激活流程" class="headerlink" title="JetBrains License Server激活流程"></a>JetBrains License Server激活流程</h2><p>打开IDE，依次点击Help-Register，输入服务器地址，点击Activate</p>
+<p><img src="/images/2018020602360796.png"></p>
+<p>这时就会从 License Server取得一个Ticket了。</p>
+<p>[v_blue]友情提示：</p>
+<p>如果你有edu邮箱的话，那快去申请免费正版授权吧，哪怕你没有edu邮箱，也可以试试什么注册edu邮箱的，比如说<a target="_blank" rel="noopener" href="https://free.kirito.edu.rs/">这个</a>[&#x2F;v_blue]</p>
+<h2 id="抓包与分析"><a href="#抓包与分析" class="headerlink" title="抓包与分析"></a>抓包与分析</h2><p>网上已经有人写好了几个版本的授权服务器，我参考了<a target="_blank" rel="noopener" href="https://coding.net/u/chenq_/p/license/git">Java版</a>的、<a target="_blank" rel="noopener" href="https://github.com/xczh/jetserver">golang版</a>的还有<a target="_blank" rel="noopener" href="https://github.com/springhack/JetBrains-License-Server">JavaScript版</a>的。</p>
+<p>于是我找了那个能用的Java版本的，自己搭建，然后尝试激活、抓包并过滤http，进行分析。</p>
+<p>通过追踪HTTP流我们能发现，IDE向指定服务器发起了一个GET请求，请求中包含很多参数，之后服务器返回了一个像是散列值，还有一小串XML</p>
+<p><img src="/images/201802060236083.png"></p>
+<p>IDE请求：</p>
+<p>GET &#x2F;rpc&#x2F;obtainTicket.action?buildDate&#x3D;20170719&amp;buildNumber&#x3D;2017.2.2+Build+CL-172.3968.17&amp;clientVersion&#x3D;4&amp;hostName&#x3D;xxxxxxm&amp;machineId&#x3D;51xxxxx20a-14d259f1fc94&amp;productCode&#x3D;cfc7xxxx978-a2a2-46fxxxx405&amp;productFamilyId&#x3D;cfxxxx-ae43-4978-a2a2-46feb1679405&amp;salt&#x3D;1506491409302&amp;secure&#x3D;false&amp;userName&#x3D;xxxx&amp;version&#x3D;2017200&amp;versionNumber&#x3D;2017200</p>
+<p>服务器返回：</p>
+<!-- 61b3a2f53ffxxxxxxxxx6b132e0270275d12434f217ba3231b5 -->
+
+<p><ObtainTicketResponse><message></message><prolongationPeriod>607875500</prolongationPeriod><responseCode>OK</responseCode><salt>1506491409302</salt><ticketId>1</ticketId><ticketProperties>licensee&#x3D;xxxxx licenseType&#x3D;0 </ticketProperties></ObtainTicketResponse></p>
+<p>由此我们可以很清楚的了解到激活的步骤：请求+相应+验证，那么大体猜测一下应该是服务端持有一个私钥，对请求字符串进行加密，然后返回，客户端使用公钥验证。</p>
+<h2 id="验证猜想"><a href="#验证猜想" class="headerlink" title="验证猜想"></a>验证猜想</h2><p>为了验证我们的猜想，咱其实是要去读其他版本的源代码的……鉴于这个流程挺复杂，要求你会多门语言，所以咱就不演示了……总之，经过我的研读，我发现的细节是这样的：</p>
+<p>服务端构造如下的字符串：</p>
+<p><ObtainTicketResponse><message></message><prolongationPeriod>607875500</prolongationPeriod><responseCode>OK</responseCode><salt>1506491409302</salt><ticketId>1</ticketId><ticketProperties>licensee&#x3D;xxxxx licenseType&#x3D;0 </ticketProperties></ObtainTicketResponse></p>
+<p>其中salt是发起请求时的时间戳（单位毫秒），licensee是发起请求的用户名（其实这个用户名是随便的，在代码里写死也是可以的）。</p>
+<p>然后服务器使用RSA with MD5 and PKCS1v15进行加密，把加密后的内容转换为十六进制，加上HTML注释<!-- hex -->（注意前后的两个空格），把十六进制HTML注释和构造的字符串一起返回，客户端使用hex和返回的字符串（以及公钥）进行验证。</p>
+<p>其实验证猜想的这一步才是最复杂的，需要参考很多源代码做出适当的实验。</p>
+<p>既然猜想已经得到了证实，那么剩下来就开始写了。基础的结构很简单，用flask搭建一个简易的服务器，用cryptography完成密码学相关的操作。</p>
+<h2 id="cryptography完成RSA签名与十六进制转换"><a href="#cryptography完成RSA签名与十六进制转换" class="headerlink" title="cryptography完成RSA签名与十六进制转换"></a>cryptography完成RSA签名与十六进制转换</h2><p>Python中比较安全好用的密码学库是<a target="_blank" rel="noopener" href="https://cryptography.io/en/latest/">cryptography</a>（唉 好吧）、<a target="_blank" rel="noopener" href="https://www.dlitz.net/software/pycrypto/">pycrypto</a>（这货很久不更新了，不敢用），顺便说一句，进行安全随机盐散列函数的有<a target="_blank" rel="noopener" href="https://passlib.readthedocs.io/en/stable/index.html">passlib</a>。</p>
+<p>首先需要引入对应的库</p>
+<p>from cryptography.hazmat.backends import default_backend<br>from cryptography.hazmat.primitives import hashes<br>from cryptography.hazmat.primitives import serialization<br>from cryptography.hazmat.primitives.asymmetric import padding</p>
+<p>然后载入key（文件形式）</p>
+<p>with open(‘jbls_private_key.pem’) as f:<br>    private_key &#x3D; serialization.load_pem_private_key(f.read(), password&#x3D;None, backend&#x3D;default_backend())</p>
+<p>执行加密</p>
+<p>i &#x3D; bytes(content)<br>signature &#x3D; private_key.sign(i, padding.PKCS1v15(), hashes.MD5())</p>
+<p>转换二进制为十六进制表达</p>
+<p>binascii.hexlify(signature)</p>
+<p>大概这么五行，我们就完成了加密与转换操作，剩下我们只要在Flask端做一下逻辑处理就好了。</p>
+<h2 id="Flask进行逻辑处理"><a href="#Flask进行逻辑处理" class="headerlink" title="Flask进行逻辑处理"></a>Flask进行逻辑处理</h2><p>这一步也很简单，用<code>@app.route()</code>装饰器确定路由，构造字符串与返回。真的是很简单，大概就是如下这么十几行：</p>
+<p>@app.route(“&#x2F;rpc&#x2F;obtainTicket.action”)<br>def obtain():<br>    salt &#x3D; request.args.get(‘salt’)<br>    user_name &#x3D; request.args.get(‘userName’)<br>    content &#x3D; “<ObtainTicketResponse><message></message>“ + \<br>        “<prolongationPeriod>607875500</prolongationPeriod><responseCode>OK</responseCode>“ + \<br>        “<salt>“ + salt + “</salt><ticketId>1</ticketId>“ \<br>        “<ticketProperties>licensee&#x3D;” + user_name + “\tlicenseType&#x3D;0\t</ticketProperties>“ \<br>        “</ObtainTicketResponse>“<br>    verification_hex &#x3D; hex_signature(content)<br>    return “<!-- " + verification\_hex + " -->\n” + content</p>
+<p>通过Flask的requests拿到salt和username，构造XML，调用函数，返回hex以及XML。</p>
+<p>所以加起来，整体代码真的只有不到40行。就算把KEY嵌入到源代码中，也只是43行而已……</p>
+<h2 id="最终结果"><a href="#最终结果" class="headerlink" title="最终结果"></a>最终结果</h2><h3 id="服务端的请求日志"><a href="#服务端的请求日志" class="headerlink" title="服务端的请求日志"></a>服务端的请求日志</h3><p><img src="/images/201802060236112.png"></p>
+<h3 id="客户端显示激活成功"><a href="#客户端显示激活成功" class="headerlink" title="客户端显示激活成功"></a>客户端显示激活成功</h3><p><img src="/images/2018020602361187.png"></p>
+<h2 id="附录与FAQ"><a href="#附录与FAQ" class="headerlink" title="附录与FAQ"></a>附录与FAQ</h2><h3 id="监听0-0-0-0"><a href="#监听0-0-0-0" class="headerlink" title="监听0.0.0.0"></a>监听0.0.0.0</h3><p>如果想要把这个服务部署在服务器上，那么最好就监听0.0.0.0，只需要把app.run()写成 app.run(host&#x3D;’0.0.0.0’)即可。</p>
+<h3 id="持久运行"><a href="#持久运行" class="headerlink" title="持久运行"></a>持久运行</h3><p>当然我们希望这个Flask程序能够长期运行而不退出，此时我们最好使用supervisor或者systemd啦，详细参考此篇<a target="_blank" rel="noopener" href="https://dmesg.app/linux-keep-running.html">《Linux 怎么让程序持续运行：简单说说几种好玩的办法》</a></p>
+<h3 id="示例源代码"><a href="#示例源代码" class="headerlink" title="示例源代码"></a>示例源代码</h3><p>本示例源代码可以到下面的地址查看： [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://coding.net/u/BennyThink/p/pyJetBrains/_license/_server'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://coding.net/u/BennyThink/p/pyJetBrains\_license\_server&#39;\]开源地址\[/gt\]</a></p>
+<p>为啥不放到GitHub呢？被DMCA Takedown啦ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛</p>
+<p>需要注意的是，需要使用pip安装cryptography、flask，并且jbls.py同时支持Python 2和Python 3.</p>
+<h3 id="可否提供一个有效的私钥"><a href="#可否提供一个有效的私钥" class="headerlink" title="可否提供一个有效的私钥"></a>可否提供一个有效的私钥</h3><p>不好意思，不提供……至于我这个测试的私钥是在哪找的……你们猜呀。</p>
+<h3 id="如何生成exe文件"><a href="#如何生成exe文件" class="headerlink" title="如何生成exe文件"></a>如何生成exe文件</h3><p>使用<a target="_blank" rel="noopener" href="http://www.pyinstaller.org/">pyinstaller</a>就可以了。</p>
+<p>pyinstaller -F demo.py</p>
+<h3 id="travis-ci"><a href="#travis-ci" class="headerlink" title="travis-ci"></a>travis-ci</h3><p>我们用travis-ci做持续集成测试，但是travis-ci并不是为了运行程序而准备的。但是我们这个Flask应用还必须得运行才能测试。那咋办呢？<code>subprocess.Popen()</code>？反正各种奇技淫巧都试过了，不好用的。劝大家还是试试<code>app.test_client().get(url).data</code>吧，这样就能获取到响应然后assert了。</p>
+<p> </p>
+<h2 id="新版JetBrains-License-Server备注"><a href="#新版JetBrains-License-Server备注" class="headerlink" title="新版JetBrains License Server备注"></a>新版JetBrains License Server备注</h2><p>以下内容全文引用自<a target="_blank" rel="noopener" href="http://blog.lanyus.com/archives/174.html/comment-page-21#comments">lanyus</a>评论</p>
+<blockquote>
+<p>贵站居然没有过滤html的特殊字符？重新发一下吧，以下是原文：</p>
+<p>Jetbrains家产品线激活服务器认证从2018.2开始使用两个handler来处理，第一个handler会对老的签名方式进行认证（<!-- abcdef1234567890 --><ObtainTicketResponse></ObtainTicketResponse>类样式），该handler会判断签名是否包含hex之外的字符。如果没有，按老版本方式来验证签名，如果存在hex之外字符则抛异常由自己接住后进入第二个handler来验证。 从版本2018.2.1开始便去掉了第一个handler，改为只由第二个handler来验证，由此老的验证服务器全面失效。 来说说第二个handler的验证逻辑吧： 新的报文返回还是形同：<!-- sign\_body --><xxxResponse></xxxResponse>，其中<xxxResponse></xxxResponse>这样的响应正文中相比较老版本添加<serveruid>xyz</serveruid>配置，这个xyz后文中有用到，不可缺少。 sign_body格式较老版本的hex字符串变动很大，其示例格式如下：SHA1withRSA-xxxxxxxxxxxxxx-yyyyyyyyyyyyyyy，以-符号分隔，SHA1withRSA对应java中签名所使用的算法（可换为MD5withRSA等），xxxxxxxxxxxxxx部分是使用该算法以私钥签名的bin -&gt; base64字符串，yyyyyyyyyyyyyyy部分则是pem格式的证书字符串（可直接放证书正文，不换行）。 其中yyyyyyyyyyyyyyy证书必须由Jetbrains产品内置的一个CN为License Server CA的CA证书签发才有效，而且yyyyyyyyyyyyyyy证书中必须包含CN&#x3D;xyz.lsrv.jetbrains.com(其中xyz对应前文<serveruid>xyz</serveruid>部分所填)。 证书验证通过后才会取出证书中所包含的公钥来验证签名<xxxResponse></xxxResponse>响应正文（和base64Decode(xxxxxxxxxxxxxx)比对），验证通过后继续完成服务器认证（解析正文内容，逻辑同旧版）。 啰啰嗦嗦这么多，总结一下：如果我们想要自己造验证服务器，则需要拿到一张License Server CA签发的证书（包括私钥），而且这个证书被Jetbrains发现可能会被吊销！所以这个恐怕有些痴人说梦了。 对了License Server CA证书的内容由另一张Jetprofile签发的叫prod3y的证书公钥定时校验（数据格式同上文所述，不过正文部分是CA证书字符串），应该是防止被替换吧。 还有类似idea.lanyus.com这样的认证服务器域名黑名单也由这张prod3y证书公钥定时校验，也是怕被篡改吧。如果要替换CA要从替换prod3y证书开始，但那是破解的内容了，不如注册服务器优雅。 就这么多。</p>
+</blockquote>
+<p> </p>
+<p>所以估计License Server这条路可能走不通了，只能通过javaagent这种方法修改客户端（IDE）代码然后达到目的了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/02/06/jbls/index/" data-id="clhp7rtgw0046s2qrch5q8bdo" data-title="JetBrains License Server原理及40行Python代码的实现" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-tgbot1/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/02/01/tgbot1/index/" class="article-date">
+  <time class="dt-published" datetime="2018-02-01T00:00:00.000Z" itemprop="datePublished">2018-02-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/02/01/tgbot1/index/">[Telegram bot 系列]1：requests库、Inline Keyboard、Reply Keyboard与其他细节</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>又到了一年一度写“新年首博”的时候！很高兴，本博客依然坚挺，正努力向着【三周年】庆典一天天地迈进。</p>
+<h2 id="关于俺近期的静默"><a href="#关于俺近期的静默" class="headerlink" title="关于俺近期的静默"></a>关于俺近期的静默</h2><p>最近一个多月，俺确实比较忙（在前几篇博文中也多次提及这点），导致博客更新频率下降。在此，先向各位读者表示抱歉 :(</p>
+<p>为了避免大伙儿无谓的担心，俺尽量把静默的时间跨度控制在【14天】之内，以表明俺自己是安全的（这是前几年在博客中做的约定）。</p>
+<p>上一篇博文是在2017年最后几天发出的，昨天（1月31日）俺特地上博客回复了一些评论——所以这次静默的时间【没有】超过14天。</p>
+<h2 id="小土豆机器人课程又开课啦"><a href="#小土豆机器人课程又开课啦" class="headerlink" title="小土豆机器人课程又开课啦"></a>小土豆机器人课程又开课啦</h2><p>自从三个月前发出第一篇<a target="_blank" rel="noopener" href="https://dmesg.app/tgbot0.html">《[Telegram bot 系列]0：用 Python 写一个 Telegram Bot 简单的回话 bot》</a>，这一系列就好像是史上最不受待见的系列一样：没人看，也没有啥想写的欲望，更重要的是也没时间。</p>
+<p>于是乎，随着<a target="_blank" rel="noopener" href="https://t.me/bennyblog_bot">ExpressBot</a>越来越好玩，趁着这几天有时间，我决定给这一系列注入新鲜的血液，再次开课水贴，说不定本系列就这么短命的被我在此篇中终结啦♪(^∇^*)。</p>
+<h2 id="机器人"><a href="#机器人" class="headerlink" title="机器人"></a>机器人</h2><p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/956079273835560960">几天前</a>被告知我的机器人上了少数派：<a target="_blank" rel="noopener" href="https://sspai.com/post/42967">《查快递、收邮件、订阅 RSS……除了聊天 Telegram 还有这些实用功能》</a>， 然后用户数量大增，导致<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/956264608561377280">被快递100封IP</a>，然后……这几天抽出来时间，悄悄的给机器人加了一些改进限制。</p>
+<h2 id="内联键盘（Inline-Keyboard）与回复键盘（Reply-Keyboard）"><a href="#内联键盘（Inline-Keyboard）与回复键盘（Reply-Keyboard）" class="headerlink" title="内联键盘（Inline Keyboard）与回复键盘（Reply Keyboard）"></a>内联键盘（Inline Keyboard）与回复键盘（Reply Keyboard）</h2><p>用过BotFather的人可能记得，创建机器人的时候我们能看到这样的按钮：</p>
+<p><img src="/images/2018020105133426.png"></p>
+<p>咱可以通过点击按钮来和服务器进行交互，有些按钮还可以是链接：</p>
+<p><img src="/images/2018020105133615.png" alt="https://core.telegram.org/file/811140999/1/2JSoUVlWKa0/4fad2e2743dc8eda04"></p>
+<p>上图这种方式我们称之为Inline Keyboard。点击Inline Keyboard的按钮不会造成客户端向机器人发送消息</p>
+<p>还有一种与Inline Keyboard比较接近的是custom Reply Keyboard，像下图这样：</p>
+<p><img src="/images/2018020105133792.jpeg" alt="https://core.telegram.org/file/811140880/1/jS-YSVkDCNQ/b397dfcefc6da0dc70"></p>
+<p>用户点击文本编辑框下面的按钮，客户端就会自动为我们发送对应的消息，实际上Reply Keyboard更像是快捷回复。</p>
+<p>这两种keyboard非常适合与用户进行交互（比如说游戏），并且用户不用一次性完整的输入命令、服务端一次性完成解析命令。</p>
+<p>观察仔细的小伙伴们可能发现，<a target="_blank" rel="noopener" href="https://t.me/bennyblog_bot">ExpressBot</a> 的查询美剧功能突然变得更好用一些了。</p>
+<p><img src="/images/2018020105133848.png"></p>
+<h2 id="Reply-Keyboard数据结构及简单示例"><a href="#Reply-Keyboard数据结构及简单示例" class="headerlink" title="Reply Keyboard数据结构及简单示例"></a>Reply Keyboard数据结构及简单示例</h2><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p><img src="/images/201802010513382.png"></p>
+<p>图片截图自<a target="_blank" rel="noopener" href="https://core.telegram.org/bots/api#replykeyboardmarkup">Telegram官网</a></p>
+<p>我觉得大家都能看懂这是什么意思，那么就写一个简单的Reply Keyboard吧。</p>
+<h3 id="简单示例1：Reply-Keyboard"><a href="#简单示例1：Reply-Keyboard" class="headerlink" title="简单示例1：Reply Keyboard"></a>简单示例1：Reply Keyboard</h3><p>为了应用Reply Keyboard，我们需要在send_xyz中给参数reply_markup传递我们自定义的键盘，其中reply_markup必须是ReplyKeyboardMarkup（自定义的键盘）、ReplyKeyboardRemove（移除键盘）或ForceReply（强制用户回复）的实例。</p>
+<p>首先我们需要引入types</p>
+<p>from telebot import types</p>
+<p>之后直接开始写对应命令的代码就可以了：</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def send_welcome(message):<br>    markup &#x3D; types.ReplyKeyboardMarkup(row_width&#x3D;2)<br>    itembtn1 &#x3D; types.KeyboardButton(‘a’)<br>    itembtn2 &#x3D; types.KeyboardButton(‘v’)<br>    itembtn3 &#x3D; types.KeyboardButton(‘d’)<br>    markup.add(itembtn1, itembtn2, itembtn3)<br>    bot.send_message(message.chat.id, “Choose one letter:”, reply_markup&#x3D;markup)</p>
+<p>我们先定义了一个markup实例，设置行宽为2，然后添加avd三个按钮，之后在<code>send_message</code>的<code>reply_markup</code>中传递markup实例。如果需要点击一次就隐藏的键盘（但是依旧可以点击按钮显示），那么可以给markup构造时加入<code>one_time_keyboard=True</code>的参数。</p>
+<p>[v_blue]关于row_width的注意事项： 对于ReplyKeyboard和下面即将提到的InlineKeyboard来说，如果你的程序是通过循环动态生成的button，并且在循环中迭代调用<code>markup.add(btn)</code>，那么最终只会一个按钮一排。这是因为<code>markup.add(btn1,btn2,btn3)</code>这三个才会被认为一组放到一排，而<code>markup.add(btn)</code>迭代三次会被认为是三组。在这种情况下如果想要遵循row_width的设置，那么需要将按钮append到一个列表里，然后对列表按照row_width进行切片，之后判断执行N个参数的<code>markup.add()</code>。详细的代码可以<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot/commit/853b3cec9cc0aa1f2f3b9b362650a4c91fbb4ac3">参考这段commit</a>[&#x2F;v_blue]</p>
+<p><img src="/images/2018020105133948.png"></p>
+<p>如果我们需要点击按钮分享电话号码、地理位置，那么可以构造按钮的时候加入对应的参数，如 <code>itembtn1 = types.KeyboardButton(&#39;a&#39;, request_contact=True)</code>，此时点击按钮，会有类似如下的提示</p>
+<p><img src="/images/201802010513397.png"></p>
+<h3 id="简单示例2：ReplyKeyboardRemove"><a href="#简单示例2：ReplyKeyboardRemove" class="headerlink" title="简单示例2：ReplyKeyboardRemove"></a>简单示例2：ReplyKeyboardRemove</h3><p>markup &#x3D; types.ReplyKeyboardRemove(selective&#x3D;False)<br>tb.send_message(chat_id, message, reply_markup&#x3D;markup)</p>
+<p>发送这个markup会移除自定义键盘</p>
+<h3 id="简单示例3：ForceReply"><a href="#简单示例3：ForceReply" class="headerlink" title="简单示例3：ForceReply"></a>简单示例3：ForceReply</h3><p>ForceReply是强制回复，就好像用户回复机器人的消息一样，使用方法也很简单：</p>
+<p>markup &#x3D; types.ForceReply()<br>bot.send_message(message.chat.id, “Choose one letter:”, reply_markup&#x3D;markup)</p>
+<p><img src="/images/2018020105134043.png"></p>
+<h2 id="Inline-Keyboard之数据结构"><a href="#Inline-Keyboard之数据结构" class="headerlink" title="Inline Keyboard之数据结构"></a>Inline Keyboard之数据结构</h2><p><img src="/images/2018020105134013.png"></p>
+<p>我猜大家也都能看懂。InlineKeyboardMarkup的构造比较简单，InlineKeyboardButton的参数要稍微复杂一点，其中比较重要的有：</p>
+<ul>
+<li>text 按钮上显示的文字</li>
+<li>url 点击按钮时打开的url</li>
+<li>callback_data 回调数据，1-64字节。</li>
+</ul>
+<h2 id="Inline-Keyboard之CallbackQuery与answerCallbackQuery"><a href="#Inline-Keyboard之CallbackQuery与answerCallbackQuery" class="headerlink" title="Inline Keyboard之CallbackQuery与answerCallbackQuery"></a>Inline Keyboard之CallbackQuery与answerCallbackQuery</h2><p>由于点击InlineKeyboard时并不是发送常规的命令（&#x2F;start），所以我们需要处理Callback，Telegram使用CallbackQuery来处理此类请求，其数据结构如下：</p>
+<p><img src="/images/2018020105134137.png"></p>
+<p>其中比较重要的有：</p>
+<ul>
+<li>id 唯一标识此次按钮点击</li>
+<li>message 触发此次callback的消息，其数据结构为Message类型，因此可以使用message.chat.id等方法</li>
+<li>data callback_data中的字符串</li>
+</ul>
+<p>当用户点击按钮时，按钮旁边会显示一个加载中的图标，此时建议使用answerCallbackQuery来给用户提示信息，其数据结构如下所示：</p>
+<p><img src="/images/2018020105134239.png"></p>
+<h2 id="Inline-Keyboard-及回调简单示例"><a href="#Inline-Keyboard-及回调简单示例" class="headerlink" title="Inline Keyboard 及回调简单示例"></a>Inline Keyboard 及回调简单示例</h2><p>说了那么多数据结构可能会有点懵?，那么还是直接上代码更爽吧~</p>
+<p>首先，我们需要像往常一样，创建InlineKeyboard实例，创建键盘实例，然后在send_xyz中把markup发送过去：</p>
+<p>markup &#x3D; types.InlineKeyboardMarkup()<br>btn1 &#x3D; types.InlineKeyboardButton(‘Google’, url&#x3D;’<a target="_blank" rel="noopener" href="https://www.google.com/ncr">https://www.google.com/ncr</a>‘)<br>btn2 &#x3D; types.InlineKeyboardButton(‘Action’, callback_data&#x3D;’Act Now’)<br>markup.add(btn1,btn2)<br>bot.send_message(message.chat.id, “InlineKeyboard: “, reply_markup&#x3D;markup)</p>
+<p>按钮1是打开Google，按钮2需要我们处理回调，可以这么玩：</p>
+<p>@bot.callback_query_handler(func&#x3D;lambda call: True)<br>def callback_handle(call):<br>    bot.answer_callback_query(call.id, ‘哎哟’)<br>    bot.send_message(call.message.chat.id, ‘You clicked %s’ % call.data)</p>
+<p>把这两段结合起来，运行的话效果大概是酱紫的，我们可以看到回调函数中<code>call.data</code>就是我们在实例化InlineKeyboardButton中参数callback_data所设置的值：</p>
+<p><img src="/images/2018020105134342.png"></p>
+<p>如果AnswerCallbackQuery开始了showAlert的话，那么会如下弹窗：</p>
+<p><img src="/images/2018020105134339.png"></p>
+<h2 id="更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）"><a href="#更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）" class="headerlink" title="更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）"></a>更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）</h2><p>我们知道，Telegram的消息是可以编辑、删除的，机器人也同样可以做到。当然了，reply_markup其实也可以被编辑的，我们就来简单的做一个示例吧。</p>
+<p>说到编辑、删除消息，我们只需要chat_id和message_id就可以了，那么编辑、删除大概就可以这么写：</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def edit_message(message):<br>    msg_id &#x3D; bot.send_message(message.chat.id, ‘这里是原始消息’).message_id<br>    time.sleep(2)<br>    # The below comment is wrong!!!<br>    # bot.edit_message_text(‘更新了耶’, chat_id&#x3D;message.chat.id, message_id&#x3D;message.message_id)<br>    bot.edit_message_text(‘更新了耶’, message.chat.id, msg_id)</p>
+<p>@bot.message_handler(commands&#x3D;[‘help’])<br>def delete_message(message):<br>    msg_id &#x3D; bot.send_message(message.chat.id, ‘这里是要被删除的消息’).message_id<br>    time.sleep(2)<br>    bot.delete_message(message.chat.id, msg_id)</p>
+<p>效果如下图：</p>
+<p><img src="/images/2018020105134469.png"></p>
+<p>需要注意的是，很多人最开始会想当然的给message_id传递message_id参数，实际上<strong>这是错误的</strong>！如果你这么做，那么你会收到<strong>Bad Request: message can’t be edited</strong>的异常。实际上，你所传递的<strong>message实例是用户发送过来的消息</strong>（包括&#x2F;start &#x2F;help等命令），所以获取到的message_id其实也是用户消息的id，机器人怎么可能编辑用户消息嘛！所以正确的姿势是去找send_message的返回值，通过返回值就可以获取到机器人发送的message_id了。</p>
+<p>当然了，另外一种hack可以这么做，只要你确定好你要编辑的消息相对于用户消息的偏移量：</p>
+<p>bot.edit_message_text(‘更新了耶’, message.chat.id, message.message_id + 1)</p>
+<p>还剩下一种editReplyMessageMarkup，这是用来更新reply_markup的，包括InlineKeyboard和ReplyKeyboard，基本逻辑就是构造新的markup，然后调用，以InlineKeyboard为例：</p>
+<p>def edit_reply_markup(message):<br>    markup &#x3D; types.InlineKeyboardMarkup()<br>    btn1 &#x3D; types.InlineKeyboardButton(‘Apple’, url&#x3D;’<a target="_blank" rel="noopener" href="https://www.apple.com/">https://www.apple.com</a>‘)<br>    btn2 &#x3D; types.InlineKeyboardButton(‘Microsoft’, url&#x3D;’<a target="_blank" rel="noopener" href="https://www.microsoft.com/">https://www.microsoft.com</a>‘)<br>    markup.add(btn1, btn2)<br>    # use hack<br>    bot.edit_message_reply_markup(message.chat.id, message.message_id - 1, reply_markup&#x3D;markup)</p>
+<p>这里引用了message_id计算偏移量，实际上我们有些时候会在callbackQuery中编辑InlineKeyboard，此时可以应用<code>call.message.message_id</code></p>
+<p><img src="/images/2018020105134455.png"></p>
+<p>详细的API可以<a target="_blank" rel="noopener" href="https://core.telegram.org/bots/api#updating-messages">参考这里</a></p>
+<h2 id="格式化与正在输入的特效"><a href="#格式化与正在输入的特效" class="headerlink" title="格式化与正在输入的特效"></a>格式化与正在输入的特效</h2><p>有些时候，我们想让消息有加粗、斜体等效果，其实这是非常简单的，只需要在send_message时指定parse_mode即可。Telegram支持Markdown与HTML两种模式，具体的信息就<a target="_blank" rel="noopener" href="https://core.telegram.org/bots/api#sendmessage">参考官方文档</a>吧。</p>
+<p>如果想加入“正在输入”的特效，那就更简单了，使用send_action就可以了。示例代码如下：</p>
+<p>bot.send_chat_action(message.chat.id, ‘typing’)<br>bot.send_message(message.chat.id, ‘这个是_斜体_哦’, parse_mode&#x3D;’Markdown’)<br>bot.send_chat_action(message.chat.id, ‘record_video’)<br>bot.send_message(message.chat.id, “`print(‘hello world’)`“, parse_mode&#x3D;’Markdown’)</p>
+<p><img src="/images/2018020105134580.png"></p>
+<h2 id="操作数据库"><a href="#操作数据库" class="headerlink" title="操作数据库"></a>操作数据库</h2><p>Python支持很多很多数据库，对于关系型数据库来说，大部分库的设计都是遵循<a target="_blank" rel="noopener" href="https://www.python.org/dev/peps/pep-0249/">PEP 249 Python Database API Specification</a>，所以咱的使用往往就是确定用哪种库，更改连接字符串，其他的基本不用改变太多。</p>
+<p>Python内建sqlite的支持，所以在机器人这类应用中，用sqlite是非常方便的。</p>
+<p>sqlite的使用方法也很简单，基本遵循如下步骤：</p>
+<p>import sqlite3</p>
+<h1 id="使用内存型数据库，实际应用时应该指定文件路径"><a href="#使用内存型数据库，实际应用时应该指定文件路径" class="headerlink" title="使用内存型数据库，实际应用时应该指定文件路径"></a>使用内存型数据库，实际应用时应该指定文件路径</h1><p>con &#x3D; sqlite3.connect(‘:memory:’)</p>
+<h1 id="创建游标"><a href="#创建游标" class="headerlink" title="创建游标"></a>创建游标</h1><p>cur &#x3D; con.cursor()<br>create_table &#x3D; ‘’’CREATE TABLE IF NOT EXISTS job(<br>date DATETIME,<br>done TINYINT)<br>‘’’</p>
+<h1 id="执行查询"><a href="#执行查询" class="headerlink" title="执行查询"></a>执行查询</h1><p>cur.execute(create_table)</p>
+<h1 id="提交事务，否则不会写入数据库"><a href="#提交事务，否则不会写入数据库" class="headerlink" title="提交事务，否则不会写入数据库"></a>提交事务，否则不会写入数据库</h1><p>con.commit()</p>
+<h1 id="关闭连接"><a href="#关闭连接" class="headerlink" title="关闭连接"></a>关闭连接</h1><p>con.close()</p>
+<h3 id="防止注入的正确姿势"><a href="#防止注入的正确姿势" class="headerlink" title="防止注入的正确姿势"></a>防止注入的正确姿势</h3><p>首先需要知道的是，拼接SQL命令是不可以的，这样很容易<a target="_blank" rel="noopener" href="https://dmesg.app/school-6.html#title-9">导致注入</a>。：Python不像PHP、Java等存在名为PreparedStatement这类用法，Python防止注入的方法比较奇特，很简单，给<code>cur.execute()</code>传入占位符和参数列表就可以了，具体来说（对于sqlite而言）：</p>
+<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; ?”, (lumberjack,))</p>
+<p>对于MySQL而言，使用%s作为占位符（管他啥类型的数据，数字还是什么的，用%s就对了）</p>
+<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; %s”, (lumberjack,))</p>
+<p>更多详细信息可以参考<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/7929364/python-best-practice-and-securest-to-connect-to-mysql-and-execute-queries">StackOverflow: Python best practice and securest to connect to MySQL and execute queries</a></p>
+<h2 id="集成requests库并解析json"><a href="#集成requests库并解析json" class="headerlink" title="集成requests库并解析json"></a>集成requests库并解析json</h2><p>Requests 唯一的一个非转基因的 Python HTTP 库，人类可以安全享用。</p>
+<p>[v_error]警告：非专业使用其他 HTTP 库会导致危险的副作用，包括：安全缺陷症、冗余代码症、重新发明轮子症、啃文档症、抑郁、头疼、甚至死亡。[&#x2F;v_error]</p>
+<p>现如今<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%85%B7%E8%B1%A1%E7%8A%B6%E6%80%81%E4%BC%A0%E8%BE%93">REST API</a>非常流行。REST API说白了就是使用各种HTTP请求（GET，POST，PUT啊什么的），返回某种资源（大部分情况下是json），所以用requests是非常好的选择。</p>
+<p>而<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/JSON">json</a>格式与Python的字典基本相同，简直是不要太方便。</p>
+<p>requests的使用方法非常简单，差不多就是三行代码的事：</p>
+<p>import requests<br>r &#x3D; requests.get(‘<a target="_blank" rel="noopener" href="https://www.google.com/ncr">https://www.google.com/ncr</a>‘)<br>print r.text</p>
+<p>如果需要POST方法，就把get换成post，如果需要更改headers等，就写作<code>r = requests.get(&#39;https://www.google.com/ncr&#39;, headers=&#123;&#39;User-Agent&#39;: &#39;Mozilla&#39;, &#125;)</code></p>
+<p>更多的高级用法还是参考<a target="_blank" rel="noopener" href="http://docs.python-requests.org/zh_CN/latest/index.html">requests的官方手册</a>吧</p>
+<p>不如试试接入淘宝IP库，实现一个查IP地址的机器人吧？（当然了，这只是一段示例代码，其实还是有些bug的啦……）</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def edit_message(message):<br>    if len(message.text.split(‘ ‘)) !&#x3D; 2:<br>        bot.send_chat_action(message.chat.id, ‘typing’)<br>        bot.send_message(message.chat.id, ‘参数错误’)<br>    else:<br>        location &#x3D; get_location(message.text.split(‘ ‘)[1])<br>        bot.send_chat_action(message.chat.id, ‘typing’)<br>        bot.send_message(message.chat.id, u”你查询的IP地址：`%s`\n%s” % (message.text.split(‘ ‘)[1], location),parse_mode&#x3D;’Markdown’)</p>
+<p>def get_location(ip):<br>    r &#x3D; requests.get(‘<a target="_blank" rel="noopener" href="http://ip.taobao.com/service/getIpInfo.php?ip=">http://ip.taobao.com/service/getIpInfo.php?ip=</a>‘ + ip).text<br>    res &#x3D; json.loads(r)<br>    if res.get(‘code’) &#x3D;&#x3D; 0:<br>        return res.get(‘data’).get(‘region’) + res.get(‘data’).get(‘country’) + res.get(‘data’).get(‘isp’)<br>    else:<br>        return ‘请求失败’</p>
+<p><img src="/images/2018020105134576.png"></p>
+<p>大概就是这么几行……</p>
+<p>今天的教程就到这里了。本篇文章涉及到的代码可以在这里获取：</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/tgbot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/tgbot&#39;\]开源地址\[/gt\]</a></p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>说太多也难以表达我的心情，可能已经彻底失去希望了吧。</p>
+<blockquote>
+<p>梁惠王曰：“寡人之于国也，尽心焉耳矣。河内凶，则移其民于河东，移其粟于河内。河东凶亦然。察邻国之政，无如寡人之用心者。邻国之民不加少，寡人之民不加多，何也？”</p>
+<p>孟子对曰：“王好战，请以战喻。填然鼓之，兵刃既接，弃甲曳兵而走。或百步而后止，或五十步而后止。以五十步笑百步，则何如？”</p>
+<p>曰：“不可，直不百步耳，是亦走也。”</p>
+<p>曰：“王如知此，则无望民之多于邻国也。不违农时，谷不可胜食也；数罟不入洿池，鱼鳖不可胜食也；斧斤以时入山林，材木不可胜用也。谷与鱼鳖不可胜食，材木不可胜用，是使民养生丧死无憾也。养生丧死无憾，王道之始也。五亩之宅，树之以桑，五十者可以衣帛矣；鸡豚狗彘之畜，无失其时，七十者可以食肉矣；百亩之田，勿夺其时，数口之家可以无饥矣；谨庠序之教，申之以孝悌之义，颁白者不负戴于道路矣。七十者衣帛食肉，黎民不饥不寒，然而不王者，未之有也。</p>
+<p>狗彘食人食而不知检，涂有饿莩而不知发；<strong>人死，则曰：‘非我也，岁也。’是何异于刺人而杀之，曰：‘非我也，兵也。’</strong>王无罪岁，斯天下之民至焉。”</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/02/01/tgbot1/index/" data-id="clhp7rtm3009os2qr2610gaqa" data-title="[Telegram bot 系列]1：requests库、Inline Keyboard、Reply Keyboard与其他细节" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-python-bfa-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/12/28/python-bfa-router/index/" class="article-date">
+  <time class="dt-published" datetime="2017-12-28T00:00:00.000Z" itemprop="datePublished">2017-12-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/12/28/python-bfa-router/index/">使用python暴力破解路由器管理密码</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]警告：此文可能存在一些破坏性或违反当地法律法规的内容，还可能会玩脱，仅供学习参考，请各位自行斟酌。 另外，如果能够物理接触到路由器，直接抓PPPoE拨号密码就好了[&#x2F;v_error]</p>
+<p>自从实习以来，我一直苦恼于一个问题：桥接的房东家路由器，但是一直不知道路由器的管理密码。其实这也不算啥，不知道就不知道呗。直到某一天去某童鞋家，但是就是连不上Wi-Fi，看着挂在墙上的路由器，我就起了邪念……插网线，拿MR12U桥接。但是啊但是啊……咱是不是要进管理里看一下WPA2-PSK究竟是什么！</p>
+<p>我目前只遇到了两种类型的路由器，咱就先来爽一把。</p>
+<p>工欲善其事，必先利其器。那我们自然要有wireshark，还有postman啊，当然了，没有python解释器也是不行的，啊对你还得有个路由器ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛但是你要是真没有路由器，那就拿Flask写一个简单的REST API吧，也是可以的（但是这还有什么用呢）。</p>
+<p>其实在写这篇文章之前，我是很尴尬的……</p>
+<p><img src="/images/2017122803165758.png"></p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/944944017267081217">推特小剧场</a></p>
+<h2 id="路由器管理页面登录方式"><a href="#路由器管理页面登录方式" class="headerlink" title="路由器管理页面登录方式"></a>路由器管理页面登录方式</h2><p>我目前见过两种，还有一种就是像openwrt那种……暂时没有环境测试，不玩。</p>
+<h3 id="传统型"><a href="#传统型" class="headerlink" title="传统型"></a>传统型</h3><p>大概是这样，需要你输入用户名密码：</p>
+<p><img src="/images/2017122803165983.png"></p>
+<h3 id="新型"><a href="#新型" class="headerlink" title="新型"></a>新型</h3><p><img src="/images/2017122803170045.png"></p>
+<p>我当然是喜欢传统型的啊，为啥，多了个用户名，猜不中用户名有啥用嘛，哈哈哈哈。</p>
+<h2 id="抓包之旅：传统型"><a href="#抓包之旅：传统型" class="headerlink" title="抓包之旅：传统型"></a>抓包之旅：传统型</h2><p>所以嘛，什么都不用想，打开wireshark抓包，然后追踪HTTP流，能得到如下的请求报文：</p>
+<p>GET &#x2F; HTTP&#x2F;1.1<br>Host: 192.168.7.1<br>Connection: keep-alive<br>Authorization: Basic xxxxx<br>User-Agent: Mozilla&#x2F;5.0 (Windows NT 6.2; WOW64) AppleWebKit&#x2F;537.36 (KHTML, like Gecko) Chrome&#x2F;63.0.3075.92 Safari&#x2F;537.36 OPR&#x2F;46.0.2218.234<br>Upgrade-Insecure-Requests: 1<br>Accept: text&#x2F;html,application&#x2F;xhtml+xml,application&#x2F;xml;q&#x3D;0.9,image&#x2F;webp,image&#x2F;apng,*&#x2F;*;q&#x3D;0.8</p>
+<p>DNT: 1<br>Accept-Encoding: gzip, deflate<br>Accept-Language: zh-CN,zh;q&#x3D;0.9,en-US;q&#x3D;0.8,en;q&#x3D;0.7<br>Cookie: shellInABox&#x3D;3:101010</p>
+<p>所以咱们大概是懂了，发现这家伙是登录是get请求带个Authorization的头，内容是Basic base64编码的信息，其中base64编码的是<strong>用户名:密码</strong>，那咱抄起postman就开始……</p>
+<p><img src="/images/2017122803170225.png"></p>
+<p>既然用postman已经成功登录了，那就没太大问题。</p>
+<h2 id="抓包之旅：新型"><a href="#抓包之旅：新型" class="headerlink" title="抓包之旅：新型"></a>抓包之旅：新型</h2><p>这个866N嘛，首先管理页面右键没有用，开控制台发现是JS渲染的，再一看发现不是传统的表单提交的，估计是用的AJAX吧。抓包过滤http的post请求，大概能发现这么奇特的请求：</p>
+<p><img src="/images/2017122803170458.png"></p>
+<p>看这样子是点击确定按钮之后，用ajax方式提交了一个json。咱在报文上右键，追踪流-HTTP流，看一下完整的响应：</p>
+<p>POST &#x2F; HTTP&#x2F;1.1<br>Host: 192.168.1.1<br>Connection: keep-alive<br>Content-Length: 54<br>Accept: application&#x2F;json, text&#x2F;javascript, *&#x2F;*; q&#x3D;0.01<br>Origin: <a target="_blank" rel="noopener" href="http://192.168.1.1/">http://192.168.1.1</a><br>X-Requested-With: XMLHttpRequest<br>User-Agent: Mozilla&#x2F;5.0 (Macintosh; U; Intel Mac OS X 10.9; rv:56.0) Gecko&#x2F;20100101 Firefox&#x2F;56.0<br>Content-Type: application&#x2F;json; charset&#x3D;UTF-8</p>
+<p>DNT: 1<br>Referer: <a target="_blank" rel="noopener" href="http://192.168.1.1/">http://192.168.1.1/</a><br>Accept-Encoding: gzip, deflate<br>Accept-Language: zh-CN,zh;q&#x3D;0.9,en-US;q&#x3D;0.8,en;q&#x3D;0.7</p>
+<p>{“method”:”do”,”login”:{“password”:”0KcgeXhc9TefbwK”}}HTTP&#x2F;1.1 200 OK<br>Content-Type: text&#x2F;html;charset&#x3D;UTF-8<br>Content-Length: 75<br>Connection: close<br>Access-Control-Allow-Origin: *<br>Cache-control: no-cache<br>{“error_code”:0, “stok”:”%7EAjzwZP%2E%2EFD%5B0Z%7C46Z4PPP%28LQPu4%28kD%28”}</p>
+<p>也就是说是提交了<code>&#123;&quot;method&quot;:&quot;do&quot;,&quot;login&quot;:&#123;&quot;password&quot;:&quot;0KcgeXhc9TefbwK&quot;&#125;&#125;</code>这样一个json，很明显那个0K什么的就是密码了，用postman提交一下试试，咋提交呢？headers设置成<code>application/json</code>，然后body里写raw，设置json，不出意外的话，你会得到一个error code 0</p>
+<p><img src="/images/2017122803170544.png"></p>
+<p>但是吧，<code>0KcgeXhc9TefbwK</code>这究竟是个啥，估计是在浏览器这里用JS加密了的密码吧，那咱就看JS然后溯源……？</p>
+<p>还好<a target="_blank" rel="noopener" href="http://blog.csdn.net/dev_here/article/details/51235324">已经有人分析过了</a>，并且给出了C#版本的代码，咱只要port到Python就好啦。</p>
+<p>[v_warn]小提示：我曾经在一篇博文中讨论过究竟是客户端加密还是服务端加密，我给出的观点是，至少要进行服务端加密。因为客户端加密是完全可以被重放攻击的。就这个例子来说，假如是有人通过中间人劫持的方式抓到了这个json，那么他就可以重放这个json来登录，尽管他依旧不知道密码。当然了，你都客户端加密了，自然加密用的密钥可能会被发现，然后被逆向。[&#x2F;v_warn]</p>
+<h2 id="一种另类的模拟登录的办法"><a href="#一种另类的模拟登录的办法" class="headerlink" title="一种另类的模拟登录的办法"></a>一种另类的模拟登录的办法</h2><p>在正经的用requests库之前，我想到了一种另类的模拟登录的办法，比如说上面的这段JS我要是没逆向出来，那么就只好这么了，这种方法叫做……<a target="_blank" rel="noopener" href="https://selenium-python.readthedocs.io/">selenium</a></p>
+<p>from selenium import webdriver</p>
+<p>driver &#x3D; webdriver.Chrome()<br>driver.get(‘<a target="_blank" rel="noopener" href="http://192.168.1.1/">http://192.168.1.1</a>‘)<br>driver.find_element_by_xpath(‘&#x2F;&#x2F;*[@id&#x3D;”lgPwd”]‘).send_keys(‘123456’)<br>driver.find_element_by_xpath(‘&#x2F;&#x2F;*[@id&#x3D;”loginSub”]‘).click()</p>
+<p>当然了你还需要写几行代码判断是否登录成功，咱还可以把Chrome换成<a target="_blank" rel="noopener" href="http://phantomjs.org/">PhantomJS</a>，只不过嘛，嘿嘿嘿，这个速度，估计要几秒钟才能尝试一个密码，效率太低啦。</p>
+<h2 id="传统路由器用Python模拟登录"><a href="#传统路由器用Python模拟登录" class="headerlink" title="传统路由器用Python模拟登录"></a>传统路由器用Python模拟登录</h2><p>既然我们已经用postman搞成功了，那么就上requests库试试吧。代码很简单，就几行，简单的测试下：</p>
+<p>import requests<br>r&#x3D;requests.get(‘<a target="_blank" rel="noopener" href="http://192.168.7.1/">http://192.168.7.1</a>‘, headers&#x3D;{‘Authorization’: ‘Basic QxxxxI2’})<br>print r.status_code</p>
+<p>如果<code>status_code</code>为200的话，那么就是登录成功了。</p>
+<h2 id="新型路由器用Python模拟登录"><a href="#新型路由器用Python模拟登录" class="headerlink" title="新型路由器用Python模拟登录"></a>新型路由器用Python模拟登录</h2><p>不要害怕，我已经帮你逆向好了客户端加密的那段代码，所以总体来说大概就是这么两个函数（好吧感觉缩进乱了）：当然啦，能够把JavaScript代码移植到Python也很不容易的，这是没有混淆、比较简单易懂的那种的，要是复杂的话，直接用<a target="_blank" rel="noopener" href="https://github.com/doloopwhile/PyExecJS">PyExecJS</a>吧（可惜<a target="_blank" rel="noopener" href="https://gist.github.com/doloopwhile/8c6ec7dd4703e8a44e559411cb2ea221">停止维护</a>了）</p>
+<p>def security_encode(b):<br>    a &#x3D; ‘RDpbLfCPsJZ7fiv’<br>    c &#x3D; ‘yLwVl0zKqws7LgKPRQ84Mdt708T1qQ3Ha7xv3H7NyU84p21BriUWBU43odz3iP4rBL3cD02KZciXTysVXiV8ngg6vL48rPJyAUw0HurW20xqxv9aYb4M9wK1Ae0wlro510qXeU07kV57fQMc8L6aLgMLwygtc0F10a0Dg70TOoouyFhdysuRMO51yY5ZlOZZLEal1h0t9YQW0Ko7oBwmCAHoic4HYbUyVeU3sfQ1xtXcPcf1aT303wAQhv66qzW’</p>
+<pre><code>e = &#39;&#39;
+g = len(a)
+h = len(b)
+k = len(c)
+
+f = g if g &gt; h else h
+for p in range(f):
+    n = l = 187
+    if p &gt;= g:
+        n = ord(b\[p\])
+    elif p &gt;= h:
+        l = ord(a\[p\])
+    else:
+        l = ord(a\[p\])
+        n = ord(b\[p\])
+    e += c\[((l ^ n) % k)\]
+return e
+</code></pre>
+<p>def login(password):<br>    requests.get(‘<a target="_blank" rel="noopener" href="http://192.168.1.1/">http://192.168.1.1</a>‘, headers&#x3D;{‘Content-Type’: ‘application&#x2F;json’})<br>    r &#x3D; requests.post(‘<a target="_blank" rel="noopener" href="http://192.168.1.1/">http://192.168.1.1</a>‘, json&#x3D;{“method”: “do”, “login”: {“password”: security_encode(password)}})<br>    return r.status_code</p>
+<p>同上，<code>status_code</code>为200，就意味着密码正确啦。</p>
+<h2 id="开始暴力破解：集成弱口令字典"><a href="#开始暴力破解：集成弱口令字典" class="headerlink" title="开始暴力破解：集成弱口令字典"></a>开始暴力破解：集成弱口令字典</h2><p>当然了，实际暴力破解的时候，咱不可能一个一个输入密码，所以咱要使用弱口令字典。为了演示方便，我就随意编辑了一个比较简单的、长度比较短的弱口令字典，咱封装一下就好啦。想要真正的弱口令字典吗？自己搜索去吧~</p>
+<p>def new_crack():<br>    with open(‘test_pass.txt’, ‘r’) as f:<br>        while True:<br>            line &#x3D; f.readline()<br>            if len(line) &#x3D;&#x3D; 0:<br>                break<br>            else:<br>                result, msg &#x3D; new_login(line.rstrip(‘\n’))<br>                if result:<br>                    return msg</p>
+<p>至于传统登录的，还需要一份用户名文件，双重循环并注意seek即可。</p>
+<h2 id="封装，封装"><a href="#封装，封装" class="headerlink" title="封装，封装"></a>封装，封装</h2><p>在完成了基本的测试之后，基本上就剩下封装函数、引入库、进行测试这些基本操作了，详细的代码就不贴了，可以戳下面的章鱼猫获取。其实这代码还可以更灵活的，那么就交给读者们了！ [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/router/_crack'/]%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/router\_crack&#39;\]项目地址\[/gt\]</a></p>
+<h2 id="加快破解速度"><a href="#加快破解速度" class="headerlink" title="加快破解速度"></a>加快破解速度</h2><p>俗话说，欲速则不达，呸，我才不管这些呢。我要加快破解程序的破解速度，我这一跑，也就占用20%不到的CPU，速度太慢了。那么……多线程？呃，Python里的多线程由于<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/%E5%85%A8%E5%B1%80%E8%A7%A3%E9%87%8A%E5%99%A8%E9%94%81">GIL锁</a>的存在，这多线程有时接近个摆设（就是说，无法发挥多核CPU的全部性能，当然如果不是CPU密集型的任务，遇到I&#x2F;O操作会释放锁，用多线程还是可以并发的）……那么我们只能上多进程了…省事，跑满CPU…另外，评论区仙子指出，连接复用也是一个好办法。</p>
+<p> </p>
+<p>那我们只需要在密码那里开个进程池，把任务全都丢给进程池，然后一起<code>join</code>就可以了。详细的代码可以参考下面的章鱼猫。 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/blob/master/router/_crack/multiprocess/_old/_crack.py'/]%E5%A4%9A%E8%BF%9B%E7%A8%8B%E7%A4%BA%E4%BE%8B%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/blob/master/router\_crack/multiprocess\_old\_crack.py&#39;\]多进程示例地址\[/gt\]</a></p>
+<p>当然了，为了防止反复调用<code>p.get()</code>影响多进程效率，我稍微做了一点点改动。</p>
+<p><img src="/images/2017122803170796.png"></p>
+<p>这是一颗满载的CPU……</p>
+<h2 id="最后的结果……"><a href="#最后的结果……" class="headerlink" title="最后的结果……"></a>最后的结果……</h2><p><img src="/images/2017122803170958.png"></p>
+<p>我还能说什么，TP-LINK这绝对是脑子进水了。客户端加密的时候我就说你有毛病了，这连自己都进不去管理页面逼我重启路由器，真是……行吧，我打算逆向固件了。下次见。啊对，有个工具叫<a target="_blank" rel="noopener" href="https://github.com/vanhauser-thc/thc-hydra">THC Hydra</a>，也可以试试哦！</p>
+<h2 id="哦对了"><a href="#哦对了" class="headerlink" title="哦对了"></a>哦对了</h2><p>提前祝愿小伙伴们元旦快乐！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/12/28/python-bfa-router/index/" data-id="clhp7rtic006xs2qr2dp0e5zm" data-title="使用python暴力破解路由器管理密码" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-linux-keep-running/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/12/07/linux-keep-running/index/" class="article-date">
+  <time class="dt-published" datetime="2017-12-07T00:00:00.000Z" itemprop="datePublished">2017-12-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/12/07/linux-keep-running/index/">Linux怎么让程序持续运行：简单说说几种好玩的办法</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>这段时间，有小伙伴问我，怎么能让程序在关掉ssh之后还能继续运行？我简单的的说了一句开个screen吧。</p>
+<p>实际上呢，在这之后还是有一些比较深奥的原理的，咱就扯扯。</p>
+<h2 id="不得不的说的SSH"><a href="#不得不的说的SSH" class="headerlink" title="不得不的说的SSH"></a>不得不的说的SSH</h2><p>用Windows的远程桌面的时候，咱可能有这种感受：把远程桌面断开了，里面的程序也欢快的跑着ε&#x3D;ε&#x3D;ε&#x3D;(<del>￣▽￣)</del>但是在Linux我们把ssh连接断开，正在跑的程序却会立刻挂掉。这是为啥捏<del>(￣▽￣)</del>*</p>
+<p>话说，咱连接到服务器，都是有sshd这个服务来负责的；连接成功之后，sshd会启动bash，之后咱在运行的命令什么的，相当于bash来帮我们启动。</p>
+<p>此时的进程树大概是这么样子的：</p>
+<p>init-&gt;sshd-&gt;bash-&gt;some_program</p>
+<p>通过<code>pstree</code>可以大概看到进程树的结构</p>
+<p><img src="/images/2017120708053786.png"></p>
+<p>不能继续讲了，因为此时我们要说信号量！</p>
+<h2 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h2><p>在不远的过去，有一门课叫《操作系统》，有一个章节叫信号量，有一个哥们叫<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%89%BE%E5%85%B9%E8%B5%AB%E5%B0%94%C2%B7%E6%88%B4%E5%85%8B%E6%96%AF%E7%89%B9%E6%8B%89">迪杰斯特拉</a>我一直管他叫迪杰特斯拉（爱迪生：说好的你爱我呢）</p>
+<p>噗，跑题了。</p>
+<p>话说在Linux下，咱是如何停止某个程序运行的呢？Ctrl+C，没错，但是只有前台进程才会体验到。</p>
+<p>通常来说，咱会使用kill来结束某个进程。kill命令会给进程发送一个信号，然后由进程来处理（捕获）这个信号。这就好像是医生跟你说，你可以死了，然后你就选择……自杀吗&#x2F;(ㄒoㄒ)&#x2F;~~</p>
+<p>kill用法很简单，简单点，一个PID；复杂点，一个signal，一个PID。</p>
+<p>也就是说，你想杀掉PID为1087的进程，温柔点就<code>kill 1087</code>好了。</p>
+<p>默认来说，kill会发送SIGTERM这个信号。</p>
+<p>使用<code>kill -l</code>可以列出来所有的信号：</p>
+<p><img src="/images/2017120708053951.png"></p>
+<p>通常有这么几个信号是比较常用的、应该被记住的：</p>
+<blockquote>
+<p>1 - SIGHUP：挂起信号，当终端连接断开时就会发送这个信号；</p>
+<p>2 - SIGINT：中断信号，也就是按Ctrl+C；</p>
+<p>9 - SIGKILL：最强大的信号，相当于爆头击杀，不能被捕获；进程收到这个信号就会立刻拜拜；</p>
+<p>15 - SIGTERM：终止信号，kill默认发送的信号，这就是告诉进程尽可能的终止，咱得跟进程爸爸一个告别儿女收拾善后的一个机会嘛；</p>
+<p>19 - SIGSTOP：中断进程，也不能被捕获。咱别看这里写的是STOP，实际上是暂停的意思啦，等同于Ctrl+Z。用18号就恢复了~</p>
+</blockquote>
+<p>这话说的太抽象了，咱不如写个bash脚本来体验一下这几个信号量吧。</p>
+<p>#!&#x2F;bin&#x2F;bash<br>trap “” INT<br>sleep 10</p>
+<p>这代码不能再简单了。运行这个脚本，然后按Ctrl+C，咱会发现这程序并不退出， <img src="/images/2017120708054170.png"> </p>
+<p>因为INT被捕获并忽略啦。 [v_tips]备注： 其实bash的坑很多，比如说，trap啥时候运行？咱以上的直觉可能是，接收到对应的信号，trap就会立刻做出相应与处理。其实不是的. 实际上，bash的行为比较特殊。当按下 CTRL-C 之后，它会向当前的整个进程组发出 SIGINT 信号。而 sleep 是由当前脚本调用的，是这个脚本的子进程（<code>/bin/sleep</code>）。 如果当前正有一个外部命令（<code>/bin/sleep</code>）在前台执行，那么 trap 会等待当前命令结束以后再处理信号队列中的信号。也就是trap要等sleep执行完才会捕捉到了信号。[&#x2F;v_tips]</p>
+<h2 id="前台后台与作业控制"><a href="#前台后台与作业控制" class="headerlink" title="前台后台与作业控制"></a>前台后台与作业控制</h2><p>正常咱们的程序是跑在前台的，如果想跑到后台，那么命令结尾加个<code>&amp;</code>就好了。</p>
+<p>比如说<code>bash demo.sh&amp;</code>那就被丢到后台去执行了，执行完成会弹出来告诉我们done</p>
+<p><img src="/images/2017120708054281.png"></p>
+<p>把正在运行的暂停并丢到后台，那就Ctrl+Z；查看作业列表，就用<code>jobs</code>；拿回前台就用<code>fg</code>；把暂停的继续运行就用<code>bg</code>……</p>
+<p>不知道大家懂了没，哈哈哈哈。</p>
+<h2 id="连接断开时"><a href="#连接断开时" class="headerlink" title="连接断开时"></a>连接断开时</h2><p>首先咱要知道，挂断信号（SIGHUP）默认的动作是终止程序。</p>
+<p>那父进程要是先被终止、退出了，子进程会怎么样？一般来说有两种：</p>
+<ol>
+<li>过继（收养）给init，孤儿进程</li>
+<li>被划为孤儿进程组，SIGHUP杀死</li>
+</ol>
+<p>[v_blue]小提示： 孤儿进程是先死了爹的进程，可能会有继父（init），也可能被归入进程组然后被SIGHUP杀死； 那要是子进程先死了呢？自然子进程会先把资源释放，然后父进程会给收尸（调用wait），然后内核回收进程控制块（PCB）。假如父进程因为种种原因没调用wait那么子进程的PCB仍然保存在系统中，就成为了僵尸进程。放心，kill 9是杀不掉僵尸进程的，遇到僵尸进程就杀死对应的父进程，然后init就会成为僵尸进程的爹，之后wait回收。[&#x2F;v_blue] 简单的说，sshd发现连接断开之后，bash收到SIGHUP信号从而关闭其所有子进程。(注意，bash的行为比较诡异，如果是输入exit，那就不会发送SIGHUP，也就是说你exit退出的，那么脚本还是欢快的跑下去的)</p>
+<p>所以自然终端断了，大家都被SIGHUP干掉了呗~SIGHUP是元凶啊！ [v_notice] 一点点小实验： 让我们连到服务器，然后<code>systemctl stop sshd.service</code>，然后惊奇的发现当前终端还活着。想想这是为什么？后面我会说的…… 好了赶紧启动吧，要不当前连接挂了那就不好玩了。[&#x2F;v_notice]</p>
+<h2 id="保持程序可靠运行的几种方法"><a href="#保持程序可靠运行的几种方法" class="headerlink" title="保持程序可靠运行的几种方法"></a>保持程序可靠运行的几种方法</h2><p>既然咱都知道是因为SIGHUP关闭的了，那咱让程序忽略这个信号不就好了嘛！</p>
+<h3 id="几种不好用的办法"><a href="#几种不好用的办法" class="headerlink" title="几种不好用的办法"></a>几种不好用的办法</h3><p>比如说<code>&amp;</code>，Ctrl+Z，这都是不好用的……照样还是处于一个session中，还是sshd-&gt;bash-&gt;program，还是会收到SIGHUP然后拜拜。</p>
+<h2 id="nohup"><a href="#nohup" class="headerlink" title="nohup"></a>nohup</h2><p>SIGHUP是元凶，那么<code>nohup</code>就好了。</p>
+<p>比如说：</p>
+<p>nohup ping z.cn</p>
+<p>这样程序的输出会被重定向到<code>nohup.out</code>中，更通常我们会<code>nohup ping z.cn &amp;</code>顺便给丢到后台，此时进程树还是init-&gt;sshd-&gt;bash-&gt;ping，如果我们关闭终端，那么<code>ping</code>就会成为孤儿进程，然后过继给init，此时我们<code>pstree</code>一下会发现变为init-&gt;ping了</p>
+<p><img src="/images/201712070805442.png"></p>
+<h3 id="setsid"><a href="#setsid" class="headerlink" title="setsid"></a>setsid</h3><p><code>nohup</code>是通过忽略SIGHUP来保持运行的，那咱能不能直接让<code>ping</code>不属于当前会话，自然也就收不到关闭终端时给进程组发的SIGHUP了？能啊怎么不能呢，<code>setsid</code>啊，用例如下：</p>
+<p>setsid ping z.cn</p>
+<p>此时<code>pstree</code>和上面是一样的，<code>ps</code>能够看到他的父进程是init，（init：我就是万年备胎，专门收垃圾）</p>
+<p><img src="/images/2017120708054548.png"></p>
+<h3 id="disown"><a href="#disown" class="headerlink" title="disown"></a>disown</h3><p>如果一不小心程序已经运行了，那么该怎么补救呢？</p>
+<p>答案是使用<code>disown</code>来控制作业（jobs），举例：</p>
+<p>sleep 100<br>disown -h %1</p>
+<p>关闭终端之后依旧会持续运行，只是不能用<code>jobs</code>控制了（但应该能用盖茨控制）。</p>
+<p>感觉似乎以上方法都不太好，要么查看输出太费事，要么用起来很别扭，那有什么更好的办法吗？当然了！</p>
+<h3 id="screen"><a href="#screen" class="headerlink" title="screen"></a>screen</h3><p><code>screen</code>是个非常强大的工具，大概就是模拟VT100&#x2F;ANSI的窗口管理器。说不明白了。反正我大概是这么用的：</p>
+<p>screen -S dl</p>
+<p>做一点事情……</p>
+<p>要回来的时候，<code>screen -r dl</code>就回到了终端关闭之前的界面。</p>
+<p>关掉终端，咱能看到进程树是init-&gt;screen-&gt;bash-&gt;ping</p>
+<p><img src="/images/2017120708054725.png"></p>
+<h2 id="某天我写了个程序"><a href="#某天我写了个程序" class="headerlink" title="某天我写了个程序"></a>某天我写了个程序</h2><p>某天我写了个程序，想让它永不停息，于是乎我用了screen，然后某一天这个程序抛异常了，然后我screen回去看了一眼继续启动；某天服务器重启了，我进去再screen……周而复始，这个程序名字叫做<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot">ExpressBot</a>，烦不烦呐！！</p>
+<p>所以咱得让这个程序成为服务。顺便说一句，比如说你要是官方二进制的MongoDB、MySQL，那么用systemd或者supervisor守护下也是非常好的选择。</p>
+<h2 id="使用systemd"><a href="#使用systemd" class="headerlink" title="使用systemd"></a>使用systemd</h2><p>systemd是Linux下最流行的init，由Lennart Poettering带头开发。发音不是system d，而是System Five Hundred 因为D是罗马数字里的500.</p>
+<p>Lennart：<a target="_blank" rel="noopener" href="https://linux.cn/article-3978-1.html">我就是想怼你们的教皇</a>。</p>
+<h3 id="命令概述"><a href="#命令概述" class="headerlink" title="命令概述"></a>命令概述</h3><p>关于systemd，Arch Linux有一篇写的<a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/systemd_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">非常详尽的wiki</a>，我们要想给自己的程序做成服务，通常是要添加单元（unit），单元可以是系统服务（.service）、挂载点（.mount）、sockets（.sockets） 、系统设备（.device）、交换分区（.swap）、文件路径（.path）、启动目标（.target）、由 systemd 管理的计时器（.timer）。如果没有扩展名，那么就会被当作服务，比如说sshd和sshd.service就是一个意思。</p>
+<p>system的主要命令是<code>systemctl</code>，常用的服务相关命令有<code>start</code>，<code>stop</code>，<code>restart</code>，<code>reload</code>，<code>status</code>，<code>enable</code>，<code>disable</code>，<code>mask</code>（禁用），<code>unmask</code>（取消禁用），<code>daemon-reload</code>，举例（需要root权限）：</p>
+<p>#立即启动单元：<br>systemctl start &lt;单元&gt;<br>#重新载入 systemd，扫描新的或有变动的单元，在修改了单元文件之后是非常必要的：<br>systemctl daemon-reload<br>#一些其他命令举例：</p>
+<h1 id="重启系统"><a href="#重启系统" class="headerlink" title="重启系统"></a>重启系统</h1><p>systemctl reboot</p>
+<h1 id="关闭系统，切断电源"><a href="#关闭系统，切断电源" class="headerlink" title="关闭系统，切断电源"></a>关闭系统，切断电源</h1><p>systemctl poweroff<br>#查看启动耗时<br>systemd-analyze<br>#显示某个 Unit 是否正在运行(一般用于脚本判断)<br>systemctl is-active sshd.service<br>#修改单元<br>systemctl edit –full sshd.service</p>
+<h3 id="systemd单元加载路径"><a href="#systemd单元加载路径" class="headerlink" title="systemd单元加载路径"></a>systemd单元加载路径</h3><p>单元文件是有一定的加载顺序的，先加载<code>/etc/system/system</code>，然后是<code>/run/systemd/system</code>，最后是<code>/lib/systemd/system</code>，如下图所示：</p>
+<p><img src="/images/2017120708054810.png"></p>
+<h3 id="service示例：Unit"><a href="#service示例：Unit" class="headerlink" title="service示例：Unit"></a>service示例：Unit</h3><p>一个配置文件可以分为unit、service、install 这几个模块。</p>
+<p>unit定义描述、启动顺序、依赖等，</p>
+<p><code>Description</code>给出当前服务的简单描述，<code>Documentation</code>字段给出文档路径；</p>
+<p><code>After</code>和<code>Before</code>指定启动顺序（只是顺序，不是依赖），比如说如果在网络服务之后启动，那么就应该写成</p>
+<p>After&#x3D;network.target</p>
+<p>依赖关系，需要使用<code>Wants</code>和<code>Requires</code></p>
+<p><code>Wants</code>表示依赖关系是可选的；<code>Requires</code>依赖关系是必须的，如果被依赖的服务启动失败或异常退出，那么依赖者也必须退出。</p>
+<h3 id="service示例：service"><a href="#service示例：service" class="headerlink" title="service示例：service"></a>service示例：service</h3><ul>
+<li>Exec</li>
+</ul>
+<p>service中最重要的就是<code>ExecStart</code>，定义启动进程时执行的命令，需要使用绝对路径，类似的还有<code>ExecReload</code>（重启服务时执行）、<code>ExecStop</code>（停止服务时执行）、<code>ExecStartPre</code>（启动服务之前执行）、<code>ExecStartPost</code>（启动服务之后执行）、<code>ExecStopPost</code>（停止服务之后执行）</p>
+<ul>
+<li>Type</li>
+</ul>
+<p>Type定义启动类型，有好多种，比如说<code>simple</code>、<code>forking</code>、<code>oneshot</code>……</p>
+<p>咱一般用<code>simple</code>比较多，意思是<code>ExecStart</code>字段启动的进程为主进程。</p>
+<ul>
+<li>KillMode</li>
+</ul>
+<p>KillMode：定义 如何停止服务，有<code>control-group、process、mixed、none</code></p>
+<p>control-group（默认值）：当前控制组里面的所有子进程，都会被杀掉</p>
+<p>process：只杀主进程，会话保留</p>
+<p>mixed：主进程将收到 SIGTERM 信号，子进程收到 SIGKILL 信号</p>
+<p>none：没有进程会被杀掉，只是执行服务的 stop 命令。</p>
+<p>我们来看下sshd的配置：</p>
+<p><img src="/images/2017120708054918.png"></p>
+<p>知道为什么sshd服务关了，当前连接还不断吧。</p>
+<ul>
+<li>Restart</li>
+</ul>
+<p>Restart定义重启字段，有这么几个值：<code>on、always、on-success、on-failure、on-abnormal、on-abort、on-watching</code>，具体详情如下表：</p>
+<p><img src="/images/2017120708055089.png"></p>
+<p>还有一个<code>RestartSec</code>，指的是重启服务之前等待几秒。</p>
+<ul>
+<li>Environment</li>
+</ul>
+<p><code>Environment</code>定义环境变量。一个比较坑的地方是systemd无法读取<code>/etc/profile</code>,<code>.bashrc</code>等环境变量，systemd启动的服务也读取不到这些环境变量（知道为啥用绝对路径了吧），有这么几种解决方案：</p>
+<p>1.修改systemd配置文件，使得环境变量在所有单元中可见</p>
+<p>在 <code>/etc/systemd/user.conf</code>文件中使用 <code>DefaultEnvironment</code> 选项。</p>
+<p>2.修改单元配置文件，使得环境变量在用户单元中可见</p>
+<p><code>systemctl edit --full expressbot.service</code>（或者找到对应的文件路径，比如说<code>/lib/system/system/expressbot.service</code>） 下增加配置文件设置。</p>
+<ol>
+<li>导入变量</li>
+</ol>
+<p>在任何时候， 使用 <code>systemctl --user set-environment</code> 或 <code>systemctl --user import-environment</code>. 对设置之后启动的所有用户单元有效，但已经启动的用户单元不会生效。</p>
+<p>例子：</p>
+<p>[Service]<br>Environment&#x3D;”TOKEN&#x3D;12345”<br>Environment&#x3D;”DB_PATH&#x3D;&#x2F;home&#x2F;ExpressBot&#x2F;expressbot&#x2F;bot.db”<br>Environment&#x3D;”TURING_KEY&#x3D;111111”<br>Environment&#x3D;”DEBUG&#x3D;0”</p>
+<p>Restart&#x3D;always<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;python &#x2F;home&#x2F;ExpressBot&#x2F;expressbot&#x2F;main.py</p>
+<p>此时在这个python脚本中就可以用<code>os.environ.get(&#39;DEBUG&#39;)</code>来获取到环境变量啦（类型全部为字符串）。其实这种方式也方便更新，不用再merge了。</p>
+<h3 id="service示例：install"><a href="#service示例：install" class="headerlink" title="service示例：install"></a>service示例：install</h3><p><code>install</code>就比较简单了，就是定义什么情况下启动。</p>
+<p>比如说<code>WantedBy=multi-user.target</code>就意味着在多用户环境下会启动，<code>WantedBy= graphical.target</code>表示图形用户下启动。</p>
+<h3 id="完整配置文件："><a href="#完整配置文件：" class="headerlink" title="完整配置文件："></a>完整配置文件：</h3><p>[Unit]<br>Description&#x3D;A Telegram Bot for querying expresses<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
+<p>[Service]<br>Environment&#x3D;”TOKEN&#x3D;12345”<br>Environment&#x3D;”DB_PATH&#x3D;&#x2F;home&#x2F;ExpressBot&#x2F;expressbot&#x2F;bot.db”<br>Environment&#x3D;”TURING_KEY&#x3D;111111”<br>Environment&#x3D;”DEBUG&#x3D;0”<br>Restart&#x3D;always<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;python &#x2F;home&#x2F;ExpressBot&#x2F;expressbot&#x2F;main.py</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<p>更多详情可以<a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html">参考这里</a></p>
+<h2 id="不好玩的轮子"><a href="#不好玩的轮子" class="headerlink" title="不好玩的轮子"></a>不好玩的轮子</h2><p>在以前，我是怎么检测服务是否还在运行的呢……</p>
+<p>基本思路是，<code>pidof</code>能获取到运行中的进程的id，然后根据<code>$?</code>判断是否还在运行，比如说……</p>
+<p>pidof php-fpm &gt;&#x2F;dev&#x2F;null<br>if [ $? -eq 0 ] ; then<br>    echo “It is running.”<br>else<br>    echo “At `date` PHP Server was stopped”&gt;&gt; &#x2F;home&#x2F;wwwlogs&#x2F;service_log<br>fi</p>
+<p>然后加入到crontab中（值得一提的是，systemd也有个timer，类似于crontab，可以参考<a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/Systemd/Timers_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87">Arch</a>“ \l “.E6.9B.BF.E4.BB.A3_cron) <a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/Systemd/Timers_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87">L</a>“ \l “.E6.9B.BF.E4.BB.A3_cron)<a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/Systemd/Timers_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87">inux</a>“ \l “.E6.9B.BF.E4.BB.A3_cron)）。</p>
+<p>这样做其实不是很理想，最长可能会导致服务中断近一分钟，这绝对是莱洛三角形。</p>
+<p>所以，直接给Restart字段一个<code>on-abnormal</code>或者<code>on-failure</code>就好了嘛。 [v_blue]思考一下：cron最短时间周期是一分钟一次，我就想十秒钟一次，该怎么办？[&#x2F;v_blue]</p>
+<h2 id="systemd的优缺点"><a href="#systemd的优缺点" class="headerlink" title="systemd的优缺点"></a>systemd的优缺点</h2><p>systemd的功能十分强大，配置文件也好写，而且systemd比较稳定（它要是挂了，那系统就挂了）。但是有一点可能不太好，就是并不是所有系统的init都是systemd（systemd争议有点大），比如说Ubuntu 14.04就不是（16.04是，跟上游Debian），Devuan（一个不用systemd的Debian）。哦对了，systemd看日志感觉不是那么方便</p>
+<p>另一个备选方案是supervisor，python咱都有吧……</p>
+<h2 id="Supervisor"><a href="#Supervisor" class="headerlink" title="Supervisor"></a>Supervisor</h2><p>Supervisor 是一个用 Python 写的进程管理工具，可以很方便的用来启动、重启、关闭进程（不仅仅是 Python 进程）。</p>
+<p>先用pip安装:</p>
+<p>pip install supervisor</p>
+<h3 id="配置supervisord"><a href="#配置supervisord" class="headerlink" title="配置supervisord"></a>配置supervisord</h3><p>同样，supervisor也有一个配置文件优先路径，<code>$CWD/supervisord.conf</code> &gt; <code>$CWD/etc/supervisord.conf</code> &gt; <code>/etc/supervisord.conf</code>，</p>
+<p>我一般会创建一个<code>/etc/supervisord.conf</code>，然后创建一个<code>/etc/supervisor/SomeService.conf</code>,然后在<code>/etc/supervisord.conf</code>中包含后者。</p>
+<p>如下创建默认配置：</p>
+<p>echo_supervisord_conf &gt; &#x2F;etc&#x2F;supervisord.conf</p>
+<p>最后一行包含配置：</p>
+<p>[include]<br>files &#x3D; &#x2F;etc&#x2F;supervisor&#x2F;*.conf</p>
+<p>然后创建如下“单元”：</p>
+<p>[program:expressbot]<br>directory &#x3D; &#x2F;home&#x2F;ExpressBot&#x2F;expressbot&#x2F;main.py<br>command &#x3D; &#x2F;usr&#x2F;bin&#x2F;python &#x2F;home&#x2F;ExpressBot&#x2F;expressbot&#x2F;main.py<br>autostart &#x3D; true ; 在 supervisord 启动的时候也自动启动<br>startsecs &#x3D; 5 ; 启动 5 秒后没有异常退出，就当作已经正常启动了<br>autorestart &#x3D; true ; 程序异常退出后自动重启<br>startretries &#x3D; 3 ; 启动失败自动重试次数，默认是 3<br>user &#x3D; root ; 用哪个用户启动<br>redirect_stderr &#x3D; true ; 把 stderr 重定向到 stdout，默认 false<br>stdout_logfile_maxbytes &#x3D; 20MB ; stdout 日志文件大小，默认 50MB<br>stdout_logfile_backups &#x3D; 20 ; stdout 日志文件备份数<br>stdout_logfile &#x3D; &#x2F;var&#x2F;log&#x2F;expressbot_stdout.log ;日志文件</p>
+<p>然后运行supervisord就可以启动supervisor啦。</p>
+<h3 id="控制supervisor"><a href="#控制supervisor" class="headerlink" title="控制supervisor"></a>控制supervisor</h3><p>类似systemd，supervisor也有个<code>supervictl</code>（配置文件查找顺序与supervisord一样），直接输入会进入交互模式，命令主要有：</p>
+<p>status、stop、restart、reread（读取有更新新增的配置文件，不会启动新添加的程序）、update（重启配置文件修改过的程序），示例：</p>
+<p><img src="/images/2017120708055254.png"></p>
+<p>或者直接在bash下<code>supervisorctl restart WebTerminal</code>也是可以的。</p>
+<p>注意：有的时候更新配置文件会没用，此时就要<code>supervisorctl reload</code>啦。</p>
+<h2 id="supervisor优缺点"><a href="#supervisor优缺点" class="headerlink" title="supervisor优缺点"></a>supervisor优缺点</h2><p>相比systemd，supervisor的特点是精准、小而全，毕竟systemd是大管家嘛；supervisor跨平台，不受init的限制；supervisor提供一个Web页面，使用用户名密码的基本身份验证（在<code>/etc/supervisord.conf</code>中配置）。</p>
+<p>最大的缺点就是，万一我手残kill了supervisord，那也就完蛋啦~可是我要是kill了init呢……没用的，你杀不掉的。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/12/07/linux-keep-running/index/" data-id="clhp7rthc004ls2qra3mg1sm6" data-title="Linux怎么让程序持续运行：简单说说几种好玩的办法" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-hiramasa-mikuri/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/11/20/hiramasa-mikuri/index/" class="article-date">
@@ -611,445 +1315,11 @@
 
 
   
-    <article id="post-expressbot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/10/18/expressbot/index/" class="article-date">
-  <time class="dt-published" datetime="2017-10-18T00:00:00.000Z" itemprop="datePublished">2017-10-18</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/10/18/expressbot/index/">ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>大家好，小土豆我又来水贴了。</p>
-<p>这是一个能够帮你查快递、追踪快递状态的Telegram机器人。当然，还能陪聊，你跟他说语音也能听懂，什么都能聊，查个天气什么的也不在话下~~</p>
-<h2 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h2><h3 id="查询快递"><a href="#查询快递" class="headerlink" title="查询快递"></a>查询快递</h3><p>接口来自于快递100，差不多能查个七八百家的样子？</p>
-<h3 id="查询历史"><a href="#查询历史" class="headerlink" title="查询历史"></a>查询历史</h3><p>反正是都能看到的啦，也可以删除的</p>
-<h3 id="追踪快递状态"><a href="#追踪快递状态" class="headerlink" title="追踪快递状态"></a>追踪快递状态</h3><p>只要是未妥投的，都会十分钟查询一次，如有更新会发消息给你~好像就这一个亮点了。</p>
-<h2 id="截图"><a href="#截图" class="headerlink" title="截图"></a>截图</h2><p>随意的截几个好了~</p>
-<p><img src="/images/101817_0558_ExpressBot1.png"></p>
-<p><img src="/images/101817_0558_ExpressBot2.png"></p>
-<p><img src="/images/101817_0558_ExpressBot3.png"></p>
-<p>估计bug多多，被<a target="_blank" rel="noopener" href="https://blog.yandere.moe/">Yandere@萌</a>调戏炸了好几次</p>
-<h2 id="以后打算干嘛"><a href="#以后打算干嘛" class="headerlink" title="以后打算干嘛"></a>以后打算干嘛</h2><p>让这个bot来跟人扯淡闲聊呗~</p>
-<h2 id="开源地址及部署方法"><a href="#开源地址及部署方法" class="headerlink" title="开源地址及部署方法"></a>开源地址及部署方法</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/ExpressBot&#39;\]开源地址\[/gt\]</a> 初学Python，还望多多指教；欢迎star、fork、PR；还望有能力的大神能够帮我进行安全审计和健壮性测试</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/10/18/expressbot/index/" data-id="clhp7rtg8002ks2qr7ss4htue" data-title="ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-krack/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/10/17/krack/index/" class="article-date">
-  <time class="dt-published" datetime="2017-10-17T00:00:00.000Z" itemprop="datePublished">2017-10-17</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/security/">security</a>►<a class="article-category-link" href="/categories/security/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/10/17/krack/index/">WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>这篇差不多是翻译和一些补充以及一些很多人容易误解的地方，欢迎各路英语、信息安全、密码学大神斧正。（反正我翻译的也够仓促的，基本上等于没校对。有一些术语可能翻译的不准确，还望指正。文章内容略有删节）</p>
-<h2 id="TL-DR太长不看版本"><a href="#TL-DR太长不看版本" class="headerlink" title="TL;DR太长不看版本"></a>TL;DR太长不看版本</h2><p>WPA&#x2F;WPA2（包括Personal和Enterprise以及使用各种加密套件）协议本身被发现存在一些漏洞，更具体的说也就是四路握手中客户端可以被诱导重装密钥（甚至是全零密钥）导致客户端发送的报文可以被解密的漏洞。</p>
-<p>注意的是，需要<strong>客户端打安全补丁</strong>来确保不会重装相同密钥。估计大部分Android设备都完蛋了（亲儿子祖国放心系列除外），Linux发行版、Apple的产品和Windows基本上都已经释出了安全更新。</p>
-<p>别一天天瞎说什么WPA2加密协议已遭破解，Wi-Fi不再安全已经沦陷了，形如虚设什么的。破解破解破解，听起来真是骇人耸听，不了解细节就瞎说那怎么能行。想要抓到四路握手包还得信号足够强呢，这信号也得足够强啊，是吧。</p>
-<p>所以啊，说了这么多，只有HTTPS是不够的，<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/HTTP%E4%B8%A5%E6%A0%BC%E4%BC%A0%E8%BE%93%E5%AE%89%E5%85%A8">HSTS</a>和HSTS Preload List更是刚需啊；别SSH的时候忽略警告啊，警告啊警告啊，另一边是悬崖啊，警告是不能忽视的啊。</p>
-<p>哦对了，<strong>搞不到Wi-Fi密码的</strong>，搞不到的（但是说不定能搞到更有价值的东西啊），想要搞Wi-Fi密码，抓四路握手然后跑字典吧。</p>
-<p>PS，今早RSA也被曝出现问题，<a target="_blank" rel="noopener" href="https://crocs.fi.muni.cz/public/papers/rsa_ccs17">ROCA: Vulnerable RSA generation</a>，其实这个是英飞凌的实现问题。英飞凌的某些产品中使用了不够健壮的伪随机数，导致可以快速进行质因数分解。RSA本身是没有问题的啦。</p>
-<h2 id="本文来源"><a href="#本文来源" class="headerlink" title="本文来源"></a>本文来源</h2><p>KRACK Attacks</p>
-<p><a target="_blank" rel="noopener" href="https://www.krackattacks.com/">https://www.krackattacks.com/</a></p>
-<p>KRACK：<strong>K</strong>ey <strong>R</strong>einstallation <strong>A</strong>tta<strong>ck</strong>s 密钥重装攻击</p>
-<p>Breaking WPA2 by forcing nonce reuse 通过强制重复使用nonce来破解WPA2</p>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>我们在大多数现代保护Wi-FI网络的WPA2协议中发现了严重的安全漏洞。在受害者范围之内，攻击者可以以”密钥重装攻击”的方式利用这些漏洞。更进一步的说，攻击者可以利用这种新奇的攻击方式在之前被认为是安全的加密的网络中获取信息。这种方式可以用于窃取敏感信息，比如说信用卡卡号，密码，聊天信息，电子邮件，照片等等。<strong>这种攻击方式适用于所有受保护的（译者注：WPA2&#x2F;WPA）Wi-Fi网络。</strong>根据不同的网络配置，也可能注入、操纵数据，比如说攻击者可能会把勒索软件、恶意软件注入到网站之中（译者注：HTTP网站）。</p>
-<p>漏洞的成因在于Wi-Fi标准自身，而不是产品或者实现的设计缺陷。因此，任何对WPA2协议的正确实现均很有可能收到影响。为防止此种攻击，用户必须尽快在安全补丁发布之后升级受影响的设备。注意，<strong>如果你的设备支持Wi-Fi，那么很有可能会受到此漏洞的影响</strong>。在我们最初的研究中，我们发现Android，Linux，Apple，Windows，OpenBSD，MediaTek，Linksys和其他的一些全部都到此漏洞的变种攻击。</p>
-<h2 id="演示"><a href="#演示" class="headerlink" title="演示"></a>演示</h2><p>我们在一部Android手机上执行了一次KRACK攻击。在这次演示中，攻击者可以解密受害者传输的所有数据。对于攻击者来说，这样的攻击很容易实现，因为KRACK攻击在Linux和Android 6.0及更高版本特别有效。这是因为<strong>Android和Linux可以被诱发到安装（重装）全零加密密钥</strong>（all-zero encryption key）。在攻击其他设备时，尽管能够解密大量数据，但是也很难解密全部数据。无论如何，下面的演示将在受保护的Wi-Fi中进行KRACK攻击时可以获取到的信息进行了高亮显示。</p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?time%5C_continue=265&v=Oh4WURZoR98">https://www.youtube.com/watch?time\_continue=265&amp;v=Oh4WURZoR98</a></p>
-<p>视频来源<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?time_continue=265&v=Oh4WURZoR98">YouTube</a>，需要翻墙 译者注：视频中使用了SSL降级攻击，这说明，HSTS和HSTS Preload是非常重要的。</p>
-<p>我们的攻击并不被限制于获取登录信息。通常来说，受害者传输的任何数据均可被解密。另外，依赖于使用的设备和网络设置，也有可能解密发送给受害者的数据（比如说网站内容）。尽管网站和应用可能会使用HTTPS作为额外的保护措施，我们要警告在多种情况下，这种附加的保护依旧可以被绕过。比如说，在之前HTTPS可以以多种方式绕过，包括<a target="_blank" rel="noopener" href="https://pdfs.semanticscholar.org/48fc/8f1aa0b6d1e4266b8017820ff8770fb67b6f.pdf">非浏览器应用</a>，<a target="_blank" rel="noopener" href="https://www.imperialviolet.org/2014/02/22/applebug.html">Apple的iOS和macOS</a>，Android的应用（<a target="_blank" rel="noopener" href="https://arstechnica.com/information-technology/2015/04/android-apps-still-suffer-game-over-https-defects-7-months-later/">例1</a>，<a target="_blank" rel="noopener" href="https://arxiv.org/ftp/arxiv/papers/1505/1505.00589.pdf">例2</a>），<a target="_blank" rel="noopener" href="http://blog.ioactive.com/2014/01/personal-banking-apps-leak-info-through.html">银行应用</a>甚至是<a target="_blank" rel="noopener" href="https://arstechnica.com/information-technology/2017/01/majority-of-android-vpns-cant-be-trusted-to-make-users-more-secure/">VPN应用</a>。</p>
-<h2 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h2><p><img src="/images/101717_0548_WPA2KRAC1.png"></p>
-<p>图片来源于维基百科，按照CC协议授权。漏洞发生在第三步GTK+MIC中。</p>
-<p>我们主要攻击WPA2协议的四路握手。当客户端想要加入受保护的Wi-Fi网络时将会使用四路握手，并使用四路握手来确认客户端与接入点持有正确的认证信息（也就是PSK，俗称Wi-Fi密码）。同时，四路握手也会协商出来一个用户加密随后通信的全新的加密密钥。目前，所有的现代受保护的Wi-Fi网络均使用这种四路握手的机制。这也就是说这些网络都会收到我们的攻击（和一些变种）的影响。比如说，攻击可以针对个人和企业Wi-Fi，可以针对更古老的WPA标准，也可以针对最新的WPA2标准，甚至是只是用AES的网络。<strong>我们的所有攻击方式均使用了一种新颖的、被称作KRACK（密钥重装攻击）的手段。</strong></p>
-<h3 id="密钥重装攻击：高级描述"><a href="#密钥重装攻击：高级描述" class="headerlink" title="密钥重装攻击：高级描述"></a>密钥重装攻击：高级描述</h3><p>在密钥重装攻击中，攻击者诱导受害者重装一个已使用密钥。<strong>这由操纵和重放密码握手信息（cryptographic handshake messages）实现。</strong>受害者重装密钥时，像是自增传输分组序号（incremental transmit packet number，也就是nonce）、重放计数器（replay counter）这类参数会被重置到初始值。本质上来说，为了保证安全，密钥应该只被安装并使用一次。不幸的是，我们发现WPA2协议并没有强制要求这一点。通过操纵密码握手信息，我们可以在实践中利用这一弱点。</p>
-<h3 id="密钥重装攻击：四路握手的实际攻击案例"><a href="#密钥重装攻击：四路握手的实际攻击案例" class="headerlink" title="密钥重装攻击：四路握手的实际攻击案例"></a>密钥重装攻击：四路握手的实际攻击案例</h3><p>如在研究中提出的，密钥重装攻击的思路可以被总结为如下步骤：</p>
-<p>客户端链接到网络时，它会执行四路握手并协商一个全新的加密密钥。它会在四路握手的第三步的报文安装这个密钥。当密钥安装之后，设备会使用加密协议和此密钥来加密正常的数据帧。然而，由于报文可能会丢失或者丢弃，无线接入点（AP）在没有收到合适的响应时会重传第三段报文。因此，客户端可能会收到多个第三段报文，每次收到这个报文，客户端都会重新安装相同的密钥，然后重置自增传输分组序号（incremental transmit packet number，nonce）和重放计数器（replay counter）。我们已经演示了<strong>攻击者可以通过收集、重放四路握手的第三个报文（Message 3）来强制重置nonce。</strong>通过如此强制重置nonce，加密协议便可遭受攻击，比如：分组可以被重放、解密或者伪造。同样的攻击手段也可以被用于攻击组密钥（group key），PeerKey，通道直接链路建立（Tunneled Direct Link Setup，TDLS），快速基本服务设置转换(fast BSS transition)握手。</p>
-<h3 id="实际影响"><a href="#实际影响" class="headerlink" title="实际影响"></a>实际影响</h3><p>我们认为，传播广泛、影响最大的攻击手段是针对四路握手的密钥重装攻击。我们在两种观察情况下做出这个判断。一是，在我们的研究中，我们发现大多数客户端都受此影响；二是，攻击者可以通过这种手段来解密客户端发送的报文，允许他们截获如密码、cookies在内的敏感信息。由于密钥重装攻击会促使传输nonces（有时会被称为报文分组或者初始化向量）被设置为0，因此解密通信变得可能。因此，<strong>使用了以前使用过的同样的nonce的加密密钥（the same encryption key is used with nonce values that have already been used in the past）。</strong>随后，这就导致WPA2所有的加密协议重复使用密钥流来解密分组。如果一段已知信息重复使用了加密，提取出已使用的加密流就很容易了（In case a message that reuses keystream has known content, it becomes trivial to derive the used keystream.）。之后，这个密钥流就可以用来解密同样nonce值的通信。当没有已知内容（known content）时，很难解密通信，尽管在某些案例下（比如说英文文档还是可以被解密的）。实际中，找到已知内容（known content）的分组并不是什么问题，所以可以假设任何报文均可以被解密。</p>
-<p>这种解密报文的能力可以用于解密TCP的SYN握手包。这会使得攻击者获取到一个TCP连接的序号，劫持TCP通信。因此，即使是使用了WPA2，攻击者也可以像开放式网络做出最常见的攻击：在未加密的HTTP中注入恶意信息。比如说，攻击者可以利用此手段在受害者访问的网站中加入勒索软件、恶意软件。</p>
-<p>如果受害者使用WPA-TKIP（译者注：临时密钥完整性协议，已被弃用）和GCMP而不是AES-CCMP（译者注：CCMP 计数器模式密码块链消息完整码协议），影响就更惨烈了：在这些加密协议上，重用nonce不仅可以使攻击者解密通信，还可以使攻击者伪造、注入通信。而且，由于GCMP在通信的双向都是用同样的认证密钥，如果重用nonce，那么这个密钥也可以被获知。需要注意的是， WiGig（无线千兆联盟）已经不再支持GCMP。</p>
-<p>报文能够被解密（以及伪造）的方向取决于握手包被攻击。简单的说，攻击四路握手的时候，我们可以解密（伪造）客户端发送的报文；攻击Fast BSS transition（快速基本服务设置转换）握手时，我们可以解密（伪造）发送给客户端的报文。最终，多数的攻击行为都能允许重放单播、广播、多播帧。</p>
-<p>需要注意的是，<strong>这种攻击方式并不会窃取到Wi-Fi密码</strong>，也不会窃取到四路握手过程中全新加密密钥（以及它的任何一部分）</p>
-<h3 id="Android-和Linux"><a href="#Android-和Linux" class="headerlink" title="Android 和Linux"></a>Android 和Linux</h3><p>攻击在wpa_suplicant版本号为2.4以上特别有效。wpa_suplicant是一个广泛被Linux使用的应用程序。在这里，客户端会安装全零加密密钥（all-zero encryption key）而不是重装真正的密钥。此漏洞貌似是因为Wi-Fi标准建议在第一次安装密钥之后从内存中清除加密密钥。当客户端接收到重传的第三段报文时，它会重装已清除的加密密钥，也就是全零密钥。因为Andorid使用wpa_suplicant，所以Android 6.0及以上也包含此漏洞。这使得<strong>截获、操纵由此类Linux和Android设备发送的报文变得非常容易。</strong>注意，现在大概有一半的Android设备受到此漏洞的影响。</p>
-<p>译者注：标准建议在第一次安装密钥之后在对应的内存区域中清除加密密钥，所以再次收到重传的时候可能会诱导安装全零密钥；但是Windows的实现是拒绝重传，尽管没符合标准的建议，但是却巧妙的绕开了这个漏洞。不过别大意，10个CVE呢……</p>
-<p>标准：怪我咯。</p>
-<h2 id="论文"><a href="#论文" class="headerlink" title="论文"></a>论文</h2><p>略……</p>
-<p>论文已经发布很久啦，我们也研究了更容易的执行KRACK攻击的手段。攻击macOS和OpenBSD也比论文中讨论的容易多啦。</p>
-<h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><p>略……</p>
-<p>我们制作了几个脚本来检测你是否会受到KRACK攻击。</p>
-<p>我们也有PoC……但是我先不发。</p>
-<h2 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><h3 id="我们需要WPA3吗"><a href="#我们需要WPA3吗" class="headerlink" title="我们需要WPA3吗"></a>我们需要WPA3吗</h3><p>不需要！幸运的是实现可以以向后兼容的方式打补丁。就是说，打了补丁的客户端可以连接到未打补丁的无线接入点，反过来也行。换句话说，打补丁的客户端还像以前那样四路握手，只不过会保证只会安装一次密钥。</p>
-<p>译者注：根本就没有WPA3好不好，TLS1.3好歹也是草案呢！</p>
-<h3 id="我需要改Wi-Fi密码吗"><a href="#我需要改Wi-Fi密码吗" class="headerlink" title="我需要改Wi-Fi密码吗"></a>我需要改Wi-Fi密码吗</h3><p>改Wi-Fi密码也没办法阻止、减轻此种攻击，所以没必要改了。反之，你需要确保你的设备进行安全更新。不过，把客户端设备和路由器都更新了之后，改Wi-Fi密码也从来不会是坏主意。</p>
-<h3 id="我只使用WPA2-AES，这是易受攻击的吗"><a href="#我只使用WPA2-AES，这是易受攻击的吗" class="headerlink" title="我只使用WPA2-AES，这是易受攻击的吗"></a>我只使用WPA2-AES，这是易受攻击的吗</h3><p>是，依然易受攻击。KRACK可以攻击WPA1和WPA2，Personal和Enterprise，任何加密套件（WPA-TKIP，AES-CCMP，GCMP）。所以大家都需要更新设备来阻止攻击。</p>
-<h3 id="我的设备易受攻击吗？"><a href="#我的设备易受攻击吗？" class="headerlink" title="我的设备易受攻击吗？"></a>我的设备易受攻击吗？</h3><p>可能。使用Wi-Fi的设备均可能易受攻击。</p>
-<h3 id="如果我的路由器没有安全更新，怎么办？"><a href="#如果我的路由器没有安全更新，怎么办？" class="headerlink" title="如果我的路由器没有安全更新，怎么办？"></a>如果我的路由器没有安全更新，怎么办？</h3><p>我们主要是攻击四路握手包，也就是客户端，而不是无线接入点。所以可能你的路由器不需要安全更新。我们强烈建议你联系厂商来获得更多细节。通常来说，你应该尝试关闭客户功能（中继模式，译者注：无线桥接时会用到），禁用802.11r（快速漫游）来减轻攻击。对于一般的家庭用户，你的首要任务是更新笔记本、手机等客户端。</p>
-<p>译者注：如果你的路由器是用来无线桥接的话，也就是Client+AP模式，那么还是会受到此漏洞的影响。</p>
-<h3 id="四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？"><a href="#四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？" class="headerlink" title="四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？"></a>四路握手已经在数学上被证明是安全的了，你们的攻击怎么会可能？</h3><p>简短的回答是，这个攻击和之前证明的并不矛盾，之前的证明默认密钥之被安装一次。相反，它只保证协商密钥不被其他人知道，这也意味着握手报文不会被伪造。</p>
-<p>长篇大论……略</p>
-<h3 id="如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？"><a href="#如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？" class="headerlink" title="如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？"></a>如果攻击者能进行MITM（中间人攻击），他为什么不能直接解密全部数据？</h3><p>在演示中我们已经提及了，攻击者首先在受害者和真正的Wi-Fi网络中获得中间人攻击的位置。然而，这种MITM不会让攻击者解密报文。此种MITM只能让攻击者稳定可靠的延迟、重放、阻断加密报文。所以自然是不行的啦……实际上，这种延迟、阻断报文的技术被用来执行密钥重装攻击。执行成功，之后，报文可以被解密。</p>
-<h3 id="有人在搞这个漏洞吗？"><a href="#有人在搞这个漏洞吗？" class="headerlink" title="有人在搞这个漏洞吗？"></a>有人在搞这个漏洞吗？</h3><p>咱不知道是不是已经有人利用了这个漏洞了……反正我们暂时还没发PoC和Exploit。</p>
-<h3 id="我是不是应该临时使用WEP协议，直到我的设备收到补丁？"><a href="#我是不是应该临时使用WEP协议，直到我的设备收到补丁？" class="headerlink" title="我是不是应该临时使用WEP协议，直到我的设备收到补丁？"></a>我是不是应该临时使用WEP协议，直到我的设备收到补丁？</h3><p>不！继续使用WPA2</p>
-<p>译者注：用WEP就等着被十分钟破解吧。</p>
-<h3 id="和其他针对WPA2的攻击相比，此方式有何不同？"><a href="#和其他针对WPA2的攻击相比，此方式有何不同？" class="headerlink" title="和其他针对WPA2的攻击相比，此方式有何不同？"></a>和其他针对WPA2的攻击相比，此方式有何不同？</h3><p>这是第一个针对Wi-Fi协议、不依赖猜测密码的攻击。实际上其他针对WPA2的攻击方式，比如说WPS，或者更古老的WPA-TKIP都是靠猜测密码（暴力破解的）</p>
-<p>反正你就记住这是搞四路握手包的啦，是协议本身的问题啦。</p>
-<h2 id="一些从其他地方看到的不准确的说法"><a href="#一些从其他地方看到的不准确的说法" class="headerlink" title="一些从其他地方看到的不准确的说法"></a>一些从其他地方看到的不准确的说法</h2><h3 id="路由器被破解被入侵"><a href="#路由器被破解被入侵" class="headerlink" title="路由器被破解被入侵"></a>路由器被破解被入侵</h3><p>都说了，这玩意是针对客户端进行的，而且攻击者没办法拿到你的Wi-Fi密码，充其量也就是会拿到解密通信。当然了，人品足够好，可能就解密了客户端登录路由器时的账号和密码。</p>
-<h3 id="更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤"><a href="#更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤" class="headerlink" title="更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤"></a>更改密码、隐藏SSID、MAC地址绑定、MAC地址过滤</h3><p>这些统统都是无法减缓这个漏洞的（这四个小伎俩只能用来防小白，遇到懂行的人开airmon-ng就搞定了），只要你用了WPA&#x2F;WPA2，这就是无解的，要是用了WEP，那更是五分钟解决啦。</p>
-<p>求大家不要再说WPA&#x2F;WPA2协议被破解了，给人的感觉好像是随意一个脚本小子都能够拿个东西搞定，实际上这只是一个比较容易堵上的安全漏洞啦……（比较容易堵并不等于厂商们会屁颠屁颠的给你发补丁哦）</p>
-<h2 id="总结：一般人该怎么做"><a href="#总结：一般人该怎么做" class="headerlink" title="总结：一般人该怎么做"></a>总结：一般人该怎么做</h2><p>一般来说，咱身边是很少有这种类型的变态的吧（估计抓握手包的人可能都不太多，遇见我，算你倒霉嗯~ o(*￣▽￣*)o）。再加上现在没有PoC也没有Exploit，还需要比较高级的手段而不是像EternalBlue那样一键完成。与其担心这个漏洞，还不如先把自己的Wi-Fi密码从12345678改成比较复杂的密码来抵抗抓四路握手包然后跑字典（哦对了当然还有拒绝使用Wi-Fi万能钥匙什么的0</p>
-<p>当然是等厂商的更新了，还有就是大力推广HTTPS+HSTS，视频中很明显被降级了，要是有HSTS那么就可以在很大程度上抵抗降级攻击。要是实在不放心，咱开个VPN好吧。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/10/17/krack/index/" data-id="clhp7rth6004es2qrhptndbbz" data-title="WPA2被破解？翻译、对KRACK的一些误解以及你应该做什么" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-mssql-mysql/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/09/27/mssql-mysql/index/" class="article-date">
-  <time class="dt-published" datetime="2017-09-27T00:00:00.000Z" itemprop="datePublished">2017-09-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/09/27/mssql-mysql/index/">从SQL Server导出海量数据到MySQL的新思路</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>话说，今天给自己找了个事，要把一个数据量比较大的巨硬的SQL Server中的数据导入到MySQL中。</p>
-<p>话说这数据量有多大呢？bak备份文件就有187M，数据库的表有90万行的数据。</p>
-<p>那导入就导入呗，怎么来呢……</p>
-<h2 id="从MSSQL中导出sql脚本"><a href="#从MSSQL中导出sql脚本" class="headerlink" title="从MSSQL中导出sql脚本"></a>从MSSQL中导出sql脚本</h2><p>似乎这是个放之四海而皆准的原则，咱都这么干。于是……</p>
-<p>任务-生成脚本，高级中把“仅限架构”改成架构和数据。</p>
-<p><img src="/images/092717_1621_SQLServer1.png"></p>
-<p>嗯，静静等待导出……</p>
-<p><img src="/images/092717_1621_SQLServer2.png"></p>
-<p>唔，1.13G的脚本，估计导回到MySQL里……反正我做完饭刷完碗洗完澡了还没导完。别想了，数据量小的话还可以玩玩，这么大，放弃吧。</p>
-<h2 id="MySQL-Migration-Toolkit"><a href="#MySQL-Migration-Toolkit" class="headerlink" title="MySQL Migration Toolkit"></a>MySQL Migration Toolkit</h2><p>别想了，这玩意早就停止维护了。就算用的成也一堆bug的吧。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/09/201709271650335.png"><img src="/images/201709271650335.png"></a></p>
-<p>哥哥，我真的有JRE的……</p>
-<h2 id="导出成csv，用MySQL-Front导入"><a href="#导出成csv，用MySQL-Front导入" class="headerlink" title="导出成csv，用MySQL Front导入"></a>导出成csv，用MySQL Front导入</h2><p>任务-导出数据，目标选择”平面文件目标”，在第一行显示列名称</p>
-<p><img src="/images/092717_1621_SQLServer4.png"></p>
-<p>然后打开MySQL Front输入 - csv文件，飞快的导入，好像没什么问题？然而并没有。</p>
-<p><img src="/images/092717_1621_SQLServer5.png"></p>
-<p>用phpmyadmin？别想了，PHP默认有上传文件大小限制，phpmyadmin本身也有，就算这俩都不是问题，Nginx还不乐意给了5xx报错呢。</p>
-<p>别用MySQL Front试了，我改了各种编码格式，从utf-8到gbk到gb2312，全完蛋。</p>
-<h2 id="导出成Excel"><a href="#导出成Excel" class="headerlink" title="导出成Excel"></a>导出成Excel</h2><p>那试试导出成Excel？</p>
-<p>报错，一堆看不懂的错误提示。</p>
-<p><img src="/images/092717_1621_SQLServer6.png"></p>
-<p>打开Excel一看，65535……下一个应该溢出了啊，?回负数了啊</p>
-<p><img src="/images/092717_1621_SQLServer7.png"></p>
-<h2 id="SQL-Server直接导出到MySQL"><a href="#SQL-Server直接导出到MySQL" class="headerlink" title="SQL Server直接导出到MySQL"></a>SQL Server直接导出到MySQL</h2><p>看样子很牛逼哈，当然要先安装MySQL的.Net驱动程序哈。然后任务-导出，目标选择MySQL，大概像下图这样：</p>
-<p><img src="/images/092717_1621_SQLServer8.png"></p>
-<p>然后下一步……</p>
-<p><img src="/images/092717_1621_SQLServer9.png"></p>
-<p>巨硬你是我爹还不行嘛……</p>
-<h1 id="行了，我还是说两种可行的方案吧。"><a href="#行了，我还是说两种可行的方案吧。" class="headerlink" title="行了，我还是说两种可行的方案吧。"></a>行了，我还是说两种可行的方案吧。</h1><h2 id="方案一：MySQL-Workbench"><a href="#方案一：MySQL-Workbench" class="headerlink" title="方案一：MySQL Workbench"></a>方案一：MySQL Workbench</h2><p>下载MySQL Migration Toolkit的时候，官方告诉我，这玩意停止开发啦，去用MySQL Workbench吧。好，那好吧。当然要提前下载好MySQL的ODBC驱动啊。</p>
-<p>没错，Database – Migration Wizard，你是巫师也没用啊(☆-ｖ-)</p>
-<p>Source选择MS SQL，Connection Method选择ODBC(native)</p>
-<p><img src="/images/092717_1621_SQLServer10.png"></p>
-<p>目标就选择MySQL，很简单的设置。然后下一步选择数据库，一路下一步基本上……有的时候，你会卡在这：</p>
-<p><img src="/images/092717_1621_SQLServer11.png"></p>
-<p>不知道为啥这三个小圈圈都是空白的，没办法下一步。我保证test connection是没有问题的！（你信吗）</p>
-<p>有的时候通过了，下一步到某个步骤时……可能会报各种奇怪的错误！忘记截图了。至少我第一次的时候各种报错……</p>
-<p>好吧，其实我想说的是，这个Workbench其实是能用的，就是某一步不小心弄错了的话，就会失败，而且报错看不明白……</p>
-<p><img src="/images/092717_1621_SQLServer12.png"></p>
-<p>你看这不就在导入呢么……</p>
-<h2 id="用JetBrains全家桶的数据库工具导入csv文件"><a href="#用JetBrains全家桶的数据库工具导入csv文件" class="headerlink" title="用JetBrains全家桶的数据库工具导入csv文件"></a>用JetBrains全家桶的数据库工具导入csv文件</h2><p>打开一个JetBrains的IDE（要Professional的哦），view-toolbox-database，添加MySQL数据源。</p>
-<p>新建一个schema，右键-import data from file，选择我们的csv文件</p>
-<p><img src="/images/092717_1621_SQLServer13.png"></p>
-<p>之后出现窗口让我们定义这个表格的<strong>数据类型</strong>啊、<strong>列名</strong>什么的，列名双击可以更改数据类型，上下移动以及映射之后的列名。</p>
-<p><img src="/images/092717_1621_SQLServer14.png"></p>
-<p>推荐大家把write errors选中，这样如果出错，可以看日志。</p>
-<p>之后ok导入，速度还可以哈。</p>
-<p><img src="/images/092717_1621_SQLServer15.png"></p>
-<p>但是你看，最后我这里报错了，说这个类型无法转换成float，估计PyCharm是根据csv里第一列的数据来决定导入之后的每一列使用什么类型，于是就给某列判断成了float，没想到后面我的某个数据不是全数字的而带上了字母。</p>
-<p><img src="/images/092717_1621_SQLServer16.png">那就在上上个图里给Type改成Text或者varchar什么的就好啦（可以参考源数据库）</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>JetBrains的database工具真的是太好用了，支持很多数据库，功能也很强大，容错能力也很强。还要什么管理工具啊，有个它就完全足够了。</p>
-<p>如果你是学生有edu邮箱，快申请免费使用；</p>
-<p>如果你在大公司工作（尤其是外企），跟老板要去；</p>
-<p>如果你有钱，自己花钱订阅；</p>
-<p>如果你没有edu邮箱，老板不给买，还穷，那就<strong>很不地道</strong>的改时间骗骗JetBrains、用License Server激活吧。可不，我这一天都在尝试着把Java版的JetBrains License Server port到Python，然而怎奈学艺不精，原理都搞清楚了，就是跑不过测试用例……???</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/09/27/mssql-mysql/index/" data-id="clhp7rthk004zs2qreuajgi10" data-title="从SQL Server导出海量数据到MySQL的新思路" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-pixiv-gfw/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/09/18/pixiv-gfw/index/" class="article-date">
-  <time class="dt-published" datetime="2017-09-18T00:00:00.000Z" itemprop="datePublished">2017-09-18</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/09/18/pixiv-gfw/index/">别再对GFW抱有幻想了：写在pixiv被墙之际</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>工作忙了一天，也难过了一天。送人回来之后刷推，发现28小盆友大概是<a target="_blank" rel="noopener" href="https://twitter.com/chengr28/status/909791706559651840">有些激动吧</a>。哦什么，pixiv被墙了？</p>
-<h2 id="Pixiv是个啥"><a href="#Pixiv是个啥" class="headerlink" title="Pixiv是个啥"></a>Pixiv是个啥</h2><p>其实在此之前，我并不知道pixiv是什么。别看我某些账号的头像是二次元的，但是这并不意味着我是二次元的。好吧，实际上我根本不看那些动漫的，选这种类型的做头像只是因为萌。</p>
-<p>哦，那pixiv到底是个啥啊？根据<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Pixiv">维基百科</a>，pixiv是一个主要由日本艺术家所组成的虚拟社区，主体为由pixiv股份有限公司所运营的为插画艺术特化的社交网络服务网站。简而言之就是一个能够搜索到好多插画的网站啦，作者可以是任何人。当然啦，这个网站上自然有一些可能稍微有一点不适合小盆友们的内容。</p>
-<p><img src="/images/091817_1843_1.png"></p>
-<h2 id="Pixiv被墙"><a href="#Pixiv被墙" class="headerlink" title="Pixiv被墙"></a>Pixiv被墙</h2><p>先不说今天（或者说 “勿忘国耻”的昨天）pixiv被墙的这个事，咱先来<code>nslookup</code>一下Google吧。</p>
-<p>好像没什么不对的，那么咱用8.8.8.8看看。好像也没什么不对的。那咱试试8.8.8.4？</p>
-<p><img src="/images/091817_1843_2.png"></p>
-<p>如果读者们经验足够多，应该能立刻认出来，这个IP是保留地址，而8.8.8.4在人类世界根本就不是Google DNS（也不是谁家的DNS）。别说了，后面随意换个IP，都是解析到这个保留的IP上了。狗腿子们真是辛苦你们了。如果大家此时<code>nslookup</code>下pixiv，还真是完美呢。</p>
-<p><img src="/images/091817_1843_3.png"></p>
-<p>根据GreatFire的测试，pixiv已于<a target="_blank" rel="noopener" href="https://zh.greatfire.org/https/www.pixiv.net">今日80%被墙</a>，这日子挑的真好。</p>
-<p><img src="/images/091817_1843_4.png"></p>
-<h2 id="事不关己，高高挂起？"><a href="#事不关己，高高挂起？" class="headerlink" title="事不关己，高高挂起？"></a>事不关己，高高挂起？</h2><p>理论上来说，这事确实跟我没太大关系，我又不是二次元爱好者，那我为什么要拖着疲惫的身体熬夜费神来谈这事？一定有人在想，某一天当GitHub再次被墙的时候才到我爆发的时候吧？也许，很多人都听过这么一段话，我也无数次的多次引用了：</p>
-<blockquote>
-<p>在德国，起初他们追杀共产主义者，我没有说话，因为我不是共产主义者；</p>
-<p>接着，他们追杀犹太人，我没有说话…，因为我不是犹太人；</p>
-<p>后来，他们追杀工会成员，我没有说话…，因为我不是工会成员；</p>
-<p>此后，他们追杀天主教徒，我没有说话…，因为我是新教徒；</p>
-<p>最后，他们奔我而来，却再也没有人站起来为我说话了。</p>
-</blockquote>
-<p>那么我也仿造这首诗，瞎编一通，管他什么韵脚结构的：</p>
-<p>在天朝，起初他们封杀Google，我没有说话，因为我用百度；</p>
-<p>接着，他们封杀Gmail，我没有说话，因为我并不出国留学；</p>
-<p>后来，他们封杀维基百科中文版，我没有说话，因为我还可以看英文版；</p>
-<p>此后，他们追杀clowwindy，我没有说话，因为我不用shadowsocks；</p>
-<p>最后，他们开启了白名单局域网，却再也没有人知道什么是互联网了。</p>
-<p>你说我要不要说话？</p>
-<p>是的没错，我不喜欢二次元，我可能不同意二次元的一些想法，但是我会捍卫他们说话的权利；<strong>我不同意你说的话，但是我会捍卫你说话的权利</strong>。</p>
-<h2 id="别再给GFW洗白了，也别再自我审查了"><a href="#别再给GFW洗白了，也别再自我审查了" class="headerlink" title="别再给GFW洗白了，也别再自我审查了"></a>别再给GFW洗白了，也别再自我审查了</h2><p>好久之前，在<a target="_blank" rel="noopener" href="https://dmesg.app/takedown-on-github.html">GitHub因为GreatFire和programthink&#x2F;zhao导致gov takedown</a>和遭受<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%A4%A7%E7%82%AE_(%E4%B8%AD%E5%9C%8B%E7%B6%B2%E8%B7%AF%E5%AF%A9%E6%9F%A5)">大炮攻击</a>之时，我就谈论了这个问题：这得做白日梦、麻木到什么地步，才会找理由给GFW洗白啊。别以为有GFW丢脸的人就会少，这不又出征又举报的。</p>
-<p>不得不说，如今<strong>自我审查和双重思想</strong>配合得如此之妙，简直就是1984的翻版啊。<strong>别TM的自我审查给被墙找理由了</strong>。Steam被墙，GitHub被墙，Gmail被墙，这责任难道不是全部都在GFW身上吗？也别因为再次解封而喜出望外，谁都知道<strong>猪总是要被杀了吃肉</strong>的。</p>
-<p>请注意，两年多以来，我写博客（尤其是此类博文）的目的并不是想要改变任何人的想法，我更希望的是能够<strong>促使读者进行有逻辑的思考与分析</strong>，而不是看到141字就头疼、什么话都不会说就知道贴表情包，这是智商退化的体现。也就是说我希望的是促进思考，而不是咩咩叫的羊。</p>
-<blockquote>
-<p>不论是 Steam 还是 Pixiv 被墙，都说明对 GFW 抱有幻想是 Too young 的。担惊受怕自我审查，还不如该用就用，别想太多。 ——28小盆友</p>
-</blockquote>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/chengr28/status/909791706559651840">https://twitter.com/chengr28/status/909791706559651840</a></p>
-<h2 id="历史的车轮"><a href="#历史的车轮" class="headerlink" title="历史的车轮"></a>历史的车轮</h2><p>网上有有一句话是这么说的：</p>
-<blockquote>
-<p>中国人最悲哀的就是: 刚被历史的车轮碾过, 还没来得及爬起来, 发现历史在倒车…</p>
-</blockquote>
-<p>可不嘛你看，这年头<a target="_blank" rel="noopener" href="https://v2mm.tech/topic/1089/%E7%BF%BB%E5%A2%99%E5%85%A5%E7%BD%AA%E6%9D%A5%E4%BA%86">侵入、非法控制计算机系统</a>只要卖个VPN、Shadowsocks什么的就可以了。（Equation Group:…）</p>
-<p>这年头动不动就寻衅滋事判个三万年，可不，显卡都降价了。</p>
-<h2 id="我想"><a href="#我想" class="headerlink" title="我想"></a>我想</h2><p>我想要个拥抱，我想被人喜欢，我想不再被嫌弃，我想要感受在<strong>安静的夜晚下与你牵手的温暖</strong>，我想你；但是我更想拥抱一个自由的互联网，一个自由与传播的互联网。当然我知道……没那么容易。欢迎真正的&#x2F;冒牌的忠党爱国前来评论。</p>
-<p><img src="/images/091817_1843_5.png"></p>
-<p>A fatigue night.</p>
-<p>晚安，我的小宝贝，让我们一起吃苹果吧。</p>
-<p><img src="/images/091817_1843_6.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/09/18/pixiv-gfw/index/" data-id="clhp7rti1006ls2qr9oyzbxo3" data-title="别再对GFW抱有幻想了：写在pixiv被墙之际" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-slimbox-not-working/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/09/06/slimbox-not-working/index/" class="article-date">
-  <time class="dt-published" datetime="2017-09-06T00:00:00.000Z" itemprop="datePublished">2017-09-06</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/09/06/slimbox-not-working/index/">Typecho灯箱插件slimbox2不显示图片、图片一直在加载、404错误解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天抽时间把<a target="_blank" rel="noopener" href="https://www.tougetu.com/">小蜗牛博客</a>的主题<a target="_blank" rel="noopener" href="https://github.com/BennyThink/GreenGrapes2">GreenGrape2</a>中的原来灯箱换成了功能更强大、也很简洁的<a target="_blank" rel="noopener" href="https://github.com/binjoo/SlimBox2-for-Typecho">slimbox2</a>。哎呀，准确的说是把slimbox2移植到GreenGrapes2啦。但是其实这玩意略微有那么一点点坑呢。</p>
-<p>下面来说说我遇到的几个坑</p>
-<h2 id="范围选择器"><a href="#范围选择器" class="headerlink" title="范围选择器"></a>范围选择器</h2><p>这玩意是个啥啊？哎就是jQuery选择器啦。怎么设置这一项的值呢？</p>
-<p>很简单，随便打开一篇带图的博文，然后定位到图片的<code>&lt;img&gt;</code>标签，再往前一点，你会发现这块大概是这样的：</p>
-<div class="article-content clearfix">
-
-<p>还等什么，把<code>entry_content</code> 替换成<code>article-content</code>，也就是<code>.article-content a:has(img)</code>，保存就好啦。</p>
-<h2 id="点击图片没反应"><a href="#点击图片没反应" class="headerlink" title="点击图片没反应"></a>点击图片没反应</h2><p>哦，我大概是忘记说了，那个选择器啊……要带a标签的才可以哎，所以，你给你的图片加个a标签试试？比如说类似如下：</p>
-<p><a target="_blank" rel="noopener" href="http://www.example.com/3442182753.png"><img title src="https:/ http://www.example.com/3442182753.png" alt></a></p>
-<p>此时点图片就会弹出来灯箱啦</p>
-<h2 id="不想给图片加a标签，直接把选择器选择到标签行不行"><a href="#不想给图片加a标签，直接把选择器选择到标签行不行" class="headerlink" title="不想给图片加a标签，直接把选择器选择到标签行不行"></a>不想给图片加a标签，直接把选择器选择到<img>标签行不行</h2><p>比如说，咱把选择器改成<code>.article-content img</code>，酱紫可以不？</p>
-<p>当然不行啦，此时你点图片，就会一直在加载，大概是这样子吧：</p>
-<p><img src="/images/090617_1428_1.png"></p>
-<p>此时看控制台，会有一个404，文件名字叫做undefined，还用猜嘛，JS的问题……</p>
-<p><img src="/images/090617_1428_2.png"></p>
-<p>那咋办捏？好办，找个js大神，改了<code>slimbox.js</code>那个文件，让它不去a标签里找src直接找img标签的src得了。</p>
-<p>反正我不太会js。</p>
-<h2 id="啊啊啊，废话一大堆，那咋办啊，挨个给图片加a标签啊？"><a href="#啊啊啊，废话一大堆，那咋办啊，挨个给图片加a标签啊？" class="headerlink" title="啊啊啊，废话一大堆，那咋办啊，挨个给图片加a标签啊？"></a>啊啊啊，废话一大堆，那咋办啊，挨个给图片加a标签啊？</h2><p>当然不要了！我们可以选择用JavaScript给图片增加a标签呀，其实用PHP也可以，要对<code>$this-&gt;content</code>中的img标签处理下就可以啦。</p>
-<p>这里就说下用JS给图片添加a标签的方法</p>
-<p><code>footer.php</code>中，找一块（一般是在末尾）添加如下代码：</p>
-<script type="text/javascript">
-$('img').wrap(function () {
-return '<a href="' + this.src + '" title="' + this.alt + '"></a>';
-});
-</script>
-
-<h2 id="综上所述，怎么把这个插件集成到主题里呢？"><a href="#综上所述，怎么把这个插件集成到主题里呢？" class="headerlink" title="综上所述，怎么把这个插件集成到主题里呢？"></a>综上所述，怎么把这个插件集成到主题里呢？</h2><p>举例如下哈，</p>
-<p>头部引入<code>slimbox2.css</code></p>
-<link rel="stylesheet" href="http://www.example.com/usr/themes/GreenGrapes2/css/slimbox2.css">
-
-<p>尾部引入<code>slimbox2.js</code>以及JS代码</p>
-<script src="http://www.example.com/usr/themes/GreenGrapes2/js/slimbox2.js" async></script>
-
-<script type="text/javascript">
-$('img').wrap(function () {
-return '<a href="' + this.src + '" title="' + this.alt + '"></a>';
-});
-
-jQuery(function ($) {
-$(".article-content a:has(img)").slimbox({
-overlayOpacity: 0.75,
-overlayFadeDuration: 100,
-imageFadeDuration: 400,
-captionAnimationDuration: 200,
-loop: true,
-counterText: "Image {x} of {y}"
-});
-});</script>
-
-<p>其中的一些参数可以自由发挥哈。当然，别忘记把那个js、css还有图片拷贝到对应的网站目录下。</p>
-<h2 id="我喜欢原来的灯箱，咋办"><a href="#我喜欢原来的灯箱，咋办" class="headerlink" title="我喜欢原来的灯箱，咋办"></a>我喜欢原来的灯箱，咋办</h2><p>这个……用如下命令吧：</p>
-<p>git checkout abf49c63c8a1175fe783bf8803215ef640b5213d</p>
-<p>但是这样就不能再<code>git pull</code>，就又没啦。那咋办呢，既想有原来的灯箱，还想保持最新版本？</p>
-<p>那就麻烦你<code>cherrypick</code>或者通过<code>git branch</code>啦。</p>
-<h2 id="主题二三事"><a href="#主题二三事" class="headerlink" title="主题二三事"></a>主题二三事</h2><p>这个主题是在今年三月某蜗牛童鞋<a target="_blank" rel="noopener" href="https://www.tougetu.com/about.html">从Jekyll转回到Typecho</a>之后我给选的，但是后来发现功能有所欠缺，于是便亲自上手进行改动。在此，还要感谢<a target="_blank" rel="noopener" href="https://github.com/hongweipeng/GreenGrapes">原作者的设计</a>，感谢<a target="_blank" rel="noopener" href="https://www.tougetu.com/">某蜗牛</a>的信任。当然，还有使用此主题的人们（我猜，除了永远的萌新应该是没有人用吧）。 哦对了，忘记说了，这主题……彩蛋挺多的，这主题已经快被我搞残废了。 也欢迎大家来访问<a target="_blank" rel="noopener" href="https://www.tougetu.com/">某蜗牛的博客</a>来查看主题演示，<a target="_blank" rel="noopener" href="https://www.tougetu.com/">https://www.tougetu.com/</a>，偷个图，好记不好记？不管你记住没记住，反正我是记住了。</p>
-<p>主题开源地址</p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/GreenGrapes2'/]GreenGrapes2/[/gt/]">https://github.com/BennyThink/GreenGrapes2&#39;\]GreenGrapes2\[/gt\]</a> 感谢，于是我就又这么水了一贴，么么哒！</p>
-</div>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/09/06/slimbox-not-working/index/" data-id="clhp7rtjz008qs2qr7o3q0j06" data-title="Typecho灯箱插件slimbox2不显示图片、图片一直在加载、404错误解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/10/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/12/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/10/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/12/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1089,7 +1359,7 @@ counterText: "Image {x} of {y}"
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1102,23 +1372,23 @@ counterText: "Image {x} of {y}"
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

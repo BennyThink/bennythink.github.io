@@ -73,6 +73,510 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-fear-without-rules/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/12/19/fear-without-rules/index/" class="article-date">
+  <time class="dt-published" datetime="2016-12-19T00:00:00.000Z" itemprop="datePublished">2016-12-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/12/19/fear-without-rules/index/">没有规则才是最可怕的</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>假如你是一位高校老师，有一名学生翘课被你点名发现了，按照二八分、平时成绩出勤占一半、三次缺勤取消考试资格的规定，你会怎么做？</p>
+<p>我猜大部分人应该选择根据规则来，扣掉该扣的那一次缺勤分，而不是看心情、想扣光就扣光、想怎样就怎样。</p>
+<p>但是假如那名学生说你是傻逼呢？有多少人会给他应该得到的出勤分、扣掉一部分课堂表现，而不是直接让他拜拜重修？</p>
+<p>假如后来你发现说你傻逼的那学生是省长他外甥呢？有多少人会“维持原判”，有多少人会贴脸给满分来“冰释前嫌”？</p>
+<p>你看，你是不是悄悄改变了自己的规则——或者直接说你根本就没有规则，你只是在跟着感觉来，你所谓的规则只是你的双重思想的一小部分而已。</p>
+<p>坚持的理由很简单，规则就是这样定的。对于理性的思考来说，应得的就是应得的，你不能以感性的愤怒、羞辱、面子等为由肆意妄为、违背规则。为人师表啊。没有规则才是最可怕的。</p>
+<p>想想那些没有规则的例子吧：GFW封某个网站的时候，有什么规则吗；纳粹追杀共产主义者、犹太人、工会成员，有什么规则吗；文革中被整死的人，有什么规则吗？</p>
+<p>我们需要规则，如果没有规则，或定了规则却无视、凌驾规则，甚至随意修改规则，这和历史的倒退有什么区别。好似你既是裁判又是球员，这样谁能玩的过你、谁愿意跟你玩嘛。如果规则只是当权者的随意操纵的把戏，规则又有何用。</p>
+<p>这就是个缩影，或许也就是无力改变的现实吧。</p>
+<p>最怕，没有规则。</p>
+<p>最后，盗用胡适他老人家的一句和本文没啥关系话来结束全文： 一个肮脏的国家，如果人人讲规则而不是空谈道德，最终会变成一个有人味儿的正常国家，道德自然会逐渐回归； 反之，一个干净的国家，如果人人都不讲规则却大谈道德、谈高尚，天天没事儿就谈道德规范，人人大公无私，最终这个国家会堕落成为一个伪君子遍布的肮脏国家。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/12/19/fear-without-rules/index/" data-id="clhp7rtg8002ms2qr512c9au5" data-title="没有规则才是最可怕的" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-compile-kernel/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/12/15/compile-kernel/index/" class="article-date">
+  <time class="dt-published" datetime="2016-12-15T00:00:00.000Z" itemprop="datePublished">2016-12-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/12/15/compile-kernel/index/">[备忘录]：Linux4.9内核的正确编译之路</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几天前脱袜子大叔放出了LTS版本的Linux Kernel 4.9,听说增加了一个新的TCP拥塞控制算法BBR，想着自己从来没有编译过内核，那就试试嘛，纯当积累经验了。</p>
+<p>在这个过程中遇到了一些比较可怕的问题，比如说build出了300M的initrd.img，这……好吧！</p>
+<p>我的环境是：Ubuntu 16.04 64位，主要参考教程<a target="_blank" rel="noopener" href="https://kernelnewbies.org/KernelBuild">戳我吧</a></p>
+<p>下面就备忘一下我编译过程的整个经过吧</p>
+<h2 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h2><p>用包管理器把你的系统升级到最新吧，另外，最好别玩跨越太大的升级啊。</p>
+<p>sudo apt update<br>sudo apt upgrade</p>
+<h2 id="解决依赖"><a href="#解决依赖" class="headerlink" title="解决依赖"></a>解决依赖</h2><p>老生常谈了，该装的都装好吧</p>
+<p>sudo apt install libncurses5-dev gcc make git exuberant-ctags bc libssl-dev</p>
+<h2 id="准备目录"><a href="#准备目录" class="headerlink" title="准备目录"></a>准备目录</h2><p>通常来说我们选择在&#x2F;usr&#x2F;src下存放内核源码。实际上这并不是必须的。请注意，编译内核的时候并不需要root权限，安装的时候才需要。为了方便管理、patch内核、保持一致性起见，我们还是老实地用这个目录吧。从现在起就切换到root啦</p>
+<h2 id="下载、准备内核源码"><a href="#下载、准备内核源码" class="headerlink" title="下载、准备内核源码"></a>下载、准备内核源码</h2><p>在kernel.org下载内核，如果你的速度太慢，可以试试阿里云的源。</p>
+<p>#官网<br>wget <a target="_blank" rel="noopener" href="https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.tar.xz">https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.tar.xz</a><br>#阿里云<br>wget <a target="_blank" rel="noopener" href="http://mirrors.aliyun.com/linux-kernel/v4.x/linux-4.9.tar.xz">http://mirrors.aliyun.com/linux-kernel/v4.x/linux-4.9.tar.xz</a><br>tar xvf linux-4.9.tar.xz<br>cd linux-4.9</p>
+<h2 id="配置内核"><a href="#配置内核" class="headerlink" title="配置内核"></a>配置内核</h2><p>编译内核之前，我们需要创建出来一个.config文件，由这个文件决定编译什么、编译进内核还是模块。通常来说我们有这么几种方式生成这个.config</p>
+<h3 id="使用你原来内核的config"><a href="#使用你原来内核的config" class="headerlink" title="使用你原来内核的config"></a>使用你原来内核的config</h3><p>cp &#x2F;boot&#x2F;config-`uname -r`* .config</p>
+<h3 id="使用默认的config（会覆盖已有的-config文件）"><a href="#使用默认的config（会覆盖已有的-config文件）" class="headerlink" title="使用默认的config（会覆盖已有的.config文件）"></a>使用默认的config（会覆盖已有的.config文件）</h3><p>make defconfig</p>
+<p>我们这里当然要使用原来的内核配置文件啦，所以来一句cp &#x2F;boot&#x2F;config-`uname -r`* .config即可。</p>
+<p>或者干脆来一句</p>
+<p>make localmodconfig</p>
+<p>就OK了。假如我们要对内核配置进行微调，那就执行</p>
+<p>make menuconfig</p>
+<p>会酱紫</p>
+<p><img src="/images/121516_1413_Linux491.png"></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>是不是很神奇能在终端里画出这么漂亮的界面？ncurses啦</p>
+<p>为了防止它没加载我们刚刚复制过来的旧内核配置文件，我们选择 Load - ok手动加载下。</p>
+<p>之后导航到Kernel Hacking - Compile-time checks and compiler options，按N取消对Compile the kernel with debug info的勾选</p>
+<p>剩下的一些配置就看个人需求啦，比如说我需要编译BBR并使它成为默认的TCP 拥塞算法，那就酱紫</p>
+<p><img src="/images/121516_1413_Linux492.png"></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>你需要支持XFS，就自己去开启。</p>
+<p>全都配置完了之后，导航到save 保存。</p>
+<p>下面我们就要准备开始编译啦！</p>
+<p>[v_error]警告 如果你是第一次编译内核，那么就按照上文所述即可。如果你已经编译过了，那么请运行 make clean 来清除编译过程中产生的可能导致编译失败的各种文件 make mrproper 不但会执行make clean的所有操作，还会删除.config文件，请谨慎使用[&#x2F;v_error]</p>
+<h2 id="编译内核"><a href="#编译内核" class="headerlink" title="编译内核"></a>编译内核</h2><p>在编译内核之前，建议大家想想以下几个问题：你是给自己电脑编译？还是虚拟机？还是VPS？</p>
+<p>你电脑是啥处理器？几个核心几个线程的？</p>
+<p>多大物理内存，有没有Swap？</p>
+<p>如果是用的虚拟机，那么推荐在虚拟机的界面里开终端而不是通过OpenSSH服务；</p>
+<p>如果是VPS，请一定要这样screen -S kernel然后再开始编译，否则SSH连接断开编译也就终止了。</p>
+<p>你的内存比较小，比如说只有2G、4G，建议开个swap吧，免得内存耗尽编译失败</p>
+<p>如果你自觉内存比较大不会耗尽，那就大胆的进行吧；</p>
+<p>如果你不知道自己是啥CPU ，你就lscpu下，CPU(s)写了个4,那你就当成4核心的。（我这货是双核四线程）</p>
+<p> </p>
+<p>总之，这些以防万一的准备工作是要做好的，因为编译内核是个比较消耗时间的事情，万一因为些小问题失败了，再重新来太糟心。</p>
+<p>嗷对了，如果你是笔记本，请做好散热……</p>
+<p>说了这么多，我就当你已经准备好了！</p>
+<p>那么，果断的敲</p>
+<p>make</p>
+<p>编译内核吧！（make会包含make bzImage等操作，详见make help）</p>
+<p>但是……忘记了我们上面说的双核四核吗？并行编译不好吗？</p>
+<p>那么就</p>
+<p>make -jX</p>
+<p>X是一个整数，假如你是双核，2和3就是比较好的选择；4核那么4或6就会是比较好的选择。双核四线程请将其视作四核。千万不要尝试双核来个make -j10,这样你的电脑就得比狗还慢啦。</p>
+<p>我就make -j4啦</p>
+<p>该约妹子的约妹子，该睡觉的睡觉……</p>
+<p> </p>
+<p>[v_tips]小提示：开启Swap的方法（128M的Swap为例）</p>
+<p>sudo dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;test bs&#x3D;1M count&#x3D;128<br>sudo chmod 600 test<br>sudo mkswap test<br>sudo swapon test</p>
+<p>free确定swap已开启 为了避免出现权限的问题，就全是用root啦[&#x2F;v_tips]</p>
+<h2 id="安装内核和模块"><a href="#安装内核和模块" class="headerlink" title="安装内核和模块"></a>安装内核和模块</h2><p>进过了很长时间，终于编译完啦。那就安装吧，ls -lh一下就会发现vmlinuz其实很小的。</p>
+<p>sudo make modules_install install</p>
+<p>之后reboot体验新内核吧！ 重启之后uname -a即可查看新内核哦，如果旧的内核没有留下来的必要了，那就使用类似</p>
+<p>sudo apt remove linux-headers-版本号</p>
+<p>等移除旧版本的内核</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/12/2016121514232992.png"><img src="/images/2016121514232992-300x34.png" alt="qq%e6%88%aa%e5%9b%be20161215222225"></a></p>
+<p> </p>
+<p>服务器上的4.9<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/12/2016121514232992.png"></a></p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>Some of us get dipped in flat, some in satin, some in gloss. But every once in a while you find someone who’s iridescent, and when you do, nothing will ever compare.</p>
+<p>Nothing will ever compare. :oops:</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/12/15/compile-kernel/index/" data-id="clhp7rtew0019s2qr9tbbbeyj" data-title="[备忘录]：Linux4.9内核的正确编译之路" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-play-vps/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/11/25/play-vps/index/" class="article-date">
+  <time class="dt-published" datetime="2016-11-25T00:00:00.000Z" itemprop="datePublished">2016-11-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/11/25/play-vps/index/">花样玩：把闲置的VPS用起来</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>像我这种流量比较小的网站，往往服务器都一直是0负载，这样一天天过去总觉得是一种浪费。浪费可耻，浪费就是犯罪啊。于是咱就得琢磨琢磨，服务器通常CPU性能都很好（别看是单核，那也是志强啊），带宽也比较充足，还24小时开机，所以嘛….咱来点奇葩的玩法，像是建站、ss这种常见的玩法咱就不说啦。 [v_blue] 友情提示： 1.下文的一些思路<strong>仅供参考</strong>，各位各取所需 2.拿来做生产的服务器（比如跑我的网站的这个），尽量<strong>专机专用少折腾</strong>，比如说我的这个服务器只负责网站和中转文件… 3.请记得遵守主机商的ToS、服务器所在地的法律、主机商所属国的法律。 4.OpenVZ的VPS还是悠着点，用太多CPU可能会被封停哦；KVM和Xen的就不必太多考虑这点了，如果你不放心，ticket走起。 5.海外VPS请注意如果你做某些事情，可能会导致你的IP被墙或者被严重干扰。 6.那种超低价的超售狂，就别折腾啦，搭个ss偷着乐就好了。 [&#x2F;v_blue]</p>
+<hr>
+<h2 id="搭建Tor中继节点、网桥"><a href="#搭建Tor中继节点、网桥" class="headerlink" title="搭建Tor中继节点、网桥"></a>搭建Tor中继节点、网桥</h2><p><strong>仅限海外VPS</strong></p>
+<p>Tor是什么？是一个很厉害的匿名工具啦。如果你想为这个匿名网络做一些贡献，可以选择搭建Tor Relay（中继）、Tor Bridges（网桥），Exit Nodes（出口节点）还是别想啦。大部分主机商都允许搭建中继和网桥的。</p>
+<p>当然啦，本人是不建议在自己正在用的VPS上搭建的，万一要是被墙了，那就麻烦了。</p>
+<p>详细教程已经有人写了，戳<a target="_blank" rel="noopener" href="https://yepster.me/tor-deployment/">《关于搭建 Tor Relay 的一点胡扯——以及为什么现在 Tor Bridges 更好》</a></p>
+<h2 id="中转油管视频、Git仓库等（利用七牛）"><a href="#中转油管视频、Git仓库等（利用七牛）" class="headerlink" title="中转油管视频、Git仓库等（利用七牛）"></a>中转油管视频、Git仓库等（利用七牛）</h2><p><strong>推荐海外VPS</strong></p>
+<p>这里请一定要注意遵守服务器所在地的法律、主机商所属国的法律和主机商的ToS，被封不要赖我哦~~</p>
+<p>首先中转就要先下载回来，这里对待种子可以使用rtorrent，直链可以使用wget，Git仓库可以使用git clone，YouTube视频可以用youtube-dl。怎么下载回来就不用我说了吧，如果这个不会，那可没办法，没办法啊</p>
+<p>之后注册个七牛，去<a target="_blank" rel="noopener" href="http://developer.qiniu.com/code/v6/tool/qshell.html">开发者中心</a>自行读文档配置去吧~（或者参考我这篇<a target="_blank" rel="noopener" href="https://dmesg.app/vps-google-drive.html">《使用海外vps中转Google Drive文件》</a>） [v_tips] 友情提示： 1.我这人比较懒，所以我写了一个名为relay的脚本，给加了x权限然后丢到PATH下，之后任何目录都可以直接打relay来上传了。 2.在使用qshell的时候，有的时候上传会失败，我发现qshell是”同步”的模式，而我一般都是上传完就删除。所以我一般会选择把目录中隐藏的.qshell目录删掉再上传。 3.如果你中转一些可能被和谐的内容，那么建议你使用tar打个包，这样它的散列就会变了，机器审查是有点难啦；如果你中转的是危险的东西，那么用OpenSSL套件加密、或者是压缩工具的加密功能，这样对付人工也差不多足够啦（当然，请注意弱口令）。 4.视频、音乐、加密卷等高熵的文件，通常是很难压缩的，所以遇到视频建议打包而不是打包+压缩，使用类似</p>
+<p>tar cvf </p>
+<p>这样的命令而不是带j、J的选项。 [&#x2F;v_tips]</p>
+<h2 id="云存储OwnCloud"><a href="#云存储OwnCloud" class="headerlink" title="云存储OwnCloud"></a>云存储OwnCloud</h2><p><strong>推荐国内服务器</strong></p>
+<p>OwnCloud这东西，就像是你的私有云，再也不怕党妈妈以女神的理由封杀你网盘啦！</p>
+<p>这也有人写过类似教程，在这里<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/2007.html">《用 ownCloud 搭建个人私有云》</a></p>
+<h2 id="搭建UDP-53的OpenVPN-x2F-SS突破Web认证"><a href="#搭建UDP-53的OpenVPN-x2F-SS突破Web认证" class="headerlink" title="搭建UDP 53的OpenVPN&#x2F;SS突破Web认证"></a>搭建UDP 53的OpenVPN&#x2F;SS突破Web认证</h2><p><strong>推荐国内服务器</strong></p>
+<p>这个嘛……是真正非常有用的地方啊！我的马甲站就是这么玩的，结果导致服务器经常满载&#x2F;(ㄒoㄒ)&#x2F;~~</p>
+<p>详情戳我的博文<a target="_blank" rel="noopener" href="https://dmesg.app/udp53.html">《UDP 53 免费上网经验谈》</a></p>
+<p>很明显<strong>SS的性能要远远好过SoftEther只不过要开全局啦……</strong></p>
+<h2 id="编译服务器"><a href="#编译服务器" class="headerlink" title="编译服务器"></a>编译服务器</h2><p><strong>推荐海外服务器</strong></p>
+<p>有的时候，身处大陆的小盆友们在编译某些比较大的项目的时候，常常会被GFW折磨到疯：本身源码就挺大，各种依赖还都得下，GFW还超喜欢干扰。所以有些时候放弃编译往往不是因为CPU性能不足、硬盘太慢、内存太小而是因为网太渣……在大陆当程序员，真的都是折翼的天使啊。</p>
+<p>比如说那次我想编译个服务器版本的Lantern，需要下载Lantern定制版的Go，再下载Lantern源码，编译的时候还要下载很多……所以我就稍稍利用了下aws</p>
+<p><img src="/images/112516_1014_VPS1.png"></p>
+<p>没骗你，不小吧！</p>
+<h2 id="利用ffmpeg压制影片、转换格式等"><a href="#利用ffmpeg压制影片、转换格式等" class="headerlink" title="利用ffmpeg压制影片、转换格式等"></a>利用ffmpeg压制影片、转换格式等</h2><p><strong>国内海外均可</strong></p>
+<p>对于那些经常需要转换格式的、压制影片的人来说，好像这样做会很方便。如果开个按时的高性能实例，效果应该会好很多！</p>
+<p>这里如果你的服务器恰巧是Windows系统，那么人人影视曾经发过一个非常简单的压片工具，用起来很方便；至于使用Linux的嘛……<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html">使用ffmpeg，可以戳我哟</a>。 [v_blue] 友情提示： 1.大部分服务商都支持自定义镜像，所以咱……可以开一台新机器，编译好ffmpeg以及上传什么的，做一个镜像。之后要用的时候，开个高性能的机器，直接选择用这个镜像安装，转换，上传，销毁机器。省钱又方便。 2.我等穷人的单核心服务器，虽说CPU性能很强，但是……我相信现在大家的电脑通常都是四核八核十六核……所以要真的比起来速度，开个多线程，服务器估计就跪了…… 3.这个最好的应用场景就是，你发现一个10G+的片源，利用服务器高带宽的特点下载回来，之后压制成2G的720P再下载……在一些限制流量、限制上网时长的地方最划算了。 [&#x2F;v_blue]</p>
+<p>PS，七牛有个数据处理，用起来挺方便的，速度很快而且很便宜。</p>
+<p><img src="/images/112516_1014_VPS2.png"></p>
+<h2 id="搭建游戏服务器（MineCraft）"><a href="#搭建游戏服务器（MineCraft）" class="headerlink" title="搭建游戏服务器（MineCraft）"></a>搭建游戏服务器（MineCraft）</h2><p><strong>推荐国内服务器</strong></p>
+<p>大部分游戏都是Windows平台下的，相应的开服端也是Windows下居多的……所以比如说开个MineCraft？或者 steam家的l4d2、cs这种？别说，我还真有一个l4d2服务器。</p>
+<p>PS：游戏服务器一般对带宽的要求会比较高。</p>
+<p>这个，也有人写过<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/1693.html">《在 Ubuntu 中搭建 Minecraft 服务器并挂载 Mod》</a></p>
+<h2 id="挖矿"><a href="#挖矿" class="headerlink" title="挖矿"></a>挖矿</h2><p>╮(╯_╰)╭</p>
+<p>这个……大家伙悠着点，大部分主机商都是不允许挖矿的！而且挖矿的前途嘛……看着玩吧！</p>
+<h2 id="卖虚拟主机"><a href="#卖虚拟主机" class="headerlink" title="卖虚拟主机"></a>卖虚拟主机</h2><p><strong>国内海外均可</strong></p>
+<p>这是真正的赚钱之道啊，或者一个服务器跑三四个网站（还别说我的马甲站就是一个服务器跑了三个网站）。用过lnmp一键安装包的大概之道添加虚拟主机有多方便</p>
+<p><img src="/images/112516_1014_VPS3.png"></p>
+<h2 id="搭建自己的DNS"><a href="#搭建自己的DNS" class="headerlink" title="搭建自己的DNS"></a>搭建自己的DNS</h2><p><strong>国内海外均可。</strong></p>
+<p>为了嘛，解析到正确的IP而不是总跑到阿塞拜疆啊。</p>
+<p>这个，当然是要DNSCrypt啦！</p>
+<p>当然，也有人写过了，我只是搬运工<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/981.html">《编译安装 dnscrypt-wrapper 搭建防污染 DNS 服务器》</a></p>
+<h2 id="搭建Resilio-Sync（BT-Sync）节点"><a href="#搭建Resilio-Sync（BT-Sync）节点" class="headerlink" title="搭建Resilio Sync（BT Sync）节点"></a>搭建Resilio Sync（BT Sync）节点</h2><p><strong>仅限海外</strong></p>
+<p>做一个好人，提升大家的下载速度，哈哈哈。具体可以参考<a target="_blank" rel="noopener" href="https://help.getsync.com/hc/en-us/articles/204762449-Guide-to-Linux-and-Sync-peculiarities">官网文章</a></p>
+<h2 id="做Git服务器"><a href="#做Git服务器" class="headerlink" title="做Git服务器"></a>做Git服务器</h2><p>有些时候，我们可能需要私有的Git仓库，这个时候<a target="_blank" rel="noopener" href="https://about.gitlab.com/installation/">GitLab CE</a>就派上用场啦，有钱的也可以玩玩<a target="_blank" rel="noopener" href="https://enterprise.github.com/home">GitHub Enterprise</a></p>
+<p>我思路有限，大概就只能想到这么多比较花样的玩法了！有别的新奇玩法的，欢迎补充~~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/11/25/play-vps/index/" data-id="clhp7rti2006ns2qrghkt1ln8" data-title="花样玩：把闲置的VPS用起来" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ffmpeg/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/11/10/ffmpeg/index/" class="article-date">
+  <time class="dt-published" datetime="2016-11-10T00:00:00.000Z" itemprop="datePublished">2016-11-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/11/10/ffmpeg/index/">自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_tips]有点不好意思啊此文无图… :shock: 还有这个字体咋样呀 :razz:  [&#x2F;v_tips]</p>
+<p>[v_error]一键编译脚本在<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/3">第三页</a>！ [&#x2F;v_error] 话说很久之前，人人影视放出来了一个压片工具，总共有192M的样子，而且只能在Windows上运行。对于我等Linux党，这可怎么行呢？于是我就想到了ffmpeg这个万能的神器。当然了ffmpeg作为自由软件，你从包管理器里安装的、直接configure编译的，是不会带libx264</p>
+<p>这类非自由软件，自然想要压制影片就不是那么好玩了……</p>
+<p>那既然酱紫，我们就只好手动编译一个non-free的ffmpeg，然后再来使用嘛！</p>
+<p>[v_act]这种压片的方法是把字幕混到视频流中，也就是说视频最终是音频流+视频流，是没有字幕流的，字幕已经是视频的一部分了。这也可以极大程度上的避免盗字幕的行为。[&#x2F;v_act] 懒虫们，假如你们真的懒得看这么长的文章，并且你确定你的发行版是比较新的发行版，那么请直接翻到本文最后看”一键式编译教程”吧！</p>
+<h2 id="准备特效字体"><a href="#准备特效字体" class="headerlink" title="准备特效字体"></a>准备特效字体</h2><p>有很多字幕都是用了自定义字体，请记得给你的发行版安装对应的字体呀！桌面版直接双击安装即可。如果是服务器版，把字体复制到&#x2F;usr&#x2F;share&#x2F;fonts&#x2F;truetype和原来字体一样的位置，或者新建个winFonts目录便于区分也可以。</p>
+<p>之后运行</p>
+<p>sudo apt install fontconfig<br>sudo fc-cache –fv</p>
+<p>运行fc-list可以看到已安装字体列表</p>
+<p>查看中文字体，可以使用</p>
+<p>sudo fc-list :lang&#x3D;zh</p>
+<p>并且请注意编码格式的问题，Linux一般使用<strong>UTF-8</strong>而Windows则是GB2312</p>
+<p> </p>
+<h1 id="编译安装ffmpeg"><a href="#编译安装ffmpeg" class="headerlink" title="编译安装ffmpeg"></a>编译安装ffmpeg</h1><p>我使用的是Ubuntu，所以这里我就按照<a target="_blank" rel="noopener" href="https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu">官网提供的教程编译</a>啦！</p>
+<h2 id="安装必备依赖"><a href="#安装必备依赖" class="headerlink" title="安装必备依赖"></a>安装必备依赖</h2><p>sudo apt-get update<br>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \<br>libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev</p>
+<p>[v_tips] 注意，如果是服务器版Ubuntu，可以把第二步替换成如下（你装原来的也行，反正是ffplay和X11的依赖……）</p>
+<p>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libtheora-dev libtool libvorbis-dev pkg-config texinfo zlib1g-dev</p>
+<p>[&#x2F;v_tips]</p>
+<p>创建一个用来下载源码的目录</p>
+<p>mkdir ~&#x2F;ffmpeg_sources</p>
+<h2 id="编译与安装"><a href="#编译与安装" class="headerlink" title="编译与安装"></a>编译与安装</h2><h3 id="yasm"><a href="#yasm" class="headerlink" title="yasm"></a>yasm</h3><p>如果你的包管理器里的yasm版本号&gt;&#x3D;1.2.0，那就可以用包管理器安装</p>
+<p>（使用sudo apt search yasm查看版本号，就想编译的，我也没意见）</p>
+<p>sudo apt-get install yasm</p>
+<p>否则请编译安装</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz">http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz</a><br>tar xzvf yasm-1.3.0.tar.gz<br>cd yasm-1.3.0<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin”<br>make<br>make install<br>make distclean</p>
+<h3 id="libx264"><a href="#libx264" class="headerlink" title="libx264"></a>libx264</h3><p>如果你的包管理器里的libx264版本号&gt;&#x3D;0.118，那就是用包管理器安装</p>
+<p>sudo apt-get install libx264-dev</p>
+<p>否则需要编译安装</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://download.videolan.org/pub/x264/snapshots/last/_x264.tar.bz2">http://download.videolan.org/pub/x264/snapshots/last\_x264.tar.bz2</a><br>tar xjvf last_x264.tar.bz2<br>cd x264-snapshot*<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin” –enable-static –disable-opencl<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean</p>
+<h3 id="libx265"><a href="#libx265" class="headerlink" title="libx265"></a>libx265</h3><p>只能选择编译安装啦。</p>
+<p>sudo apt-get install cmake mercurial<br>cd ~&#x2F;ffmpeg_sources<br>hg clone <a target="_blank" rel="noopener" href="https://bitbucket.org/multicoreware/x265">https://bitbucket.org/multicoreware/x265</a><br>cd ~&#x2F;ffmpeg_sources&#x2F;x265&#x2F;build&#x2F;linux<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” cmake -G “Unix Makefiles” -DCMAKE_INSTALL_PREFIX&#x3D;”$HOME&#x2F;ffmpeg_build” -DENABLE_SHARED:bool&#x3D;off ..&#x2F;..&#x2F;source<br>make<br>make install</p>
+<h3 id="libfdk-aac"><a href="#libfdk-aac" class="headerlink" title="libfdk-aac"></a>libfdk-aac</h3><p>如果你的包管理器中有libfdk-aac-dev，那就可以使用包管理器安装（没有版本需求）</p>
+<p>sudo apt-get install libfdk-aac-dev</p>
+<p>否则需要编译安装</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget -O fdk-aac.tar.gz <a target="_blank" rel="noopener" href="https://github.com/mstorsjo/fdk-aac/tarball/master">https://github.com/mstorsjo/fdk-aac/tarball/master</a><br>tar xzvf fdk-aac.tar.gz<br>cd mstorsjo-fdk-aac*<br>autoreconf -fiv<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make distclean</p>
+<h3 id="ibmp3lame"><a href="#ibmp3lame" class="headerlink" title="ibmp3lame"></a>ibmp3lame</h3><p>如果你的包管理器中有ibmp3lame，版本号&gt;&#x3D;3.98.3，那么你可以使用包管理器安装</p>
+<p>sudo apt-get install libmp3lame-dev</p>
+<p>否则需要编译安装</p>
+<p>sudo apt-get install nasm<br>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz">http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz</a><br>tar xzvf lame-3.99.5.tar.gz<br>cd lame-3.99.5<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –enable-nasm –disable-shared<br>make<br>make install<br>make distclean</p>
+<h3 id="libopus"><a href="#libopus" class="headerlink" title="libopus"></a>libopus</h3><p>如果你的包管理中有libopus，版本号&gt;&#x3D;1.1，那你可以使用包管理器安装</p>
+<p>sudo apt-get install libopus-dev</p>
+<p>否则需要编译安装。</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz">http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz</a><br>tar xzvf opus-1.1.2.tar.gz<br>cd opus-1.1.2<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make clean</p>
+<h3 id="libvpx"><a href="#libvpx" class="headerlink" title="libvpx"></a>libvpx</h3><p>只能编译安装（注意，这个链接是在Google的服务器上，如果服务器在国内下载不回来，就自己翻墙下载然后上传到服务器吧）</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2">http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2</a><br>tar xjvf libvpx-1.5.0.tar.bz2<br>cd libvpx-1.5.0<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-examples –disable-unit-tests<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make clean</p>
+<h2 id="编译ffmpeg"><a href="#编译ffmpeg" class="headerlink" title="编译ffmpeg"></a>编译ffmpeg</h2><p>耗时可能会比较长</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2">http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2</a><br>tar xjvf ffmpeg-snapshot.tar.bz2<br>cd ffmpeg<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” PKG_CONFIG_PATH&#x3D;”$HOME&#x2F;ffmpeg_build&#x2F;lib&#x2F;pkgconfig” .&#x2F;configure \<br>–prefix&#x3D;”$HOME&#x2F;ffmpeg_build” \<br>–pkg-config-flags&#x3D;”–static” \<br>–extra-cflags&#x3D;”-I$HOME&#x2F;ffmpeg_build&#x2F;include” \<br>–extra-ldflags&#x3D;”-L$HOME&#x2F;ffmpeg_build&#x2F;lib” \<br>–bindir&#x3D;”$HOME&#x2F;bin” \<br>–enable-gpl \<br>–enable-libass \<br>–enable-libfdk-aac \<br>–enable-libfreetype \<br>–enable-libmp3lame \<br>–enable-libopus \<br>–enable-libtheora \<br>–enable-libvorbis \<br>–enable-libvpx \<br>–enable-libx264 \<br>–enable-libx265 \<br>–enable-nonfree<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean<br>hash –r</p>
+<p>[v_blue]注意：</p>
+<p>1.如果你直接运行configure，将会是没有non-free软件的ffmpeg；官方的configure配置会在<del>下生成一个bin（编译之后安装就会在</del>&#x2F;bin下）、ffmpeg_build目录；如果不喜欢，那就照猫画虎的改掉$HOME（记得都要改哦），make install的时候就到&#x2F;bin啦！</p>
+<p>2.在Ubuntu中，~&#x2F;bin默认是被包含到PATH中的，所以当你注销-登录或者</p>
+<p>source ~&#x2F;.profile</p>
+<p>之后可以从任何目录运行<del>&#x2F;bin中的程序的。再不济，咱把</del>&#x2F;bin里的拷贝到&#x2F;bin里总可以吧？</p>
+<p>3.如果需要安装man page，请运行</p>
+<p>echo “MANPATH_MAP $HOME&#x2F;bin $HOME&#x2F;ffmpeg_build&#x2F;share&#x2F;man” &gt;&gt; ~&#x2F;.manpath</p>
+<p>[&#x2F;v_blue]</p>
+<hr>
+<p>我假设你已经编译好了ffmpeg，并且准备好了你的视频和字幕。</p>
+<p>前面提过了，如果你的字幕中使用了自定义字体，请记得同时安装对应的字体！</p>
+<p>并且，请注意<strong>字幕文件的编码格式</strong>，Linux通常会使用UTF-8无BOM，而Windows则是GB2312这类。为了避免出乱码，还是老老实实转换成UTF-8吧！</p>
+<p>下一页我会介绍一些压片的方法，关于ffmpeg的更多方法，大家伙就自己搜索、看官方的文档、man page啦！</p>
+<p>注意，压制过程中可能会出现这样的警告</p>
+<p>Glyph 0x36C not found, selecting one more font for (YouYuan, 700, 0)</p>
+<p>不要管他啦……只要是UTF-8编码的，会压出来的！ 该看下一页啦~~</p>
+<h2 id="不改变视频、音频编码格式及参数，将字幕压制"><a href="#不改变视频、音频编码格式及参数，将字幕压制" class="headerlink" title="不改变视频、音频编码格式及参数，将字幕压制"></a>不改变视频、音频编码格式及参数，将字幕压制</h2><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h2 id="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"><a href="#使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式" class="headerlink" title="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"></a>使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h3 id="关于preset参数："><a href="#关于preset参数：" class="headerlink" title="关于preset参数："></a>关于preset参数：</h3><p>预设是一系列参数的集合，这个集合能够在编码速度和压缩率之间做出一个权衡。一个编码速度稍慢的预设会提供更高的压缩效率（压缩效率是以文件大小来衡量的)。这就是说，假如你想得到一个指定大小的文件或者采用恒定比特率编码模式，你可以采用一个较慢的预设来获得更好的质量。同样的，对于恒定质量编码模式，你可以通过选择一个较慢的预设轻松地节省比特率。</p>
+<p>如果你很有耐心，通常的建议是使用最慢的预设。目前所有的预设按照编码速度降序排列为： ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo默认为medium</p>
+<p>[v_blue]如果你蒙圈了，那就这么说的，ultrafast处理的最快，但是文件大；placebo处理的慢，但是文件小；建议medium或者fast就可以了……有耐心的话，veryslow也够了。[&#x2F;v_blue]</p>
+<h3 id="crf-Constant-Rate-Factor"><a href="#crf-Constant-Rate-Factor" class="headerlink" title="crf(Constant Rate Factor)"></a>crf(Constant Rate Factor)</h3><p>该方法在输出文件的大小不太重要的时候，可以使整个文件达到特定的视频质量。该编码模式在单遍编码模式下提供了最大的压缩效率，每一帧可以按照要求的视频质量去获取它需要的比特数。不好的一面是，你不能获取一个特定大小的视频文件，或者说将输出位率控制在特定的大小上。</p>
+<p>crf的参数值中，其中0为无损模式，23为缺省值，51可能是最差的。该数字越小，图像质量越好。从主观上讲，18~28是一个合理的范围。18往往被认为从视觉上看是无损的，它的输出视频质量和输入视频一模一样或者说相差无几。但从技术的角度来讲，它依然是有损压缩。 [v_blue]我觉得选择20就差不多啦~~[&#x2F;v_blue]</p>
+<h3 id="以H-264、Lame自定义参数重新编码、压制"><a href="#以H-264、Lame自定义参数重新编码、压制" class="headerlink" title="以H.264、Lame自定义参数重新编码、压制"></a>以H.264、Lame自定义参数重新编码、压制</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” -acodec libmp3lame -ab 128k lame.mp4</p>
+<p>如果想压制AAC的音频，就在最后把acodec libmp3lame改成acodec aac</p>
+<p>其中-ab 128k指的是平均码率为128k</p>
+<h2 id="以H-264自定义分辨率、AAC自定义参数缩放压制视频"><a href="#以H-264自定义分辨率、AAC自定义参数缩放压制视频" class="headerlink" title="以H.264自定义分辨率、AAC自定义参数缩放压制视频"></a>以H.264自定义分辨率、AAC自定义参数缩放压制视频</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass,scale&#x3D;800:-1” -acodec aac -ab 128k aac.mp4</p>
+<p>其中的scale&#x3D;800:-1指的是输出800:对应比例的视频。假如你要压制720P的，那就把800改成1280；假如你要1080的，那就改成1920。通常来说，分辨率高的压分辨率低的好办，低的压高的就麻烦了……</p>
+<h2 id="两遍模式"><a href="#两遍模式" class="headerlink" title="两遍模式"></a>两遍模式</h2><p>如果你的目标是一个确定大小的文件而且帧与帧之间的视频质量并不重要，这个方法很适用。这通过一个例子可以得到很好地解释。你的视频有10分钟（600秒）的时长同时要求输出为50MB，因为比特率&#x3D;文件大小&#x2F;时长，</p>
+<p>50MB*8192（MB转kilobits)&#x2F;600秒&#x3D;683 kbps（全局比特率）</p>
+<p>683kbps-128kbps(音频比特率）&#x3D;555kbps（视频比特率）,</p>
+<p>两遍编码的例子：</p>
+<p>ffmpeg -y -i input -c:v libx264 -preset medium -b:v 555k -pass 1 -an -f mp4 &#x2F;dev&#x2F;null &amp;&amp;<br>ffmpeg -i input -c:v libx264 -preset medium -b:v 555k -pass 2 -c:a libfdkaac -b:a 128k mp4 output.mp4</p>
+<h2 id="分割视频（拷贝视频和音频流，速度比较快）"><a href="#分割视频（拷贝视频和音频流，速度比较快）" class="headerlink" title="分割视频（拷贝视频和音频流，速度比较快）"></a>分割视频（拷贝视频和音频流，速度比较快）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -ss 01:00:00 -i input_file_h264.mp4 -vcodec copy -acodec copy -t 00:06:00 output_file.mp4</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我这上面这几个小标题写的乱乱糟糟的，在这里统一做一个总结吧：</p>
+<h3 id="需要原封不动的把字幕压进去"><a href="#需要原封不动的把字幕压进去" class="headerlink" title="需要原封不动的把字幕压进去"></a>需要原封不动的把字幕压进去</h3><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h3 id="需要快速的压制质量较好的H264视频"><a href="#需要快速的压制质量较好的H264视频" class="headerlink" title="需要快速的压制质量较好的H264视频"></a>需要快速的压制质量较好的H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h3 id="需要快速压制质量较好的H264、720P视频"><a href="#需要快速压制质量较好的H264、720P视频" class="headerlink" title="需要快速压制质量较好的H264、720P视频"></a>需要快速压制质量较好的H264、720P视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 23 -vf “ass&#x3D;Lantern.ass,scale&#x3D;1280:-1” out.mp4</p>
+<h3 id="需要压制超高质量的、缓慢的压制H264视频"><a href="#需要压制超高质量的、缓慢的压制H264视频" class="headerlink" title="需要压制超高质量的、缓慢的压制H264视频"></a>需要压制超高质量的、缓慢的压制H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset veryslow -crf 18 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<p>这个……crf的质量大家自己掂量着办！0最好，53最差，默认23，合理范围18~28 preset也看着办 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo 越慢，压缩率越高。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>视频编码这是个长久的技术活啊，而且需要很多的经验！自己多编码多玩玩，自然就有懂啦！</p>
+<p>下一页是给懒虫们留着的哦~~ 附录</p>
+<p>给懒虫们的一键式编译脚本。我不太会写脚本，所以这个还是有很大改善空间的….目前只支持Debian系 使用方法： git clone仓库，给两个文件都加x权限，root身份运行onekey-ffmpeg.sh即可。 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/onekey-compile-ffmpeg'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80%E6%88%B3%E6%88%91/[/gt/]">https://github.com/BennyThink/onekey-compile-ffmpeg&#39;\]开源地址戳我\[/gt\]</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/11/10/ffmpeg/index/" data-id="clhp7rtht005zs2qrbjgt43ap" data-title="自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-school-3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/11/09/school-3/index/" class="article-date">
+  <time class="dt-published" datetime="2016-11-09T00:00:00.000Z" itemprop="datePublished">2016-11-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/11/09/school-3/index/">[学校上网系列]3. 从网盘秒传中想到的：不要想当然</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天恰逢美国大选，特朗普已经成为新任美国总统。所以我也来凑个热闹，当然今天我不打算谈论总统的事，今天我要继续谈论我们的学校上网系列之从网盘秒传想到的</p>
+<p>鉴于360云盘宣布关门大吉，估计大家伙都转移到百度网盘了吧。提到网盘，大家可能会把他当做备份数据的、存储资料的一个地方。所以今天我也就来科普下一些和数据备份相关的概念以及如何安全、可靠的进行数据备份。嗷对了，自从百度云改版之后，下载什么东西都得用那丫的百度云管家。婶不能忍啊！ :twisted:</p>
+<p>再继续之前，强烈建议阅读爱范儿上的一篇文章：<a target="_blank" rel="noopener" href="http://www.ifanr.com/653360">《国内的网盘一个个倒下，这里有一份能让你用到老的存储指南》</a></p>
+<p>在说数据备份之前，我们要先学习一些基础知识：数据备份的三种方式、如何选择存储媒介、超大空间和秒传，之后我们会讨论下如何安全的使用云盘、如何干他丫的百度云管家。</p>
+<h2 id="数据备份的三种方式"><a href="#数据备份的三种方式" class="headerlink" title="数据备份的三种方式"></a>数据备份的三种方式</h2><p>通常来说，最常见的数据备份方式有完整备份、增量备份、差异备份。</p>
+<h3 id="完整备份"><a href="#完整备份" class="headerlink" title="完整备份"></a>完整备份</h3><p>把所有文件、文件夹或数据作一次性的复制，不考虑其中是否有任何更改、变化的备份方式就叫做完整备份。通常来说，第一次备份都会是完整备份。举个例子，我周一把整个分区&#x2F;目录的文件都以某种方式备份&#x2F;封装到某个特定的存储介质中，这就叫做完整备份。</p>
+<h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>指对上一次完整备份或增量备份后更新的数据进行备份。举个例子，我周一进行了完整备份，周二进行增量备份则是这段时间内发生变化的数据作为一个”增量”和周一的备份文件放在一起，这个过程就叫做增量备份。周三继续进行增量备份是和周二进行对比，变化的数据进行备份。换句话说，增量备份是跟<strong>前一次备份</strong>对比，备份变化的。</p>
+<h3 id="差异备份"><a href="#差异备份" class="headerlink" title="差异备份"></a>差异备份</h3><p>提供运行完整备份后变更的文件的备份。差异备份和增量备份非常相近。只不过差异备份永远是和完整备份的那次进行比较（在这里也就是周一的完整备份）</p>
+<hr>
+<p>估计大家伙此时还是懵逼的状态，依旧没搞懂增量和差异的区别……我们举个很大的例子：</p>
+<p>周一进行完整备份，周二进行增量备份，周三进行增量备份，周四进行差异备份，周五进行差异备份，他们备份之后的文件名分别为file1, file2, file3, file4, file5</p>
+<p>那么请继续往下看。</p>
+<h2 id="三种备份方式的还原"><a href="#三种备份方式的还原" class="headerlink" title="三种备份方式的还原"></a>三种备份方式的还原</h2><h3 id="完整备份-1"><a href="#完整备份-1" class="headerlink" title="完整备份"></a>完整备份</h3><p>最简单了，直接还原file1即可。</p>
+<h3 id="增量备份-1"><a href="#增量备份-1" class="headerlink" title="增量备份"></a>增量备份</h3><p>假如我要恢复到周二的状态，那么需要file1和file2这两个文件，假如需要恢复到周三的状态，那么就需要file1, file2, file3这三个文件。</p>
+<h3 id="差异备份-1"><a href="#差异备份-1" class="headerlink" title="差异备份"></a>差异备份</h3><p>假如需要恢复到周四的状态，那么就需要file1, file4；假如需要恢复到周五的状态，那么就需要file1和file5（并不需要file4）</p>
+<hr>
+<p>看出增量备份和差异备份的区别了吗？</p>
+<p>增量备份是针对<strong>上一次备份的</strong>（无论是增量还是完整），它的恢复需要<strong>每一次的增量文件和最开始的完整备份</strong>，也就是说恢复到周三的状态不能没有file2这个文件；</p>
+<p>差异备份是针对<strong>完整备份的</strong>，它的恢复需要本次<strong>差异备份文件</strong>和对应的<strong>完整备份</strong>。假如我想恢复到周四，那么只需要file1和file4就够了，file2和file3都是完全无关的。</p>
+<h3 id="这有什么用？和网盘有何关系？"><a href="#这有什么用？和网盘有何关系？" class="headerlink" title="这有什么用？和网盘有何关系？"></a>这有什么用？和网盘有何关系？</h3><p>当然有用了，尤其是那些喜欢备份系统分区的人们——每次都是完整备份，浪费时间、浪费空间。</p>
+<p><img src="/images/110916_1153_1.png"></p>
+<p>著名的备份软件True Image即提供这三种备份方式。</p>
+<p>对于使用网盘的人们来说……网盘如果能够支持类似增量备份这种技术，将会大幅度减少上传时间。实际上，网盘中存在的这种技术一般被称作”<strong>差异同步</strong>“，对这个技术做的最好的应该是Dropbox。举个例子，假如你上传了一个压缩包，之后又给压缩包进行了一些修改（增加、修改、删除文件等），Dropbox会分析这个压缩包中哪里被修改了，然后只上传修改过的那些字节。这一技术有一点像rsync 。因为这技术太先进了，所以很少有网盘会用，维基百科上有个页面，有兴趣可以去<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Comparison_of_online_backup_services">查阅这里</a></p>
+<h2 id="如何选择备份媒介"><a href="#如何选择备份媒介" class="headerlink" title="如何选择备份媒介"></a>如何选择备份媒介</h2><p>备份媒介，指的是你是把备份文件复制到移动硬盘上，U盘上还是上传到虚无缥缈的”云”上？</p>
+<p>我们要从几个方面来考虑这个问题。</p>
+<h3 id="速度"><a href="#速度" class="headerlink" title="速度"></a>速度</h3><p>毫无疑问，拷贝到移动硬盘上的速度是要<strong>远远快于</strong>上传到云端的，况且中国奉行下载很快、上传很慢的不对等”百兆光纤”这个现象要更加明显。下载也基本同理。</p>
+<h3 id="保密性"><a href="#保密性" class="headerlink" title="保密性"></a>保密性</h3><p>你的数据是否是保密的呢？。如果移动硬盘被借走、偷走，那么所有数据就会被人偷窥；而上传到网盘…也可能有类似的担忧：网盘提供商偷窥（比如说美国的NSA啦，中国的金盾啦）、传输过程中被窃听（很多网盘上传下载都不是加密的）、网盘账号被盗（网盘被入侵、被搜索引擎检索）</p>
+<p>在这里点名批评百度网盘，用它，<a target="_blank" rel="noopener" href="http://www.pingwest.com/pay-for-your-data-and-privacy/">那就先给你的隐私买个保险吧</a>。</p>
+<h3 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h3><p>硬盘坏了、着火、被盗、地震，使用移动硬盘这类的可能就要遭殃了。但是除非发生极大规模的全国性灾难、云存储厂商跑路、内容被审查，云端资料大概还是比较安全的……</p>
+<p>[v_blue]其实我看好BT Sync[&#x2F;v_blue]</p>
+<h3 id="易用性"><a href="#易用性" class="headerlink" title="易用性"></a>易用性</h3><p>假如你想分享某个视频给朋友，U盘拷贝进去再给他可能很麻烦；但是上传到网盘再分享就很简单了。</p>
+<h2 id="超大空间和秒传的秘密"><a href="#超大空间和秒传的秘密" class="headerlink" title="超大空间和秒传的秘密"></a>超大空间和秒传的秘密</h2><p>对于大多数人来说，2T的空间是一种诱惑啊。但是天真的你难道以为百度真的为你量身订造买了三块价值300元的1硬盘总计900元和其他电费、带宽费来为你服务吗？还有哎百度说的2T是2048G——1024进制，而不是硬盘厂商们喜欢的900G</p>
+<p>当然不会了！ [v_tips]为什么要3x1T？不应该直接就是2T吗 RAID5啊亲，这么重要的应用场合，肯定要用到磁盘阵列的，而且RAID5应用比较广泛，速度和安全并存。 [&#x2F;v_tips]</p>
+<p>事实当然不是这样了。笨理想，同样的文件服务器上肯定只有一份（逻辑上只有一份），但是从技术上他们是怎么确定同一个文件的呢？这就引入了单向散列函数的概念。</p>
+<h3 id="单向散列函数"><a href="#单向散列函数" class="headerlink" title="单向散列函数"></a>单向散列函数</h3><p>英文名字是hash，原意为砸碎，这倒是很形象，也有人音译为”哈希”。单向散列函数是一种将无穷无尽的东西转换为<strong>有限长度的</strong>、<strong>尽可能不重复的、不可逆</strong>字符串的算法，这个算法叫做单向散列函数，这个字符串叫做散列值、摘要、信息摘要。说到这，有些童鞋可能会问，你把无穷的东西转换成有穷的东西，肯定会有两个东西转换之后会是相同的嘛！问得好！这种现象叫做碰撞，分为……！</p>
+<p>说到这可能”散列”这个概念还是很难理解。那么指纹可以理解吗？你对一首歌求某个散列算法的散列值，就相当于把这首歌的指纹求出来了——就像你的指纹可以几乎唯一的代表你一样，这个散列值也可以几乎唯一的代表那首歌。</p>
+<p>举个例子，你把00000000散列之后的摘要是abjhda62c，你把仅仅改变了一个bit的10000000散列之后，摘要就会变为fjgha267d2。输入值只变了一位，但是摘要却变得面目全非。也就是说，散列可以用来验证文件的正确性、</p>
+<p>聪明的童鞋大概想到了…假如我上传了某部电影，此时服务器上海没有这个文件，于是只好乖乖的上传了。上传完之后，另一个用户再上传同一部电影的时候（或者是散列值相同的文件），服务器（或者是客户端）经过计算发现散列值相同，那也就直接给另一个用户做标记并提示”秒传”。</p>
+<p>这也就是秒传的原理。 [v_blue]Windows下的HashTab用起来挺舒服的[&#x2F;v_blue]</p>
+<hr>
+<p>单向散列函数有哪些基本特征呢？ <strong>单向性</strong> 你能把砸碎的镜子复原吗？很难吧。单向散列函数的单向性是指的操作方向的不可逆性，在单向散列函数中是指只能从输入推导出输出，而不能从输出计算出输入。</p>
+<p><strong>唯一性</strong> 散列函数的输入和输出不是唯一对应关系的（无穷怎么可能会一一对应有穷），如果两个散列值相同，两个输入值很可能是相同的，但也可能不同，这种情况称为”哈希碰撞”。碰撞分为两种，强碰撞和弱碰撞。</p>
+<p><strong>弱抗碰撞性：</strong>当给定某条消息的散列值时，单向散列函数必须确保要找到和该条消息具有相同散列值的另外一条消息是非常困难的。</p>
+<p><strong>强抗碰撞性：</strong>是指要找到散列值相同的两条不同的消息是非常困难的。</p>
+<p>这里的碰撞可能说的有点多了……但是百度云使用的是MD5，而MD5早就被认为是不安全的散列函数了。我曾见过用工作站碰撞小黄片玩的孩子… [v_tips]PS：在对用户身份进行认证中（也就是你登录账户的时候），散列函数是起到非常关键的作用的。没有哪家系统会直接明文把用户密码存到数据库里吧，再不济也得用散列函数hash一下（然而这却无法阻挡彩虹表的脚步），比较好的做法是使用随机盐配合安全的散列函数。[&#x2F;v_tips]</p>
+<h2 id="如何安全的使用云盘"><a href="#如何安全的使用云盘" class="headerlink" title="如何安全的使用云盘"></a>如何安全的使用云盘</h2><p>几个月之前，几个字幕组的成员因为<a target="_blank" rel="noopener" href="http://news.sohu.com/20160929/n469374932.shtml">上传日剧资源被日本警方逮捕</a></p>
+<p>虽说字幕组本身就是游走在法律边缘的，但是我还是想说一句，字幕组挺辛苦的。那么，假如你是上面新闻里被抓的字幕组成员，假如你的网盘受到监控、传输被监听，假如给你一次重来的机会，你该怎样避免被抓到呢……？</p>
+<p>再假如你不是很放心云存储厂商，你怕他们泄露隐私，但是你又不得不使用，那该怎么办呢？ [v_error]PS，这不是想要说”匿名术”，这只是想说，怎样能够在<strong>轻度危险的情况</strong>下安全的使用云盘；同时也不会涉及到那些很牛逼的破解技术，比如说”冷启动攻击”什么的。[&#x2F;v_error]</p>
+<h3 id="使用VeraCrypt创建加密卷，并将加密卷上传"><a href="#使用VeraCrypt创建加密卷，并将加密卷上传" class="headerlink" title="使用VeraCrypt创建加密卷，并将加密卷上传"></a>使用VeraCrypt创建加密卷，并将加密卷上传</h3><p>创建加密卷，哪怕拿到它，没有密码也是无法解密的。在轻度危险的情况下，大概也不会有人揍你胁迫你交出密码。至于加密卷的密码，可以使用某些支持端到端加密的IM软件、或者是GPG发邮件等方法告知接收人。</p>
+<p>对于那些不信任云存储厂商但又没办法的人，创建加密卷可能是非常棒的办法了——同时这时候支持差分同步就要好太多太多了。</p>
+<p>使用VeraCrypt创建加密卷具体方法，可以参考我的博文<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版：密码学科普，兼谈GnuPG和VeraCrypt》</a></p>
+<h3 id="使用GPG创建加密文件"><a href="#使用GPG创建加密文件" class="headerlink" title="使用GPG创建加密文件"></a>使用GPG创建加密文件</h3><p>这个本质和上面是一样的，只不过非对称往往速度不占优势</p>
+<h3 id="使用WinRar、7zip等开启文件名加密功能"><a href="#使用WinRar、7zip等开启文件名加密功能" class="headerlink" title="使用WinRar、7zip等开启文件名加密功能"></a>使用WinRar、7zip等开启文件名加密功能</h3><p>一定要记得开启文件名加密功能，否则，哎嘿嘿还是能看到文件名的。</p>
+<p><img src="/images/110916_1153_2.png"><img src="/images/110916_1153_3.png"></p>
+<h3 id="注意：不要对加密卷再次使用WinRar等工具进行压缩"><a href="#注意：不要对加密卷再次使用WinRar等工具进行压缩" class="headerlink" title="注意：不要对加密卷再次使用WinRar等工具进行压缩"></a>注意：不要对加密卷再次使用WinRar等工具进行压缩</h3><p>为啥捏？学习一点点信息论、密码学的人大概会懂，加密过的东西的熵都是很高的，是压不动的，还浪费你CPU，非得想弄成压缩包，或者是纯粹利用压缩软件的分卷压缩功能，请记得选”只存储”这个选项。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>最近心情比较浮躁，这篇文章也写得比较草率，一度都觉得想放弃了。近几天我也会尽快更新“美文推荐”的。最后，留下一句话：</p>
+<blockquote>
+<p>有些人总觉得，我踢球进门了，是我球技好；射偏了，那是打雷吓到了我。其实真正起决定性作用的是球技，打不打雷下不下雨只是次要因素。</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/11/09/school-3/index/" data-id="clhp7rtj50085s2qrcfydgzrb" data-title="[学校上网系列]3. 从网盘秒传中想到的：不要想当然" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-school-2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/10/05/school-2/index/" class="article-date">
@@ -567,363 +1071,11 @@
 
 
   
-    <article id="post-lfs/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/08/24/lfs/index/" class="article-date">
-  <time class="dt-published" datetime="2016-08-24T00:00:00.000Z" itemprop="datePublished">2016-08-24</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/08/24/lfs/index/">Linux From Scratch 7.7 systemd 勘误、国内软件源</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近心头一热，开始搞起了LFS，我使用的手册是由linux中国翻译的LFS-BOOK-7.7-systemd，发现其中略有错误，顺便把一路过来自己纠结的地方都记下来备忘。</p>
-<p>Linux中国LFS页面：<a target="_blank" rel="noopener" href="https://linux.cn/article-5865-1.html">https://linux.cn/article-5865-1.html</a></p>
-<p>[v_blue]顺便说下，那三四百兆的源码挺难下的，我中转回来了。<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/lfs.tgz?t=1471399485564">下载点这里</a> 或者使用中科大的镜像，<a target="_blank" rel="noopener" href="https://github.com/LCTT/LFS-BOOK-7.7-systemd/blob/master/wget-list-LFS7.7-systemd-USTC">看这里</a>[&#x2F;v_blue]</p>
-<p> </p>
-<h2 id="勘误"><a href="#勘误" class="headerlink" title="勘误"></a>勘误</h2><p> </p>
-<h3 id="100页-跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）"><a href="#100页-跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）" class="headerlink" title="100页 跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）"></a>100页 跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）</h3><p>for file in \<br>$(find gcc&#x2F;config -name linux64.h -o -name linux.h -o -name sysv4.h)<br>do<br>cp -uv $file{,.orig}<br>sed -e ‘s@&#x2F;lib\(64\)\?\(32\)\?&#x2F;ld@&#x2F;tools&amp;@g’ \<br>-e ‘s@&#x2F;usr@&#x2F;tools@g’ $file.orig &gt; $file<br>echo ‘<br>#undef STANDARD_STARTFILE_PREFIX_1<br>#undef STANDARD_STARTFILE_PREFIX_2<br>#define STANDARD_STARTFILE_PREFIX_1 “&#x2F;tools&#x2F;lib&#x2F;“<br>#define STANDARD_STARTFILE_PREFIX_2 “”‘ &gt;&gt; $file<br>touch $file.orig<br>done</p>
-<h3 id="113页-include-fixed少了个-（pdf中有，但是复制的时候就没了）"><a href="#113页-include-fixed少了个-（pdf中有，但是复制的时候就没了）" class="headerlink" title="113页 include-fixed少了个-（pdf中有，但是复制的时候就没了）"></a>113页 include-fixed少了个-（pdf中有，但是复制的时候就没了）</h3><p>cat gcc&#x2F;limitx.h gcc&#x2F;glimits.h gcc&#x2F;limity.h &gt; \<br>`dirname $($LFS_TGT-gcc -print-libgcc-file-name)`&#x2F;include-fixed&#x2F;limits.h</p>
-<h3 id="113页-跨页复制的时候会导致多出左侧目录的内容"><a href="#113页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="113页 跨页复制的时候会导致多出左侧目录的内容"></a>113页 跨页复制的时候会导致多出左侧目录的内容</h3><p>for file in \<br>$(find gcc&#x2F;config -name linux64.h -o -name linux.h -o -name sysv4.h)<br>do<br>cp -uv $file{,.orig}<br>sed -e ‘s@&#x2F;lib\(64\)\?\(32\)\?&#x2F;ld@&#x2F;tools&amp;@g’ \<br>-e ‘s@&#x2F;usr@&#x2F;tools@g’ $file.orig &gt; $file<br>echo ‘<br>#undef STANDARD_STARTFILE_PREFIX_1<br>#undef STANDARD_STARTFILE_PREFIX_2<br>#define STANDARD_STARTFILE_PREFIX_1 “&#x2F;tools&#x2F;lib&#x2F;“<br>#define STANDARD_STARTFILE_PREFIX_2 “”‘ &gt;&gt; $file<br>touch $file.orig<br>done</p>
-<h3 id="141页-跨页复制的时候会导致多出左侧目录的内容"><a href="#141页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="141页 跨页复制的时候会导致多出左侧目录的内容"></a>141页 跨页复制的时候会导致多出左侧目录的内容</h3><p>make -C gnulib-lib<br>make -C intl pluralx.c<br>make -C src msgfmt<br>make -C src msgmerge<br>make -C src xgettext</p>
-<p> </p>
-<h3 id="195页-应该为一行，或者行尾添加"><a href="#195页-应该为一行，或者行尾添加" class="headerlink" title="195页 应该为一行，或者行尾添加\"></a>195页 应该为一行，或者行尾添加\</h3><p>install -v -Dm644 ..&#x2F;glibc-2.21&#x2F;nscd&#x2F;nscd.tmpfiles \<br>&#x2F;usr&#x2F;lib&#x2F;tmpfiles.d&#x2F;nscd.conf<br>install -v -Dm644 ..&#x2F;glibc-2.21&#x2F;nscd&#x2F;nscd.service \<br>&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;nscd.service</p>
-<h3 id="223页-应该为一行，或者行尾添加"><a href="#223页-应该为一行，或者行尾添加" class="headerlink" title="223页 应该为一行，或者行尾添加\"></a>223页 应该为一行，或者行尾添加\</h3><p>ln -sfv ..&#x2F;..&#x2F;libexec&#x2F;gcc&#x2F;$(gcc -dumpmachine)&#x2F;4.9.2&#x2F;liblto_plugin.so \<br>&#x2F;usr&#x2F;lib&#x2F;bfd-plugins&#x2F;</p>
-<h3 id="234页-应该为一行，或者行尾添加"><a href="#234页-应该为一行，或者行尾添加" class="headerlink" title="234页 应该为一行，或者行尾添加\"></a>234页 应该为一行，或者行尾添加\</h3><p>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libncursesw.so) \<br>&#x2F;usr&#x2F;lib&#x2F;libncursesw.so</p>
-<h3 id="255页-跨页复制的时候会导致多出左侧目录的内容"><a href="#255页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="255页 跨页复制的时候会导致多出左侧目录的内容"></a>255页 跨页复制的时候会导致多出左侧目录的内容</h3><p>LIBS&#x3D;-L&#x2F;tools&#x2F;lib \<br>CFLAGS&#x3D;-I&#x2F;tools&#x2F;include \<br>PKG_CONFIG_PATH&#x3D;&#x2F;tools&#x2F;lib&#x2F;pkgconfig \<br>..&#x2F;configure –prefix&#x3D;&#x2F;usr \<br>–bindir&#x3D;&#x2F;bin \<br>–with-root-prefix&#x3D;”” \<br>–enable-elf-shlibs \<br>–disable-libblkid \<br>–disable-libuuid \<br>–disable-uuidd \<br>–disable-fsck</p>
-<h3 id="257页-应该为一行，或者行尾添加"><a href="#257页-应该为一行，或者行尾添加" class="headerlink" title="257页 应该为一行，或者行尾添加\"></a>257页 应该为一行，或者行尾添加\</h3><p>install-info –dir-file&#x3D;&#x2F;usr&#x2F;share&#x2F;info&#x2F;dir \<br>&#x2F;usr&#x2F;share&#x2F;info&#x2F;libext2fs.info</p>
-<h3 id="278页-应该为一行，或者行尾添加"><a href="#278页-应该为一行，或者行尾添加" class="headerlink" title="278页 应该为一行，或者行尾添加\"></a>278页 应该为一行，或者行尾添加\</h3><p>mv -v &#x2F;usr&#x2F;lib&#x2F;lib{readline,history}.so.* &#x2F;lib<br>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libreadline.so) \<br>&#x2F;usr&#x2F;lib&#x2F;libreadline.so<br>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libhistory.so ) \<br>&#x2F;usr&#x2F;lib&#x2F;libhistory.so</p>
-<h3 id="321页-全角括号"><a href="#321页-全角括号" class="headerlink" title="321页 全角括号"></a>321页 全角括号</h3><p>ln -svf ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;liblzma.so) &#x2F;usr&#x2F;lib&#x2F;liblzma.so</p>
-<h3 id="334页-全角括号"><a href="#334页-全角括号" class="headerlink" title="334页 全角括号"></a>334页 全角括号</h3><p>sed -i ‘s&#x2F;\(RESIZECONS_PROGS&#x3D;\)yes&#x2F;\1no&#x2F;g’ configure<br>sed -i ‘s&#x2F;resizecons.8 &#x2F;&#x2F;‘ docs&#x2F;man&#x2F;man8&#x2F;Makefile.in</p>
-<h3 id="334页-复制的时候disable-vlock就变成disablevlock了"><a href="#334页-复制的时候disable-vlock就变成disablevlock了" class="headerlink" title="334页 复制的时候disable-vlock就变成disablevlock了"></a>334页 复制的时候disable-vlock就变成disablevlock了</h3><p>PKG_CONFIG_PATH&#x3D;&#x2F;tools&#x2F;lib&#x2F;pkgconfig .&#x2F;configure –prefix&#x3D;&#x2F;usr –disable-vlock</p>
-<h3 id="347页-全角括号"><a href="#347页-全角括号" class="headerlink" title="347页 全角括号"></a>347页 全角括号</h3><p>sed -i “s:blkid&#x2F;::” $(grep -rl “blkid&#x2F;blkid.h”)</p>
-<h3 id="355页-全角括号"><a href="#355页-全角括号" class="headerlink" title="355页 全角括号"></a>355页 全角括号</h3><p>mv -v &#x2F;usr&#x2F;lib&#x2F;libdbus-1.so.* &#x2F;lib<br>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libdbus-1.so) &#x2F;usr&#x2F;lib&#x2F;libdbus-1.so</p>
-<h3 id="415页-跨页复制的时候会导致多出左侧目录的内容"><a href="#415页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="415页 跨页复制的时候会导致多出左侧目录的内容"></a>415页 跨页复制的时候会导致多出左侧目录的内容</h3><p>cat &gt; &#x2F;etc&#x2F;fstab &lt;&lt; “EOF”</p>
-<h1 id="Begin-x2F-etc-x2F-fstab"><a href="#Begin-x2F-etc-x2F-fstab" class="headerlink" title="Begin &#x2F;etc&#x2F;fstab"></a>Begin &#x2F;etc&#x2F;fstab</h1><p>&#x2F;dev&#x2F;sda5 &#x2F; ext4 defaults 1 1</p>
-<h1 id="End-x2F-etc-x2F-fstab"><a href="#End-x2F-etc-x2F-fstab" class="headerlink" title="End &#x2F;etc&#x2F;fstab"></a>End &#x2F;etc&#x2F;fstab</h1><p>EOF</p>
-<h3 id="421页-跨页复制的时候会导致多出左侧目录的内容"><a href="#421页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="421页 跨页复制的时候会导致多出左侧目录的内容"></a>421页 跨页复制的时候会导致多出左侧目录的内容</h3><p>install -v -m755 -d &#x2F;etc&#x2F;modprobe.d<br>cat &gt; &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf &lt;&lt; “EOF”</p>
-<h1 id="Begin-x2F-etc-x2F-modprobe-d-x2F-usb-conf"><a href="#Begin-x2F-etc-x2F-modprobe-d-x2F-usb-conf" class="headerlink" title="Begin &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf"></a>Begin &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf</h1><p>install ohci_hcd &#x2F;sbin&#x2F;modprobe ehci_hcd ; &#x2F;sbin&#x2F;modprobe -i ohci_hcd ; true<br>install uhci_hcd &#x2F;sbin&#x2F;modprobe ehci_hcd ; &#x2F;sbin&#x2F;modprobe -i uhci_hcd ;<br>true</p>
-<h1 id="End-x2F-etc-x2F-modprobe-d-x2F-usb-conf"><a href="#End-x2F-etc-x2F-modprobe-d-x2F-usb-conf" class="headerlink" title="End &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf"></a>End &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf</h1><p>EOF</p>
-<h2 id="经验"><a href="#经验" class="headerlink" title="经验"></a>经验</h2><h3 id="VMWare"><a href="#VMWare" class="headerlink" title="VMWare"></a>VMWare</h3><p>如果使用VMWare做实验，建议配置的时候使用SATA硬盘（默认是SCSI），如果使用SCSI在配置Kernel的时候要记得编译进VMWare的SCSI与和SCSI有关的驱动</p>
-<h3 id="配置Kernel"><a href="#配置Kernel" class="headerlink" title="配置Kernel"></a>配置Kernel</h3><p>在选择Device Drivers的时候，可以按M选择编译成模块或者Y编译进内核。</p>
-<p>区别是模块是后加载的。</p>
-<h3 id="Grub"><a href="#Grub" class="headerlink" title="Grub"></a>Grub</h3><p>为了防止挂掉，可以修改”宿主机”的grub.cfg添加lfs的启动项，要不万一启动失败，还得回退快照</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/08/24/lfs/index/" data-id="clhp7rth8004is2qrdoqiec74" data-title="Linux From Scratch 7.7 systemd 勘误、国内软件源" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-two-and-two/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/08/11/two-and-two/index/" class="article-date">
-  <time class="dt-published" datetime="2016-08-11T00:00:00.000Z" itemprop="datePublished">2016-08-11</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/08/11/two-and-two/index/">所谓自由，就是可以说二加二等于四的自由——短片Two &amp;Two</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>Freedom is the freedom to say that two plus two make four. If that is granted, all else follows.</p>
-<p>George Orwell – 1984</p>
-</blockquote>
-<p>今天在社交网络上看到这么一个短片，名字叫做”Two &amp;Two”，<a target="_blank" rel="noopener" href="http://www.imdb.com/title/tt1701187">IMDB在此</a>，<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=EHAuGA7gqFU">YouTube在此</a></p>
-<p>这部短片同样收录在了”双语短片”这个栏目里，准确的说，人家说的是波斯语，网上能搜到的一些要么不完整，要么波斯语字幕和中文字幕重叠，所以我就自己重新压制了下。</p>
-<p>我不得不吐槽一句，给这个定轴，差点累死我！ 想要直接观看就点下面的播放键啦！</p>
-<p>[video]<a target="_blank" rel="noopener" href="https://shemissed.me/video/2+2=5.mp4/[/video/]">https://shemissed.me/video/2+2=5.mp4\[/video\]</a></p>
-<h2 id="2-2-x3D-5的来源"><a href="#2-2-x3D-5的来源" class="headerlink" title="2+2&#x3D;5的来源"></a>2+2&#x3D;5的来源</h2><p>“2+2&#x3D;5”这个概念源自于被称作时代的良心的乔治·奥威尔的经典作品《1984》。（在”<a target="_blank" rel="noopener" href="https://dmesg.app/books">推荐书籍</a>“这个栏目可以下载到该书的PDF版本，当然，当当买一本也很便宜）</p>
-<p>温斯顿·史密斯在从事一些反对老大哥的活动时，被奥布赖恩算计，然后被抓到友爱部，受尽折磨并承认2+2&#x3D;5</p>
-<p>所谓自由，就是可以说二加二等于四的自由。承认这一点，其他一切就迎刃而解。</p>
-<h2 id="为什么2-2要等于5"><a href="#为什么2-2要等于5" class="headerlink" title="为什么2+2要等于5"></a>为什么2+2要等于5</h2><p>无论是《1984》的这个部分还是《Two &amp;Two》，都传达出一个主题：在极权、暴力、独裁的统治之下，人们会丧失良知，人们会因为害怕、恐惧而不敢表达思想，人们会对”出头鸟”的遭遇淡然漠视。</p>
-<p>站在金字塔顶层的统治者，可以利用国家机器来对民众进行洗脑、宣传，打压一些不同的声音。只要他们愿意，2+2可以等于5，等于6，等于任何他们想的东西。</p>
-<p>2+2&#x3D;5的终极含义是，统治者颠倒黑白的独裁。</p>
-<h2 id="你的2-2等于5了吗"><a href="#你的2-2等于5了吗" class="headerlink" title="你的2+2等于5了吗"></a>你的2+2等于5了吗</h2><p>这问题有些奇怪，请不要以1+1&#x3D;10（二进制）、1+1&#x3D;王（脑筋急转弯）、1+1&gt;2（管理学什么的）、1+1≠2等搪塞——如果这样说，那么这个短片是真的白看了，你只是看到了2+2这个表层，完全没有理解2+2的真正意义：自由。</p>
-<p>问题是，你的2+2，等于几？</p>
-<p>在有人质问邢台大水、毒奶粉、毒疫苗、捍卫自由的时候，你在充当着聋哑人吗？你是那些无所谓的、洒在墙上的鸡血的小粉红吗？想想“<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/2016%E5%B9%B4%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E7%BD%91%E6%B0%91%E2%80%9C%E5%87%BA%E5%BE%81%E2%80%9DFacebook%E4%BA%8B%E4%BB%B6">出征Facebook</a>”和“出征霍顿”，事实再一次证明了，GFW存在的目的不是少国人出去丢脸。GFW的目的在于屏蔽信息，创造单一的信息来源使得洗脑变成可能（比如说媒体对孙杨禁药曾说的“14年突然列入禁药，没更新不幸被查。很快该药就被踢出禁药名单”，打脸请<a target="_blank" rel="noopener" href="http://list.wada-ama.org/prohibited-all-times/prohibited-substances/">点这Substances Prohibited At All Times</a>、<a target="_blank" rel="noopener" href="http://www.intjudo.eu/editor_up/up/WADA-Revised-2014-Prohibited-List-EN.pdf">PROHIBITED IN-COMPETITION</a> ）。</p>
-<p>你国媒体，真是可怕。</p>
-<h2 id="《Two-amp-Two》之别人的指责"><a href="#《Two-amp-Two》之别人的指责" class="headerlink" title="《Two &amp;Two》之别人的指责"></a>《Two &amp;Two》之别人的指责</h2><p>在老师出去叫“红卫兵”的时候，有另外一个男生批评2+2&#x3D;4的男生，说大家会受他连累。在面对扭曲的真相的时候，通常会有<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2011/06/politician-integrity.html">四种类型的人</a>。</p>
-<h4 id="无论环境多糟，都敢于坚持自己的立场"><a href="#无论环境多糟，都敢于坚持自己的立场" class="headerlink" title="无论环境多糟，都敢于坚持自己的立场"></a>无论环境多糟，都敢于坚持自己的立场</h4><h4 id="受环境所迫，不敢说真话，选择保持沉默"><a href="#受环境所迫，不敢说真话，选择保持沉默" class="headerlink" title="受环境所迫，不敢说真话，选择保持沉默"></a>受环境所迫，不敢说真话，选择保持沉默</h4><h4 id="受环境所迫，为了自保而不惜伤害他人"><a href="#受环境所迫，为了自保而不惜伤害他人" class="headerlink" title="受环境所迫，为了自保而不惜伤害他人"></a>受环境所迫，为了自保而不惜伤害他人</h4><h4 id="为了自己能飞黄腾达，主动迫害别人以获取自身利益。"><a href="#为了自己能飞黄腾达，主动迫害别人以获取自身利益。" class="headerlink" title="为了自己能飞黄腾达，主动迫害别人以获取自身利益。"></a>为了自己能飞黄腾达，主动迫害别人以获取自身利益。</h4><p>按照边沁功利主义的the greatest good for the greatest number（为了大多数人的福祉）来算，这种为了不让大多数人遭殃的选择似乎是正确的。核心在于，何为“福祉”？2+2&#x3D;5，是胆怯，而不是“good”。</p>
-<p>第一种人，一般来说是很罕见的，应该数的过来，如果见到了，那一定是牛逼级别的人物；</p>
-<p>第二种人，绝对不会被坑，能有这样的朋友，也算是不错了；</p>
-<p>第三种人，那就要提防下，说不定啥时候就被“落井下石”被坑；</p>
-<p>第四种人，那就一定要敬而远之，说不定啥时候就插你三刀，你说怕不怕！</p>
-<p>你是哪一种人？</p>
-<h2 id="《Two-amp-Two》之无形的枪"><a href="#《Two-amp-Two》之无形的枪" class="headerlink" title="《Two &amp;Two》之无形的枪"></a>《Two &amp;Two》之无形的枪</h2><p>影片最开始的基调就有点诡异，穿着相同的孩子们，带着红袖标的毫无表情的三个年轻人，老师的暴戾，无形的枪。</p>
-<p>这部短片中，有些”surreal”的是三个面无表情的拿着”无形的枪”的年轻人。或许”无形的枪”在暗指生活在某些极权国家的人们的自我审查以及无时无刻不存在的压制。何为自我审查？”自我审查”指的让人们在发表意见的时候有所顾忌，自我思考是否合乎当权者的想法，同时强迫他人进行审查。通俗的最简单的说，我这微博是否会被查水表。这也是审查制度的最高境界。</p>
-<h2 id="《Two-amp-Two》之改掉的5"><a href="#《Two-amp-Two》之改掉的5" class="headerlink" title="《Two &amp;Two》之改掉的5"></a>《Two &amp;Two》之改掉的5</h2><p>短片最后，我们可以看到，后排的一名男生划掉了等号之后的5，改成了4。这不仅仅意味着坚守真相，还意味着反对极权。</p>
-<p>这像极了1984里史密斯对老大哥、对英社思想上的反叛。按套路出牌的话，最终史密斯应该加入兄弟会，最终成功推翻了大洋国的英社政权；然而奥威尔的套路是，史密斯被改造成了”真人”， 他战胜了自己，他爱老大哥。</p>
-<p>思想罪不会带来死亡，思想罪本身就是死亡。</p>
-<p>2+2&#x3D;4的反抗会成功吗？</p>
-<h2 id="教育与洗脑"><a href="#教育与洗脑" class="headerlink" title="教育与洗脑"></a>教育与洗脑</h2><p>对于生活在天朝这个奇葩的国家的童鞋们，十几年的应试教育应该是再熟悉不过的了。在小学的时候你曾经学唱过各种”红色歌曲”，中国学的时候发现什么黄继光都是忽悠人的，大学的时候发现包子是这个世界上最好吃的食物。</p>
-<p>天朝教育的目的，并不是为了树人，天朝的教育是为了洗脑的灌输：从小学到大学，基本上都停留在 <a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2009/02/study-technology-in-three-steps.html">WHAT，而且大多数人是依靠死记硬背来记住 WHAT，而不是出于兴趣</a>。</p>
-<p>正常的教育，应该是训练人的思维能力。老头子爱因斯坦说过一句话，教育的价值在于训练思维，而不在于传授事实。简单的说，”教你用建材造房子”这个过程叫做训练思维，”给你提供建材”这个过程叫做传授事实。</p>
-<p>而不正常的教育呢？为了洗脑的灌输，直接把一大堆东西（尤其是价值观、意识形态、各种精神等等）教给你，告诉你这是对的，好的，终极的；那个是邪恶的、错误的、毁灭的。</p>
-<p>要达到洗脑，要做什么呢？</p>
-<p>首先就要屏蔽信息的来源，提供单一的信息来源，这也正是GFW的目的之一。</p>
-<p>其次要进行欺骗和忽悠，而为了让民众相信谎言而无法看到真相，屏蔽信息是最重要的。</p>
-<p>然后要进行打压，发动国家机器对那些不同的声音进行打压。</p>
-<p>还要培养双重思想、呼吁感性而不是理性。</p>
-<p>难道洗脑只涉及到教育吗？森破，艺术作品、出版物、学校、甚至是宗教，无处不在。引用某游戏主角的一句话，The Ceph have been around… forever, man. And they built everywhere. Everywhere.</p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>所谓自由，就是可以说二加二等于四的自由。你不用担心像影片中一样因为说2+2&#x3D;4而吃枪子，更不用怕因为批评奥巴马执政水平而”颠覆国家政权”坐牢子。</p>
-<p>这是最好的时代，也是最坏的时代：你愿意让自己的子孙后代，生活在大洋国那样的环境中吗？</p>
-<p>请不要忘记黑板上的血迹。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/08/11/two-and-two/index/" data-id="clhp7rtmi00a8s2qr1fd50fgk" data-title="所谓自由，就是可以说二加二等于四的自由——短片Two &amp;Two" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-highload-softether/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/08/01/highload-softether/index/" class="article-date">
-  <time class="dt-published" datetime="2016-08-01T00:00:00.000Z" itemprop="datePublished">2016-08-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/08/01/highload-softether/index/">SoftEther VPN Server 100% CPU高负载解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<hr>
-<p>自从搭建好<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">UDP 53 OpenVPN服务器</a>之后，一直发现一个很奇怪的问题：</p>
-<ul>
-<li>CPU满载，vpnserver程序占用接近100%的CPU</li>
-<li>客户端的Bytes in会以1Mbps的速度涨流量（服务器出网1Mbps）</li>
-<li>重启vpnserver，情况可能会缓解（大部分情况下是缓解了），也可能不会。</li>
-<li>eth0的RX（下载）、TX（上传）存在大量流量，即使我并没使用服务器</li>
-</ul>
-<p>我一直以为是SoftEther VPN Server设计上的bug，更新了最新版本的也_依旧存在_；开始考虑到OpenVPN性能问题，好像也没有这么严重的…</p>
-<p>直到今天实在忍不了，问了万能的Google，看了官方论坛的讨论、troubleshooting</p>
-<p>最后，在<a target="_blank" rel="noopener" href="http://blog.lincoln.hk/blog/2013/03/19/softether-on-vps/">一个歪果仁的博客</a>中找到了这么一句话</p>
-<blockquote>
-<p><strong>DO NOT</strong> enable both local bridge and SecureNAT at the same time. Packets will loop infinitly and make your server 100% CPU usage.</p>
-</blockquote>
-<p>同时在官网的<a target="_blank" rel="noopener" href="https://www.softether.org/4-docs/1-manual/B._Troubleshooting_and_Supplemental/11.1_Troubleshooting">TroubleShooting中的11.1.6、11.1.7</a>得到了High CPU load的解释，</p>
-<p><a target="_blank" rel="noopener" href="https://www.softether.org/index.php?title=4-docs/1-manual/3._SoftEther_VPN_Server_Manual/3.7_Virtual_NAT_&_Virtual_DHCP_Servers">3.7.4</a>也有Virtual NAT的使用要点</p>
-<p>所以问题就是，<strong>丫的别把本地桥和SecureNAT一起开启了。 :!:</strong> 客户端程序的记录里一直以1Mbps的带宽涨流量、ifconfig的网卡有流量计数也同样得到了解释。 :roll:</p>
-<p>删了本地桥就好了。就是这么简单的办法…</p>
-<p>原先错误的教程<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">《SoftEther VPN Server安装手记+福利》</a>已经修改了，对某些读者可能造成的困惑或者是损失，深表歉意。</p>
-<p>[v_tips]注：本地桥性能上要略好于SecureNAT[&#x2F;v_tips]</p>
-<p>在没找到真正原因之前，我甚至写了个脚本来监测15分钟平均负载来重启vpn服务，简直啦！不能浪费，贴出来，或许以后会用到呢！</p>
-<p>#!&#x2F;bin&#x2F;bash<br>#15m average load<br>aload&#x3D;0<br>aload&#x3D;`uptime | awk ‘{print $11}’`<br>echo 15m load is $aload<br>if [ `expr 1 \&gt; $aload` -eq 0 ]<br>then<br>echo !!!!!! &gt;&gt; &#x2F;home&#x2F;vpnload.log<br>echo `date` high load,restarting now &gt;&gt; &#x2F;home&#x2F;vpnload.log<br>&#x2F;root&#x2F;vpnserver&#x2F;vpnserver stop &gt;&gt; &#x2F;home&#x2F;vpnload.log<br>&#x2F;root&#x2F;vpnserver&#x2F;vpnserver start &gt;&gt; &#x2F;home&#x2F;vpnload.log<br>echo !!!!!! &gt;&gt; &#x2F;home&#x2F;vpnload.log<br>else<br>echo `date` 15m average load is $aload, keep it up<br>fi</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/08/01/highload-softether/index/" data-id="clhp7rtgo003ns2qr8nek0ts9" data-title="SoftEther VPN Server 100% CPU高负载解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-vps-google-drive/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/07/25/vps-google-drive/index/" class="article-date">
-  <time class="dt-published" datetime="2016-07-25T00:00:00.000Z" itemprop="datePublished">2016-07-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/07/25/vps-google-drive/index/">使用海外vps中转Google Drive文件</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天美女学姐给我发了足足350M的照片 :neutral: 而且竟然是半小时之内上传到Google Drive！感叹于蓝灯速度如此之快（做一下乘除法，200KB&#x2F;s的上传）之余，我就在想怎么把这些东西中转回国内啊……</p>
-<p>按照以往的套路，先用海外的vps把这些文件下载回来，然后上传回七牛，之后再去七牛下载就嗖嗖的啦！</p>
-<p><img src="/images/072516_1527_vpsGoogle2.gif"></p>
-<p>那么就来吧！突然想吐槽一句，要不要推荐给她Dropbox，这家伙可是支持”<strong>字节级差异同步</strong>“的啊</p>
-<h2 id="零-准备工作…"><a href="#零-准备工作…" class="headerlink" title="零. 准备工作…"></a>零. 准备工作…</h2><p>首先， 你要有个Google账号，其次，你的Google Drive里总得有点东西吧，再有，得会<a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html">翻墙</a>吧！</p>
-<h2 id="一-安装Google-Drive-Linux-客户端"><a href="#一-安装Google-Drive-Linux-客户端" class="headerlink" title="一. 安装Google Drive Linux 客户端"></a>一. 安装Google Drive Linux 客户端</h2><p>Google Drive官方【并没有】Linux版的客户端，所以各路神仙们就根据Google API自己写了同步程序，服务器就不要想带图形界面的了，幸运的是，我找到了grive这个命令行版的程序。</p>
-<p>以Ubuntu 16.04为例（14.04的源里有这个程序，但是奉劝各位……自己添加ppa吧）</p>
-<p>#添加ppa<br>sudo add-apt-repository ppa:nilarimogard&#x2F;webupd8<br>#更新源<br>sudo apt-get update<br>#安装<br>sudo apt-get install grive</p>
-<p><img src="/images/072516_1527_vpsGoogle3.png"> [v_blue]小提示 非常幸运的是，Dropbox有Linux cml的客户端程序哦~ <a target="_blank" rel="noopener" href="https://www.dropbox.com/install?os=lnx">https://www.dropbox.com/install?os=lnx</a>[&#x2F;v_blue]</p>
-<h2 id="二-配置grive"><a href="#二-配置grive" class="headerlink" title="二. 配置grive"></a>二. 配置grive</h2><p>俗话说的好，有个靠谱的男人（man）是非常重要滴，他能告诉你一切你想知道的东西，还能告诉你你不想知道的南北。我的意思是，先man grive看看用法啊！</p>
-<p><img src="/images/072516_1527_vpsGoogle4.png"></p>
-<p>简单明了……</p>
-<p>创建某个目录作为Google Drive的同步目录，举例如下（我就是传说中的root敢死队）</p>
-<p>mkdir &#x2F;root&#x2F;upload<br>cd &#x2F;root&#x2F;upload<br>grive –a</p>
-<p>好家伙，复制这段链接，粘贴到浏览器里，授权然后获得一个授权码吧！</p>
-<p><img src="/images/072516_1527_vpsGoogle5.png"></p>
-<p>傻乎乎的全都给我同步回来了……没办法，这个工具就这样。</p>
-<p><img src="/images/072516_1527_vpsGoogle6.png"></p>
-<h2 id="三-同步到七牛云存储"><a href="#三-同步到七牛云存储" class="headerlink" title="三. 同步到七牛云存储"></a>三. 同步到七牛云存储</h2><p>[v_error]2016年7月27日更新 七牛官方已经停止开发qrsync转而使用qshell（官方文档<a target="_blank" rel="noopener" href="http://developer.qiniu.com/code/v6/tool/qshell.html">在这里</a>），所以这里将介绍qshell的使用方法。 如果想查看原来工具的使用方法，半年前的博文<a target="_blank" rel="noopener" href="https://dmesg.app/auto-backup-to-qiniu.html">《[新手向]自动备份网站及数据库至七牛云存储》</a>[&#x2F;v_error]</p>
-<p>#下载qshell<br>wget <a target="_blank" rel="noopener" href="http://devtools.qiniu.com/qshell-v1.8.0.zip">http://devtools.qiniu.com/qshell-v1.8.0.zip</a><br>#解压缩<br>unzip qshell-v1.8.0.zip<br>#根据平台只留下自己的对应平台文件，并重命名为qshell（方便打字嘛）<br>qshell account  AccessKey SecretKey<br>#创建配置文件，最简单的方式<br>{<br>    “src_dir”       :   “&#x2F;Users&#x2F;jemy&#x2F;Temp7”,<br>    “access_key”    :   “ELUs3就是不给看rIpbM6Wh6x”,<br>    “secret_key”    :   “LVzZY2Sq看啊看啊vOWtiLkDtKip”,<br>    “bucket”        :   “if-pbl”<br>}<br>#执行上传命令<br>qshell qupload &#x2F;path&#x2F;to&#x2F;conf<br>#多线程上传<br>qshell qupload 10 &#x2F;path&#x2F;to&#x2F;conf</p>
-<p>[v_blue]上传速度很慢怎么办？ 配置文件中使用up_host参数，参见<a target="_blank" rel="noopener" href="https://github.com/qiniu/qshell/wiki/qupload">https://github.com/qiniu/qshell/wiki/qupload</a> 例子 “up_host” : “<a target="_blank" rel="noopener" href="http://up.qiniug.com/">http://up.qiniug.com</a>“, [&#x2F;v_blue]</p>
-<p>[v_tips]小提示：每次都输入这么长的命令，很烦有没有？ 有啊，直接写个relay.sh，内容就是执行同步那一行（就不要管用哪个shell啦），给x权限，丢到&#x2F;bin里，以后直接relay.sh就好了嘛；或者alias也可以啊。[&#x2F;v_tips]</p>
-<h2 id="四-去七牛自己下吧"><a href="#四-去七牛自己下吧" class="headerlink" title="四. 去七牛自己下吧"></a>四. 去七牛自己下吧</h2><p>选择私有空间的……嘿嘿嘿。</p>
-<h2 id="五-其他杂谈"><a href="#五-其他杂谈" class="headerlink" title="五.其他杂谈"></a>五.其他杂谈</h2><p>其实，YouTube的视频我就是这么中转的，用了一个非常方便的工具，名为youtube-dl，用法极其简单，后面直接加上YouTube的链接即可。天真的你以为它只能下载YouTube的视频吗？图样图森破，大陆的土豆优酷什么也赫然在列，<a target="_blank" rel="noopener" href="https://github.com/rg3/youtube-dl/blob/master/docs/supportedsites.md">不信你点我Ctrl+F</a></p>
-<p><img src="/images/072516_1527_vpsGoogle7.gif"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/07/25/vps-google-drive/index/" data-id="clhp7rtmx00avs2qrcj3zfaqp" data-title="使用海外vps中转Google Drive文件" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-mysql-3065/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/07/06/mysql-3065/index/" class="article-date">
-  <time class="dt-published" datetime="2016-07-06T00:00:00.000Z" itemprop="datePublished">2016-07-06</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/07/06/mysql-3065/index/">piwigo mysql error 3065解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><a target="_blank" rel="noopener" href="https://memory.shemissed.me/">piwigo做的图床</a>，在升级了MySQL（版本号5.7.13）之后，某一天突然发现点进去相册就提示MySQL error 3065，具体报错如下：</p>
-<blockquote>
-<p><strong>Warning</strong>: [mysql error 3065] Expression #1 of ORDER BY clause is not in SELECT list, references column ‘pic.piwigo_images.date_available’ which is not in SELECT list; this is incompatible with DISTINCT</p>
-<p>SELECT DISTINCT(image_id)</p>
-<p>FROM piwigo_image_category</p>
-<p>INNER JOIN piwigo_images ON id &#x3D; image_id</p>
-<p>WHERE</p>
-<p>category_id &#x3D; 5</p>
-</blockquote>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/07/201607061239441.png"><img src="/images/201607061239441.png" alt="2"></a></p>
-<p>去Google搜索一番找到了这么个链接<a target="_blank" rel="noopener" href="https://github.com/Piwigo/Piwigo/issues/376">https://github.com/Piwigo/Piwigo/issues/376</a></p>
-<p>找到了解决方案，修改配置文件</p>
-<p>vim &#x2F;etc&#x2F;my.cnf</p>
-<p>在mysqld字段下增加如下一行</p>
-<p>sql-mode&#x3D;””</p>
-<p>重启MySQL即可</p>
-<p>systemctl restart mysql.service</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/07/06/mysql-3065/index/" data-id="clhp7rthm0059s2qrbt9i00du" data-title="piwigo mysql error 3065解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/15/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/17/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/15/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/17/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -963,7 +1115,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -976,23 +1128,23 @@
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

@@ -73,6 +73,537 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-cf-zero-trust/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/01/cf-zero-trust/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-01T00:00:00.000Z" itemprop="datePublished">2023-04-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>创建大内网是一件非常重要的事情。一旦有了安全的内网环境之后，我的服务器之间就可以使用私有IP进行通信，不用再考虑这个协议是否适合暴露在公网上、是否会被MITM等问题了。管他什么协议的，telnet我都照样跑🤪！</p>
+<p>通常来说，我是<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">使用WireGuard来创建内网</a>的。选择一个机器作为“服务器”，其他的节点作为客户端加进来就好了。这也是业界最为成熟的方案了</p>
+<p>但是这样做仍有一些限制和缺陷，比如说：</p>
+<ul>
+<li>如何暴露整个家庭内网，如<code>192.168.7.0/24</code> 给出门在外的我，家里的每一个设备都要通过WireGuard加进来吗，或者写奇奇怪怪的iptables规则？</li>
+<li>所有的数据要通过“服务器”中转，两个美国的服务器明明直接就能沟通，50ms解决，如果WG服务器在亚洲，那么就基本上300ms左右了</li>
+<li>穷到买不起服务器，没有公网IP</li>
+</ul>
+<p>在这种情况下，最好的办法就是用Cloudflare Zero Trust中的tunnel啦！</p>
+<p>之前简单的提过我已经把<a target="_blank" rel="noopener" href="https://dmesg.app/argo-real-ip.html">所有的web服务都通过argo tunnel 暴露了</a>，拓扑图大概是这样，从Cloudflare那边偷过来的：</p>
+<p><img src="/images/2023040101321423.png"></p>
+<p>在我的服务器上安装<code>cloudflared</code>，然后添加Public Hostname，所有的访问直接从Cloudflare的网络来。安全且环保！</p>
+<p>那么Cloudflare tunnel还有那些有趣的用法呢？先从暴露整个家庭内网来说吧！同样的道理，我们需要在家里运行一个cloudflared connector，然后其他终端设备通过WARP连接到Cloudflare，然后把整个网络暴露给终端设备，拓扑图如下：</p>
+<p><img src="/images/2023040101323051.png"></p>
+<hr>
+<h1 id="暴露家庭内网"><a href="#暴露家庭内网" class="headerlink" title="暴露家庭内网"></a>暴露家庭内网</h1><h2 id="获取team-domain"><a href="#获取team-domain" class="headerlink" title="获取team domain"></a>获取team domain</h2><p>打开Cloudflare Zero Trust，设置里就可以看到你的team name，我这里就是<code>bennythink</code>啦</p>
+<p><img src="/images/202304010132311.png"></p>
+<h2 id="配置网络协议"><a href="#配置网络协议" class="headerlink" title="配置网络协议"></a>配置网络协议</h2><p>Settings-network，找到proxy，把TCP、UDP、ICMP和WARP to WARP都打开（这个后续要用）</p>
+<p><img src="/images/2023040101323257.png"></p>
+<h2 id="创建WARP-设备注册权限"><a href="#创建WARP-设备注册权限" class="headerlink" title="创建WARP 设备注册权限"></a>创建WARP 设备注册权限</h2><p>首先要定义如何注册设备，简单的来说通过邮箱就好了。比如说一个公司的人，用公司后缀的邮箱连接到同一个内网。在Zero Trust的面板中，Settings - WARP client - Dvice enrollment permission</p>
+<p><img src="/images/2023040101323341.png"></p>
+<p><img src="/images/2023040101323478.png"></p>
+<h2 id="创建-WARP-Profile"><a href="#创建-WARP-Profile" class="headerlink" title="创建 WARP Profile"></a>创建 WARP Profile</h2><p>所谓Profile，就是定义什么用户使用什么样的WARP的规则，规则包括用户能否断开，自动重连等，其中最重要的是路由规则。</p>
+<p>如图，在此我配置的<code>home@dmesg.app</code> 这个用户的规则</p>
+<p><img src="/images/2023040101323579.png"></p>
+<p>Split tunnel用来配置如何分发流量，分为两种模式，<strong>include和exclude</strong>，有点像黑名单白名单的概念。</p>
+<p><img src="/images/2023040101323644.png"></p>
+<ul>
+<li>Include，就像WireGuard <code>allowIP</code>配置为<code>192.168.6.0/24</code>一样，只有这个网段的流量会走WireGuard，其他流量会直接出去，不走cloudflare</li>
+<li>Exclude，就是所有流量都要走cloudflare，因此<code>192.168.7.0/24</code>走了cloudflare所以可以访问，列表中的直接连接</li>
+</ul>
+<p>说人话的话，比如你在外面，要访问家里<code>192.168.7.0/24</code>，并且<strong>所有其他流量要走cloudflare</strong>，那么你要用exclude模式；</p>
+<p>你在外面，要访问家里的<code>192.168.7.0/24</code>，<strong>其他流量直接出</strong> 以方便真人快打，那么就要用include模式。</p>
+<p>这里我就选择include模式，因此上图切换到include，然后添加IP段，CIDR表示法</p>
+<p><img src="/images/2023040101323785.png"></p>
+<p>同时在tunnel的Private Network也要创建一样的CIDR</p>
+<p><img src="/images/2023040101323865.png"></p>
+<p>看cloudflared日志可以看到已经自动更新了配置</p>
+<p><img src="/images/2023040101323951.png"></p>
+<h2 id="配置客户端连接"><a href="#配置客户端连接" class="headerlink" title="配置客户端连接"></a>配置客户端连接</h2><p>客户端需要下载WARP，然后  Login to Cloudflare Zero Trust，输入team name</p>
+<p><img src="/images/2023040101323984.png"></p>
+<p>进行邮件验证</p>
+<p><img src="/images/2023040101324032.png"></p>
+<p>然后你的warp就会接收到新的配置，连接起来，就会发现<code>192.168.7.0/24</code>已经通啦</p>
+<p><img src="/images/2023040101324165.png"></p>
+<p>并且路由器的管理界面是打得开的</p>
+<p><img src="/images/2023040101325018.png"></p>
+<hr>
+<h1 id="创建大内网"><a href="#创建大内网" class="headerlink" title="创建大内网"></a>创建大内网</h1><p>拓扑图如下，所有同一个organization（team）的WARP都有一个独立的内网，可以安全进行数据交换。还记得上面开的TCP、UDP、WARP to WRAP吗？这里用到的就是WARP to WARP</p>
+<p><img src="/images/2023040101325762.png" alt="图示 描述已自动生成"></p>
+<h2 id="创建profile"><a href="#创建profile" class="headerlink" title="创建profile"></a>创建profile</h2><p>同样创建一个新的profile</p>
+<p><img src="/images/2023040101330798.png"></p>
+<p>Split tunnel的原理相信大家已经懂了，简单起见，同样选择include，只不过IP段写<code>100.64.0.0/10</code>，这个是Cloudflare 默认的Virtual Network，使用了WARP的设备会被分配到这个IP段里。这里一共有400多万个可用的IP，沃尔玛员工人手2个WARP，或者克罗地亚人一人一个都足够🤣</p>
+<p><img src="/images/2023040101331898.png"></p>
+<h2 id="注册设备"><a href="#注册设备" class="headerlink" title="注册设备"></a>注册设备</h2><p>安装warp-cli，然后</p>
+<p>warp-cli teams-enroll bennythink</p>
+<p>在你的浏览器上打开链接，输入邮箱<code>wg@dmesg.app</code>验证，但是并没有任何信息告诉你怎么打开终端里的warp-cli，那怎么办呢？别怕，打开F12，找到Open Cloudflare WARP那个按钮的元素，找到<code>onclick</code>事件，复制从<code>com.cloudflare.warp</code>开始的信息到结尾的单引号</p>
+<p><img src="/images/2023040101333518.png"></p>
+<p>然后在终端中：</p>
+<p>warp-cli teams-enroll-token com.cloudflare.warp:&#x2F;&#x2F;bennythink.cloudflareaccess.com&#x2F;auth?token&#x3D;</p>
+<p>[v_error]警告： 如果你使用的是zsh，记得给那段token上用引号包起来 “your-token-with?weird&#x2F;&#x3D;+stuff”或者切换到bash[&#x2F;v_error]</p>
+<h2 id="连接设备"><a href="#连接设备" class="headerlink" title="连接设备"></a>连接设备</h2><p>λ maria-pl ~ → warp-cli status<br>Status update: Disconnected. Reason: Manual Disconnection<br>Success</p>
+<p>λ maria-pl ~ → warp-cli connect<br>Success</p>
+<p>在Zero Trust - My team - Devices中就可以看到你的这个设备的IP地址了！</p>
+<p><img src="/images/2023040101352637.png"></p>
+<p>同理，连接另外一个设备，同样的邮箱就可以。</p>
+<h2 id="测试内网互联"><a href="#测试内网互联" class="headerlink" title="测试内网互联"></a>测试内网互联</h2><p>直接ssh过去试试看</p>
+<p>λ maria-pl ~ → nc -v 100.96.0.14 22<br>Connection to 100.96.0.14 22 port [tcp&#x2F;ssh] succeeded!<br>SSH-2.0-OpenSSH_8.9p1 Ubuntu-3<br>^C</p>
+<p>λ maria-pl ~ → ssh 100.96.0.14<br>The authenticity of host ‘100.96.0.14 (100.96.0.14)’ can’t be established.<br>ED25519 key fingerprint is SHA256:Gffeu3+72Z9pwZDawOHGSN7M2JxrbBub1hZoueKGJ1o.<br>This key is not known by any other names<br>Are you sure you want to continue connecting (yes&#x2F;no&#x2F;[fingerprint])?</p>
+<p><img src="/images/2023040101352719.png"></p>
+<p>iperf3测试</p>
+<p>速度也还不错，本来带宽也是100Mbps</p>
+<p><img src="/images/2023040101352925.png"></p>
+<h2 id="延迟测试"><a href="#延迟测试" class="headerlink" title="延迟测试"></a>延迟测试</h2><p>延迟略有增大，可能是peer连接到了不同的数据中心导致的。但是肯定不会出现美国-日本-美国这种绕圈圈的模式了。</p>
+<p><img src="/images/202304010135315.png"></p>
+<h2 id="如何使用自定义的网段"><a href="#如何使用自定义的网段" class="headerlink" title="如何使用自定义的网段"></a>如何使用自定义的网段</h2><p>如果不喜欢上面的<code>100.96.0.0/10</code>网段，怎么切换到自己的网段呢，比如<code>192.168.6.0/24</code>？</p>
+<p>根据文档来说，似乎是可以通过创建自己的Virtual network（还不能在网页上创建），然后WARP连接的时候选择这个network，然后IP就应该是你定义的而不是<code>100.96</code>之类的了</p>
+<p>cloudflared tunnel vnet add private<br>cloudflared tunnel route ip add –vnet private 192.168.89.0&#x2F;24 home</p>
+<p>warp-cli get-virtual-networks<br>warp-cli set-virtual-network UUID<br>warp-cli connect</p>
+<p>但是我测试的时候，无论是CLI还是macOS WARP，即使选择了新建的网络，网页上看到的IP也始终是<code>100.96</code>，不知道为何，可能是他们的bug</p>
+<p><img src="/images/2023040101354065.png" alt="图形用户界面, 文本, 应用程序, 聊天或短信 描述已自动生成"></p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>Zero Trust还有很多好玩的玩法，比如可以给不同用户配置不同的网络访问规则，私有DNS，可控网络（就是在家里连到VPN，在公司直接走内网，不是根据SSID判断），以及大家都爱的中转梯子等等玩法。有空可以再探索探索。</p>
+<p>Cloudflare 的WARP直接用起来也不错，比如在公司、外面的公共Wi-Fi，我都是直接打开的，体验非常好，在不需要换IP的情况下，可比买的那个Surfshark VPN好多了🥸</p>
+<p>再次感叹，Cloudflare真是一家伟大的公司。<strong>Cloudflare 的使命是帮助建立一个更好的互联网</strong>👍</p>
+<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/private-net/create-private-networks/">https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/private-net/create-private-networks/</a></p>
+<p><a target="_blank" rel="noopener" href="https://help.teams.cloudflare.com/">https://help.teams.cloudflare.com/</a></p>
+<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/">https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/</a></p>
+<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/tutorials/warp-to-tunnel/">https://developers.cloudflare.com/cloudflare-one/tutorials/warp-to-tunnel/</a></p>
+<p><a target="_blank" rel="noopener" href="https://dash.cloudflare.com/argotunnel">https://dash.cloudflare.com/argotunnel</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/01/cf-zero-trust/index/" data-id="clhp7rteu0012s2qr1z5k1pho" data-title="使用Cloudflare Zero Trust创建大内网" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-graylog-geo-ip/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/25/graylog-geo-ip/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-25T00:00:00.000Z" itemprop="datePublished">2023-03-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/25/graylog-geo-ip/index/">Graylog 显示Geo IP</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几周前不知道为什么，yyets的内存使用率暴涨，直接给我机器弄没了。</p>
+<p><img src="/images/2023032503200423.png" alt="图表 描述已自动生成"></p>
+<p>内核的OOM机制都没起作用，猜测可能是<code>dockerd</code>的默认的OOM score是-500，导致没人敢杀吧。最近这几天配置上了Graylog来收集日志，下次再出现问题可以看日志了，大概这样：</p>
+<p><img src="/images/2023032503200476.jpeg" alt="图片包含 人, 男人, 汽车, 前 描述已自动生成"></p>
+<h2 id="Graylog基础配置、收集docker日志"><a href="#Graylog基础配置、收集docker日志" class="headerlink" title="Graylog基础配置、收集docker日志"></a>Graylog基础配置、收集docker日志</h2><p>配置Graylog倒是很容易，<code>docker-compose</code>一把梭，docker也恰巧支持GELF协议。Graylog装好之后，配置一个GELF的input，如下图所示</p>
+<p><img src="/images/2023032503200540.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>小提示，如果你的Graylog是用docker起的，那么在publish port时要额外注意，docker默认只publish TCP，所以要 <code>-p 127.0.0.1:12201:12201/udp</code></p>
+<p>确认运行起来之后，可以开一个容器试试看，注意这里要写<code>127.0.0.1</code>，写<code>localhost</code>的话，dockerd可能会给搞很多幺蛾子(解析到IPv6给你颜色看看）。</p>
+<p>docker run –log-driver gelf –log-opt gelf-address&#x3D;udp:&#x2F;&#x2F;127.0.0.1:12201 alpine echo hello world</p>
+<p>也可以选择用<code>nc</code>发一条消息看看</p>
+<p>echo -n ‘{ “version”: “1.1”, “host”: “example.org”, “short_message”: “A short message again”, “level”: 5, “_some_info”: “foo” }’ | nc -w1 -u localhost 12201</p>
+<p>配置无误的话就应该已经能在搜索页面看到日志了</p>
+<p><img src="/images/2023032503200526.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h2 id="配置GeoIP"><a href="#配置GeoIP" class="headerlink" title="配置GeoIP"></a>配置GeoIP</h2><p>Graylog带有GeoIP的支持，可以自动通过MaxMind的数据库显示访客的IP地址。配置起来比较麻烦，并且文档非常模糊不清🤣</p>
+<h3 id="启用Geo-Location-Processor"><a href="#启用Geo-Location-Processor" class="headerlink" title="启用Geo-Location Processor"></a>启用Geo-Location Processor</h3><p>首先要启用这个模块，在System - Configurations最下面可以看到。需要自己去下载数据库</p>
+<p>懒得注册账号的可以去这里下载</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/P3TERX/GeoLite.mmdb">https://github.com/P3TERX/GeoLite.mmdb</a></p>
+<p>这里的City库比较新</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/wp-statistics/GeoLite2-City">https://github.com/wp-statistics/GeoLite2-City</a></p>
+<p>下载好之后放到某个目录，确保Graylog有权限访问，确认就行了，我就直接丢到了宿主机的volume的目录</p>
+<p><img src="/images/2023032503200693.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="调整处理顺序"><a href="#调整处理顺序" class="headerlink" title="调整处理顺序"></a>调整处理顺序</h3><p>System- Configurations，最上面看 Message Processors Configuration 确保GeoIP Resolve而已经启用，并且顺序正确，至少要放到pipeline后，我给放到最后了</p>
+<p><img src="/images/2023032503200764.png" alt="应用程序, Teams 描述已自动生成"></p>
+<h3 id="Lookup-Table-–-Adapters"><a href="#Lookup-Table-–-Adapters" class="headerlink" title="Lookup Table – Adapters"></a>Lookup Table – Adapters</h3><p>要创建Adapters，路径是 System- Lookup Tables- Data Adapters，Data Adapter Type选择 GeoIP的那个</p>
+<p><img src="/images/2023032503200763.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h3 id="Lookup-Table-–-Cache"><a href="#Lookup-Table-–-Cache" class="headerlink" title="Lookup Table – Cache"></a>Lookup Table – Cache</h3><p>中间的那个标签页，创建一个cache</p>
+<p><img src="/images/2023032503200910.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="Lookup-Tables"><a href="#Lookup-Tables" class="headerlink" title="Lookup Tables"></a>Lookup Tables</h3><p>终于可以创建Lookup Tables了，最左侧的标签页，选择刚刚创建好的adapter和cache。这个Name是唯一的，下一步要用，记下来哦。</p>
+<p><img src="/images/2023032503201012.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="创建Pipelines"><a href="#创建Pipelines" class="headerlink" title="创建Pipelines"></a>创建Pipelines</h2><p>😓还没完，还要创建<code>pipeline</code>去调用<code>Lookup Table</code></p>
+<h3 id="创建pipeline-rules"><a href="#创建pipeline-rules" class="headerlink" title="创建pipeline rules"></a>创建pipeline rules</h3><p>System - Pipelines - Manage rules - Create rule</p>
+<p>rule source是核心，定义了怎么取IP、解析后怎样呈现数据。拿我的一行log为例：</p>
+<p><img src="/images/2023032503201113.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>如果你的IP地址是单独的一个字段中，比如上面的<code>source</code>、<code>container_name</code>这种单独的一行，那么就很容易了，比如说你的字段叫 <code>src_ip</code></p>
+<p>rule “GeoIP lookup”<br>when<br>    has_field(“src_ip”)<br>then<br>    let geo &#x3D; lookup(“geoip”, $message.src_ip);<br>    set_field(“src_ip_geo_location”, geo[“coordinates”]);<br>    set_field(“src_ip_geo_country”, geo[“country”].iso_code);<br>    set_field(“src_ip_geo_city”, geo[“city”].names.en);<br>end</p>
+<p>很好理解，如果<code>src_ip</code> 字段存在，就用<code>geoip</code>这个Lookup Table查询，还记得吧，这个<code>geoip</code>是上一步Lookup Table的Name。</p>
+<p>如果你的日志是像我这种，IP记录在message中，那就这样，先用<code>grok</code>去提取IP地址，然后再进行查询</p>
+<p>rule “GeoIP lookup”<br>when<br>    has_field(“message”)<br>then<br>    let ipObj &#x3D; grok(pattern: “(%{IP})”, value: to_string($message.message));<br>    &#x2F;&#x2F; ipObj.IP 就是真正的IP地址，可能是IPv4 也可能是IPv6<br>    let geo &#x3D; lookup(“geoip”, ipObj.IP);<br>    set_field(“src_ip_geo_location”, geo[“coordinates”]);<br>    set_field(“src_ip_geo_country”, geo[“country”].iso_code);<br>    set_field(“src_ip_geo_city”, geo[“city”].names.en);<br>end</p>
+<p>但是这样还不是很完美，仔细观察，我的log的IP是在<code>()</code>包围中的，有些时候我也会用<code>logging.info</code>去记录IP，那么这样子就会重复了。想当然的，这东西看起来是正则表达式的样子，那么<code>(\(%&#123;IP&#125;\))</code>😎辣鸡Graylog会直接给你报错，无法保存</p>
+<p>这个时候要做的事情是创建一个新的 Grok规则，然后去应用，如图所示，Pattern为 <code>\(%&#123;IP&#125;\)</code>名字随便起一个</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/03/2023032519363232.png"><img src="/images/2023032519363232.png"></a></p>
+<p>然后规则里用<code>(%&#123;Tornado&#125;)</code>就可以了</p>
+<p>遇到问题可以用<code>debug(ip)</code>这种去排错，Graylog的log🤪会显示这个变量的内容</p>
+<h3 id="创建pipeline"><a href="#创建pipeline" class="headerlink" title="创建pipeline"></a>创建pipeline</h3><p>还没完，在Manage rules旁边有一个Manage pipelines，创建一个pipeline</p>
+<p>名字随便起，创建好之后 Edit Connections – Default Stream</p>
+<p><img src="/images/202303250320135.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<p>然后创建stage，rules选择刚刚弄好的rule</p>
+<p><img src="/images/2023032503201479.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>Stage 0没用可以删掉</p>
+<p>保存好，回到主界面应该能看到IP和地理位置了</p>
+<p><img src="/images/2023032503201563.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h2 id="添加Geo-Location-Map"><a href="#添加Geo-Location-Map" class="headerlink" title="添加Geo Location Map"></a>添加Geo Location Map</h2><p>Graylog有一个有点有趣的功能，可以根据log来做聚合查询，包括GeoIP的信息。在主界面的侧边可以看到aggregation</p>
+<p><img src="/images/2023032503201596.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>点进去这样配置</p>
+<p><img src="/images/202303250320151.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>Update widget 就有了，大概这样</p>
+<p><img src="/images/2023032503201693.png" alt="截图里有图片 描述已自动生成"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>log服务器和应用服务器不要在同一台机器上，否则到时候一起挂了，都没得看</li>
+<li>😏 <a target="_blank" rel="noopener" href="https://dmesg.app/yyets-hack.html">自从被打之后</a>，我再也不监听<code>0.0.0.0</code>了，一切全靠 Cloudflare Argo Tunnel 解决，连nginx都不需要</li>
+<li>新版本的docker（20.10起）也可以看GELF的log，但是<code>docker-compose</code>不可以</li>
+<li>这<a target="_blank" rel="noopener" href="https://www.graylog.org/post/how-to-set-up-graylog-geoip-configuration/">Graylog的文档</a>是真的绝，说得不明不白的，甚至还有全角引号</li>
+</ol>
+<p><img src="/images/2023032503201789.png" alt="文本, 信件 描述已自动生成"></p>
+<ol start="8">
+<li><p>没太多有用的资料，搜到的就是他们官方的论坛</p>
+</li>
+<li><p>🤡还有undefined的bug，后来到MongoDB里手动删除的</p>
+</li>
+</ol>
+<p><img src="/images/2023032503201861.jpeg" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/25/graylog-geo-ip/index/" data-id="clhp7rtgh003ds2qr2coj3mro" data-title="Graylog 显示Geo IP" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-argo-real-ip/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/14/argo-real-ip/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-14T00:00:00.000Z" itemprop="datePublished">2023-03-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/14/argo-real-ip/index/">Nginx不显示Argo Tunnel后用户真实IP？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近由于人人影视被拒绝服务攻击，于是我把所有网站都改成了通过 Cloudflare Argo Tunnel访问。所有的应用只监听<code>127.0.0.1</code>，通过Argo去做隧道。这样比较不容易暴露源站IP，也不用管origin certificate这种乱七八糟的东西，要安全一些。</p>
+<p>具体使用方式可以参考这两篇，当然如果不想了解技术细节，那么就去 zero trust -&gt;access -&gt; tunnels中创建一个tunnel，安装好，add public hostname 就好。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/argo-tunnel.html">Cloudflare Argo Tunnel 小试：我终于可以用树莓派做网站啦</a></li>
+<li><a target="_blank" rel="noopener" href="https://nova.moe/accelerate-and-secure-with-cloudflared/">使用 Cloudflare Argo Tunnel(cloudflared) 来加速和保护你的网站</a></li>
+</ul>
+<hr>
+<p><img src="/images/2023031218513238.jpeg" alt="图形用户界面, 应用程序, 表格 描述已自动生成"></p>
+<p>由于我的博客还在使用 <a target="_blank" rel="noopener" href="https://webp.sh/#/">WebP Server Go</a>作为图片优化策略，因此前面还得套个 nginx。今天看日志的时候发现没显示源站IP！但是我明明已经设置了<code>set_real_ip_from</code>，而且这些IP肯定是最新的。</p>
+<p><img src="/images/2023031218513352.jpeg" alt="文本 描述已自动生成"></p>
+<p>对应的 WordPress容器也是有真实IP的，同时其他 Python应用也记录了真实IP。奇怪哦</p>
+<p>后来经过瞎猫碰死耗子的尝试，发现了<code>set_real_ip</code>要加上这个</p>
+<p>set_real_ip_from 172.21.0.1;</p>
+<p>然后就万事大吉啦！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/14/argo-real-ip/index/" data-id="clhp7rtdu0005s2qrahhtb1zm" data-title="Nginx不显示Argo Tunnel后用户真实IP？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-meilisearch/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/14/meilisearch/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-14T00:00:00.000Z" itemprop="datePublished">2023-03-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/14/meilisearch/index/">轻量级全文搜索引擎 Meilisearch使用体验</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自从人人影视分享站被攻击之后，我便一直在想如何提升搜索性能。</p>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><h3 id="人人影视分享站的搜索功能主要包括这三大模块："><a href="#人人影视分享站的搜索功能主要包括这三大模块：" class="headerlink" title="人人影视分享站的搜索功能主要包括这三大模块："></a>人人影视分享站的搜索功能主要包括这三大模块：</h3><ol>
+<li>搜索yyets数据库的<code>cnname</code>、<code>enname</code>和<code>aliasname</code>三个字段，也就是之前爬下来的老的数据库的内容</li>
+<li>搜索评论信息，同时找到评论所在页面</li>
+<li>如果以上都无结果，那么去搜索其他网站</li>
+</ol>
+<h3 id="三大模块的优化方案"><a href="#三大模块的优化方案" class="headerlink" title="三大模块的优化方案"></a>三大模块的优化方案</h3><ul>
+<li>1和2都是使用了正则作为模糊搜索，因此加索引是没用的。虽然数据库不算很大，但是毕竟要全表检索，数量多就容易过载</li>
+<li>搜索评论时，是Python拿到结果再去请求yyets，其实可以通过聚合查询一次性搞定。让MongoDB去做这件事情肯定比Python去做要方便得多，也省得写乱七八糟的处理代码</li>
+<li>站外查询这个功能可以禁用了</li>
+<li>升级服务器</li>
+</ul>
+<p>但是以上方案无论怎么折腾，都逃不过搜索时要全表检索，只要涉及到全表检索那肯定会重IO重CPU。</p>
+<p>那不请求数据库，加redis做缓存呢？好是好，但是命中率会很低，因为每个人搜索关键词可能差很多，而且缓存多久合适？很难搞的问题</p>
+<p>那有没有更好的办法呢，那种搜索很快的数据库？当然有的了，比如知名的Elastic Search</p>
+<h2 id="全文搜索引擎"><a href="#全文搜索引擎" class="headerlink" title="全文搜索引擎"></a>全文搜索引擎</h2><p>ElasticSearch可谓是最致命知名的全文搜索引擎了，几年前在做实习生的时候<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">简单地接触过</a>。那时候在我的眼中，ES似乎和MongoDB没什么区别。</p>
+<p>为了能够让人人影视分享站的搜索功能更上一个台阶，我需要选择一个全文搜索引擎。</p>
+<p>ES确实是非常知名的全文搜索引擎，但是同时也非常致命：需要非常的配置，尤其是内存，官方建议似乎最少8G了，我真的很穷😭</p>
+<p>我对于这个全文搜索的要求如下：</p>
+<ol>
+<li>轻量级，对配置要求比较低</li>
+<li>开发活跃，有相应的Python SDK</li>
+<li>支持CJK</li>
+<li>最好再支持docker，真的不想自己写<code>Dockerfile</code>，太累了</li>
+<li>使用简单，像MongoDB那样随便插入，不需要定义schema，心智负担小一点吧</li>
+</ol>
+<p>网上搜索了一圈，发现了这么几个比较不错的产品</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/valeriansaliou/sonic">sonic</a> 官方宣称轻量级的ES替代品，支持几十种语言。坏消息是Python library没一个能用的，全挂了。官方维护的nodejs的倒还可以，不愧是亲儿子啊</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/quickwit-oss/tantivy">Tantivy</a> 官方说也支持十几种语言，并且可以通过插件支持CJK，还有一个<code>tantivy-py</code>，rust的bingding，虽然没啥自动补全了，安装时说不准还得来个rust，但是也能用。缺点就是，这个<code>tantivy-py</code>，不支持第三方tokenizer，那和不支持CJK有什么区别嘛……</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/typesense/typesense">Typesense</a> 也是非常有名的全文搜索引擎，不过对CJK的支持不太完善，并且需要定义schema</li>
+</ol>
+<p>最终我找到了今天的主角，Meilisearch，美丽搜索。支持CJK，可以容忍错别字，有官方的各种语言的SDK，自带一个简单的检索页面，使用rust构建，同样轻量级</p>
+<p><img src="/images/2023031206073470.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h2 id="Meilisearch消费数据"><a href="#Meilisearch消费数据" class="headerlink" title="Meilisearch消费数据"></a>Meilisearch消费数据</h2><p>对于全文检索来说最重要的无非是两件事情，存储数据和检索。对Meilisearch来说这很简单：</p>
+<p>import Meilisearch</p>
+<p>client &#x3D; Meilisearch.Client(“<a target="_blank" rel="noopener" href="http://127.0.0.1:7700/">http://127.0.0.1:7700</a>“, “masterKey”)<br>index &#x3D; client.index(“demo”)<br>documents &#x3D; [<br>    {<br>        “id”: 123,<br>        “title”: “后端的接口大概在半年前就写好了”<br>    },<br>    {<br>        “id”: 456,<br>        “title”: “我最近才学了一点点 React做好了邮件验证的功能”<br>    }<br>]<br>index.add_documents(documents)</p>
+<p>可一次性提交很多数据，Meilisearch会异步处理。如果想要知道处理结果可以看tasks结果，如：</p>
+<p>task &#x3D; index.add_documents(documents)<br>time.sleep(1)<br>print(index.get_task(task.task_uid))</p>
+<h3 id="Meilisearch的ID"><a href="#Meilisearch的ID" class="headerlink" title="Meilisearch的ID"></a>Meilisearch的ID</h3><p>Meilisearch要求数据包含ID，如果你提交的数据是这样的</p>
+<p>documents &#x3D; [<br>    {<br>        “title”: “后端的接口大概在半年前就写好了”,<br>        “titleId”: “123a”,<br>        “content”: “好的”,<br>        “contentId”: “yagwah2”<br>    },<br>    {<br>        “title”: “我最近才学了一点点 React做好了邮件验证的功能”,<br>        “titleId”: “456b”,<br>        “content”: “不好”,<br>        “contentId”: “9777”<br>    },<br>]</p>
+<p>你会发现在网页上看不到这些索引，这是因为Meilisearch要求数据中包含唯一ID，这也是以后更新索引的依据。给每一条数据加上一个唯一的ID就好了。或者：</p>
+<p>如果你的数据中不包括id字段，那么Meilisearch将会尝试自动从其他<a target="_blank" rel="noopener" href="https://docs.meilisearch.com/learn/core_concepts/primary_key.html#setting-the-primary-key">类似ID的字段中推导</a>，比如你的数据是：</p>
+<p>{<br>    “username”: “abcdefg”,<br>    “date”: “2021-06-13 22:32:48”,<br>    “comment”: “很好看”,<br>    “commentID”: “60c61710004833fc8cd4b240”,<br>    “origin”: “comment”,<br>    “hasAvatar”: None,<br>    “resourceName”: “急诊室的故事”,<br>}</p>
+<p>Meilisearch就会把<code>commentID</code>当作ID去使用。但是如果非常不巧你的数据中包含多个ID结尾的字段，如</p>
+<p>{<br>    “username”: “abcdefg”,<br>    “date”: “2021-06-13 22:32:48”,<br>    “comment”: “很好看”,<br>    “commentID”: “60c61710004833fc8cd4b240”,<br>    “origin”: “comment”,<br>    “hasAvatar”: None,<br>    “resourceID”: 10323,<br>    “resourceName”: “急诊室的故事”,<br>}</p>
+<p>那么就会推导失败，此时要么自己添加好id，要么指定主键名</p>
+<p>index.add_documents(documents, primary_key&#x3D;”commentID”)</p>
+<h2 id="Meilisearch检索数据"><a href="#Meilisearch检索数据" class="headerlink" title="Meilisearch检索数据"></a>Meilisearch检索数据</h2><p>非常简单高效，唯一的缺点是没有提供confidence score之类的东西，有的时候搜出来的东西实在是离谱🤡</p>
+<p>result &#x3D; index.search(“棒”)</p>
+<p>不用考虑简体繁体，有非常多的参数可以选择，具体<a target="_blank" rel="noopener" href="https://docs.meilisearch.com/reference/api/search.html">可以看文档</a></p>
+<h2 id="集成Meilisearch"><a href="#集成Meilisearch" class="headerlink" title="集成Meilisearch"></a>集成Meilisearch</h2><p>把Meilisearch集成到人人影视分享站，要考虑的问题如下：</p>
+<ol>
+<li>数据持久化，我的所有应用都是docker跑的，这样就一定要考虑数据持久化的事情</li>
+<li>消费数据，要保证Meilisearch的数据和MongoDB同步更新，并且在每次重启容器时也不会有丢失</li>
+<li>保证返回一样的数据结构，避免前端改来改去</li>
+</ol>
+<h3 id="数据持久化"><a href="#数据持久化" class="headerlink" title="数据持久化"></a>数据持久化</h3><p>Meilisearch的数据并不重要，因此不需要映射宿主机的目录到容器之中，只需要docker volume就可以了。</p>
+<p>docker volume create meili</p>
+<p>然后</p>
+<p>docker run -v meili:&#x2F;meili_data getmeili&#x2F;meilisearch:v1.0.2</p>
+<p>用<code>docker-compose</code>的话，也基本一样</p>
+<p>version: ‘3.1’</p>
+<p>services:<br>  meili:<br>    image: getmeili&#x2F;meilisearch:v1.0.2<br>    volumes:<br>      - meilisearch:&#x2F;meili_data</p>
+<p>volumes:<br>  meilisearch:</p>
+<h3 id="第一次消费数据"><a href="#第一次消费数据" class="headerlink" title="第一次消费数据"></a>第一次消费数据</h3><p>由于Meilisearch是异步处理数据的，也就意味着提交一大堆数据之后，我们并不会阻塞。</p>
+<p>因此问题就变成了如何更优雅的从MongoDB中查询到我们想要的数据，然后一股脑的塞过去。</p>
+<p>此时就要用到 MongoDB的<code>aggregate</code>了，非常强大的功能，一个查询就可以全部搞定，不用拿Python再遍历然后二次查</p>
+<p>我的第一次消费数据也非常简单粗暴，程序启动时丢个线程去跑就好了，反正也没多少，第一次几秒钟就结束</p>
+<p>threading.Thread(target&#x3D;engine.run_import).start()</p>
+<h3 id="同步数据"><a href="#同步数据" class="headerlink" title="同步数据"></a>同步数据</h3><p>MongoDB有一个功能叫做 Change Stream，这是一种发布订阅的模式，简单的说就是当数据库发生变更，MongoDB会“推送”数据过去。</p>
+<p>唯一的小缺点是，数据库药需要配置成replica set才可以。当然了，只有一个节点的replica set也没问题啦。</p>
+<p>用起来很容易，先在配置文件中启用replica set，如果用的docker，那么command追加<code>--replSet rs0</code>即可，然后启动MongoDB，</p>
+<p>配置replica set，比如我要配置两个节点的</p>
+<p>rs.initiate({<br>    _id: “rs0”,<br>    members: [{<br>        _id: 0,<br>        host: “localhost:27017”<br>    },<br>    {<br>        _id: 1,<br>        host: “mongo2:27017”<br>    }]<br>})</p>
+<p><code>rs.status()</code>可以查看配置结果</p>
+<p>多个节点的话，等到数据同步好了，可选配置一下优先级</p>
+<p>cfg &#x3D; rs.conf()<br>cfg.members[0].priority &#x3D; 0.5<br>cfg.members[1].priority &#x3D; 0.5<br>cfg.members[2].priority &#x3D; 1 # 最高<br>rs.reconfig(cfg)</p>
+<p>配置成功之后，比如我想监听<code>comment</code>这个集合的变化</p>
+<p>cursor &#x3D; self.db.comment.watch()<br>for change in cursor:<br>    print(change)</p>
+<p>无论是增删改都会在这个<code>change</code>中体现。我同样也很简单粗暴，拿到数据了<code>add_documents</code> 就好。</p>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p>由于在喂数据的时候就是根据前端的要的数据构造的，所以这里根本不用管，直接把Meilisearch返回的结果返回给前端就好了</p>
+<h2 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a>性能对比</h2><p>在开了省电模式的M1 Macbook单核心、2G内存的docker engine环境，用<code>ab -c 100 -n 2000</code> 的跑分，优化前：</p>
+<p><img src="/images/2023031206073540.png" alt="文本 描述已自动生成"></p>
+<p>优化后：</p>
+<p><img src="/images/2023031206073648.png" alt="文本 描述已自动生成"></p>
+<p>每秒请求次数从20左右提升到200多，直接10倍，这不比升级机器配置好多啦！并且IO、CPU、RAM占用也比MongoDB理想多了。</p>
+<p> </p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>我也不知道这个人是谁，还在孜孜不倦的爬呀爬😂 虽然并无任何影响，但是看着就很恶心人，有什么好的办法吗</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/03/2023031506455240.png"><img src="/images/2023031506455240.png"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/14/meilisearch/index/" data-id="clhp7rthj004vs2qr0dxwgmy6" data-title="轻量级全文搜索引擎 Meilisearch使用体验" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-yyets-hack/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/12/yyets-hack/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-12T00:00:00.000Z" itemprop="datePublished">2023-03-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/12/yyets-hack/index/">这是人人影视分享站被黑的最惨的一次</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近这段时间，我的<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/home">人人影视分享站</a>不怎么太平，不是被恶意爬虫就是被CC攻击。不知道是遭遇了竞争对手还是怎么的。</p>
+<p>3月7日中午，收到cloudflare邮件说服务器无法连接</p>
+<p><img src="/images/2023031204182854.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>SSH看一下日志，果然，有很多莫名其妙的搜索，</p>
+<p><img src="/images/2023031204182942.jpeg" alt="背景图案 描述已自动生成"></p>
+<p>这些请求主要有如下特点：</p>
+<p>40秒内200多个请求，分布在60个不同的IP地址上，还全都是中国民用家宽的IP。</p>
+<ol>
+<li>使用中国各个地区、各个运营商的民用家宽IP，比如上图40秒内200多请求，分布在60个不同的IP地址上</li>
+<li>同一个IP的UA还会变，一会是Chrome一会是Firefox，这看起来很不正常</li>
+<li>即使到了下半夜也还在大量请求，正常人都是要睡觉的</li>
+<li>搜索内容大致为某些综艺的名字+集数或演员名字，没有referer，正常搜索浏览器是一定会带referer的，因此应该是机器人直接发出的请求</li>
+<li>他直接请求的！要是跑的selenium我也就认啦，就当给我点广告了</li>
+</ol>
+<p>我尝试了如下解决方案：</p>
+<ol>
+<li>根据IP去cloudflare上拉黑，结果发现IP太多，根本拉不过来</li>
+<li>用Cloudflare的 rate limit去限制请求频率，结果因为他们IP实在是太多了，全都分散开了，没用</li>
+<li>开cloudflare的DDoS 防护规则也没用，因为IP太多了，在cf 看来基本就是正常请求，至少免费版来看是这样的</li>
+</ol>
+<p>发现以上办法似乎都没有什么用，于是开了三秒墙，所有用户在打开网站的时候都会有浏览器检查，大概这样</p>
+<p><img src="/images/2023031204183031.png" alt="文本 描述已自动生成"></p>
+<p>机器人自然无法完成JS challenge，于是这一波下来稳了。</p>
+<p>我的<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/database"><strong>数据库是公开的</strong></a>，这么爬很不地道，动了这么多IP也一定没少破费。何必呢？我也不是什么竞争对手，我只不过是开了一个很普通的个人站，全靠网友贡献。挺累的。</p>
+<hr>
+<p>几天之后星期五，我发现网站竟然又挂了！开着三秒墙也能被打挂？看了一眼日志……</p>
+<p><img src="/images/2023031204183524.png" alt="电脑屏幕的照片 中度可信度描述已自动生成"></p>
+<p>Vultr的美国机，竟然用这种随机无意义的字符串来搜索，竟然还绕过了三秒墙，也绕过了rate limit。🤣于是MongoDB炸了，nginx也基本要炸了。</p>
+<p>去cloudflare上添加了黑名单，并没有效果。哦豁？难道是cloudflare又bug了……想了一下，不对，是我的源站IP被找到了，怪不得三秒墙和rate limit都没效果😓</p>
+<p>这种情况下只能去机器上添加防火墙，或者机器的供应商那里添加安全组之类的了。不幸的事情来了：</p>
+<ol>
+<li>没有安全组可用</li>
+<li>我的nginx是docker启动的，这也就意味着一般的在<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">INPUT链拉黑IP的办法不管用</a></li>
+<li>在尝试调解docker和nginx的过程中，一不小心写错了iptables规则。出门没带钥匙嘛。</li>
+<li>我不知道SSH的密码是什么，应该是16位的hex，去grub改init然后修改密码很麻烦毕竟是VNC</li>
+</ol>
+<p><img src="/images/2023031204184330.png" alt="卡通人物 中度可信度描述已自动生成"></p>
+<p>不幸之外还有一些好消息：</p>
+<ol>
+<li>我没有持久化iptables规则，意味着只要去控制面板重启一下，我刚刚写错的规则就会消失了！</li>
+<li>我可以换IP，至少能够暂时化解这种情况</li>
+</ol>
+<hr>
+<p>于是问题就这么解决了。这是我做这个小破站被黑的最惨的一次。在这次经历中，我学习到了如下经验教训：</p>
+<ol>
+<li>爬虫死全家，尤其是45.32.227.75 😄</li>
+<li><a target="_blank" rel="noopener" href="https://twitter.com/baobao1270/status/1634619642630246401?s=20">docker会破坏基于iptables为后端的防火墙</a>。Docker跑的应用，如果绑定了端口，那么会给iptables打洞，意味着常规堵INPUT链的办法不管用，要PRE ROUTTING、改DOCKER-USER或者<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">让docker和ufw一起工作</a>，巨麻烦，心智负担非常大。</li>
+<li>网站躲在cloudflare后也可能被抓到源站IP，比如说censys，全网扫IP+443然后找证书，或者IP+80比对特征</li>
+<li>应该拒绝全部非cloudflare IP对80和443的请求，甚至直接通过argo tunnel之类的来解决，连nginx都用不上</li>
+<li>保护好自己的IP，毕竟只要IP被抓到了，14亿中国人一人一个ping你也受不了🇨🇳</li>
+<li>在MongoDB中使用正则模糊查询，如&#x2F;.*keyword.*&#x2F;是非常慢的，全文检索的话，我记得是Atlas专有，而且一旦涉及到CJK，也有可能完犊子</li>
+<li>容器如果一直不停地yyetsbot_web_1 exited with code 137，记得检查下是不是有什么<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1634342211319128064?s=20">奇奇怪怪的保活监测脚本</a></li>
+<li>配置路由表、iptables规则时务必小心，务必给自己留后门。我之前留的后门是只能通过console登录的root权限用户，密码不是很复杂，通过VNC之类的东西输入还是可以的</li>
+<li>MongoDB的aggregation很强大，可以做到跨集合查询，自定义查询字段名称等等</li>
+<li>遇到问题不要慌，记得先撸猫再解决问题</li>
+</ol>
+<p><img src="/images/2023031204184447.jpeg" alt="猫躺在沙发上 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/12/yyets-hack/index/" data-id="clhp7rtnw00bys2qr57r91p67" data-title="这是人人影视分享站被黑的最惨的一次" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-container-smtp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/02/07/container-smtp/index/" class="article-date">
@@ -544,451 +1075,11 @@ server.quit()
 
 
   
-    <article id="post-go-selenium/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/07/23/go-selenium/index/" class="article-date">
-  <time class="dt-published" datetime="2022-07-23T00:00:00.000Z" itemprop="datePublished">2022-07-23</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/07/23/go-selenium/index/">Go 使用selenium截图</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天想给<a target="_blank" rel="noopener" href="https://t.me/wayback_machine_bot">wayback machine bot</a>增加一个截图的功能，难度不大，用selenium打开浏览器，截图，再发给用户就可以了。</p>
-<p>网上随便就可以找到教程，比如说这样</p>
-<p>package main</p>
-<p>import (<br>    “fmt”<br>    log “github.com&#x2F;sirupsen&#x2F;logrus”<br>    “github.com&#x2F;tebeka&#x2F;selenium”<br>    “io&#x2F;ioutil”<br>)</p>
-<p>const (<br>    chromeDriverPath &#x3D; “&#x2F;usr&#x2F;local&#x2F;bin&#x2F;chromedriver”<br>    port &#x3D; 9515<br>)</p>
-<p>func main() {<br>    var opts []selenium.ServiceOption<br>    selenium.SetDebug(false)<br>    service, err :&#x3D; selenium.NewChromeDriverService(chromeDriverPath, port, opts…)<br>    if err !&#x3D; nil {<br>        panic(err) &#x2F;&#x2F; panic is used only as an example and is not otherwise recommended.<br>    }<br>    defer service.Stop()</p>
-<pre><code>caps := selenium.Capabilities&#123;&quot;browserName&quot;: &quot;chrome&quot;&#125;
-wd, err := selenium.NewRemote(caps, fmt.Sprintf(&quot;http://localhost:%d/wd/hub&quot;, port))
-if err != nil &#123;
-    panic(err)
-&#125;
-
-defer wd.Quit()
-if err := wd.Get(&quot;https://github.com/tgbot-collection/archiver&quot;); err != nil &#123;
-    panic(err)
-&#125;
-
-screenshot, err := wd.Screenshot()
-if err != nil &#123;
-    log.Errorln(err)
-
-&#125;
-ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
-</code></pre>
-<p>}</p>
-<p><img src="/images/2022072320584942.png"></p>
-<p>但是问题来了，这里的截屏只有当前窗口，怎么把整个页面都截屏了呢？</p>
-<h2 id="整页截屏"><a href="#整页截屏" class="headerlink" title="整页截屏"></a>整页截屏</h2><p>方法还是有的，一个简单的办法就是获取到网页的宽高，然后把浏览器的窗口设置成这么大，然后再截图就好了！需要注意的是只有headless模式可以任意设置窗口大小，否则最大高度不能超过你的显示器分辨率</p>
-<p>设置headless只需要加个参数就好了，如下</p>
-<p>caps :&#x3D; selenium.Capabilities{“browserName”: “chrome”}<br>    chromeCaps :&#x3D; chrome.Capabilities{<br>        Path: “”,<br>        Args: []string{<br>            “–headless”,<br>        },<br>    }<br>    caps.AddChrome(chromeCaps)<br>    wd, err :&#x3D; selenium.NewRemote(caps, fmt.Sprintf(“<a href="http://localhost:%d/wd/hub">http://localhost:%d/wd/hub</a>“, port))</p>
-<p>获取网课宽高很容易，偷懒的话只要获取网页的高就可以了，宽我们可以固定成固定的像素，比如1920.</p>
-<p>在chrome的控制台里，输入这么一串神秘代码可获得网页的高</p>
-<p>document.body.parentNode.scrollHeight</p>
-<p>在selenium中使用<code>ExecuteScript</code>就可以执行JavaScript代码，需要注意返回值是interface，所以要类型断言成float，然后再转成int</p>
-<p>height, _ :&#x3D; wd.ExecuteScript(“return document.body.parentNode.scrollHeight”, nil)<br>var realHeight &#x3D; int(height.(float64))</p>
-<p>然后我们需要设置窗口大小</p>
-<p>wd.ResizeWindow(“”, 1920, realHeight)</p>
-<p>运行一下看看，果然正确且完美</p>
-<h2 id="在服务器中运行"><a href="#在服务器中运行" class="headerlink" title="在服务器中运行"></a>在服务器中运行</h2><p>必然这个东西是要在某台服务器中跑起来的，也没什么不同的，下载自己的webdriver，安装浏览器，照样headless启动就好了。应该不会遇到大问题</p>
-<h2 id="在容器中运行"><a href="#在容器中运行" class="headerlink" title="在容器中运行"></a>在容器中运行</h2><p>理论上来说，在容器中运行和在某个Linux发行版运行是没什么太大差别的。无非就是找到对应的webdriver。比如我经常用的alpine恰巧提供了chrome和chrome-webdriver，并且有amd64和arm64(aarch64)的预编译包</p>
-<p>直接运行 <code>apk add chromium-chromedriver</code> 浏览器和webdriver会一起安装好</p>
-<p>要注意一件事情，如果你是root用户运行的，那么要加上<code>--no-sandbox</code> 参数</p>
-<p>一运行却发现结果不如人意，总是写入0大小的文件，或者报错</p>
-<p><img src="/images/2022072320585057.png"></p>
-<p>强行加一行sleep，会有比较大的概率会避免这个问题，但是这不是个办法嘛。</p>
-<p>if err :&#x3D; wd.Get(“<a target="_blank" rel="noopener" href="https://www.baidu.com/">https://www.baidu.com</a>“); err !&#x3D; nil {<br>    panic(err)<br>}<br>time.Sleep(10 * time.Second)</p>
-<p>后来搜了一下，是Chrome和 container的兼容性问题，Chrome需要比较大的<code>/dev/shm</code>，然而容器中的<code>/dev/shm</code>往往都比较小，对于Chrome这种内大户来说不太行。</p>
-<p><img src="/images/2022072320585144.png"></p>
-<p>解决方法要么就增大容器里的<code>/dev/shm</code>，可以通过run时额外参数<code>--shm-size=256m</code></p>
-<p><img src="/images/2022072320585236.png"></p>
-<p>也可以直接把宿主机的共享进去</p>
-<p>docker run –rm -v &#x2F;dev&#x2F;shm:&#x2F;dev&#x2F;shm -it alpine sh</p>
-<p>也可以禁用Chrome的shm功能，加一个参数</p>
-<p>“–disable-dev-shm-usage”,</p>
-<p>还有一种办法，换Firefox也许也有救。</p>
-<h2 id="中文乱码"><a href="#中文乱码" class="headerlink" title="中文乱码"></a>中文乱码</h2><p>alpine里没带中文字体，所以中文会乱码。可以用alpine自带的一个，这样安装就好，也可以自己偷字体，然后放到<code>/usr/share/fonts/</code> 就好了</p>
-<p>apk add wqy-zenhei –update-cache –repository <a target="_blank" rel="noopener" href="https://nl.alpinelinux.org/alpine/edge/testing">https://nl.alpinelinux.org/alpine/edge/testing</a></p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://stackoverflow.com/a/53970825/10264400">https://stackoverflow.com/a/53970825/10264400</a></p>
-<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/archiver/blob/master/screenshot.go">https://github.com/tgbot-collection/archiver/blob/master/screenshot.go</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/07/23/go-selenium/index/" data-id="clhp7rtge0038s2qr3i7g30pn" data-title="Go 使用selenium截图" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-change-git-user/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/06/13/change-git-user/index/" class="article-date">
-  <time class="dt-published" datetime="2022-06-13T00:00:00.000Z" itemprop="datePublished">2022-06-13</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/06/13/change-git-user/index/">如何更改git commit user？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>乔治·奥威尔有言</p>
-<blockquote>
-<p>历史不是一面镜子，而是黑板上的记号，可以随时擦去，随时填补。更为可怕的是，一旦涂改了，你找不到证据去证明这是篡改历史的行为。</p>
-</blockquote>
-<p>Git会追踪每一次commit的历史记录，如果之前不小心配置错了用户名，那么有办法改掉吗？</p>
-<p>当然了办法是有的，改掉commit username和email是很容易的，不就是这么几行嘛？</p>
-<p>git rebase -i f25f719f7c2333d310696c3ed41e5a90ed078e55</p>
-<p>弹出的交互式窗口，把要改的commit从<code>pick</code>改成<code>edit</code></p>
-<p><img src="/images/2022061322415582.png"></p>
-<p>然后不停地</p>
-<p>git commit –amend –author&#x3D;”Cool <a href="mailto:&#x63;&#111;&#x6f;&#108;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;">&#x63;&#111;&#x6f;&#108;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;</a>“ –no-edit &amp;&amp; git rebase –continue</p>
-<p>就可以了</p>
-<p><img src="/images/2022061322415653.png"></p>
-<p>事实果真如此吗？<code>git push -fv</code>试试看？</p>
-<p><img src="/images/2022061322415838.png"> <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/06/2022061322453057.jpg"><img src="/images/2022061322453057.jpg"></a></p>
-<hr>
-<p>妈勒个巴子，时间不对啊，明明是Feb的怎么就变成了现在的时间了。这不就露馅了吗！</p>
-<p>千辛万苦找到一个名字叫<a target="_blank" rel="noopener" href="https://github.com/newren/git-filter-repo">git-filter-repo</a>的东西，试了一下是可以的。</p>
-<p>先安装，比如说 <code>apt install git-filter-repo</code></p>
-<p>然后创建一个<code>mailmap</code>文件，格式如下</p>
-<p>New <a href="mailto:&#x6e;&#101;&#x77;&#64;&#x67;&#109;&#x61;&#105;&#108;&#46;&#x63;&#111;&#x6d;">&#x6e;&#101;&#x77;&#64;&#x67;&#109;&#x61;&#105;&#108;&#46;&#x63;&#111;&#x6d;</a> BennyThink <a href="mailto:&#x62;&#x65;&#110;&#110;&#121;&#46;&#116;&#104;&#x69;&#110;&#107;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#x62;&#x65;&#110;&#110;&#121;&#46;&#116;&#104;&#x69;&#110;&#107;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
-<p>如有需要可以写多行</p>
-<p>然后</p>
-<p>git filter-repo –mailmap &#x2F;etc&#x2F;mailmap</p>
-<p>然后再push，如果遇到缺失remote的问题，重新添加一下</p>
-<p>git remote add origin <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/history">https://github.com/tgbot-collection/history</a><br>git push –set-upstream origin master -fv</p>
-<p>优秀吧！全变成对应的名字和邮箱了，并且commit的时间也没有改变。<code>git log</code>和GitHub是一致的。</p>
-<p><img src="/images/2022061322420811.png"></p>
-<p>如果想要只改几个commit的邮箱，那怎么办呢？</p>
-<p>比如说只想改前两个</p>
-<p>git filter-repo –refs master~2..master –mailmap &#x2F;etc&#x2F;mailmap</p>
-<p><img src="/images/2022061322420927.png"></p>
-<p>如果想改某个中间的一些commit的邮箱为某个人、并且还不改变GitHub上显示的时间呢？甚至不敢确定这种是否可行😂</p>
-<p>emmm这个我还不太知道，其实不太知道refs是什么意思，尝试了很久也不行</p>
-<p>看到git-filter-repo里写着</p>
-<p>git filter-repo … –refs C..H<br>git filter-repo … –refs C..H ^D<br>git filter-repo … –refs D..H ^C</p>
-<p>H应该指的是HEAD？</p>
-<p>总之，暂时够用了😂</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/06/13/change-git-user/index/" data-id="clhp7rtek000qs2qrhtvr4bqs" data-title="如何更改git commit user？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-rssbot-down-again/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/05/27/rssbot-down-again/index/" class="article-date">
-  <time class="dt-published" datetime="2022-05-27T00:00:00.000Z" itemprop="datePublished">2022-05-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/05/27/rssbot-down-again/index/">为什么我的rssbot又不好用了？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今晚想在rssbot上订阅一个博客，发现发了消息竟然没反应。心想可能是容器挂了，上去重启一下。</p>
-<p><img src="/images/2022052721363834.jpeg"></p>
-<p>竟然还没好，而且发现logs里有这么怪的一行</p>
-<blockquote>
-<p><strong>error:</strong> <strong>Error</strong>(“expected `,` or `}`“, line: 2, column: 2388),</p>
-</blockquote>
-<p>这啥？</p>
-<p><code>rssbot.json</code> 坏了？用<code>json.load</code> 试了一下没问题</p>
-<p>程序有问题？触发了一个GitHub actions，从release里下载了binary，也没问题</p>
-<p>Rust的json解析有问题？弄了一个空的json文件，也还是同样报错。</p>
-<p>网络问题？明明是直接在梯子上运行的。</p>
-<p>容器问题？直接跑在alpine的容器里，host OS上，也不行</p>
-<p><img src="/images/2022052721363814.jpeg" alt="挠头表情包_抖音熊猫挠头表情包套图下载_游戏吧"></p>
-<p>Bot的token失效了？revoke重新生成一个，还不行。</p>
-<p>换个其他bot的token，竟然可以了。</p>
-<p><img src="/images/2022052721363947.png"></p>
-<p>难道是我的rssbot 被Durov扬了？拿起来 bot HTTP api试试看</p>
-<p>import telebot<br>from telebot import apihelper<br>import logging</p>
-<p>logging.basicConfig(level&#x3D;logging.INFO)<br>apihelper.proxy &#x3D; {‘https’: ‘socks5h:&#x2F;&#x2F;127.0.0.1:1080’}<br>TOKEN &#x3D; “548k4qc”<br>bot &#x3D; telebot.TeleBot(TOKEN)<br>print(bot.get_me())</p>
-<p>活着呢啊……</p>
-<p>那是不是incoming message被扬了？</p>
-<p>@bot.message_handler(commands&#x3D;[‘start’, ‘help’])<br>def send_welcome(message):<br>    bot.reply_to(message, “Howdy, how are you doing?”)</p>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    bot.polling()</p>
-<p><img src="/images/2022052721364143.png"></p>
-<p>也好用啊……</p>
-<p>那再跑一次？竟然好了……</p>
-<h2 id="推测原因"><a href="#推测原因" class="headerlink" title="推测原因"></a>推测原因</h2><p>不知道为什么莫名其妙的就好了，前前后后花了一个多小时的时间。</p>
-<p>推测是，由于这个程序写的有些bug，导致没能处理用户发送的消息，然后telegram Bot API会缓存一定数量的消息，当用户开始polling时会发送updates。但是由于有bug，导致bot无法处理updates，所以所有后续的updates都被block住了。</p>
-<p>当我用Python版本开始polling时，updates就被处理完成了，导致rssbot出bug的那个update也被消耗掉了。</p>
-<p>🤦‍♂️算了我要切换到inoreader了</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/05/27/rssbot-down-again/index/" data-id="clhp7rtip007vs2qr3d2lef60" data-title="为什么我的rssbot又不好用了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-who-view-micam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/04/30/who-view-micam/index/" class="article-date">
-  <time class="dt-published" datetime="2022-04-30T00:00:00.000Z" itemprop="datePublished">2022-04-30</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/04/30/who-view-micam/index/">谁看了我的米家摄像头？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>一年前，由于一个有些可笑的原因（别问我为什么，真的），我买了个米家的摄像头，然后分享给了某个人。那个时候我在想，有没有办法随时知道谁看了监控呢？管他是某个人还是其他什么奇奇怪怪的人。</p>
-<p>米家本身并不提供这种功能，也不像其他品牌一样在摄像头被查看的时候会有一个特殊的指示灯显示。</p>
-<p>既然如此，那作为一名有灵性的工程师，一定能找到办法的！</p>
-<p>简单的说，自然就要从网络上下手啦！毕竟这个东西是需要通过网络传输数据的，在其他人查看的时候一定会大量的传输数据，并且根据常识推断，极有可能是UDP，并且有可能通过UDP打洞的方式直接看到查看者的IP地址。</p>
-<p>话不多说，说干就干，老子干网络这么多年，还不是 permit any any 通了就走！</p>
-<h2 id="抓包"><a href="#抓包" class="headerlink" title="抓包"></a>抓包</h2><p>既然要抓包，那自然也就在路由器上动手脚最好了。此时需要一个刷了padavan、OpenWRT、Merlin之类第三方固件的路由器，然后准备好tcpdump</p>
-<p>tcpdump可以使用opkg之类的命令安装，如果你的CPU恰巧是arm的，可以<a target="_blank" rel="noopener" href="https://fw.koolcenter.com/binary/tcpdump/">用这个</a>静态编译的。</p>
-<p>假设摄像头的IP是192.168.7.149，然后路由器的网桥是br-lan（有些可能是br0）</p>
-<p>tcpdump -i br-lan udp and host 192.168.7.149</p>
-<p>此时打开手机，最好用流量来测试IP，查看摄像头，大概率会看到类似如下日志：</p>
-<p><img src="/images/2022043021474977.png"></p>
-<p>如果没有的话，去掉UDP试试看。再没有就看看接口和IP对不对，有些情况下抓对应的wlan01可能更好。</p>
-<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>此时右侧的那个疯狂刷屏39.xxxx就是我的手机数据流量的出口IP，中国移动的某个IP。有些时候会看到一些金山云的IP，可以直接忽略。</p>
-<p>那么接下来问题来了</p>
-<ol>
-<li>只有刷屏的IP才算是可能的查看记录，有什么办法揪出来吗？</li>
-<li>咱也不能时时刻刻盯着tcpdump的输出啊！</li>
-</ol>
-<h2 id="令牌桶算法"><a href="#令牌桶算法" class="headerlink" title="令牌桶算法"></a>令牌桶算法</h2><p>只有刷屏的IP才可能是查看记录，那么如何分析统计这个“刷屏频率”？最好的办法就是令牌桶算法啦！</p>
-<p>所谓令牌桶，就是设计一个桶，某个组件持续地往里面丢令牌（token），然后每个请求进来的时候去这里拿令牌，拿到了就执行，拿不到就只能等着了。</p>
-<p>令牌桶通常用于限流，我们的这个恰巧是“反着来的限流”，反正只要撞了rate limit就是我们要的数据。</p>
-<p>记得先写正则表达式过滤一下。</p>
-<p>为了方便在路由器上运行，这事必然是要用Go来写的，毕竟交叉编译嘛</p>
-<p>package main</p>
-<p>import (<br>    log “github.com&#x2F;sirupsen&#x2F;logrus”<br>    “golang.org&#x2F;x&#x2F;time&#x2F;rate”<br>)</p>
-<p>const (<br>    bucketSize &#x3D; 70<br>    bucketRate &#x3D; 35<br>)</p>
-<p>var limiter &#x3D; rate.NewLimiter(bucketRate, bucketSize)</p>
-<p>func main() {</p>
-<pre><code>if limiter.Allow() &#123;
-    log.Infoln(&quot;Using token...&quot;)
-&#125; else &#123;
-    log.Warnln(&quot;Potential view, sending alert now...&quot;)
-&#125;
-</code></pre>
-<p>}</p>
-<p>很简单，定义了一个桶，大小是70，每秒钟产生35个令牌，说人话：每秒钟抓到35个包，刚好可以抵消令牌桶消耗；每秒抓到40个包，大概8秒会报警。至于这个35和70是怎么设计的嘛，是我从实践与经验中发现这个值最稳妥、最不容易误报。</p>
-<h2 id="消息通知"><a href="#消息通知" class="headerlink" title="消息通知"></a>消息通知</h2><p>消息通知就很简单了，当 <code>limiter.Allow()</code> 不满足时，直接telegram bot就行了，这样最方便。</p>
-<p>代码太过简单，就不说了</p>
-<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>真挺准的！俗话说知己知彼，百战不殆反正我是认输了，权限也已经撤销了。因为我发现我就是“充话费送的”。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/04/2022043021541218.jpeg"><img src="/images/2022043021541218.jpeg"></a></p>
-<p>也真的挺不好意思的我这玩意藏着掖着，快一年了才放出来……</p>
-<p><img src="/images/2022043021481460.png"></p>
-<h2 id="参考代码"><a href="#参考代码" class="headerlink" title="参考代码"></a>参考代码</h2><p><a target="_blank" rel="noopener" href="https://gist.github.com/BennyThink/c78cefa446fc492209710796ee342dec">https://gist.github.com/BennyThink/c78cefa446fc492209710796ee342dec</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/04/30/who-view-micam/index/" data-id="clhp7rtn600b5s2qr13ef50zq" data-title="谁看了我的米家摄像头？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-spring-shanghai/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/04/23/spring-shanghai/index/" class="article-date">
-  <time class="dt-published" datetime="2022-04-23T00:00:00.000Z" itemprop="datePublished">2022-04-23</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/04/23/spring-shanghai/index/">被偷走了春天的上海</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>3月初，在传言华亭宾馆的事件之后，有朋友劝我赶紧跑。道理我是懂的，换成往常我也肯定像香港记者一样跑了。可是在有两只猫的情况下，不知道该怎么带走。送去寄养太不靠谱了，无奈只能选择留下。</p>
-<p>虽然人走不了，但是总还是可以做一些准备的。本着我的“没有好下场”理论，我去天猫超市买了很多速冻水饺、手抓饼、水果零食、奶粉什么的。检查了下猫粮，还有一袋半，应该足够坚持两个月了。</p>
-<p>3月2日星期三，走了小区门去了一趟公司。谁曾想这竟然是我最后一次踏出小区门呢。</p>
-<p>因为害怕猫被杀死，从那天起我就再也没有长时间的出去，即使下楼也都是扔个垃圾然后赶快回来。</p>
-<p>3月上旬，我的单元楼内有密接，于是单元楼被封了起来。从此我的铁窗生活正式拉开了帷幕。</p>
-<p>3月下旬，事情你们都知道了。沿着黄浦江进行分区域封城，好像鸳鸯锅一样，留给浦东人准备物资的时间只有几个小时。</p>
-<p><img src="/images/2022042323554012.jpeg"></p>
-<p>往日繁华的陆家嘴突然变得空空荡荡。</p>
-<p>4月5日解封的承诺落了空，20日全面清零的目标也没见成效。每天被无数的负面情绪冲击着，已经开始逐渐变得麻木，见怪不怪了。</p>
-<p>一个月停工5天，并不意味着损失5&#x2F;30的产能；一年停工一个月，也并不意味着损失1&#x2F;12的产能。这不是简单的数学题。</p>
-<p>时至如今，我也看不到有什么可以翘首以待的日子了。心心念念的人生病了，焦虑万分却又无能为力。</p>
-<p>这是一个本应该踏青春游的季节，是万物复苏的季节，是不远万里的去见喜欢的人的季节。可是现在却只能被封在家里，看不到解封的可能。</p>
-<p>即使解封了，上海人也会被其他省市当作瘟神一样对待吧？恨不得就地正法。</p>
-<p>如果没有猫，我是不是早就逃跑了？可是如果没有猫，一个人的铁窗生活也应该会崩溃的吧？</p>
-<p>如果没遇见你，我是不是不会这样忧心？可是如果没有遇见你，我又怎样会对未来有了一点点的希望？</p>
-<hr>
-<p>Lockdown for 89 days.</p>
-<p>七年前在加入人人影视的时候，在新人群里被一个姑娘私聊了。也许因为她的名字是A，我的名字是B，在她的下面第一个人就是我，所以就找到了我。无论原因如何，我猜这应该是destiny吧，人和人之间有时候就是这样神奇。</p>
-<p> </p>
-<p>她的声音非常好听，温柔且细腻，像小孩子一样轻柔，但是又不失成年人的稳重。她的声音有一种能够让人听一次就喜欢上的魔力。</p>
-<p>如果说字如其人很夸张的话，那么声如其人至少会恰当一些的吧。</p>
-<p> </p>
-<p>在刚刚认识的那一年，她送了我好多英文书，在某本书的扉页上她写下了这样的一句话：</p>
-<p>Hope is a waking dream.</p>
-<p>希望是醒来的梦。</p>
-<p>这句话是那个时候一个名字叫做“第十区”的游戏里面的，那个游戏怎么玩已经不记得了，但是记得很清楚她说她很喜欢游戏的配乐。</p>
-<p> </p>
-<p>也许是6年前的春天吧，那一年我在学校教学楼下透气，看了下日期恰巧是她的生日，于是便和她说了生日快乐。</p>
-<p>时光飞快，接下来的几年几乎没有什么联系。</p>
-<p> </p>
-<p>在思科工作的时候，那一天突然接到了她的吐槽。很短暂的一次交流。虽然很久没有联系，但是也许关系不会变的吧。也许在她的心中，她还是蛮信任我的吧，所以才会和我说出这样比较私密的话题。</p>
-<p> </p>
-<p>两年前，在我动身来上海之前，在那家日企的茶水间，我再次听到了她的声音。她想跟我借点钱。我犹豫了一下，我知道这其中的风险，我连这个人都没有见过，很有可能会人财两空，哦不对，只有财空。见过很多其他人的例子，几年不说话，上来就借钱，借完人就失踪，欠钱的都是大爷。</p>
-<p>转念我又在想，她应该不会是这样的人吧！她的声音那么温柔，对我又很体贴，是受过高等教育的人，应该不会的吧。简单的验证了身份之后，我打消了顾虑，我便把钱转给了她。</p>
-<p>当然了，她怎么会骗我呢。事实证明，我的选择果然没有错。Trust is earned.</p>
-<p> </p>
-<p>一年前的夏天，她和我说她要来上海，我很开心，说好了等她到了请她吃我最喜欢的烤肉和烤鱼。</p>
-<p>说来也巧，那段时间因为前女友，恰巧是最郁闷的时候，郁闷到甚至想到了死。</p>
-<p>于是我便给自己找个新的散步的理由。在浦东新区，在夏日里，骑着能把屁股捅个洞的共享单车，我去实地考察了几乎所有她想去的地方。更巧的是，每次总是在到家之后就开始瓢泼大雨。是不是她在南方念着咒语守护着我呢。</p>
-<p>那几个月，她的这个计划应该是我听到的最好的消息了。</p>
-<p> </p>
-<p>可是，之后有关她的消息，我就全然不知道了。</p>
-<p>完全联系不到，发消息也不回，就仿佛人间蒸发了一样，有些担心她是不是出事了。我们的关系还没有好到可以直接打电话的地步吧？而且她说她接到电话会PTSD，那就更不要打了。</p>
-<p>不知道何时，有一次偶然在网易云音乐上看到她分享了几首歌，内心也释然了，人还在，问题应该不大，也许是有什么难言之隐吧。</p>
-<p> </p>
-<p>按照原计划，今年的劳动节期间，是打算去广东玩一玩的。见两位从未见过面的朋友，包括这位A，还有一个帮我从澳门带回来Xbox的高中同学。</p>
-<p> </p>
-<p>意料之外、但也是意料之内的封城了。先是深圳，于是我主动联系她。</p>
-<p>此时，才知道她已经跑到了江浙一带，已经不在深圳了，才知道她的微信号曾经被封，又不知道我的其他联系方式。所以才这样gone dark</p>
-<p>就这样重新建立了联系。</p>
-<p> </p>
-<p>「我们以后出去工作出去生活怎么样」，我便被这样的一句话彻底打动了。发现了我们是一样的人。直到今天，直到此时此刻。</p>
-<p> </p>
-<p>《影响力》中说到，我们喜欢那些与我们相似的人。不管他们是在观点上、个性上、背景上，还是生活方式上与我们相似，都会使我们对他们产生好感。也许正是因为这个相似性的心理弱点，我无可救药地被她吸引着。</p>
-<p> </p>
-<p>你的一言一语，你的每一朵小花花，每一颗小心心，每一句关怀和问候，都像磁性越来越强的磁铁，越来越快、越来越强地吸引着我。我不知道终点是什么，我不知道最终的碰撞会怎样，我只知道这一切仿佛就是物理定律，无法抵抗。</p>
-<p>可是，我心里很清楚，这是我不应该做的事情，我不可以喜欢上不应该喜欢的人。我已经在拼命克制了啊。</p>
-<p><img src="/images/202204232355407.jpeg"></p>
-<p>You came and saved me through the night. So I promise you</p>
-<p>I’ll be by your side</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/04/23/spring-shanghai/index/" data-id="clhp7rtk7008ws2qrclr106kp" data-title="被偷走了春天的上海" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1028,7 +1119,7 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1041,23 +1132,23 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

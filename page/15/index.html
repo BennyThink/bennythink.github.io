@@ -73,6 +73,511 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-vultr-change-plan/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/02/vultr-change-plan/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-02T00:00:00.000Z" itemprop="datePublished">2017-03-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/02/vultr-change-plan/index/">vultr大降价：论我是如何降配的</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨天<a target="_blank" rel="noopener" href="https://www.vultr.com/news/The-Vultr-Cloud-Is-More-Powerful-Than-Ever/">vultr降价</a>了，原来$5的768M、15G SSD变成了1024M、25G SSD，新增加了最低档的$2.5 512M、20G SSD，详情如下</p>
+<p><img src="/images/030217_0627_vultr1.png"></p>
+<p>作为一个穷人，咱自然是要选择最低档的啦，这样能省下来一半呢！遗憾的是vultr并<strong>不提供降配</strong>，而我又太喜欢目前的IP地址了，还懒得配置Nginx什么的，所以，咱要为了省钱而战斗！</p>
+<p>那些想选高档的，可以在Settings-Change plan中选择，多出来的硬盘和内存，不要白不要嘛。</p>
+<p>PS，如果想要注册vultr还不嫌弃我的ref的话，就戳这里吧<a target="_blank" rel="noopener" href="http://www.vultr.com/?ref=6864780">http://www.vultr.com/?ref=6864780</a></p>
+<h2 id="备份"><a href="#备份" class="headerlink" title="备份"></a>备份</h2><p>这一步不是必须的，但是，做一下备份又何妨，万一不小心弄错了数据丢了可就是哭爹也没用啦。</p>
+<p>我整理下我个人认为需要备份的东西，以Ubuntu为例：</p>
+<blockquote>
+<p>网站文件（我的存放在&#x2F;home下，使用tar –jcpvf保留权限）</p>
+<p>数据库备份</p>
+<p>Let’s Encrypt证书和配置</p>
+<p>Nginx配置文件</p>
+<p>crontab</p>
+<p>.bashrc</p>
+<p>update-motd.d（用于自定义SSH欢迎信息）</p>
+<p>authorized_keys（公钥）</p>
+</blockquote>
+<p>以及其他任何需要备份的文件。</p>
+<h2 id="做快照"><a href="#做快照" class="headerlink" title="做快照"></a>做快照</h2><p>咱要做个快照，因为在vultr上是可以用快照创建新实例的哦。</p>
+<h2 id="保留IP地址"><a href="#保留IP地址" class="headerlink" title="保留IP地址"></a>保留IP地址</h2><p>由于我对当前的IP地址情有独钟，于是就保留下。那些无所谓IP地址的人就不要管啦。</p>
+<p><a target="_blank" rel="noopener" href="https://my.vultr.com/ips/add/">https://my.vultr.com/ips/add/</a></p>
+<p>在页面下方点convert即可。</p>
+<p>好嘞，咱把旧的服务器destroy了吧，放心，快照还在的，哈哈。一定要确保备份都成功了哦，以防万一嘛。</p>
+<p>此刻，我的心有一种碎了的感觉。Blog is my life…</p>
+<h2 id="购买新实例"><a href="#购买新实例" class="headerlink" title="购买新实例"></a>购买新实例</h2><p>这部就不说了啊，去买个新的，对于我来说，也就是最便宜的那个。</p>
+<p>需要注意的是，在Server Type时记得选择你的快照，咱不能重新搭建各种环境吧，太费事啦。</p>
+<p><img src="/images/030217_0627_vultr2.png"></p>
+<p>之后Server Size选择最廉价的那款</p>
+<p>IP Address选择保留的那个。</p>
+<p>静静等待…这个过程有些漫长</p>
+<p>然后就可以了。好吧，完事了。复活了，就是这么简单。真是省心我还寻思着更改配置文件呢</p>
+<p>[v_error]注意： 如果你的快照特别大，大过了了你所选择的新实例的硬盘大小，可能会无法恢复。此时只能想办法把快照弄小点啦。[&#x2F;v_error]</p>
+<h2 id="后遗症"><a href="#后遗症" class="headerlink" title="后遗症"></a>后遗症</h2><h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><p>此时如果登录SSH，可能会有类似如下的警告：</p>
+<p><img src="/images/030217_0627_vultr3.png"></p>
+<p>都说了SSH把被中间人劫持的风险交给用户承担了嘛！</p>
+<h3 id="取消保留IP"><a href="#取消保留IP" class="headerlink" title="取消保留IP"></a>取消保留IP</h3><p>保留IP每个月要3块呢，这怎么行？</p>
+<p>咱点进去</p>
+<p><a target="_blank" rel="noopener" href="https://my.vultr.com/ips/">https://my.vultr.com/ips/</a></p>
+<p>点自己IP后面的铅笔，右上角的垃圾桶就可以啦。</p>
+<p>别急哦，24小时之后才能Un-reverse，所以咱就老老实实的花个7毛钱，设置个闹钟嘛，嘿嘿。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/02/vultr-change-plan/index/" data-id="clhp7rtn000azs2qrd6x4368h" data-title="vultr大降价：论我是如何降配的" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-school-5/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/26/school-5/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-26T00:00:00.000Z" itemprop="datePublished">2017-02-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/26/school-5/index/">[学校上网系列]5.从设置密码中想到的：糟糕的密码</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>小葵花妈妈课堂开课啦，孩子什么老不好……这是本系列的第五篇文章，细心的朋友们可能发现，第四篇怎么被吃啦？噢其实<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">第四篇藏的比较深</a>，哈哈。</p>
+<p>今天我们主要讨论的问题是，密码：如何设置一个安全的、健壮的密码，以及一些保护账号安全的方式。</p>
+<p>[v_blue]小提示，这里说的密码，也就是口令，登录的时候输入的那个密码，不是公钥密码的那个密码，下面说密码、口令，都是指的这个，就不再赘述啦，嘿嘿嘿。[&#x2F;v_blue]</p>
+<p>六七年前，编程随想写过一篇<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2010/06/howto-prevent-hacker-attack-3.html">《如何防止黑客入侵[3]：如何构造安全的口令&#x2F;密码》</a>，尽管已经过去了这么多年，但他介绍的思路还是非常有参考价值的。</p>
+<p>在探讨怎么设置密码之前，咱必须得接近夸大其词般的给各位一个警告：大部分人所设置的密码，其实非常非常<strong>非常不安全</strong>；一部分公司&#x2F;网站的安全防护意识非常差。</p>
+<hr>
+<p>咱先大致说说，你的密码是怎么泄漏的吧！</p>
+<h1 id="你的密码是如何泄漏的？"><a href="#你的密码是如何泄漏的？" class="headerlink" title="你的密码是如何泄漏的？"></a>你的密码是如何泄漏的？</h1><h2 id="网站被黑、被拖库、SQL注入等"><a href="#网站被黑、被拖库、SQL注入等" class="headerlink" title="网站被黑、被拖库、SQL注入等"></a>网站被黑、被拖库、SQL注入等</h2><p>近几年来层出不穷的用户数据泄漏事件，估计大家可能有所耳闻吧。</p>
+<p>这一点最值得提出表扬的就是网易，要不怎么会被称作是”<strong>脱裤狂魔</strong>“呢。</p>
+<p>当然CSDN也一定要提一提，在<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/2011%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%AB%99%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%BA%8B%E4%BB%B6">2011年的泄密事件</a>中，CSDN那丫的可是明文密码啊，这好歹还是个技术社区呢…</p>
+<p>国外的公司也没少被爆，什么雅虎啊Dropbox啊都没少被黑。</p>
+<p>要是公司脑筋正常的话，再怎么也会比较有良心的把密码hash一下。但是，如果哪一天出了安全问题，数据库被拖下来，那么黑客可以对散列值运用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%BD%A9%E8%99%B9%E8%A1%A8">彩虹表</a>，对待大部分比较简单的密码，还是很容易就还原出来明文的。</p>
+<p>PS，仅仅hash是远远不够的，把散列值再hash再hash再hash也是不够的，因为大部分散列函数的运算速度往往是非常快的。安全性比较高的方式之一是使用随机盐配合安全的散列函数。</p>
+<p>近日看到一个新闻，Google找到了<a target="_blank" rel="noopener" href="http://www.solidot.org/story?sid=51474">有效碰撞SHA-1的方法</a>，足以载入史册的一次尝试，这么多年，SHA-1终于也要步入MD5的后尘啦。这不，写文章这功夫，<a target="_blank" rel="noopener" href="http://www.solidot.org/story?sid=51473">cloudflare也被干了</a>，<a target="_blank" rel="noopener" href="https://blog.cloudflare.com/incident-report-on-memory-leak-caused-by-cloudflare-parser-bug/">暴露了客户的机密信息</a>。 不得不说， 能够在第一时间把出现的问题公布出来，这种精神值得赞扬；而不像某些公司藏着掖着以为会有不透风的墙。</p>
+<h2 id="木马、后门"><a href="#木马、后门" class="headerlink" title="木马、后门"></a>木马、后门</h2><p>十几年前曾经流行QQ盗号木马，近几年甚至出来了<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/XcodeGhost%E9%A3%8E%E6%B3%A2">XcodeGhost</a>、<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2016/08/Trojan-Horse-DCM.html">黑暗幽灵</a>这种高级的后门、木马。真是应了范伟的那句话，防不胜防啊！</p>
+<p>不知道XcodeGhost是不是借鉴了C语言他爹们的设想。</p>
+<h2 id="不安全的传输"><a href="#不安全的传输" class="headerlink" title="不安全的传输"></a>不安全的传输</h2><p>假如网站在登录的时候，没有使用HTTPS，那么传输过程中就是<strong>明文</strong>的，<strong>中间人&#x2F;窃听者</strong>极有可能获取到用户输入的密码（即使是hash之后的也十分危险）；假如网站只在登录过程中使用HTTPS，其实也是很危险的，中间人&#x2F;窃听者如果获取到cookies，也就基本上等同于知道密码了；哪怕是一个纯静态的、没有HTTPS的网站，中间人也可以改掉网站的某部分内容（外观啊，链接啊什么的），将访问者引入钓鱼网站等等。</p>
+<p>这也是我一直极力推崇<strong>全站HTTPS</strong>的原因，<strong>无论敏感信息是否存在，哪怕是纯静态，也要使用HTTPS</strong>。使用HTTPS的价值不仅仅在于对访客负责这种责任感，还可以防止运营商薅羊毛等等。</p>
+<p>这一点不仅仅适用于网站，任何登陆场合，如果使用了不加密的、不安全的协议，那么都是非常危险的，比如说…<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Telnet">telnet</a></p>
+<p><img src="/images/022517_0411_51.png"></p>
+<p>网易，我干你全家</p>
+<h2 id="暴力破解"><a href="#暴力破解" class="headerlink" title="暴力破解"></a>暴力破解</h2><p>一些网站系统的后台提供的API或者是什么，并<strong>不限制登录尝试的次数</strong>，比如说WordPress有一个xmlrpc.php啦，早期某邮箱POP3随意暴力破解啊。</p>
+<h2 id="钓鱼"><a href="#钓鱼" class="headerlink" title="钓鱼"></a>钓鱼</h2><p>没有小锁头的地址栏是不可信的，I1l0oO是很难分清的，在本系列的前一篇文章《<a target="_blank" rel="noopener" href="https://dmesg.app/school-2.html">从钓鱼网站中想到的：不靠谱的域名》</a>已经比较完善的提到了这个问题，这就不说了。</p>
+<h2 id="一不小心说走嘴"><a href="#一不小心说走嘴" class="headerlink" title="一不小心说走嘴"></a>一不小心说走嘴</h2><p>这种事情一般来说比较罕见，但是对于程序员这圈，可能会比较常见。比如说我根据七牛的SDK写了个客户端，上传源代码的时候不小心忘记改掉API Key，比如说写博文发图的时候不小心泄露了MySQL的密码……反正我干过。</p>
+<p>这事，不想不知道，一想吓一跳吧！</p>
+<p>使用git以及其他版本控制的童鞋们要注意啦，假如你不小心泄漏了敏感信息，不要以为删除、修改、commit、push什么的万事大吉了，哪怕没人看过，这也是非常危险的(更何况在渗透的第一步搜集信息中，git可是重点关注对象，所以自然有大把的自动化工具)。为啥？版本控制啊，这玩意生来就是为了能够穿梭于每次历史记录啊…时光机一般的存在。办法之一是，就是尽快改掉对应的Key、密码什么的；办法之二是新建一个临时分支，始于敏感信息之前，然后切换到临时分支，把原来的master分支删掉，再从临时分支新建为master分支然后push修改过后的代码，基本就是这么个理论步骤吧；办法之三是用类似<code>git filter branch</code>或者是专用工具清除历史记录。</p>
+<hr>
+<p>还有一些非技术手段，比如说偷窥、欺骗、盗窃、内部泄露啊，这就太非主流了，不予详述，咱也不说怎么防范这种类型的泄露。</p>
+<p>说到偷窥，斯诺登输入密码的时候会用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%AC%AC%E5%9B%9B%E5%85%AC%E6%B0%91">布料给自己遮进去</a>。</p>
+<p>总之吧，我们要时刻记得，咱的密码，<strong>有可能正处在危险之中</strong>。既然服务商可能无法提供足够好的安全保障，即使咱们的某个密码不知道为何泄露了，我们也要保证其他账户是安全的（听着有点前向安全的感觉）、也就是抵抗撞库。</p>
+<hr>
+<p>下面我们就走入正题，谈谈不安全的密码使用方式、怎样设置安全的密码、怎样保护密码和设备。</p>
+<h1 id="不安全的密码使用方式"><a href="#不安全的密码使用方式" class="headerlink" title="不安全的密码使用方式"></a>不安全的密码使用方式</h1><p>由于咱们人类记忆力有限，还都喜欢偷懒，就总会喜欢设置种种简单到弱智的密码、或者是为了图方便使用了不安全的保存密码方式。这事啊，谁不曾年轻？下面的这些事，我基本上都干过、或者是看着别人干过，好吧。咱不能因为咱的账号没有价值、不值钱，就不去保护、甚至诋毁接近于给自己添堵的”设置安全密码的方式”，是吧。</p>
+<h2 id="弱密码（弱口令）"><a href="#弱密码（弱口令）" class="headerlink" title="弱密码（弱口令）"></a>弱密码（弱口令）</h2><p>尽管123456、888888、abc123、iloveyou、147258369、qazwsxedc（基于qwer键盘）的弱口令已经是要被说烂了，但是咱这还得说下，<strong>大部分情况下</strong>，弱口令是不可取滴….这种方法十分容易遭到字典攻击和暴力破解。</p>
+<h2 id="一个密码走天下"><a href="#一个密码走天下" class="headerlink" title="一个密码走天下"></a>一个密码走天下</h2><p>咱人类的记忆力远远比不上机器，所以很多人都习惯一个密码、或者是几个密码走天下，其实这样是<strong>非常危险</strong>的。假如某个密码被破解了，那么黑客就可以拿去撞库，这基本上意味着全线崩盘。</p>
+<h2 id="使用生日、手机号等作为密码"><a href="#使用生日、手机号等作为密码" class="headerlink" title="使用生日、手机号等作为密码"></a>使用生日、手机号等作为密码</h2><p>使用生日、手机号来设置纯数字密码也是<strong>非常不安全</strong>的，活着的人都差不多是近100年的，手机号也不过是11位，对于暴力破解程序来说，这都是没太大差别的，几乎就是不太长的时间问题。尤其是当数据库被拖下来之后，配合彩虹表简直不要太爽。</p>
+<p>值得一提的是，有的人认为，我在生日之后加个标识性的东西，就可以增加破解难度了，比如说我的手机号是10086，在微博注册，那么密码就是10086weibo。听着好像有点道理，但实际上这也是欠妥的，因为黑客只要破解掉一个，就能发现你的规律，那么他大概也就能猜到你的QQ密码是10086QQ，以此类推。</p>
+<h2 id="与用户名相同的密码"><a href="#与用户名相同的密码" class="headerlink" title="与用户名相同的密码"></a>与用户名相同的密码</h2><p>由于咱人类健忘，所以有些人就把用户名作为密码，这还用说嘛，太危险啦。</p>
+<p>值得称赞的是，有些公司已经禁止这样设置密码了（微软甚至禁止设置历史密码）。</p>
+<h2 id="在用户名中包含个人信息"><a href="#在用户名中包含个人信息" class="headerlink" title="在用户名中包含个人信息"></a>在用户名中包含个人信息</h2><p>有很多人习惯在用户名（或者是什么微信号啊微博啊什么的）添加上个人信息，比如说teddy930612，这样咱就知道了他的生日是93年6月12日，诸如此类。</p>
+<p>严格来讲，这一点可能会对密码安全造成一定的威胁，至少也会泄露一定量的个人隐私。有的时候咱后知后觉，没办法改用户名什么的，那也没办法啦，只能<strong>趁着羊还没死的时候补住漏洞</strong>咯。</p>
+<p>这一点有些说跑题了，很容易就提到了个人隐私、社会工程学的问题，现如今在网上，身份的耦合度有些太高了，很多情况下，给我一个账号，很容易找到他的几乎所有账号。假如此人恰巧一两个密码走天下，那你懂的。</p>
+<p>或许改天可以再开一贴谈谈社会工程学与隐私吧。</p>
+<h2 id="不安全的保存凭据"><a href="#不安全的保存凭据" class="headerlink" title="不安全的保存凭据"></a>不安全的保存凭据</h2><p>标题很难懂，我的意思是，很多人习惯把账号密码写到记事本上（手写），这样假如被盗、遗失，那所有的账号就都危险啦；</p>
+<p>有些人喜欢把密钥、登录凭证、甚至是升级版的”手写记事本”等东西存到U盘里，那U盘被借走、遗失的情况下，这些安全性也就跟着打水漂啦。</p>
+<h2 id="使用不安全的、有问题设备-x2F-软件"><a href="#使用不安全的、有问题设备-x2F-软件" class="headerlink" title="使用不安全的、有问题设备&#x2F;软件"></a>使用不安全的、有问题设备&#x2F;软件</h2><p>这一点似乎是最容易被忽视的，假如你使用的键盘，并不直接插到USB口的，而是有一个像是转接器一样的东西再插到USB上，那么就相当于有硬件”键盘记录器”了，所有的密码就拜拜啦；假如你使用的路由器会悄悄上传用户隐私、或者存在漏洞，或者是你使用的软件总是没事就扫描你的硬盘替你看看有没有老师们，再或者是没节操的输入法。隐私拜拜，也就意味着密码安全会受到一定的威胁。</p>
+<p>上面举的这三个栗子，都是真实存在的，好奇的猫咪们可以自己问问Google胡萝卜的事情（<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%B0%B7%E6%AD%8C%E4%B8%AD%E5%9B%BD#.E6.95.8F.E6.84.9F.E8.AF.8D.E6.8F.90.E7.A4.BA.E6.9C.8D.E5.8A.A1">g.cn和胡萝卜的故事</a>哈哈哈）。</p>
+<p>这一点我们似乎很难避免，因为我们总要跟各种硬件软件打招呼，但是至少我们可以采取多使用开源的东西、使用有骨气的大厂的产品来<strong>最大程度规避风险</strong>，比如说咱把路由器原厂固件刷成openwrt啦，换用nexus或者是刷成cm啦等等。</p>
+<p>停！跑个题，难道开源软件就没有危险了吗？难道你看到源代码、源代码经过安全审计就没有危险了吗？不，并不是这样的，使用开源会<strong>比较有效的降低风险。</strong>但是，汤普森老爷爷笑了笑，你们啊，图样图森破，听没听说过<a target="_blank" rel="noopener" href="http://ring0.me/2014/11/insert-backdoor-into-compiler/">Thompson hack</a>？想当初爷爷我可是能够毫无障碍登录贝尔实验室各种UNIX机器的，要问俺是谁，叫俺万能的天神就可以了….（此处鸟哥乱入）</p>
+<p>说句题外话：不得不说肯·汤普森和丹尼斯·里奇，毫不夸张的说这两位创造了整个计算机世界。令人难过的是，里奇于2011年去世；讽刺的是，有人听说C语言之父去世，惊呼，啥？谭浩强死了？</p>
+<p>提到汤普森，又得说，这老头子当年挺爱玩游戏，搞了个名为”星际旅行”的游戏，可是贝尔实验室撤走了Multics计划，没得玩了，于是艺高人胆大，自己写个系统玩呗…这都是为了玩个游戏啊，是吧。</p>
+<hr>
+<p>好了咱不怀念历史啦，来说正题。</p>
+<h1 id="怎样设置安全的密码"><a href="#怎样设置安全的密码" class="headerlink" title="怎样设置安全的密码"></a>怎样设置安全的密码</h1><p>如何设置密码，其实是非常深奥的，哪怕你现在没有死羊，想要全部改一圈密码，也是需要非常大的毅力和耐心的。</p>
+<p>咱先提一句，<strong>随机密码是最好的密码</strong>。</p>
+<p>假如我们的每个账号对应的密码都是随机的、没有任何规律的，那自然也就几乎不可能破解了，哪怕哪个傻逼网站明文存储，也只不过会影响到这组用户的安全性。恰如密码学中的”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%B8%80%E6%AC%A1%E6%80%A7%E5%AF%86%E7%A2%BC%E6%9C%AC">一次性密码本</a>“是无法被破解的一样，这种操作方式也是接近不现实的。咱人类咋能记住随机的玩意啊？比如说这玩意<code>yq0pkjQzBhHXewgPVkga</code>还有这玩意<code>2zG/LPTu1qRyikFCsCL3</code>，安全性倒是挺好，但是个人都记不下来嘛！（这俩是我使用openssl随机生成的）</p>
+<p>咱就想想别的办法。不知道大伙有没有看过一些电影，一些组织内部可能会存在分级管理的制度，那咱也可以对密码进行分级管理啊。咱要用<strong>最多的精力保护最重要的密码</strong>，二八原理嘛！</p>
+<ul>
+<li><em>一次性密码</em></li>
+</ul>
+<p>一次性密码就是用完就扔的意思，比如说有的时候得去那种必须回复才能下载附件坑爹论坛下载东西，随意注册一个，用完就扔，丢了被盗了忘记了也没什么损失。这个时候，也基本上不用考虑太大的安全性因素，随意设置个哪怕123456都是可以的。</p>
+<ul>
+<li><em>一般重要的密码</em></li>
+</ul>
+<p>这种密码，建议还要根据使用的程度来细分。有些密码可能重要，但是使用程度不太高；有些则恰恰相反。</p>
+<ul>
+<li><em>极其重要的密码</em></li>
+</ul>
+<p>这种密码，基本上就是一旦失窃、全线崩盘，比如说操作系统的密码啦，Google的密码啦等等。所以这类密码一定要用最强大的措施来保护。</p>
+<h2 id="构造复杂的密码"><a href="#构造复杂的密码" class="headerlink" title="构造复杂的密码"></a>构造复杂的密码</h2><p>咱暂且把分级制度抛在脑后，想想，如何构造一个安全的密码？</p>
+<p>包含数字、字母、特殊符号，这已经是老生常谈了。</p>
+<p>（以下前四个方法受启发于<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2010/06/howto-prevent-hacker-attack-3.html">编程随想</a>）</p>
+<h3 id="插入特殊字符"><a href="#插入特殊字符" class="headerlink" title="插入特殊字符"></a>插入特殊字符</h3><p>在密码中插入特殊字符将会提高暴力破解的难度，比如你原来的密码是<code>iloveyou</code>，那么插入之后就变成了<code>i-love-you</code></p>
+<h3 id="使用类似字符"><a href="#使用类似字符" class="headerlink" title="使用类似字符"></a>使用类似字符</h3><p>像a和@，9和g，1和!,0和o都是比较接近的字符，比如说我的密码是<code>gap100</code>，那么这么一转换就变成了<code>9@p!oo</code>，这密码强度还是不错的，就是不太好记。敬请注意，<code>p@ssword</code>是非常著名的弱口令哦。</p>
+<h3 id="数学等式和中英文转换"><a href="#数学等式和中英文转换" class="headerlink" title="数学等式和中英文转换"></a>数学等式和中英文转换</h3><p>比如说我的密码是<code>1023+1=1024</code>，强度本身就挺不错的，我转换成<code>1023+one=1024</code>，这样强度就更高了（这个…用英文拼写1024有点长）。</p>
+<h3 id="使用散列值"><a href="#使用散列值" class="headerlink" title="使用散列值"></a>使用散列值</h3><p>咱可以把某个至关重要的信息，比如说服务器的主机名叫做big，咱把big这个存到一个纯文本文档中（注意编码格式的各种坑啦），然后用散列函数hash下，然后取其中的前12位作为密码；另一个服务器叫做small，也是同理。当然啦，实际过程中这个字符串还是长点比较好。</p>
+<p>咱能发现，这两个散列值之间看不出来有什么联系，也没办再转换成明文。咱甚至可以给它迭代九九八十一回，是吧。</p>
+<p>需要注意的是<strong>尽量不要使用base64</strong>，因为base64的过程是可逆的。假如你要base64、base32来回四十九变，当我没说，在机器面前暴力破解这都是分分钟的事！</p>
+<h3 id="使用具有特殊意义的字符串"><a href="#使用具有特殊意义的字符串" class="headerlink" title="使用具有特殊意义的字符串"></a>使用具有特殊意义的字符串</h3><p>比如说，我和女友Marry相识于2016年12月9日北京天安门，咱就可以这么组合</p>
+<p><code>Benny+Marry==20161209+BeijingTAM</code></p>
+<p>各位就发挥想象力，搞个连Mary都猜不到的密码吧哈哈。</p>
+<p>构造了复杂的密码之后，咱们才能够使用更高级的方式呀！</p>
+<h2 id="使用密码管理器"><a href="#使用密码管理器" class="headerlink" title="使用密码管理器"></a>使用密码管理器</h2><p>顾名思义，密码管理器就是用来管理密码的一个东东啦。这有点像前面提到”把密码写到记事本上”，唯一不同的是密码管理器所存储的密码都是经过<strong>强加密</strong>的。</p>
+<p>所谓密码管理器，基本上就是使用一个主密码，然后使用它来<strong>生成、管理、保存</strong>足够强大的随机密码，所以我们只需要记住密码管理器的主密码并妥善保护，就够了。</p>
+<p>不过，值得注意的是，使用密码管理器，也就意味着把所有的鸡蛋都放到了”密码管理器”这一个篮子里，如果密码管理器的主密码被人破解了，服务器被人拖了，那么这些鸡蛋也就岌岌可危了。</p>
+<p>同时选择密码管理器也是一个学问，不仅仅要考虑到厂商的技术实力，还要考虑跨平台、费用等问题。口碑比较好的有1Password、LastPass等</p>
+<p><img src="/images/022517_0411_52.png"></p>
+<p>LastPass的随机密码生成</p>
+<p>[v_notice]</p>
+<p>注： 关于密码管理器，很多人都会有一些反对意见，是否使用密码管理器确实是个很纠结的问题。使用随机的安全，但是人记不住；使用密码管理器方便，但是还要担心“鸡蛋篮子”。</p>
+<p>就个人来说吧，我混合了这两种，并且全部启用了两步认证。</p>
+<p>[&#x2F;v_notice]</p>
+<hr>
+<h1 id="怎样保护密码和设备"><a href="#怎样保护密码和设备" class="headerlink" title="怎样保护密码和设备"></a>怎样保护密码和设备</h1><p>在构造了安全的密码之后，如果我们不费心思去保护它，那么恐怕效果是不太好的。</p>
+<p>移动设备这么流行，几乎人手必备，一部手机里所存储的隐私、机密信息已经远远超乎人们的想象了（这也是我支持苹果对着干FBI的原因之一）。毫不夸张的讲，<strong>给我他的手机，我能了解他的一切</strong>。而移动设备又往往很小，很容易失窃，这也往往会造成非常大的安全隐患。</p>
+<p>不得不说，iOS的安全性要比Android好多了。</p>
+<p>下面我就谈一谈，我是如何保护自己的密码和设备的。</p>
+<h2 id="开启两步验证"><a href="#开启两步验证" class="headerlink" title="开启两步验证"></a>开启两步验证</h2><p>所谓两步验证就是知道密码了还不够，还得需要另一种<strong>身份验证方式</strong>才能够成功授权登录，最常见的就是短信、语音验证码。在这里最值得推荐的就是Google Authenticator（身份验证器），每次登录都要打开验证器输入六位数字才可以成功登录。</p>
+<p>其实这也是一种”把鸡蛋都放在一个篮子里”，比较好的策略是把鸡蛋分配到多个篮子里，这需要自己找到一个篮子数量的平衡点。</p>
+<p><img src="/images/022517_0411_53.png"></p>
+<p>随时间随机变化的验证码</p>
+<p>注意：使用两步验证还是有一些坑的</p>
+<h3 id="1-保护好你的两步验证设备"><a href="#1-保护好你的两步验证设备" class="headerlink" title="1. 保护好你的两步验证设备"></a>1. 保护好你的两步验证设备</h3><p>如果我们的两步验证设备（通常是手机）丢了，那么别有用心的人就可以打开“身份验证器”，发现我们哪些设备开启了两步验证，然后尝试重置密码等。所以，两步验证设备必须要妥善保护，安全起见应该开启锁屏密码、存储加密、PIN码。</p>
+<h3 id="2-保护好随机码"><a href="#2-保护好随机码" class="headerlink" title="2. 保护好随机码"></a>2. 保护好随机码</h3><p>有些网站在你启用了两步认证之后，还会给你一组随机码（甚至只可以下载一次），这是用来在设备丢失之后恢复账户的。这个随机码和两步验证一样重要，一定要妥善保存。</p>
+<h3 id="3-可以考虑保存两步验证的二维码"><a href="#3-可以考虑保存两步验证的二维码" class="headerlink" title="3. 可以考虑保存两步验证的二维码"></a>3. 可以考虑保存两步验证的二维码</h3><p>在设备丢失之后，我们想要恢复两步验证可能比较麻烦。所谓未雨绸缪，我们可以在开启两步验证的时候将二维码图片保存下来并妥善保管，日后如果设备丢失，可以用另一个设备快速找回（此建议来自namesilo）；或者有多个手机可以考虑两个设备都扫描二维码（这同时也增大了保护设备安全的必要性）</p>
+<h2 id="锁屏密码"><a href="#锁屏密码" class="headerlink" title="锁屏密码"></a>锁屏密码</h2><p>锁屏密码就是顾名思义，好像没什么需要说的。锁屏密码是<strong>非常有必要的</strong>，因为在移动设备失窃的时候，锁屏密码就会成为<strong>第一道防线</strong>，有很多人会在记事本里记下很敏感的信息，有非分之想的人也可以轻松通过手机短信找回所有密码。如果想要清除锁屏密码，通常就需要恢复出厂设置，此时所有数据也被抹除了，虽说手机是别想找回来了，但是数据还是安全的嘛。</p>
+<p>“反正我的手机里也没什么隐私”的说法是不可接受的。人人都有隐私，你有不想让别人看到自己和闺蜜的照片、我有不想让别人看到我和学妹的聊天记录。这也是我们设置密码、发展密码学、支持强加密的原因；同理，”反正我也没有钱”的说法也是更难以接受的。</p>
+<p><img src="/images/022517_0411_54.png"></p>
+<p>撤销USB调试授权</p>
+<p>[v_blue]请注意：</p>
+<p>早期版本的Android如果开启USB调试，是可以通过adb工具清除锁屏密码的；最近版本的Android则需要解锁之后信任电脑，之后才会允许USB调试。既然不知道你的锁屏密码，也就无法使用USB调试清空掉锁屏密码，除非他把你电脑手机一起偷走、你还USB调试过。[&#x2F;v_blue]</p>
+<h2 id="SIM卡启用PIN码"><a href="#SIM卡启用PIN码" class="headerlink" title="SIM卡启用PIN码"></a>SIM卡启用PIN码</h2><p>这东西是啥，可能有些人不知道，以前功能机时代，这东西还是很流行的。SIM卡锁也就是PIN码，当手机向运营商鉴权的之后（通俗点将就是开机之后搜索信号的时候），将会要求用户输入一个4位的密码，输入正确才可以解锁并成功连接到移动网络；如果错误三次，SIM卡就会锁死，需要使用运营商提供的PUK码来解锁；如果PUK码再错10次，那这个SIM卡就会自毁，只能掏钱去补卡啦。当然啦，有些地方的营业厅，可能不会很仔细的鉴别客户身份…</p>
+<p>PIN码的特点就是，无论你把这张SIM卡插到哪部手机里，都是<strong>需要输入密码才能使用</strong>。</p>
+<p>很多人可能不理解这有什么用，有锁屏密码还不够吗？当然<strong>远远不够</strong>。</p>
+<p>假如你的手机丢了，我虽说解不开锁屏密码，但是我可以把SIM卡弹出来放到别的手机里，然后以此来一步一步收验证码重置支付宝密码啊什么的。</p>
+<p>不信吗？自己<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23100598">戳去看</a>咯</p>
+<h2 id="存储加密-x2F-全盘加密"><a href="#存储加密-x2F-全盘加密" class="headerlink" title="存储加密&#x2F;全盘加密"></a>存储加密&#x2F;全盘加密</h2><p>iOS用户可能要窃喜了，因为很早之前苹果就启用了<strong>全盘加密</strong>（估计是iOS 5左右吧）；而Google直到Android 6.0之后才强制要求厂商全盘加密，结果还是没太大效果。谁说跑分没用的！</p>
+<p>咱为啥要全盘加密呢，难道锁屏密码和PIN码还不够吗？当然不够了，假如有人把eMMC芯片抠出来、或者是使用某种技术克隆出来，那么手机里存储的东西自然也就跟着走啦。手机里的秘密那么多，是吧~</p>
+<p>开启全盘加密就可以对抗这种情况。</p>
+<p><img src="/images/022517_0411_55.png"></p>
+<p>一旦开启全盘加密，则无法关闭</p>
+<p> </p>
+<h2 id="其他注意事项"><a href="#其他注意事项" class="headerlink" title="其他注意事项"></a>其他注意事项</h2><p>许多人可能不理解，为什么我下载软件都会选择去官网？当然是怕XX管家给我加后门啦。假如我下载到了带后门的Chrome，那这也基本意味着全线崩盘。这也是为什么我使用Linux的原因，什么下载不下载的直接包管理器基本上就都解决了。</p>
+<p>当然，怎么下载软件、怎么判断自己是不是下载到了安全的软件、数字签名的知识等，这，咱留到下一篇《从下载软件中想到的：正确下载软件的姿势》再说啊~~</p>
+<h2 id="写后谈"><a href="#写后谈" class="headerlink" title="写后谈"></a>写后谈</h2><p>一不小心这篇就写了六七千字，估计可能是有史以来我写的最长的单篇原创博文吧。噢….白驹过隙，转眼已经加入<a target="_blank" rel="noopener" href="http://www.zmz2017.com/">人人影视</a>两年了…how time flies? </p>
+<p>咱毕竟不是一出生就知道这些，<strong>趁着羊没丢没死的时候，补住洞嘛</strong>。</p>
+<p>不知道读者有没有想改掉密码或者是增强保护的冲动？如果有，那敢情好，建议为自己<strong>创建一个密码分级管理机制，对不同等级密码使用不同的处理方式</strong>。</p>
+<p>或许有人会问，我给出了这么多思路建议，自己究竟做的如何呢？其实可能并不是固若金汤，但是重要的应用都已经开启了<strong>两步验证</strong>，比如说，微博你们就盗去吧，Twitter还是别想啦。</p>
+<p>最后，可能有些人会觉得，我有点想的太多，觉得我有<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%A2%AB%E5%AE%B3%E5%A6%84%E6%83%B3%E5%9E%8B">被害妄想症</a>，可能有人会质疑，你也不是坐拥百万的土豪，会有人来耗尽千辛万苦来偷你的密码吗？</p>
+<p>对待这种说法，我只能说，这种说法有点像”I have nothing to hide so I have nothing to fear”，呵呵。我没有钱并不能成为我不保护自己账号安全的理由。</p>
+<hr>
+<p>[v_notice]写完这篇博文的时候，突然听到一首歌，尽管我一个字都听不懂，但是听到他的声音和那种好似发自内心的呼唤的时候，感觉整个心都快碎了。这么多年了，听到他的声音，依旧还会为之颤动…[&#x2F;v_notice] <a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/Vitas%20-%20%D0%9F%D1%80%D0%BE%D1%81%D1%82%D0%B8,%20%D0%BF%D1%80%D0%BE%D1%89%D0%B0%D0%B9.mp3">https://o51bfbumd.qnssl.com/Vitas%20-%20%D0%9F%D1%80%D0%BE%D1%81%D1%82%D0%B8,%20%D0%BF%D1%80%D0%BE%D1%89%D0%B0%D0%B9.mp3</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/26/school-5/index/" data-id="clhp7rtjd0087s2qrgkay34ar" data-title="[学校上网系列]5.从设置密码中想到的：糟糕的密码" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-jekyll-nginx/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/19/jekyll-nginx/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-19T00:00:00.000Z" itemprop="datePublished">2017-02-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/19/jekyll-nginx/index/">Jekyll + Nginx 配置指南</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天突然心血来潮搞上了Jekyll，好吧，就是吃饱了撑的，只是花了一个多小时而已……使我异常惊奇的是，我这一搜啊，全都是怎么在GitHub Pages上玩Jekyll的，也没有找到在VPS上玩Jekyll的啊。真是哦！好吧，那咱就参考官方的文档，自己研究嘛！</p>
+<p>不过先解释下吧，为啥咱要在VPS上玩Jekyll啊？Pages不也很好吗？ 写博客和写代码是两种完全不同的创作，写代码往往需要耗费更多的精力与脑筋，而博客则不会这样… 重中之重是，自定义域名的情况下GitHub Pages<strong>不支持HTTPS</strong>（感谢评论区horo的指正<strong>）</strong>，Flexible SSL无异于掩耳盗铃。对于我来说，HTTPS是必须要有的，无论机密信息是否存在，我必须要对我的访客负责。而且我家这破网经常给我Reset！擦你丫的GFW啊。?? 其实我在<a target="_blank" rel="noopener" href="https://dmesg.app/reason-of-this-blog.html">《为什么我要写独立域名的博客》</a>中已经解释了大部分原因。这里也不多说啦。 [v_tips]关于“全站HTTPS”，我认为这是势在必行的，<a target="_blank" rel="noopener" href="https://fiveyellowmice.com/posts/2015/10/fight-a-peoples-war-for-https.html">《为 HTTPS 打一场人民战争》</a>[&#x2F;v_tips] 首先咱得先把Nginx啊，vhost啥的啊，都搞好，这个我就不说了，包管理器安装就可以，编译安装也可以，当然，我的小地方是支持HTTPS的，所以还需要配置SSL证书啊什么的。文末我会附上相关博文的。</p>
+<p>假定读者已经配置好了Nginx，那咱就开始玩玩《化身博士》吧！以Ubuntu 16.04为例，使用Jekyll 3.X</p>
+<h2 id="解决依赖问题"><a href="#解决依赖问题" class="headerlink" title="解决依赖问题"></a>解决依赖问题</h2><p>Jekyll需要这些环境：</p>
+<blockquote>
+<p>Ruby（including development headers, Jekyll 2 需要 v1.9.3 及以上版本，Jekyll 3 需要 v2 及以上版本） RubyGems Linux, Unix, or Mac OS X NodeJS, 或其他 JavaScript 运行环境（Jekyll 2 或更早版本需要 CoffeeScript 支持）。 Python 2.7（Jekyll 2 或更早版本）</p>
+</blockquote>
+<p>咱就挨个击破咯！</p>
+<p>sudo apt update<br>sudo apt install ruby-full<br>curl -sL <a target="_blank" rel="noopener" href="https://deb.nodesource.com/setup/_6.x">https://deb.nodesource.com/setup\_6.x</a> | sudo -E bash -<br>sudo apt install nodejs<br>gem install jekyll bundle</p>
+<p>好吧，这么简单的几步，Jekyll就好了。</p>
+<h2 id="创建Jekyll博客"><a href="#创建Jekyll博客" class="headerlink" title="创建Jekyll博客"></a>创建Jekyll博客</h2><p>之后咱们需要创建一个目录，用来存放Jekyll博客的目录，之后我们会让Jekyll build静态文件到webroot 简单起见，我们假设Jekyll博客存放在<code>/root/myblog</code>，webroot在<code>/home/wwwroot/example.com</code></p>
+<p>cd &#x2F;root<br>jekyll new myblog</p>
+<p>这样jekyll就会为你创建一个名为myblog的目录，这个目录里就有那些常规该有的<code>_site</code>啊，<code>_posts</code>啊等目录和文件了。怎么修改配置、增加插件、更换主题不在本文的讨论范围之内。 当然啦，咱也可以到GitHub上搜索一个用Pages的倒霉家伙，直接clone过来。 创建成功了之后，我们先build下试试，build是让jekyll根据设置生成静态的html等文件。</p>
+<h2 id="build到webroot"><a href="#build到webroot" class="headerlink" title="build到webroot"></a>build到webroot</h2><p>cd myblog<br>jekyll build</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/02/20170219100304100.png"><img src="/images/20170219100304100.png"></a></p>
+<p>通常来说这一步会顺利通过的，假如出现了报错，八成是少了这那的依赖，<code>gem install</code>吧。</p>
+<p>但是咱得把<code>_site</code>中的内容弄到webroot啊。来个cp或者mv？不是不行，就是太low</p>
+<p>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental</p>
+<p>参数<code>incremental</code>表示增量生成，这样万一哪一天有了百八篇，incremental会很省时间的。 然后大家就把写好的文章上传到_posts，来这么一句就行。 但是有没有一种感觉，还是太繁琐啊？不如试试下面这一句吧！</p>
+<p>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental –watch&amp;</p>
+<p>这样就把Jekyll丢后台并监视_posts的变化了，如果<code>_posts</code>中的内容改变，Jekyll就会自动build啦。甚至可以把这行加到<code>rc.local</code>中，这样重启也不怕了。 还等什么，按照</p>
+<p>年-月-日-标题.MARKUP</p>
+<p>比如说，</p>
+<p>2011-02-01-new-years-eve-is-awesome.md</p>
+<p>的形式上传文章到<code>_posts</code>里即可。</p>
+<p>当然，Jekyll也有很多自动化部署方式，除了上传文件这种，还有<code>Git post-update</code>钩子，<code>rsync</code>啥的，这里就不说了。</p>
+<hr>
+<p>当然啦，假如你要是想把某人的Pages克隆下来搞个马甲站（这样是非常不地道的行为，有节操的话还请把robots.txt设置成<code>disallow: /</code>)，咱可以写个极其简单的脚本这么玩</p>
+<p>再当然了，你能相信GitHub的服务吗？当然不能，万一哪天运维喝多了删库了遇上GitLab那样的事，波及到自己，就悲剧啦。备份不做，十恶不赦！</p>
+<p>#!&#x2F;bin&#x2F;bash<br>GIT_DIR&#x3D;&#x2F;root&#x2F;myblog&#x2F;.git git pull origin master<br>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental</p>
+<p>然后加入crontab即可。</p>
+<hr>
+<p>附：<a target="_blank" rel="noopener" href="https://dmesg.app/letsencrypt-nginx-subdomain.html">《Let’s Encrypt + Nginx&#x2F;Apache 配置指南》</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/19/jekyll-nginx/index/" data-id="clhp7rtgx0048s2qrdrp27jyi" data-title="Jekyll + Nginx 配置指南" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ubuntu-compile-vc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/10/ubuntu-compile-vc/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/10/ubuntu-compile-vc/index/">在Ubuntu下编译并使用VeraCrypt</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>VeraCrypt是个啥我就不说了，咱集中精力来谈谈如何在Ubuntu下编译并使用VeraCrypt [v_tips]提示： VeraCrypt有官方编译好的二进制包，可以自己下载。但是在这里为了练习编译软件的技巧，并使用最新版呢，我们选择手动编译。[&#x2F;v_tips] <a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/">VeraCrypt官网</a></p>
+<h2 id="一-下载源码"><a href="#一-下载源码" class="headerlink" title="一  下载源码"></a>一  下载源码</h2><p>有好几个地方可以下载源码</p>
+<p>[gb href&#x3D;’<a target="_blank" rel="noopener" href="https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt/_1.19/_Source.tar.gz'/]%E5%AE%98%E7%BD%91%E7%A8%B3%E5%AE%9A%E7%89%88%EF%BC%881.19%EF%BC%89/[/gb/]">https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt\_1.19\_Source.tar.gz&#39;\]官网稳定版（1.19）\[/gb\]</a></p>
+<p>[bb href&#x3D;’<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/SourceControl/latest#README.md'\]%E5%AE%98%E7%BD%91%E6%9C%80%E6%96%B0%E7%89%88%EF%BC%881.20%EF%BC%89\[/bb\]">https://VeraCrypt.codeplex.com/SourceControl/latest#README.md&#39;\]官网最新版（1.20）\[/bb\]</a></p>
+<p>[yb href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/VeraCrypt/VeraCrypt'/]GitHub">https://github.com/VeraCrypt/VeraCrypt&#39;\]GitHub</a> Repository[&#x2F;yb]</p>
+<p>[lhb href&#x3D;’<a target="_blank" rel="noopener" href="https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/'/]SourceForge/[/lhb/]">https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/&#39;\]SourceForge\[/lhb\]</a></p>
+<p>我就用官网的最新版为例了。</p>
+<p>然后给源码解压缩，切到对应的目录，这里就不多说了。</p>
+<h2 id="二-安装依赖"><a href="#二-安装依赖" class="headerlink" title="二  安装依赖"></a>二  安装依赖</h2><p>通过阅读readme，我们可以发现，在Linux下编译VeraCrypt需要这些依赖：</p>
+<blockquote>
+<p>GNU Make GNU C++ Compiler 4.0 or compatible NASM assembler 2.08 or compatible (x86&#x2F;x64 architecture only) pkg-config makeself (Linux only) wxWidgets 3.0 shared library and header files installed or wxWidgets 3.0 library source code FUSE library and header files</p>
+</blockquote>
+<p>想要使用VeraCrypt还需要dmsetup这个依赖，所以在这里直接安装了。</p>
+<p>sudo apt update<br>sudo apt install -y build-essential g++ nasm pkg-config makeself libwxgtk3.0-dev wx3.0-headers libfuse-dev fuse dmsetup</p>
+<p>反正是一个不差的安装了。PS，我是怎么知道这些软件包的名字的？<code>apt search</code>嘛…… [v_blue]请注意： 这些依赖在Ubuntu 16.04的源中都有，如果你选择的源有问题导致更新失败，可能导致一些依赖安装失败。[&#x2F;v_blue]</p>
+<h2 id="三-编译源码"><a href="#三-编译源码" class="headerlink" title="三  编译源码"></a>三  编译源码</h2><p>VeraCrypt的源码有<code>makefile</code>文件，所以我们直接<code>make</code>即可。</p>
+<p>切换到src目录，</p>
+<p>cd src<br>make</p>
+<p>提示：多核心处理器的用户，假如你是四核的，使用<code>make -j4</code>或者<code>make -j6</code>，选择一个恰当的并行数量并行编译会明显提高编译速度。但是请不要尝试使用<code>make -j10</code>——否则你的电脑会慢成狗。</p>
+<p>等待这功夫我讲个笑话吧：</p>
+<blockquote>
+<p>说有个施工队叫gcc，专门负责盖大楼。一天某开发商让他们盖个楼，盖完了之后开发商一看，说，一楼这大门的门把手图纸画错了，应该用圆的，怎么画成方的了？改了吧。施工队一听，赶紧下令：图纸画错啦，把楼炸了重新盖！虽说这样对于拉动GDP有很好的作用，但毕竟属于精神不正常的范畴。</p>
+<p>（摘自《笨兔兔的故事》，又名《Linux入门很简单》）</p>
+</blockquote>
+<p>估计你看完懂了啥意思，编译也差不多了</p>
+<h2 id="四-安装"><a href="#四-安装" class="headerlink" title="四  安装"></a>四  安装</h2><p>编译完成之后，屏幕上大概会有这样的输出结果</p>
+<p>self-extractable archive …..successfully created.</p>
+<p>之后我们就切到<code>src/setup/Linux</code>下，执行如下命令即可安装</p>
+<p>.&#x2F;VeraCrypt-1.20-BETA2-setup-gui-x64</p>
+<p>安装步骤很简单，依次选择<code>Install VeraCrypt，I accept，OK</code>,可能还需要你在新的窗口里输入密码，即可安装成功。</p>
+<p>在dash里直接打vera就能找到了（可能注销或者重启之后才有）</p>
+<p>之后VeraCrypt使用方法就和Windows下一样了，除了最后挂载的时候可能会让你输入当前用户的密码。</p>
+<p><img src="/images/021017_1318_UbuntuVe1.png"> [v_notice]友情提示： 我发现源码目录下有个Translations，我想把VeraCrypt汉化成中文版的，可以吗？ 非常抱歉的是，<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/wikipage?title=Language%20Packs">只有Windows版本的VeraCrypt才支持语言包</a>……[&#x2F;v_notice]</p>
+<h2 id="五-升级"><a href="#五-升级" class="headerlink" title="五  升级"></a>五  升级</h2><p>VeraCrypt的源码发出新版本了，我想升级，该怎么办呢？</p>
+<p>嗯……下载最新的源码，从步骤三开始。</p>
+<h2 id="六-使用方法与总结"><a href="#六-使用方法与总结" class="headerlink" title="六  使用方法与总结"></a>六  使用方法与总结</h2><p>关于VeraCrypt的使用方法，请戳很久之前写过的<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版密码学科普》</a>.</p>
+<p>下面我来总结一下在Linux编译软件的方法或者说是技巧吧！</p>
+<p>满足依赖，使用<code>configure</code>生成<code>makefile</code>（有些可能不是configure），执行<code>make</code>编译，然后<code>sudo make install</code>安装，基本上就是这么个步骤，如果还要更简洁，那么就是：</p>
+<p>读readme，根据readme里面的说明来。&#x2F;(ㄒoㄒ)&#x2F;~~ :arrow:</p>
+<h2 id="七-其他问题"><a href="#七-其他问题" class="headerlink" title="七  其他问题"></a>七  其他问题</h2><p>有童鞋可能想问了，对称密码的VeraCrypt我有了，那公钥密码在Linux下有好的选择吗？</p>
+<p>当然有啦！seahorse就是一个很好的选择</p>
+<p>sudo apt install seahorse-nautilus seahhorse</p>
+<p>注销后即可在鹦鹉螺右键看到哦！</p>
+<p>其他的GnuGPG前端，可以<a target="_blank" rel="noopener" href="https://www.gnupg.org/related_software/swlist.html">戳我参考这里</a></p>
+<p>[v_tips]提示： seahorse有个地方可能会让人感到困惑，当你用别人的公钥加密文件之后，你会发现自己双击也能打开。别担心，除了你和公钥持有者，别人都打不开的（会提示没有密钥）。[&#x2F;v_tips]</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/10/ubuntu-compile-vc/index/" data-id="clhp7rtmp00acs2qr0at581i2" data-title="在Ubuntu下编译并使用VeraCrypt" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ufw-iptables/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/10/ufw-iptables/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/10/ufw-iptables/index/">开启ufw导致断网不能ping? ufw和iptables的那些坑</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨晚不小心踩了一个坑，当开启ufw之后，电脑与外网的连接断开，明明ufw设置中incoming是allow、outgoing是deny，按理说应该能ping的…结果却全面断网，当然SSH也连不进来了…当把ufw禁用、或者把outgoing设置成allow，网络通信就恢复了，如动图所示。这是为啥捏？ 不好意思，动图被我删了，只能自己想象了? [v_blue]友情提示： 别说我”没加ping的allow规则”，我家ping是ICMP协议的，我家的ICMP协议是网络层的要比传输层的TCP、UDP低，所以我家ping是没有端口这一说法的。[&#x2F;v_blue]</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="我尝试的无效方案"><a href="#我尝试的无效方案" class="headerlink" title="我尝试的无效方案"></a>我尝试的无效方案</h3><p>我先尝试了<code>iptables -F</code>来”清空全部规则”，无效； 重启无效； 之后我尝试了<code>apt remove –-purge iptables ufw gufw</code>然后再安装，依旧无效。</p>
+<p>天呐purge都无效了？</p>
+<h3 id="真正的解决方案"><a href="#真正的解决方案" class="headerlink" title="真正的解决方案"></a>真正的解决方案</h3><p>我从DigitalOcean找到了解决方案</p>
+<p>首先，我们先把INPUT、FORWARD、OUTPUT这三个链的规则设置成ACCEPT免得把自己锁在门外：</p>
+<p>sudo iptables -P INPUT ACCEPT<br>sudo iptables -P FORWARD ACCEPT<br>sudo iptables -P OUTPUT ACCEPT</p>
+<p>然后，我们清除NAT、Mangle表，清除链，删除所有的非默认链</p>
+<p>sudo iptables -t nat -F        #清除NAT表<br>sudo iptables -t mangle -F    #清除mangle表<br>sudo iptables -F    #清除所有链的规则<br>sudo iptables -X    #删除非默认链</p>
+<p>此时如果我们<code>iptables -L</code>列出链和规则，会发现只剩下INPUT、FORWARD、OUTPUT这三个链了，如图：</p>
+<p><img src="/images/021017_0252_ufwping1.png"></p>
+<p>此时我们再<code>ufw enable</code>启用ufw，如果SSH请先<code>ufw allow 22</code>，就会发现没断网。</p>
+<p>如果这个时候<code>iptables -L</code>，会看到多出来很多链和规则</p>
+<p><img src="/images/021017_0252_ufwping2.png"></p>
+<p>童鞋们是不是觉得很奇怪，为啥这次就行了？我是咋重现的这个问题？</p>
+<p>在回答这个问题之前，我们首先要了解下ufw、iptables是什么，之后以及这二者之间的关系，简单的了解iptables的基本概念和基本运作原理。</p>
+<h2 id="ufw"><a href="#ufw" class="headerlink" title="ufw"></a>ufw</h2><p>Uncomplicated FireWall，不是Ubuntu FireWall哦，是debian系发行版中为了轻量化配置 iptables 而开发的一款工具。</p>
+<p>UFW和iptables一样都是<a target="_blank" rel="noopener" href="https://dmesg.app/semi-auto-blacklist.html">匹配原则</a>，匹配到了则忽略剩下的规则，这点就不废话了。</p>
+<h2 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h2><p>我们习惯性的会把iptables认为是Linux上的防火墙，自从Linux内核2.4之后就集成进主线内核。实际上准确是说，iptables是一个通过控制Linux内核的netfilter模块来<strong>管理网络数据包的流动与转送</strong>的应用软件，其功能包括不仅仅包括防火墙的控制出入流量，还有端口转发等等。</p>
+<p>iptables内部有<strong>表tables、链chains、规则rules</strong>这三种概念。</p>
+<p>iptables的每一个”表”都和不同的数据包处理有关、决定数据包是否可以穿越的是”链”、而一条”规则”在链里面则可以决定是否送往下一条链（或其它的动作）</p>
+<p>那一个包到达网卡的时候，Linux的如何处理的呢？</p>
+<p>我们提到了iptables是可以控制netfilter模块的，netfilter内部（主要、常用的）分为三个表，分别是 <strong>filter, nat, mangle</strong>，每个表又有不同的链（Chains），每个链下可以有不同的规则（rules）。</p>
+<h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><p>在filter（过滤）表中，也就是防火墙功能的表，定义了三个链。分别是<strong>INPUT, FORWARD, OUTPUT</strong>。也就是对包的<strong>入、转发、出</strong>进行定义的三个过滤链。对于这个filter表的操作和控制也是我们实现防火墙功能的一个重要手段；</p>
+<h3 id="nat"><a href="#nat" class="headerlink" title="nat"></a>nat</h3><p>在nat(网络地址转换)表中，也就是我们用以实现地址转换和端口转发功能的这个表，定义了PREROUTING, POSTROUTING,OUTPUT三个链；</p>
+<h3 id="mangle"><a href="#mangle" class="headerlink" title="mangle"></a>mangle</h3><p>netfilter的mangle表则是一个自定义表，里面包括上面 的filter以及nat表中的各种chains，它可以让我们进行一些自定义的操作，同时这个mangle表中的chains在netfilter对包 的处理流程中比较优先。</p>
+<h2 id="包在Linux中的前世今生"><a href="#包在Linux中的前世今生" class="headerlink" title="包在Linux中的前世今生"></a>包在Linux中的前世今生</h2><p><a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/Netfilter-packet-flow.png"><img src="/images/Netfilter-packet-flow.png"></a></p>
+<p>图片来自维基百科（太大了，戳大图吧）</p>
+<p>我们大致可以看出：包首先要由bridge check来判断属于链路层还是网络层，之后包都会遇到NAT或者mangle表的PREROUTING链，从这pre前缀咱能才出来，这是要在路由之前要过的链。</p>
+<p>接着当包通过了PREROUTING之后，便到了 decision这个分支点，这里有一个对目的地址的判断，如果包的目的地是本地,那么包向上走，走入INPUT链处理，然后进入LOCAL PROCESS，之后再进入对应的OUTPUT、POSTROUTING；</p>
+<p>如果非本地，那么就进入FORWARD链进行转发，之后再走POSTROUTING，我们在这里就不说FORWARD链的事了。</p>
+<p>我们可以看到，filter表在包的处理流程中，处于中间的位置，这部分也就是防火墙的主要功能所在。</p>
+<h2 id="ufw怎么和iptables一起合作的"><a href="#ufw怎么和iptables一起合作的" class="headerlink" title="ufw怎么和iptables一起合作的"></a>ufw怎么和iptables一起合作的</h2><p>在稍微理解了包是怎么走的之后，回到我们<code>iptables -L</code>的时候，我们看filter表，可以看到，ufw在<strong>INPUT、FORWARD、OUTPUT</strong>添加了好些自定义规则，并且添加了好些自己的链和链的规则，还把把INPUT、FORWARD默认策略设置成DROP <img src="/images/021017_0252_ufwping3.png"> 如图，当你有这些ufw定义的链的时候，是能够匹配到ufw链和规则，也就是正常入网的。</p>
+<p>当我们执行<code>iptables -F</code>的时候，会发生什么呢？</p>
+<p><strong>所有链的规则都被清空了</strong>！包括ufw的链！并且INPUT、FORWARD依旧是DROP</p>
+<p>再想想包的前世今生，OUTPUT我们发出了ping，但是却因为<strong>INPUT的DROP而永远无法收到ICMP echo</strong>，只能往出发包而不能接收任何类型的包，毫无疑问自然就断网了。</p>
+<p>此时<code>ufw status</code>还会告诉你在运行，但是当你使用<code>ufw disable</code>关闭ufw时，INPUT会被设置成ACCEPT，自然就恢复网络通信了；</p>
+<p>当你使用<code>ufw default allow</code>把默认出网规则设置成allow时，INPUT也会被设置成ACCEPT，当然网络通信恢复了。</p>
+<p>所以童鞋们自此应该理解了刚开始理解动图能够ping通和不通的原因吧！</p>
+<h2 id="使用ufw和iptables的警告"><a href="#使用ufw和iptables的警告" class="headerlink" title="使用ufw和iptables的警告"></a>使用ufw和iptables的警告</h2><p>最后给大家一个警告，当你使用了ufw这类前端时，就最好不要再碰iptables了，尤其要**慎重使用iptables -**来清空所有链的规则。在不了解iptables的表、链、规则之前，盲目的清空iptables”规则”就是耍流氓！</p>
+<p>试想，假如你在服务器上<code>ufw enable</code>，那么INPUT和FORWARD就是DROP，那么当你<code>iptables -F</code>时，不仅仅是SSH的例外规则没了，所有出网的包也都出不去了！此时唯一能做的事情就是去VNC、或者去机房插鼠标键盘显示器。</p>
+<p>假如你是买的服务器，为了安全考虑使用密钥认证，并且把用户名设置成了从openssl生成的随机密码，并且你是由Windows重装成的Linux，那么控制台也是没有用的……重装或者快照吧。</p>
+<p> </p>
+<p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules">https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules</a></p>
+<p><a target="_blank" rel="noopener" href="http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html">http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/10/ufw-iptables/index/" data-id="clhp7rtms00ans2qr8jj02jsy" data-title="开启ufw导致断网不能ping? ufw和iptables的那些坑" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-reason-of-this-blog/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/02/05/reason-of-this-blog/index/" class="article-date">
@@ -546,515 +1051,11 @@
 
 
   
-    <article id="post-fear-without-rules/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/12/19/fear-without-rules/index/" class="article-date">
-  <time class="dt-published" datetime="2016-12-19T00:00:00.000Z" itemprop="datePublished">2016-12-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/12/19/fear-without-rules/index/">没有规则才是最可怕的</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>假如你是一位高校老师，有一名学生翘课被你点名发现了，按照二八分、平时成绩出勤占一半、三次缺勤取消考试资格的规定，你会怎么做？</p>
-<p>我猜大部分人应该选择根据规则来，扣掉该扣的那一次缺勤分，而不是看心情、想扣光就扣光、想怎样就怎样。</p>
-<p>但是假如那名学生说你是傻逼呢？有多少人会给他应该得到的出勤分、扣掉一部分课堂表现，而不是直接让他拜拜重修？</p>
-<p>假如后来你发现说你傻逼的那学生是省长他外甥呢？有多少人会“维持原判”，有多少人会贴脸给满分来“冰释前嫌”？</p>
-<p>你看，你是不是悄悄改变了自己的规则——或者直接说你根本就没有规则，你只是在跟着感觉来，你所谓的规则只是你的双重思想的一小部分而已。</p>
-<p>坚持的理由很简单，规则就是这样定的。对于理性的思考来说，应得的就是应得的，你不能以感性的愤怒、羞辱、面子等为由肆意妄为、违背规则。为人师表啊。没有规则才是最可怕的。</p>
-<p>想想那些没有规则的例子吧：GFW封某个网站的时候，有什么规则吗；纳粹追杀共产主义者、犹太人、工会成员，有什么规则吗；文革中被整死的人，有什么规则吗？</p>
-<p>我们需要规则，如果没有规则，或定了规则却无视、凌驾规则，甚至随意修改规则，这和历史的倒退有什么区别。好似你既是裁判又是球员，这样谁能玩的过你、谁愿意跟你玩嘛。如果规则只是当权者的随意操纵的把戏，规则又有何用。</p>
-<p>这就是个缩影，或许也就是无力改变的现实吧。</p>
-<p>最怕，没有规则。</p>
-<p>最后，盗用胡适他老人家的一句和本文没啥关系话来结束全文： 一个肮脏的国家，如果人人讲规则而不是空谈道德，最终会变成一个有人味儿的正常国家，道德自然会逐渐回归； 反之，一个干净的国家，如果人人都不讲规则却大谈道德、谈高尚，天天没事儿就谈道德规范，人人大公无私，最终这个国家会堕落成为一个伪君子遍布的肮脏国家。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/12/19/fear-without-rules/index/" data-id="clhp7rtg8002ms2qr512c9au5" data-title="没有规则才是最可怕的" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-compile-kernel/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/12/15/compile-kernel/index/" class="article-date">
-  <time class="dt-published" datetime="2016-12-15T00:00:00.000Z" itemprop="datePublished">2016-12-15</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/12/15/compile-kernel/index/">[备忘录]：Linux4.9内核的正确编译之路</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>几天前脱袜子大叔放出了LTS版本的Linux Kernel 4.9,听说增加了一个新的TCP拥塞控制算法BBR，想着自己从来没有编译过内核，那就试试嘛，纯当积累经验了。</p>
-<p>在这个过程中遇到了一些比较可怕的问题，比如说build出了300M的initrd.img，这……好吧！</p>
-<p>我的环境是：Ubuntu 16.04 64位，主要参考教程<a target="_blank" rel="noopener" href="https://kernelnewbies.org/KernelBuild">戳我吧</a></p>
-<p>下面就备忘一下我编译过程的整个经过吧</p>
-<h2 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h2><p>用包管理器把你的系统升级到最新吧，另外，最好别玩跨越太大的升级啊。</p>
-<p>sudo apt update<br>sudo apt upgrade</p>
-<h2 id="解决依赖"><a href="#解决依赖" class="headerlink" title="解决依赖"></a>解决依赖</h2><p>老生常谈了，该装的都装好吧</p>
-<p>sudo apt install libncurses5-dev gcc make git exuberant-ctags bc libssl-dev</p>
-<h2 id="准备目录"><a href="#准备目录" class="headerlink" title="准备目录"></a>准备目录</h2><p>通常来说我们选择在&#x2F;usr&#x2F;src下存放内核源码。实际上这并不是必须的。请注意，编译内核的时候并不需要root权限，安装的时候才需要。为了方便管理、patch内核、保持一致性起见，我们还是老实地用这个目录吧。从现在起就切换到root啦</p>
-<h2 id="下载、准备内核源码"><a href="#下载、准备内核源码" class="headerlink" title="下载、准备内核源码"></a>下载、准备内核源码</h2><p>在kernel.org下载内核，如果你的速度太慢，可以试试阿里云的源。</p>
-<p>#官网<br>wget <a target="_blank" rel="noopener" href="https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.tar.xz">https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.tar.xz</a><br>#阿里云<br>wget <a target="_blank" rel="noopener" href="http://mirrors.aliyun.com/linux-kernel/v4.x/linux-4.9.tar.xz">http://mirrors.aliyun.com/linux-kernel/v4.x/linux-4.9.tar.xz</a><br>tar xvf linux-4.9.tar.xz<br>cd linux-4.9</p>
-<h2 id="配置内核"><a href="#配置内核" class="headerlink" title="配置内核"></a>配置内核</h2><p>编译内核之前，我们需要创建出来一个.config文件，由这个文件决定编译什么、编译进内核还是模块。通常来说我们有这么几种方式生成这个.config</p>
-<h3 id="使用你原来内核的config"><a href="#使用你原来内核的config" class="headerlink" title="使用你原来内核的config"></a>使用你原来内核的config</h3><p>cp &#x2F;boot&#x2F;config-`uname -r`* .config</p>
-<h3 id="使用默认的config（会覆盖已有的-config文件）"><a href="#使用默认的config（会覆盖已有的-config文件）" class="headerlink" title="使用默认的config（会覆盖已有的.config文件）"></a>使用默认的config（会覆盖已有的.config文件）</h3><p>make defconfig</p>
-<p>我们这里当然要使用原来的内核配置文件啦，所以来一句cp &#x2F;boot&#x2F;config-`uname -r`* .config即可。</p>
-<p>或者干脆来一句</p>
-<p>make localmodconfig</p>
-<p>就OK了。假如我们要对内核配置进行微调，那就执行</p>
-<p>make menuconfig</p>
-<p>会酱紫</p>
-<p><img src="/images/121516_1413_Linux491.png"></p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p>是不是很神奇能在终端里画出这么漂亮的界面？ncurses啦</p>
-<p>为了防止它没加载我们刚刚复制过来的旧内核配置文件，我们选择 Load - ok手动加载下。</p>
-<p>之后导航到Kernel Hacking - Compile-time checks and compiler options，按N取消对Compile the kernel with debug info的勾选</p>
-<p>剩下的一些配置就看个人需求啦，比如说我需要编译BBR并使它成为默认的TCP 拥塞算法，那就酱紫</p>
-<p><img src="/images/121516_1413_Linux492.png"></p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p>你需要支持XFS，就自己去开启。</p>
-<p>全都配置完了之后，导航到save 保存。</p>
-<p>下面我们就要准备开始编译啦！</p>
-<p>[v_error]警告 如果你是第一次编译内核，那么就按照上文所述即可。如果你已经编译过了，那么请运行 make clean 来清除编译过程中产生的可能导致编译失败的各种文件 make mrproper 不但会执行make clean的所有操作，还会删除.config文件，请谨慎使用[&#x2F;v_error]</p>
-<h2 id="编译内核"><a href="#编译内核" class="headerlink" title="编译内核"></a>编译内核</h2><p>在编译内核之前，建议大家想想以下几个问题：你是给自己电脑编译？还是虚拟机？还是VPS？</p>
-<p>你电脑是啥处理器？几个核心几个线程的？</p>
-<p>多大物理内存，有没有Swap？</p>
-<p>如果是用的虚拟机，那么推荐在虚拟机的界面里开终端而不是通过OpenSSH服务；</p>
-<p>如果是VPS，请一定要这样screen -S kernel然后再开始编译，否则SSH连接断开编译也就终止了。</p>
-<p>你的内存比较小，比如说只有2G、4G，建议开个swap吧，免得内存耗尽编译失败</p>
-<p>如果你自觉内存比较大不会耗尽，那就大胆的进行吧；</p>
-<p>如果你不知道自己是啥CPU ，你就lscpu下，CPU(s)写了个4,那你就当成4核心的。（我这货是双核四线程）</p>
-<p> </p>
-<p>总之，这些以防万一的准备工作是要做好的，因为编译内核是个比较消耗时间的事情，万一因为些小问题失败了，再重新来太糟心。</p>
-<p>嗷对了，如果你是笔记本，请做好散热……</p>
-<p>说了这么多，我就当你已经准备好了！</p>
-<p>那么，果断的敲</p>
-<p>make</p>
-<p>编译内核吧！（make会包含make bzImage等操作，详见make help）</p>
-<p>但是……忘记了我们上面说的双核四核吗？并行编译不好吗？</p>
-<p>那么就</p>
-<p>make -jX</p>
-<p>X是一个整数，假如你是双核，2和3就是比较好的选择；4核那么4或6就会是比较好的选择。双核四线程请将其视作四核。千万不要尝试双核来个make -j10,这样你的电脑就得比狗还慢啦。</p>
-<p>我就make -j4啦</p>
-<p>该约妹子的约妹子，该睡觉的睡觉……</p>
-<p> </p>
-<p>[v_tips]小提示：开启Swap的方法（128M的Swap为例）</p>
-<p>sudo dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;test bs&#x3D;1M count&#x3D;128<br>sudo chmod 600 test<br>sudo mkswap test<br>sudo swapon test</p>
-<p>free确定swap已开启 为了避免出现权限的问题，就全是用root啦[&#x2F;v_tips]</p>
-<h2 id="安装内核和模块"><a href="#安装内核和模块" class="headerlink" title="安装内核和模块"></a>安装内核和模块</h2><p>进过了很长时间，终于编译完啦。那就安装吧，ls -lh一下就会发现vmlinuz其实很小的。</p>
-<p>sudo make modules_install install</p>
-<p>之后reboot体验新内核吧！ 重启之后uname -a即可查看新内核哦，如果旧的内核没有留下来的必要了，那就使用类似</p>
-<p>sudo apt remove linux-headers-版本号</p>
-<p>等移除旧版本的内核</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/12/2016121514232992.png"><img src="/images/2016121514232992-300x34.png" alt="qq%e6%88%aa%e5%9b%be20161215222225"></a></p>
-<p> </p>
-<p>服务器上的4.9<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/12/2016121514232992.png"></a></p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>Some of us get dipped in flat, some in satin, some in gloss. But every once in a while you find someone who’s iridescent, and when you do, nothing will ever compare.</p>
-<p>Nothing will ever compare. :oops:</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/12/15/compile-kernel/index/" data-id="clhp7rtew0019s2qr9tbbbeyj" data-title="[备忘录]：Linux4.9内核的正确编译之路" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-play-vps/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/11/25/play-vps/index/" class="article-date">
-  <time class="dt-published" datetime="2016-11-25T00:00:00.000Z" itemprop="datePublished">2016-11-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/11/25/play-vps/index/">花样玩：把闲置的VPS用起来</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>像我这种流量比较小的网站，往往服务器都一直是0负载，这样一天天过去总觉得是一种浪费。浪费可耻，浪费就是犯罪啊。于是咱就得琢磨琢磨，服务器通常CPU性能都很好（别看是单核，那也是志强啊），带宽也比较充足，还24小时开机，所以嘛….咱来点奇葩的玩法，像是建站、ss这种常见的玩法咱就不说啦。 [v_blue] 友情提示： 1.下文的一些思路<strong>仅供参考</strong>，各位各取所需 2.拿来做生产的服务器（比如跑我的网站的这个），尽量<strong>专机专用少折腾</strong>，比如说我的这个服务器只负责网站和中转文件… 3.请记得遵守主机商的ToS、服务器所在地的法律、主机商所属国的法律。 4.OpenVZ的VPS还是悠着点，用太多CPU可能会被封停哦；KVM和Xen的就不必太多考虑这点了，如果你不放心，ticket走起。 5.海外VPS请注意如果你做某些事情，可能会导致你的IP被墙或者被严重干扰。 6.那种超低价的超售狂，就别折腾啦，搭个ss偷着乐就好了。 [&#x2F;v_blue]</p>
-<hr>
-<h2 id="搭建Tor中继节点、网桥"><a href="#搭建Tor中继节点、网桥" class="headerlink" title="搭建Tor中继节点、网桥"></a>搭建Tor中继节点、网桥</h2><p><strong>仅限海外VPS</strong></p>
-<p>Tor是什么？是一个很厉害的匿名工具啦。如果你想为这个匿名网络做一些贡献，可以选择搭建Tor Relay（中继）、Tor Bridges（网桥），Exit Nodes（出口节点）还是别想啦。大部分主机商都允许搭建中继和网桥的。</p>
-<p>当然啦，本人是不建议在自己正在用的VPS上搭建的，万一要是被墙了，那就麻烦了。</p>
-<p>详细教程已经有人写了，戳<a target="_blank" rel="noopener" href="https://yepster.me/tor-deployment/">《关于搭建 Tor Relay 的一点胡扯——以及为什么现在 Tor Bridges 更好》</a></p>
-<h2 id="中转油管视频、Git仓库等（利用七牛）"><a href="#中转油管视频、Git仓库等（利用七牛）" class="headerlink" title="中转油管视频、Git仓库等（利用七牛）"></a>中转油管视频、Git仓库等（利用七牛）</h2><p><strong>推荐海外VPS</strong></p>
-<p>这里请一定要注意遵守服务器所在地的法律、主机商所属国的法律和主机商的ToS，被封不要赖我哦~~</p>
-<p>首先中转就要先下载回来，这里对待种子可以使用rtorrent，直链可以使用wget，Git仓库可以使用git clone，YouTube视频可以用youtube-dl。怎么下载回来就不用我说了吧，如果这个不会，那可没办法，没办法啊</p>
-<p>之后注册个七牛，去<a target="_blank" rel="noopener" href="http://developer.qiniu.com/code/v6/tool/qshell.html">开发者中心</a>自行读文档配置去吧~（或者参考我这篇<a target="_blank" rel="noopener" href="https://dmesg.app/vps-google-drive.html">《使用海外vps中转Google Drive文件》</a>） [v_tips] 友情提示： 1.我这人比较懒，所以我写了一个名为relay的脚本，给加了x权限然后丢到PATH下，之后任何目录都可以直接打relay来上传了。 2.在使用qshell的时候，有的时候上传会失败，我发现qshell是”同步”的模式，而我一般都是上传完就删除。所以我一般会选择把目录中隐藏的.qshell目录删掉再上传。 3.如果你中转一些可能被和谐的内容，那么建议你使用tar打个包，这样它的散列就会变了，机器审查是有点难啦；如果你中转的是危险的东西，那么用OpenSSL套件加密、或者是压缩工具的加密功能，这样对付人工也差不多足够啦（当然，请注意弱口令）。 4.视频、音乐、加密卷等高熵的文件，通常是很难压缩的，所以遇到视频建议打包而不是打包+压缩，使用类似</p>
-<p>tar cvf </p>
-<p>这样的命令而不是带j、J的选项。 [&#x2F;v_tips]</p>
-<h2 id="云存储OwnCloud"><a href="#云存储OwnCloud" class="headerlink" title="云存储OwnCloud"></a>云存储OwnCloud</h2><p><strong>推荐国内服务器</strong></p>
-<p>OwnCloud这东西，就像是你的私有云，再也不怕党妈妈以女神的理由封杀你网盘啦！</p>
-<p>这也有人写过类似教程，在这里<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/2007.html">《用 ownCloud 搭建个人私有云》</a></p>
-<h2 id="搭建UDP-53的OpenVPN-x2F-SS突破Web认证"><a href="#搭建UDP-53的OpenVPN-x2F-SS突破Web认证" class="headerlink" title="搭建UDP 53的OpenVPN&#x2F;SS突破Web认证"></a>搭建UDP 53的OpenVPN&#x2F;SS突破Web认证</h2><p><strong>推荐国内服务器</strong></p>
-<p>这个嘛……是真正非常有用的地方啊！我的马甲站就是这么玩的，结果导致服务器经常满载&#x2F;(ㄒoㄒ)&#x2F;~~</p>
-<p>详情戳我的博文<a target="_blank" rel="noopener" href="https://dmesg.app/udp53.html">《UDP 53 免费上网经验谈》</a></p>
-<p>很明显<strong>SS的性能要远远好过SoftEther只不过要开全局啦……</strong></p>
-<h2 id="编译服务器"><a href="#编译服务器" class="headerlink" title="编译服务器"></a>编译服务器</h2><p><strong>推荐海外服务器</strong></p>
-<p>有的时候，身处大陆的小盆友们在编译某些比较大的项目的时候，常常会被GFW折磨到疯：本身源码就挺大，各种依赖还都得下，GFW还超喜欢干扰。所以有些时候放弃编译往往不是因为CPU性能不足、硬盘太慢、内存太小而是因为网太渣……在大陆当程序员，真的都是折翼的天使啊。</p>
-<p>比如说那次我想编译个服务器版本的Lantern，需要下载Lantern定制版的Go，再下载Lantern源码，编译的时候还要下载很多……所以我就稍稍利用了下aws</p>
-<p><img src="/images/112516_1014_VPS1.png"></p>
-<p>没骗你，不小吧！</p>
-<h2 id="利用ffmpeg压制影片、转换格式等"><a href="#利用ffmpeg压制影片、转换格式等" class="headerlink" title="利用ffmpeg压制影片、转换格式等"></a>利用ffmpeg压制影片、转换格式等</h2><p><strong>国内海外均可</strong></p>
-<p>对于那些经常需要转换格式的、压制影片的人来说，好像这样做会很方便。如果开个按时的高性能实例，效果应该会好很多！</p>
-<p>这里如果你的服务器恰巧是Windows系统，那么人人影视曾经发过一个非常简单的压片工具，用起来很方便；至于使用Linux的嘛……<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html">使用ffmpeg，可以戳我哟</a>。 [v_blue] 友情提示： 1.大部分服务商都支持自定义镜像，所以咱……可以开一台新机器，编译好ffmpeg以及上传什么的，做一个镜像。之后要用的时候，开个高性能的机器，直接选择用这个镜像安装，转换，上传，销毁机器。省钱又方便。 2.我等穷人的单核心服务器，虽说CPU性能很强，但是……我相信现在大家的电脑通常都是四核八核十六核……所以要真的比起来速度，开个多线程，服务器估计就跪了…… 3.这个最好的应用场景就是，你发现一个10G+的片源，利用服务器高带宽的特点下载回来，之后压制成2G的720P再下载……在一些限制流量、限制上网时长的地方最划算了。 [&#x2F;v_blue]</p>
-<p>PS，七牛有个数据处理，用起来挺方便的，速度很快而且很便宜。</p>
-<p><img src="/images/112516_1014_VPS2.png"></p>
-<h2 id="搭建游戏服务器（MineCraft）"><a href="#搭建游戏服务器（MineCraft）" class="headerlink" title="搭建游戏服务器（MineCraft）"></a>搭建游戏服务器（MineCraft）</h2><p><strong>推荐国内服务器</strong></p>
-<p>大部分游戏都是Windows平台下的，相应的开服端也是Windows下居多的……所以比如说开个MineCraft？或者 steam家的l4d2、cs这种？别说，我还真有一个l4d2服务器。</p>
-<p>PS：游戏服务器一般对带宽的要求会比较高。</p>
-<p>这个，也有人写过<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/1693.html">《在 Ubuntu 中搭建 Minecraft 服务器并挂载 Mod》</a></p>
-<h2 id="挖矿"><a href="#挖矿" class="headerlink" title="挖矿"></a>挖矿</h2><p>╮(╯_╰)╭</p>
-<p>这个……大家伙悠着点，大部分主机商都是不允许挖矿的！而且挖矿的前途嘛……看着玩吧！</p>
-<h2 id="卖虚拟主机"><a href="#卖虚拟主机" class="headerlink" title="卖虚拟主机"></a>卖虚拟主机</h2><p><strong>国内海外均可</strong></p>
-<p>这是真正的赚钱之道啊，或者一个服务器跑三四个网站（还别说我的马甲站就是一个服务器跑了三个网站）。用过lnmp一键安装包的大概之道添加虚拟主机有多方便</p>
-<p><img src="/images/112516_1014_VPS3.png"></p>
-<h2 id="搭建自己的DNS"><a href="#搭建自己的DNS" class="headerlink" title="搭建自己的DNS"></a>搭建自己的DNS</h2><p><strong>国内海外均可。</strong></p>
-<p>为了嘛，解析到正确的IP而不是总跑到阿塞拜疆啊。</p>
-<p>这个，当然是要DNSCrypt啦！</p>
-<p>当然，也有人写过了，我只是搬运工<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/981.html">《编译安装 dnscrypt-wrapper 搭建防污染 DNS 服务器》</a></p>
-<h2 id="搭建Resilio-Sync（BT-Sync）节点"><a href="#搭建Resilio-Sync（BT-Sync）节点" class="headerlink" title="搭建Resilio Sync（BT Sync）节点"></a>搭建Resilio Sync（BT Sync）节点</h2><p><strong>仅限海外</strong></p>
-<p>做一个好人，提升大家的下载速度，哈哈哈。具体可以参考<a target="_blank" rel="noopener" href="https://help.getsync.com/hc/en-us/articles/204762449-Guide-to-Linux-and-Sync-peculiarities">官网文章</a></p>
-<h2 id="做Git服务器"><a href="#做Git服务器" class="headerlink" title="做Git服务器"></a>做Git服务器</h2><p>有些时候，我们可能需要私有的Git仓库，这个时候<a target="_blank" rel="noopener" href="https://about.gitlab.com/installation/">GitLab CE</a>就派上用场啦，有钱的也可以玩玩<a target="_blank" rel="noopener" href="https://enterprise.github.com/home">GitHub Enterprise</a></p>
-<p>我思路有限，大概就只能想到这么多比较花样的玩法了！有别的新奇玩法的，欢迎补充~~</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/11/25/play-vps/index/" data-id="clhp7rti2006ns2qrghkt1ln8" data-title="花样玩：把闲置的VPS用起来" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-ffmpeg/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/11/10/ffmpeg/index/" class="article-date">
-  <time class="dt-published" datetime="2016-11-10T00:00:00.000Z" itemprop="datePublished">2016-11-10</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/11/10/ffmpeg/index/">自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_tips]有点不好意思啊此文无图… :shock: 还有这个字体咋样呀 :razz:  [&#x2F;v_tips]</p>
-<p>[v_error]一键编译脚本在<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/3">第三页</a>！ [&#x2F;v_error] 话说很久之前，人人影视放出来了一个压片工具，总共有192M的样子，而且只能在Windows上运行。对于我等Linux党，这可怎么行呢？于是我就想到了ffmpeg这个万能的神器。当然了ffmpeg作为自由软件，你从包管理器里安装的、直接configure编译的，是不会带libx264</p>
-<p>这类非自由软件，自然想要压制影片就不是那么好玩了……</p>
-<p>那既然酱紫，我们就只好手动编译一个non-free的ffmpeg，然后再来使用嘛！</p>
-<p>[v_act]这种压片的方法是把字幕混到视频流中，也就是说视频最终是音频流+视频流，是没有字幕流的，字幕已经是视频的一部分了。这也可以极大程度上的避免盗字幕的行为。[&#x2F;v_act] 懒虫们，假如你们真的懒得看这么长的文章，并且你确定你的发行版是比较新的发行版，那么请直接翻到本文最后看”一键式编译教程”吧！</p>
-<h2 id="准备特效字体"><a href="#准备特效字体" class="headerlink" title="准备特效字体"></a>准备特效字体</h2><p>有很多字幕都是用了自定义字体，请记得给你的发行版安装对应的字体呀！桌面版直接双击安装即可。如果是服务器版，把字体复制到&#x2F;usr&#x2F;share&#x2F;fonts&#x2F;truetype和原来字体一样的位置，或者新建个winFonts目录便于区分也可以。</p>
-<p>之后运行</p>
-<p>sudo apt install fontconfig<br>sudo fc-cache –fv</p>
-<p>运行fc-list可以看到已安装字体列表</p>
-<p>查看中文字体，可以使用</p>
-<p>sudo fc-list :lang&#x3D;zh</p>
-<p>并且请注意编码格式的问题，Linux一般使用<strong>UTF-8</strong>而Windows则是GB2312</p>
-<p> </p>
-<h1 id="编译安装ffmpeg"><a href="#编译安装ffmpeg" class="headerlink" title="编译安装ffmpeg"></a>编译安装ffmpeg</h1><p>我使用的是Ubuntu，所以这里我就按照<a target="_blank" rel="noopener" href="https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu">官网提供的教程编译</a>啦！</p>
-<h2 id="安装必备依赖"><a href="#安装必备依赖" class="headerlink" title="安装必备依赖"></a>安装必备依赖</h2><p>sudo apt-get update<br>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \<br>libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev</p>
-<p>[v_tips] 注意，如果是服务器版Ubuntu，可以把第二步替换成如下（你装原来的也行，反正是ffplay和X11的依赖……）</p>
-<p>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libtheora-dev libtool libvorbis-dev pkg-config texinfo zlib1g-dev</p>
-<p>[&#x2F;v_tips]</p>
-<p>创建一个用来下载源码的目录</p>
-<p>mkdir ~&#x2F;ffmpeg_sources</p>
-<h2 id="编译与安装"><a href="#编译与安装" class="headerlink" title="编译与安装"></a>编译与安装</h2><h3 id="yasm"><a href="#yasm" class="headerlink" title="yasm"></a>yasm</h3><p>如果你的包管理器里的yasm版本号&gt;&#x3D;1.2.0，那就可以用包管理器安装</p>
-<p>（使用sudo apt search yasm查看版本号，就想编译的，我也没意见）</p>
-<p>sudo apt-get install yasm</p>
-<p>否则请编译安装</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz">http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz</a><br>tar xzvf yasm-1.3.0.tar.gz<br>cd yasm-1.3.0<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin”<br>make<br>make install<br>make distclean</p>
-<h3 id="libx264"><a href="#libx264" class="headerlink" title="libx264"></a>libx264</h3><p>如果你的包管理器里的libx264版本号&gt;&#x3D;0.118，那就是用包管理器安装</p>
-<p>sudo apt-get install libx264-dev</p>
-<p>否则需要编译安装</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://download.videolan.org/pub/x264/snapshots/last/_x264.tar.bz2">http://download.videolan.org/pub/x264/snapshots/last\_x264.tar.bz2</a><br>tar xjvf last_x264.tar.bz2<br>cd x264-snapshot*<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin” –enable-static –disable-opencl<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean</p>
-<h3 id="libx265"><a href="#libx265" class="headerlink" title="libx265"></a>libx265</h3><p>只能选择编译安装啦。</p>
-<p>sudo apt-get install cmake mercurial<br>cd ~&#x2F;ffmpeg_sources<br>hg clone <a target="_blank" rel="noopener" href="https://bitbucket.org/multicoreware/x265">https://bitbucket.org/multicoreware/x265</a><br>cd ~&#x2F;ffmpeg_sources&#x2F;x265&#x2F;build&#x2F;linux<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” cmake -G “Unix Makefiles” -DCMAKE_INSTALL_PREFIX&#x3D;”$HOME&#x2F;ffmpeg_build” -DENABLE_SHARED:bool&#x3D;off ..&#x2F;..&#x2F;source<br>make<br>make install</p>
-<h3 id="libfdk-aac"><a href="#libfdk-aac" class="headerlink" title="libfdk-aac"></a>libfdk-aac</h3><p>如果你的包管理器中有libfdk-aac-dev，那就可以使用包管理器安装（没有版本需求）</p>
-<p>sudo apt-get install libfdk-aac-dev</p>
-<p>否则需要编译安装</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget -O fdk-aac.tar.gz <a target="_blank" rel="noopener" href="https://github.com/mstorsjo/fdk-aac/tarball/master">https://github.com/mstorsjo/fdk-aac/tarball/master</a><br>tar xzvf fdk-aac.tar.gz<br>cd mstorsjo-fdk-aac*<br>autoreconf -fiv<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make distclean</p>
-<h3 id="ibmp3lame"><a href="#ibmp3lame" class="headerlink" title="ibmp3lame"></a>ibmp3lame</h3><p>如果你的包管理器中有ibmp3lame，版本号&gt;&#x3D;3.98.3，那么你可以使用包管理器安装</p>
-<p>sudo apt-get install libmp3lame-dev</p>
-<p>否则需要编译安装</p>
-<p>sudo apt-get install nasm<br>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz">http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz</a><br>tar xzvf lame-3.99.5.tar.gz<br>cd lame-3.99.5<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –enable-nasm –disable-shared<br>make<br>make install<br>make distclean</p>
-<h3 id="libopus"><a href="#libopus" class="headerlink" title="libopus"></a>libopus</h3><p>如果你的包管理中有libopus，版本号&gt;&#x3D;1.1，那你可以使用包管理器安装</p>
-<p>sudo apt-get install libopus-dev</p>
-<p>否则需要编译安装。</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz">http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz</a><br>tar xzvf opus-1.1.2.tar.gz<br>cd opus-1.1.2<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make clean</p>
-<h3 id="libvpx"><a href="#libvpx" class="headerlink" title="libvpx"></a>libvpx</h3><p>只能编译安装（注意，这个链接是在Google的服务器上，如果服务器在国内下载不回来，就自己翻墙下载然后上传到服务器吧）</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2">http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2</a><br>tar xjvf libvpx-1.5.0.tar.bz2<br>cd libvpx-1.5.0<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-examples –disable-unit-tests<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make clean</p>
-<h2 id="编译ffmpeg"><a href="#编译ffmpeg" class="headerlink" title="编译ffmpeg"></a>编译ffmpeg</h2><p>耗时可能会比较长</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2">http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2</a><br>tar xjvf ffmpeg-snapshot.tar.bz2<br>cd ffmpeg<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” PKG_CONFIG_PATH&#x3D;”$HOME&#x2F;ffmpeg_build&#x2F;lib&#x2F;pkgconfig” .&#x2F;configure \<br>–prefix&#x3D;”$HOME&#x2F;ffmpeg_build” \<br>–pkg-config-flags&#x3D;”–static” \<br>–extra-cflags&#x3D;”-I$HOME&#x2F;ffmpeg_build&#x2F;include” \<br>–extra-ldflags&#x3D;”-L$HOME&#x2F;ffmpeg_build&#x2F;lib” \<br>–bindir&#x3D;”$HOME&#x2F;bin” \<br>–enable-gpl \<br>–enable-libass \<br>–enable-libfdk-aac \<br>–enable-libfreetype \<br>–enable-libmp3lame \<br>–enable-libopus \<br>–enable-libtheora \<br>–enable-libvorbis \<br>–enable-libvpx \<br>–enable-libx264 \<br>–enable-libx265 \<br>–enable-nonfree<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean<br>hash –r</p>
-<p>[v_blue]注意：</p>
-<p>1.如果你直接运行configure，将会是没有non-free软件的ffmpeg；官方的configure配置会在<del>下生成一个bin（编译之后安装就会在</del>&#x2F;bin下）、ffmpeg_build目录；如果不喜欢，那就照猫画虎的改掉$HOME（记得都要改哦），make install的时候就到&#x2F;bin啦！</p>
-<p>2.在Ubuntu中，~&#x2F;bin默认是被包含到PATH中的，所以当你注销-登录或者</p>
-<p>source ~&#x2F;.profile</p>
-<p>之后可以从任何目录运行<del>&#x2F;bin中的程序的。再不济，咱把</del>&#x2F;bin里的拷贝到&#x2F;bin里总可以吧？</p>
-<p>3.如果需要安装man page，请运行</p>
-<p>echo “MANPATH_MAP $HOME&#x2F;bin $HOME&#x2F;ffmpeg_build&#x2F;share&#x2F;man” &gt;&gt; ~&#x2F;.manpath</p>
-<p>[&#x2F;v_blue]</p>
-<hr>
-<p>我假设你已经编译好了ffmpeg，并且准备好了你的视频和字幕。</p>
-<p>前面提过了，如果你的字幕中使用了自定义字体，请记得同时安装对应的字体！</p>
-<p>并且，请注意<strong>字幕文件的编码格式</strong>，Linux通常会使用UTF-8无BOM，而Windows则是GB2312这类。为了避免出乱码，还是老老实实转换成UTF-8吧！</p>
-<p>下一页我会介绍一些压片的方法，关于ffmpeg的更多方法，大家伙就自己搜索、看官方的文档、man page啦！</p>
-<p>注意，压制过程中可能会出现这样的警告</p>
-<p>Glyph 0x36C not found, selecting one more font for (YouYuan, 700, 0)</p>
-<p>不要管他啦……只要是UTF-8编码的，会压出来的！ 该看下一页啦~~</p>
-<h2 id="不改变视频、音频编码格式及参数，将字幕压制"><a href="#不改变视频、音频编码格式及参数，将字幕压制" class="headerlink" title="不改变视频、音频编码格式及参数，将字幕压制"></a>不改变视频、音频编码格式及参数，将字幕压制</h2><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h2 id="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"><a href="#使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式" class="headerlink" title="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"></a>使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h3 id="关于preset参数："><a href="#关于preset参数：" class="headerlink" title="关于preset参数："></a>关于preset参数：</h3><p>预设是一系列参数的集合，这个集合能够在编码速度和压缩率之间做出一个权衡。一个编码速度稍慢的预设会提供更高的压缩效率（压缩效率是以文件大小来衡量的)。这就是说，假如你想得到一个指定大小的文件或者采用恒定比特率编码模式，你可以采用一个较慢的预设来获得更好的质量。同样的，对于恒定质量编码模式，你可以通过选择一个较慢的预设轻松地节省比特率。</p>
-<p>如果你很有耐心，通常的建议是使用最慢的预设。目前所有的预设按照编码速度降序排列为： ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo默认为medium</p>
-<p>[v_blue]如果你蒙圈了，那就这么说的，ultrafast处理的最快，但是文件大；placebo处理的慢，但是文件小；建议medium或者fast就可以了……有耐心的话，veryslow也够了。[&#x2F;v_blue]</p>
-<h3 id="crf-Constant-Rate-Factor"><a href="#crf-Constant-Rate-Factor" class="headerlink" title="crf(Constant Rate Factor)"></a>crf(Constant Rate Factor)</h3><p>该方法在输出文件的大小不太重要的时候，可以使整个文件达到特定的视频质量。该编码模式在单遍编码模式下提供了最大的压缩效率，每一帧可以按照要求的视频质量去获取它需要的比特数。不好的一面是，你不能获取一个特定大小的视频文件，或者说将输出位率控制在特定的大小上。</p>
-<p>crf的参数值中，其中0为无损模式，23为缺省值，51可能是最差的。该数字越小，图像质量越好。从主观上讲，18~28是一个合理的范围。18往往被认为从视觉上看是无损的，它的输出视频质量和输入视频一模一样或者说相差无几。但从技术的角度来讲，它依然是有损压缩。 [v_blue]我觉得选择20就差不多啦~~[&#x2F;v_blue]</p>
-<h3 id="以H-264、Lame自定义参数重新编码、压制"><a href="#以H-264、Lame自定义参数重新编码、压制" class="headerlink" title="以H.264、Lame自定义参数重新编码、压制"></a>以H.264、Lame自定义参数重新编码、压制</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” -acodec libmp3lame -ab 128k lame.mp4</p>
-<p>如果想压制AAC的音频，就在最后把acodec libmp3lame改成acodec aac</p>
-<p>其中-ab 128k指的是平均码率为128k</p>
-<h2 id="以H-264自定义分辨率、AAC自定义参数缩放压制视频"><a href="#以H-264自定义分辨率、AAC自定义参数缩放压制视频" class="headerlink" title="以H.264自定义分辨率、AAC自定义参数缩放压制视频"></a>以H.264自定义分辨率、AAC自定义参数缩放压制视频</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass,scale&#x3D;800:-1” -acodec aac -ab 128k aac.mp4</p>
-<p>其中的scale&#x3D;800:-1指的是输出800:对应比例的视频。假如你要压制720P的，那就把800改成1280；假如你要1080的，那就改成1920。通常来说，分辨率高的压分辨率低的好办，低的压高的就麻烦了……</p>
-<h2 id="两遍模式"><a href="#两遍模式" class="headerlink" title="两遍模式"></a>两遍模式</h2><p>如果你的目标是一个确定大小的文件而且帧与帧之间的视频质量并不重要，这个方法很适用。这通过一个例子可以得到很好地解释。你的视频有10分钟（600秒）的时长同时要求输出为50MB，因为比特率&#x3D;文件大小&#x2F;时长，</p>
-<p>50MB*8192（MB转kilobits)&#x2F;600秒&#x3D;683 kbps（全局比特率）</p>
-<p>683kbps-128kbps(音频比特率）&#x3D;555kbps（视频比特率）,</p>
-<p>两遍编码的例子：</p>
-<p>ffmpeg -y -i input -c:v libx264 -preset medium -b:v 555k -pass 1 -an -f mp4 &#x2F;dev&#x2F;null &amp;&amp;<br>ffmpeg -i input -c:v libx264 -preset medium -b:v 555k -pass 2 -c:a libfdkaac -b:a 128k mp4 output.mp4</p>
-<h2 id="分割视频（拷贝视频和音频流，速度比较快）"><a href="#分割视频（拷贝视频和音频流，速度比较快）" class="headerlink" title="分割视频（拷贝视频和音频流，速度比较快）"></a>分割视频（拷贝视频和音频流，速度比较快）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -ss 01:00:00 -i input_file_h264.mp4 -vcodec copy -acodec copy -t 00:06:00 output_file.mp4</span><br></pre></td></tr></table></figure>
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我这上面这几个小标题写的乱乱糟糟的，在这里统一做一个总结吧：</p>
-<h3 id="需要原封不动的把字幕压进去"><a href="#需要原封不动的把字幕压进去" class="headerlink" title="需要原封不动的把字幕压进去"></a>需要原封不动的把字幕压进去</h3><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h3 id="需要快速的压制质量较好的H264视频"><a href="#需要快速的压制质量较好的H264视频" class="headerlink" title="需要快速的压制质量较好的H264视频"></a>需要快速的压制质量较好的H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h3 id="需要快速压制质量较好的H264、720P视频"><a href="#需要快速压制质量较好的H264、720P视频" class="headerlink" title="需要快速压制质量较好的H264、720P视频"></a>需要快速压制质量较好的H264、720P视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 23 -vf “ass&#x3D;Lantern.ass,scale&#x3D;1280:-1” out.mp4</p>
-<h3 id="需要压制超高质量的、缓慢的压制H264视频"><a href="#需要压制超高质量的、缓慢的压制H264视频" class="headerlink" title="需要压制超高质量的、缓慢的压制H264视频"></a>需要压制超高质量的、缓慢的压制H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset veryslow -crf 18 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<p>这个……crf的质量大家自己掂量着办！0最好，53最差，默认23，合理范围18~28 preset也看着办 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo 越慢，压缩率越高。</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>视频编码这是个长久的技术活啊，而且需要很多的经验！自己多编码多玩玩，自然就有懂啦！</p>
-<p>下一页是给懒虫们留着的哦~~ 附录</p>
-<p>给懒虫们的一键式编译脚本。我不太会写脚本，所以这个还是有很大改善空间的….目前只支持Debian系 使用方法： git clone仓库，给两个文件都加x权限，root身份运行onekey-ffmpeg.sh即可。 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/onekey-compile-ffmpeg'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80%E6%88%B3%E6%88%91/[/gt/]">https://github.com/BennyThink/onekey-compile-ffmpeg&#39;\]开源地址戳我\[/gt\]</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/11/10/ffmpeg/index/" data-id="clhp7rtht005zs2qrbjgt43ap" data-title="自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-school-3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/11/09/school-3/index/" class="article-date">
-  <time class="dt-published" datetime="2016-11-09T00:00:00.000Z" itemprop="datePublished">2016-11-09</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/security/">security</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/11/09/school-3/index/">[学校上网系列]3. 从网盘秒传中想到的：不要想当然</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天恰逢美国大选，特朗普已经成为新任美国总统。所以我也来凑个热闹，当然今天我不打算谈论总统的事，今天我要继续谈论我们的学校上网系列之从网盘秒传想到的</p>
-<p>鉴于360云盘宣布关门大吉，估计大家伙都转移到百度网盘了吧。提到网盘，大家可能会把他当做备份数据的、存储资料的一个地方。所以今天我也就来科普下一些和数据备份相关的概念以及如何安全、可靠的进行数据备份。嗷对了，自从百度云改版之后，下载什么东西都得用那丫的百度云管家。婶不能忍啊！ :twisted:</p>
-<p>再继续之前，强烈建议阅读爱范儿上的一篇文章：<a target="_blank" rel="noopener" href="http://www.ifanr.com/653360">《国内的网盘一个个倒下，这里有一份能让你用到老的存储指南》</a></p>
-<p>在说数据备份之前，我们要先学习一些基础知识：数据备份的三种方式、如何选择存储媒介、超大空间和秒传，之后我们会讨论下如何安全的使用云盘、如何干他丫的百度云管家。</p>
-<h2 id="数据备份的三种方式"><a href="#数据备份的三种方式" class="headerlink" title="数据备份的三种方式"></a>数据备份的三种方式</h2><p>通常来说，最常见的数据备份方式有完整备份、增量备份、差异备份。</p>
-<h3 id="完整备份"><a href="#完整备份" class="headerlink" title="完整备份"></a>完整备份</h3><p>把所有文件、文件夹或数据作一次性的复制，不考虑其中是否有任何更改、变化的备份方式就叫做完整备份。通常来说，第一次备份都会是完整备份。举个例子，我周一把整个分区&#x2F;目录的文件都以某种方式备份&#x2F;封装到某个特定的存储介质中，这就叫做完整备份。</p>
-<h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>指对上一次完整备份或增量备份后更新的数据进行备份。举个例子，我周一进行了完整备份，周二进行增量备份则是这段时间内发生变化的数据作为一个”增量”和周一的备份文件放在一起，这个过程就叫做增量备份。周三继续进行增量备份是和周二进行对比，变化的数据进行备份。换句话说，增量备份是跟<strong>前一次备份</strong>对比，备份变化的。</p>
-<h3 id="差异备份"><a href="#差异备份" class="headerlink" title="差异备份"></a>差异备份</h3><p>提供运行完整备份后变更的文件的备份。差异备份和增量备份非常相近。只不过差异备份永远是和完整备份的那次进行比较（在这里也就是周一的完整备份）</p>
-<hr>
-<p>估计大家伙此时还是懵逼的状态，依旧没搞懂增量和差异的区别……我们举个很大的例子：</p>
-<p>周一进行完整备份，周二进行增量备份，周三进行增量备份，周四进行差异备份，周五进行差异备份，他们备份之后的文件名分别为file1, file2, file3, file4, file5</p>
-<p>那么请继续往下看。</p>
-<h2 id="三种备份方式的还原"><a href="#三种备份方式的还原" class="headerlink" title="三种备份方式的还原"></a>三种备份方式的还原</h2><h3 id="完整备份-1"><a href="#完整备份-1" class="headerlink" title="完整备份"></a>完整备份</h3><p>最简单了，直接还原file1即可。</p>
-<h3 id="增量备份-1"><a href="#增量备份-1" class="headerlink" title="增量备份"></a>增量备份</h3><p>假如我要恢复到周二的状态，那么需要file1和file2这两个文件，假如需要恢复到周三的状态，那么就需要file1, file2, file3这三个文件。</p>
-<h3 id="差异备份-1"><a href="#差异备份-1" class="headerlink" title="差异备份"></a>差异备份</h3><p>假如需要恢复到周四的状态，那么就需要file1, file4；假如需要恢复到周五的状态，那么就需要file1和file5（并不需要file4）</p>
-<hr>
-<p>看出增量备份和差异备份的区别了吗？</p>
-<p>增量备份是针对<strong>上一次备份的</strong>（无论是增量还是完整），它的恢复需要<strong>每一次的增量文件和最开始的完整备份</strong>，也就是说恢复到周三的状态不能没有file2这个文件；</p>
-<p>差异备份是针对<strong>完整备份的</strong>，它的恢复需要本次<strong>差异备份文件</strong>和对应的<strong>完整备份</strong>。假如我想恢复到周四，那么只需要file1和file4就够了，file2和file3都是完全无关的。</p>
-<h3 id="这有什么用？和网盘有何关系？"><a href="#这有什么用？和网盘有何关系？" class="headerlink" title="这有什么用？和网盘有何关系？"></a>这有什么用？和网盘有何关系？</h3><p>当然有用了，尤其是那些喜欢备份系统分区的人们——每次都是完整备份，浪费时间、浪费空间。</p>
-<p><img src="/images/110916_1153_1.png"></p>
-<p>著名的备份软件True Image即提供这三种备份方式。</p>
-<p>对于使用网盘的人们来说……网盘如果能够支持类似增量备份这种技术，将会大幅度减少上传时间。实际上，网盘中存在的这种技术一般被称作”<strong>差异同步</strong>“，对这个技术做的最好的应该是Dropbox。举个例子，假如你上传了一个压缩包，之后又给压缩包进行了一些修改（增加、修改、删除文件等），Dropbox会分析这个压缩包中哪里被修改了，然后只上传修改过的那些字节。这一技术有一点像rsync 。因为这技术太先进了，所以很少有网盘会用，维基百科上有个页面，有兴趣可以去<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Comparison_of_online_backup_services">查阅这里</a></p>
-<h2 id="如何选择备份媒介"><a href="#如何选择备份媒介" class="headerlink" title="如何选择备份媒介"></a>如何选择备份媒介</h2><p>备份媒介，指的是你是把备份文件复制到移动硬盘上，U盘上还是上传到虚无缥缈的”云”上？</p>
-<p>我们要从几个方面来考虑这个问题。</p>
-<h3 id="速度"><a href="#速度" class="headerlink" title="速度"></a>速度</h3><p>毫无疑问，拷贝到移动硬盘上的速度是要<strong>远远快于</strong>上传到云端的，况且中国奉行下载很快、上传很慢的不对等”百兆光纤”这个现象要更加明显。下载也基本同理。</p>
-<h3 id="保密性"><a href="#保密性" class="headerlink" title="保密性"></a>保密性</h3><p>你的数据是否是保密的呢？。如果移动硬盘被借走、偷走，那么所有数据就会被人偷窥；而上传到网盘…也可能有类似的担忧：网盘提供商偷窥（比如说美国的NSA啦，中国的金盾啦）、传输过程中被窃听（很多网盘上传下载都不是加密的）、网盘账号被盗（网盘被入侵、被搜索引擎检索）</p>
-<p>在这里点名批评百度网盘，用它，<a target="_blank" rel="noopener" href="http://www.pingwest.com/pay-for-your-data-and-privacy/">那就先给你的隐私买个保险吧</a>。</p>
-<h3 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h3><p>硬盘坏了、着火、被盗、地震，使用移动硬盘这类的可能就要遭殃了。但是除非发生极大规模的全国性灾难、云存储厂商跑路、内容被审查，云端资料大概还是比较安全的……</p>
-<p>[v_blue]其实我看好BT Sync[&#x2F;v_blue]</p>
-<h3 id="易用性"><a href="#易用性" class="headerlink" title="易用性"></a>易用性</h3><p>假如你想分享某个视频给朋友，U盘拷贝进去再给他可能很麻烦；但是上传到网盘再分享就很简单了。</p>
-<h2 id="超大空间和秒传的秘密"><a href="#超大空间和秒传的秘密" class="headerlink" title="超大空间和秒传的秘密"></a>超大空间和秒传的秘密</h2><p>对于大多数人来说，2T的空间是一种诱惑啊。但是天真的你难道以为百度真的为你量身订造买了三块价值300元的1硬盘总计900元和其他电费、带宽费来为你服务吗？还有哎百度说的2T是2048G——1024进制，而不是硬盘厂商们喜欢的900G</p>
-<p>当然不会了！ [v_tips]为什么要3x1T？不应该直接就是2T吗 RAID5啊亲，这么重要的应用场合，肯定要用到磁盘阵列的，而且RAID5应用比较广泛，速度和安全并存。 [&#x2F;v_tips]</p>
-<p>事实当然不是这样了。笨理想，同样的文件服务器上肯定只有一份（逻辑上只有一份），但是从技术上他们是怎么确定同一个文件的呢？这就引入了单向散列函数的概念。</p>
-<h3 id="单向散列函数"><a href="#单向散列函数" class="headerlink" title="单向散列函数"></a>单向散列函数</h3><p>英文名字是hash，原意为砸碎，这倒是很形象，也有人音译为”哈希”。单向散列函数是一种将无穷无尽的东西转换为<strong>有限长度的</strong>、<strong>尽可能不重复的、不可逆</strong>字符串的算法，这个算法叫做单向散列函数，这个字符串叫做散列值、摘要、信息摘要。说到这，有些童鞋可能会问，你把无穷的东西转换成有穷的东西，肯定会有两个东西转换之后会是相同的嘛！问得好！这种现象叫做碰撞，分为……！</p>
-<p>说到这可能”散列”这个概念还是很难理解。那么指纹可以理解吗？你对一首歌求某个散列算法的散列值，就相当于把这首歌的指纹求出来了——就像你的指纹可以几乎唯一的代表你一样，这个散列值也可以几乎唯一的代表那首歌。</p>
-<p>举个例子，你把00000000散列之后的摘要是abjhda62c，你把仅仅改变了一个bit的10000000散列之后，摘要就会变为fjgha267d2。输入值只变了一位，但是摘要却变得面目全非。也就是说，散列可以用来验证文件的正确性、</p>
-<p>聪明的童鞋大概想到了…假如我上传了某部电影，此时服务器上海没有这个文件，于是只好乖乖的上传了。上传完之后，另一个用户再上传同一部电影的时候（或者是散列值相同的文件），服务器（或者是客户端）经过计算发现散列值相同，那也就直接给另一个用户做标记并提示”秒传”。</p>
-<p>这也就是秒传的原理。 [v_blue]Windows下的HashTab用起来挺舒服的[&#x2F;v_blue]</p>
-<hr>
-<p>单向散列函数有哪些基本特征呢？ <strong>单向性</strong> 你能把砸碎的镜子复原吗？很难吧。单向散列函数的单向性是指的操作方向的不可逆性，在单向散列函数中是指只能从输入推导出输出，而不能从输出计算出输入。</p>
-<p><strong>唯一性</strong> 散列函数的输入和输出不是唯一对应关系的（无穷怎么可能会一一对应有穷），如果两个散列值相同，两个输入值很可能是相同的，但也可能不同，这种情况称为”哈希碰撞”。碰撞分为两种，强碰撞和弱碰撞。</p>
-<p><strong>弱抗碰撞性：</strong>当给定某条消息的散列值时，单向散列函数必须确保要找到和该条消息具有相同散列值的另外一条消息是非常困难的。</p>
-<p><strong>强抗碰撞性：</strong>是指要找到散列值相同的两条不同的消息是非常困难的。</p>
-<p>这里的碰撞可能说的有点多了……但是百度云使用的是MD5，而MD5早就被认为是不安全的散列函数了。我曾见过用工作站碰撞小黄片玩的孩子… [v_tips]PS：在对用户身份进行认证中（也就是你登录账户的时候），散列函数是起到非常关键的作用的。没有哪家系统会直接明文把用户密码存到数据库里吧，再不济也得用散列函数hash一下（然而这却无法阻挡彩虹表的脚步），比较好的做法是使用随机盐配合安全的散列函数。[&#x2F;v_tips]</p>
-<h2 id="如何安全的使用云盘"><a href="#如何安全的使用云盘" class="headerlink" title="如何安全的使用云盘"></a>如何安全的使用云盘</h2><p>几个月之前，几个字幕组的成员因为<a target="_blank" rel="noopener" href="http://news.sohu.com/20160929/n469374932.shtml">上传日剧资源被日本警方逮捕</a></p>
-<p>虽说字幕组本身就是游走在法律边缘的，但是我还是想说一句，字幕组挺辛苦的。那么，假如你是上面新闻里被抓的字幕组成员，假如你的网盘受到监控、传输被监听，假如给你一次重来的机会，你该怎样避免被抓到呢……？</p>
-<p>再假如你不是很放心云存储厂商，你怕他们泄露隐私，但是你又不得不使用，那该怎么办呢？ [v_error]PS，这不是想要说”匿名术”，这只是想说，怎样能够在<strong>轻度危险的情况</strong>下安全的使用云盘；同时也不会涉及到那些很牛逼的破解技术，比如说”冷启动攻击”什么的。[&#x2F;v_error]</p>
-<h3 id="使用VeraCrypt创建加密卷，并将加密卷上传"><a href="#使用VeraCrypt创建加密卷，并将加密卷上传" class="headerlink" title="使用VeraCrypt创建加密卷，并将加密卷上传"></a>使用VeraCrypt创建加密卷，并将加密卷上传</h3><p>创建加密卷，哪怕拿到它，没有密码也是无法解密的。在轻度危险的情况下，大概也不会有人揍你胁迫你交出密码。至于加密卷的密码，可以使用某些支持端到端加密的IM软件、或者是GPG发邮件等方法告知接收人。</p>
-<p>对于那些不信任云存储厂商但又没办法的人，创建加密卷可能是非常棒的办法了——同时这时候支持差分同步就要好太多太多了。</p>
-<p>使用VeraCrypt创建加密卷具体方法，可以参考我的博文<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版：密码学科普，兼谈GnuPG和VeraCrypt》</a></p>
-<h3 id="使用GPG创建加密文件"><a href="#使用GPG创建加密文件" class="headerlink" title="使用GPG创建加密文件"></a>使用GPG创建加密文件</h3><p>这个本质和上面是一样的，只不过非对称往往速度不占优势</p>
-<h3 id="使用WinRar、7zip等开启文件名加密功能"><a href="#使用WinRar、7zip等开启文件名加密功能" class="headerlink" title="使用WinRar、7zip等开启文件名加密功能"></a>使用WinRar、7zip等开启文件名加密功能</h3><p>一定要记得开启文件名加密功能，否则，哎嘿嘿还是能看到文件名的。</p>
-<p><img src="/images/110916_1153_2.png"><img src="/images/110916_1153_3.png"></p>
-<h3 id="注意：不要对加密卷再次使用WinRar等工具进行压缩"><a href="#注意：不要对加密卷再次使用WinRar等工具进行压缩" class="headerlink" title="注意：不要对加密卷再次使用WinRar等工具进行压缩"></a>注意：不要对加密卷再次使用WinRar等工具进行压缩</h3><p>为啥捏？学习一点点信息论、密码学的人大概会懂，加密过的东西的熵都是很高的，是压不动的，还浪费你CPU，非得想弄成压缩包，或者是纯粹利用压缩软件的分卷压缩功能，请记得选”只存储”这个选项。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>最近心情比较浮躁，这篇文章也写得比较草率，一度都觉得想放弃了。近几天我也会尽快更新“美文推荐”的。最后，留下一句话：</p>
-<blockquote>
-<p>有些人总觉得，我踢球进门了，是我球技好；射偏了，那是打雷吓到了我。其实真正起决定性作用的是球技，打不打雷下不下雨只是次要因素。</p>
-</blockquote>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/11/09/school-3/index/" data-id="clhp7rtj50085s2qrcfydgzrb" data-title="[学校上网系列]3. 从网盘秒传中想到的：不要想当然" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/14/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/16/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/14/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/16/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1094,7 +1095,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1107,23 +1108,23 @@
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

@@ -73,6 +73,666 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-celery-bot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/01/03/celery-bot/index/" class="article-date">
+  <time class="dt-published" datetime="2022-01-03T00:00:00.000Z" itemprop="datePublished">2022-01-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/01/03/celery-bot/index/">分布式Telegram Bot</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自己写一个Telegram Bot是非常简单的，无论是使用HTTP API还是MTProto协议。</p>
+<p>最简单的echo bot大概是下面的这种样子</p>
+<p>import logging<br>import time</p>
+<p>from telebot import apihelper<br>import telebot</p>
+<p>logging.basicConfig(level&#x3D;logging.INFO)</p>
+<p>bot &#x3D; telebot.TeleBot(“3XI”)<br>apihelper.proxy &#x3D; {‘https’: ‘socks5h:&#x2F;&#x2F;127.0.0.1:1086’}</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’, ‘help’])<br>def send_welcome(message):<br>    logging.info(“Received message”)<br>    bot.reply_to(message, “Howdy, how are you doing?”)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    bot.polling()</p>
+<p><img src="/images/2022010320464319.png"></p>
+<p>很棒是不是！</p>
+<p>当你的bot开始有更多的业务，比如说查询数据库，去访问其他网站然后解析，你就会发现这个bot似乎有点力不从心，所有的响应都慢了一拍。</p>
+<p>比如这样，这个bot每次都要去访问另外一个网站，然后返回，可惜的是这个网站响应太慢了，要5秒才能返回</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def send_welcome(message):<br>    logging.info(“Received start message”)<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000/%22).text">http://127.0.0.1:5000/&quot;).text</a><br>    bot.reply_to(message, text)</p>
+<p>@bot.message_handler(commands&#x3D;[‘help’])<br>def send_help(message):<br>    logging.info(“Received help message”)<br>    bot.reply_to(message, “help”)</p>
+<p>此时你就会惊奇地发现，所有其他的操作都被阻塞了，直到start结束。</p>
+<p><img src="/images/2022010320470988.png"></p>
+<p>这要怎么办呢？一定是有办法的对吧</p>
+<h2 id="增大thread数量"><a href="#增大thread数量" class="headerlink" title="增大thread数量"></a>增大thread数量</h2><p>无论是pyrogram还是pytelegrambotapi，都有一个额外的参数用来设置线程数量。</p>
+<p>对于pytelegrambotapi来说，参数是<code>num_threads=2</code>，构造bot的时候就可以指定；</p>
+<p>对于pyrogram来说，参数是<code>workers: int = Scaffold.WORKERS</code>，更准确的说是<code>min(32, os.cpu_count() + 4)</code>。</p>
+<p>那么只要我们在一定范围内增加这个数字，那么就应该在一定程度内不会反应迟钝太多。比如说：</p>
+<p>bot &#x3D; telebot.TeleBot(“token”, num_threads&#x3D;100)</p>
+<p>是这个道理的！</p>
+<h2 id="使用async"><a href="#使用async" class="headerlink" title="使用async"></a>使用async</h2><p>使用async也可以恰到好处的解决我们以上阻塞的问题，此时我们需要用<code>AsyncTeleBot</code></p>
+<p>from telebot.async_telebot import AsyncTeleBot<br>bot &#x3D; AsyncTeleBot(“TOKEN”)</p>
+<p>但是这个时候我们就不能直接用requests了，因为requests是sync的，简单起见我们这用aiohttp作为演示例子</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’])<br>async def send_welcome(message):<br>    logging.info(“Received start message”)<br>    async with aiohttp.ClientSession() as session:<br>        async with session.get(‘<a target="_blank" rel="noopener" href="http://127.0.0.1:5000/">http://127.0.0.1:5000/</a>‘) as response:<br>            html &#x3D; await response.text()<br>    await bot.reply_to(message, html)</p>
+<p>@bot.message_handler(commands&#x3D;[‘help’])<br>async def send_help(message):<br>    logging.info(“Received help message”)<br>    await bot.reply_to(message, “help”)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    asyncio.run(bot.polling())</p>
+<p>嗯，不会阻塞的。</p>
+<p><img src="/images/2022010320471782.png"></p>
+<p>这种做法也是一种很流行的办法，但是我个人不是很喜欢。一个是因为菜，还有一个是因为很多库都是非async的，切换过去难度可能比较大。尽管也有些monkey patch可以使用，但是总感觉这种做法太过于魔法。</p>
+<h2 id="更复杂的场景"><a href="#更复杂的场景" class="headerlink" title="更复杂的场景"></a>更复杂的场景</h2><p>通常来说，简单加大线程数量或者用async即可解决我们的问题。</p>
+<p>但是比如你的场景比较复杂，比如说是从YouTube上下载视频，需要占用大量的带宽，即使线程数量足够，那么并发量高的时候，下载速度也会被限制于本机的带宽。</p>
+<p>既然MTProto协议最高允许10个客户端同时在线，那么有没有办法同时在多台机器上登录，然后分发任务，每个机器接收到任务之后只负责处理自己的任务，这样整体的吞吐量就可以非常容易的水平扩展。</p>
+<h2 id="Celery-分布式任务队列"><a href="#Celery-分布式任务队列" class="headerlink" title="Celery - 分布式任务队列"></a>Celery - 分布式任务队列</h2><p>Celery 是一个简单、灵活且可靠的，处理大量消息的分布式系统，并且提供维护这样一个系统的必需工具。</p>
+<p>没错的，我们可以在多台机器之间通过<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">WireGuard组一个大内网</a>，然后通过celery分发任务。</p>
+<p>使用Celery非常简单，我们需要先准备好broker，比如说使用redis吧！</p>
+<p>from celery import Celery<br>app &#x3D; Celery(‘hello’, broker&#x3D;’redis:&#x2F;&#x2F;localhost:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”</p>
+<p>@app.task<br>def hello():<br>    return ‘hello world’</p>
+<p>然后运行worker</p>
+<p>celery -A tasks worker –loglevel&#x3D;info</p>
+<p>这里我们可以看到，celery连接到了redis，<code>concurrency</code>是8，使用<code>prefork</code></p>
+<p><img src="/images/2022010320471965.png"></p>
+<p>之后我们只要使用delay方法提交任务就可以了</p>
+<p>&gt; python3 master [bd0f485] deleted untracked<br>Python 3.9.9 (main, Nov 21 2021, 03:22:47)<br>[Clang 12.0.0 (clang-1200.0.32.29)] on darwin<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>from tasks import add<br>add.delay(8,1)<br>&lt;AsyncResult: cf06f416-bdf7-4ea9-99bc-7ba136329b7f&gt;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>celery worker会拿到任务，然后进行处理。如果有多个worker并且全部空闲，那么大家拿到任务的几率是均等的，也就是round robin。</p>
+<h2 id="celery-pyrogram"><a href="#celery-pyrogram" class="headerlink" title="celery+pyrogram"></a>celery+pyrogram</h2><p>好极了，那就这么搞，用pyrogram只要确保session名字不同，那么就是不同的客户端。</p>
+<p>于是你兴致勃勃的写好了代码</p>
+<p># bot.py<br>from pyrogram import filters<br>from client_init import create_app<br>from tasks import send_hello</p>
+<p>app &#x3D; create_app()</p>
+<p>@app.on_message(filters.command([“&#x2F;start”]))<br>def hello(client, message):<br>    send_hello.delay(message.chat.id)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    app.run()</p>
+<h1 id="tasks-py"><a href="#tasks-py" class="headerlink" title="tasks.py"></a>tasks.py</h1><p>from celery import Celery<br>from client_init import create_app</p>
+<p>app &#x3D; Celery(‘tasks’, broker&#x3D;’redis:&#x2F;&#x2F;localhost:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”)<br>tg_client &#x3D; create_app(“development”)<br>tg_client.start()</p>
+<p>@app.task<br>def send_hello(user_id):<br>    tg_client.send_message(user_id, “Hello”)</p>
+<p>然后发送了一个<code>/start</code>，奇迹并没有发生。事实就像社会主义铁拳一样，总会把你的脸打得啪啪作响。</p>
+<p><img src="/images/2022010320472117.jpeg"></p>
+<p>行吧，这是macOS&#x2F;Python.org&#x2F;Celery的锅，猜测是和subprocess在不同平台上的实现有关。因为我们用的是prefork模式。</p>
+<p>那既然这样，我们换到Linux试一下看看</p>
+<p>虽然没有报错了，但是为何收到了消息却没有执行？或者说执行卡住了？多打点log试试看？</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    print(tg_client.get_me())<br>    tg_client.send_message(user_id, “Hello”)<br>    logging.info(“finish tasks”)</p>
+<p><img src="/images/2022010320472226.png"></p>
+<p>为什么？</p>
+<h2 id="为什么client卡住了？"><a href="#为什么client卡住了？" class="headerlink" title="为什么client卡住了？"></a>为什么client卡住了？</h2><p>celery默认是prefork模式，意味celery会fork出来一堆子进程来干活，然后自己成为包工头。这也是我们在日志中看到 ForkPoolWorker-x的执行日志的原因。</p>
+<p>但是我们是在file-level定义的<code>tg_client</code>，而执行任务的worker在收到下载请求时要去访问<code>tg_client</code>，这是一个大问题。再加上pyrogram是异步库。所以问题就更严重了</p>
+<p>解决方案之一是，我们在tasks中使用<code>with</code>，这样相当于每次tasks执行都要经历完成的连接步骤，就好像开机-干活-关机一样。</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    with create_app(“development”) as tg_client:<br>        print(tg_client.get_me())<br>        tg_client.send_message(user_id, “Hello”)<br>    logging.info(“finish tasks”)</p>
+<p>第一次会比较慢，后续会使用到session文件，能稍微快一点。</p>
+<p>如果突然来了10个并发的任务……💣那这就完蛋啦</p>
+<h2 id="solo模式"><a href="#solo模式" class="headerlink" title="solo模式"></a>solo模式</h2><p>celery worker除了prefork模式，还有gevent、eventlet、threads和solo这四种。<a target="_blank" rel="noopener" href="https://blog.csdn.net/cnweike/article/details/105840936">它们的区别</a>大致如下：</p>
+<p>1. prefork（默认）：worker会开启多个进程来执行具体的任务实例（task instance），适合于CPU密集型应用；这会开启一个worker主进程，和一组工作进程（如果并行度设置为2，当使用ps -ef | grep celery的时候，会看到3个进程，多出来的一个就是主进程）。</p>
+<p>celery -A djangogo worker -P prefork -c 2</p>
+<p>2. eventlet：适用于I&#x2F;O密集型应用；底层使用epoll或者libevent来驱动多路复用。要注意不要在这样的worker中运行CPU密集型的任务实例。</p>
+<p>celery -A djangogo worker -P eventlet -c 20000</p>
+<p>3. gevent：类似于eventlet，基于libev或者libuv事件循环。</p>
+<p>celery -A djangogo worker -P gevent -c 20000</p>
+<p>4.solo：接收控制指令同运行任务实例在同一个进程里执行，如果任务实例执行时间较长会阻塞控制指令请求的响应，客户端需要适度增加超时时间设置。（一般不使用）</p>
+<p>5. threads：任务实例在线程中执行。这里的线程就是我们通常认知上的线程，线程维护通常要明显大于协程，所以并行度的设置也需要考虑到维护的代价。</p>
+<p>那么用solo模式似乎可行</p>
+<p>tg_client &#x3D; create_app(“development”)<br>tg_client.start()</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<h1 id="run-celery"><a href="#run-celery" class="headerlink" title="run celery"></a>run celery</h1><p>celery -A tasks worker –loglevel&#x3D;info –pool&#x3D;solo</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/01/202201032109099.jpeg"><img src="/images/202201032109099.jpeg"></a></p>
+<p>这样当然也行，但是一个很严肃的问题就是，solo情况下如果函数执行时间过长，会使得后续tasks被阻塞，也就是说solo下concurrency是没有用的。这……</p>
+<h2 id="threads模式"><a href="#threads模式" class="headerlink" title="threads模式"></a>threads模式</h2><p>那么用threads模式如何？反正大部分情况下也只是网络相关的操作，不太涉及到计算。</p>
+<p>celery -A tasks worker –loglevel&#x3D;info –pool&#x3D;threads –concurrency&#x3D;20</p>
+<p>此时你会发现，虽然可以并发，但是似乎又像prefork模式一样，卡住了……</p>
+<p>根本原因是celery tasks是阻塞主线程的，而pyrogram作为异步库<strong>是要依赖主线程的</strong>。</p>
+<p>但是改改还能抢救一下</p>
+<h3 id="如果你使用的是pyrogram-1-x版本的话"><a href="#如果你使用的是pyrogram-1-x版本的话" class="headerlink" title="如果你使用的是pyrogram 1.x版本的话"></a>如果你使用的是pyrogram 1.x版本的话</h3><p>from pyrogram import idle</p>
+<p>logging.basicConfig(level&#x3D;logging.INFO)<br>app &#x3D; Celery(‘tasks’, broker&#x3D;’redis:&#x2F;&#x2F;host.docker.internal:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”)<br>tg_client &#x3D; create_app(“development”)</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<p>def run_celery():<br>    argv &#x3D; [“-A”, “tasks”, ‘worker’, ‘–loglevel&#x3D;info’, “–pool&#x3D;threads”, “–concurrency&#x3D;200”]<br>    app.worker_main(argv)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    tg_client.start()<br>    threading.Thread(target&#x3D;run_celery, daemon&#x3D;True).start()<br>    idle()<br>    tg_client.stop()</p>
+<h1 id="run-celery-1"><a href="#run-celery-1" class="headerlink" title="run celery"></a>run celery</h1><p>python3 tasks.py</p>
+<p>这样就可以顺利收发消息啦😄</p>
+<h2 id="其他模式"><a href="#其他模式" class="headerlink" title="其他模式"></a>其他模式</h2><p>至于gevent、eventlet，反正我是没搞出来……</p>
+<h2 id="其他配置"><a href="#其他配置" class="headerlink" title="其他配置"></a>其他配置</h2><h3 id="监控worker"><a href="#监控worker" class="headerlink" title="监控worker"></a>监控worker</h3><p>在有了worker后，总想做一些监控什么的，celery flower正好是干这件事情的</p>
+<p>celery -A tasks worker –loglevel&#x3D;info</p>
+<p>由于我们的tg_client是file-level，并且由于flower和最新版本的celery似乎有些兼容性问题，没办法不用-A喧嚣。因此为了避免浪费一个client并加快启动速度，我们可以弄一个dummy tasks</p>
+<p># flower_tasks.py<br>app &#x3D; Celery(‘tasks’, broker&#x3D;BROKER, timezone&#x3D;”Asia&#x2F;Shanghai”)</p>
+<p>然后</p>
+<p>celery -A flower_tasks flower</p>
+<p>甚至可以根据个人情况使用<code>--persistent</code>、<code>basic auth</code>之类的。看看这效果（</p>
+<p><img src="/images/2022010320472376.jpeg" alt="图像"></p>
+<p>还可以看到哪些任务是失败的，修复了好几个bug</p>
+<p><img src="/images/2022010320472569.jpeg" alt="图像"></p>
+<h3 id="持续部署"><a href="#持续部署" class="headerlink" title="持续部署"></a>持续部署</h3><p>worker这么多，每次更新都要ssh上去很麻烦，即使是用了<code>docker-compose</code>也一样。方法之一是用ansible，方法之二是用GitHub Actions。</p>
+<p>我的用法是在Github Actions上ssh到机器，然后执行我写好的<code>Makefile</code>。<code>Makefile</code>的内容大概就是<code>docker pull docker-compose up -d</code>之类的啦。</p>
+<p>可以参考这里 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/upgrade.yml">https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/upgrade.yml</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总结一下，大概有三种可行的方法，以<code>tg_client.get_me()</code>和我的慢速梯子为例：</p>
+<ol>
+<li>prefork+with，每次都要开机-干活-关机。第一次会比较慢大概15-20秒，后续会快一点。参考时间2-3s</li>
+<li>solo模式，只能处理一个，每次处理参考时间0.5s或更低</li>
+<li>threads模式，只要不涉及到大量计算那么问题就不大，那么每次处理参考时间为0.5s或更低</li>
+</ol>
+<h2 id="最后……"><a href="#最后……" class="headerlink" title="最后……"></a>最后……</h2><p>欢迎流量太多的盆友来跟我一起做worker！名额有限速来！</p>
+<p>也希望有人能够帮我解决prefork下的那个问题……🌚 🌚</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://github.com/pyrogram/pyrogram/issues/480">https://github.com/pyrogram/pyrogram/issues/480</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/cnweike/article/details/105840936">https://blog.csdn.net/cnweike/article/details/105840936</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot">https://github.com/tgbot-collection/ytdlbot</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/01/03/celery-bot/index/" data-id="clhp7rtev0015s2qraooceimd" data-title="分布式Telegram Bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-docker-windows-container/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/25/docker-windows-container/index/" class="article-date">
+  <time class="dt-published" datetime="2021-12-25T00:00:00.000Z" itemprop="datePublished">2021-12-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/25/docker-windows-container/index/">使用Docker跑Windows！</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><strong>本精神病人又来闹妖啦！</strong></p>
+<hr>
+<p>自从有了这种容器化技术之后，想要做测试，构建点什么，或者简单的体验下某个Linux Distros的cli就变的无比简单：</p>
+<p>-&lt;255:%&gt;- docker run –rm -it ubuntu:20.04 bash<br>Unable to find image ‘ubuntu:20.04’ locally<br>20.04: Pulling from library&#x2F;ubuntu<br>7b1a6ab2e44d: Already exists<br>Digest: sha256:626ffe58f6e7566e00254b638eb7e0f3b11d4da9675088f4781a50ae288f3322<br>Status: Downloaded newer image for ubuntu:20.04</p>
+<p>root@aa28b038528e:&#x2F;# lscpu<br>Architecture: x86_64<br>CPU op-mode(s): 32-bit, 64-bit<br>Byte Order: Little Endian</p>
+<p>我们也可以在容器里一顿操作，然后构建出来一个东西拿来用，比如之前在<a target="_blank" rel="noopener" href="https://dmesg.app/fix-ax3600.html">编译LEDE固件</a>时，我就是这么玩的。</p>
+<p>某一天，我突然接到这样一个需求：使用pyinstaller把Python脚本编译成不同平台的二进制文件，并且要尽可能跑在容器内。这怎么做？</p>
+<ul>
+<li>准备Windows macOS和Linux的机器，编译然后拿文件。太麻烦了</li>
+<li>pyinstaller 交叉编译？不好意思pyinstaller不支持交叉编译，更准确的说是1.5版本移除了这个功能</li>
+<li>Linux container跑一个wine，wine里跑Windows版本的Python？逆向工程真的靠谱嘛？会出现很多奇奇怪怪的bug吧</li>
+<li>在docker里想办法跑个Windows？哎嘿？</li>
+</ul>
+<p>当你兴致勃勃的打开Docker Hub，搜索windows发现竟然有Windows的image，Windows base OS images，Windows Server Core，不管了先跑为敬：</p>
+<p>-&lt;130:%&gt;- docker run mcr.microsoft.com&#x2F;windows:20H2<br>Unable to find image ‘mcr.microsoft.com&#x2F;windows:20H2’ locally<br>20H2: Pulling from windows<br>docker: no matching manifest for linux&#x2F;amd64 in the manifest list entries.<br>See ‘docker run –help’.</p>
+<p><img src="/images/2021122518122870.jpeg" alt="ooc"></p>
+<p>docker其实是使用了Linux内核的cgroup等技术来实现的，容器还是使用的宿主机内核，容器的进程其实就是跑在宿主机上的，宿主机还能看见只不过有一定隔离。Windows并不用Linux Kernel，那跑个什么嘛。上面这些image的OS Arch其实也是windows&#x2F;amd64的。</p>
+<p>可能更需要的是这个,确实可以跑Windows container，只不过需要Windows host啦。并且1709的Windows只能跑1709的image</p>
+<p><img src="/images/2021122518122994.jpeg"></p>
+<p>这不就又回到了开头嘛。</p>
+<p>突然想起来有一个很神奇的项目<a target="_blank" rel="noopener" href="https://github.com/sickcodes/Docker-OSX">Docker-OSX</a>，其实现，简单说是用KVM跑了个macOS的虚拟机，就像黑苹果一样。那么理论上Windows也一定能找到办法做到。那么就上qemu！不行我们就软件模拟！</p>
+<p>[v_blue] 还有一个有趣的东西叫dind – Docker In Docker。 [&#x2F;v_blue] 套娃嘛，我最强。</p>
+<h2 id="运行环境检查"><a href="#运行环境检查" class="headerlink" title="运行环境检查"></a>运行环境检查</h2><p>无论是VM，还是物理机其实都可以。</p>
+<h2 id="KVM支持"><a href="#KVM支持" class="headerlink" title="KVM支持"></a>KVM支持</h2><p>如果能有KVM支持的话，虚拟机应该会跑的更流畅。</p>
+<p>如果你是VM，CPU支持Intel VT-x&#x2F; AMD-v等，那么在虚拟化软件的设置中就可以看到</p>
+<p>ESXi是这样的</p>
+<p><img src="/images/2021122518123126.png"></p>
+<p>Fusion是这样的</p>
+<p><img src="/images/2021122518123260.png"></p>
+<p>勾选之后， <code>ls /dev/kvm</code> 就应该有结果啦</p>
+<h2 id="容器启用-privileged-mode"><a href="#容器启用-privileged-mode" class="headerlink" title="容器启用 privileged mode"></a>容器启用 privileged mode</h2><p><code>docker run --privileged xxx</code>即可，主要是为了能够在容器内访问宿主机的<code>/dev/kvm</code>。当然也可以用<code>--device</code></p>
+<h2 id="在容器内准备qemu一箩筐"><a href="#在容器内准备qemu一箩筐" class="headerlink" title="在容器内准备qemu一箩筐"></a>在容器内准备qemu一箩筐</h2><p>以Ubuntu 20.04为例</p>
+<p>apt update &amp;&amp; apt install qemu-kvm</p>
+<h2 id="准备ISO"><a href="#准备ISO" class="headerlink" title="准备ISO"></a>准备ISO</h2><p>以alpine为例，方便测试</p>
+<p>wget <a target="_blank" rel="noopener" href="https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/x86/_64/alpine-virt-3.15.0-x86/_64.iso">https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/x86\_64/alpine-virt-3.15.0-x86\_64.iso</a></p>
+<h2 id="创建vm并启动"><a href="#创建vm并启动" class="headerlink" title="创建vm并启动"></a>创建vm并启动</h2><p>为了PoC，我们直接创建vm然后启动试试看，<code>-nographic</code>因为我们在CLI下，所以不启用图形界面，<code>-enable-kvm</code>因为宿主机有kvm支持，<code>-cdrom</code>指定光驱</p>
+<p>qemu-system-x86_64 -nographic -enable-kvm -cdrom &#x2F;root&#x2F;alpine-virt-3.15.0-x86_64.iso</p>
+<p>意料之中，出现了Alpine的启动画面</p>
+<p><img src="/images/2021122518123522.png"></p>
+<p>并且能看到qemu默认配置的内存和CPU。这个QEMU Virtual CPU是不是在某些VPS中看到过呢？</p>
+<p><img src="/images/2021122518123780.png"></p>
+<p>想要退出qemu，先按ctrl a，然后松开，迅速按x</p>
+<h2 id="使用VNC"><a href="#使用VNC" class="headerlink" title="使用VNC"></a>使用VNC</h2><p>既然无图形界面的alpine可以，那么安装个Ubuntu Desktop也一定可以。</p>
+<p>这种情况下就需要我们使用VNC啦。</p>
+<p>VNC的默认端口是5900，我们要在启动容器的时候同时publish这个端口，方便我们使用VNC客户端</p>
+<p>docker run –rm –privileged -p 5900:5900 -it -v $(pwd):&#x2F;root&#x2F; bennythink&#x2F;vmid bash</p>
+<p>由于Ubuntu Desktop需要比较多的内存和CPU，因此我们这里也多加几个参数</p>
+<p>qemu-system-x86_64 -nographic -enable-kvm -m 4096 -cpu host -smp 2 -cdrom &#x2F;root&#x2F;ubuntu-20.04.3-desktop-amd64.iso.iso -vnc 0.0.0.0:0</p>
+<p><code>-m</code>表示内存大小，单位是MiB，也可以 <code>-m 2g</code>表示2GiB的内存</p>
+<p><code>-cpu</code>表示CPU类型，之前上面我们看到CPU是QEMU Virtual CPU，在这里我们可以指定CPU，比如 <code>-cpu EPYC</code> 表示虚拟机看到的CPU是AMD EPYC，当然也要审时度势，你一个x86-64的image，就别想着用486了。有几个特殊的值：<code>host</code>表示使用和宿主机一样的CPU，base的话比较鸡肋顾名思义就是基础的什么指令集都没有，max会把所有的支持的指令集和kvm能提供的指令集都加上。</p>
+<p><code>-smp</code>就是几核心的CPU啦，这要看宿主机量力而行。就像make时要量力而行一样</p>
+<p><code>-vnc</code>表示使用VNC，0.0.0.0表示监听0.0.0.0，冒号后的0表示5900，如果用<code>0.0.0.0:1</code>，那么监听的端口就是5901啦，要注意哦。这种情况下开启的VNC是没有密码的，如果想要密码那就 <code>-vnc 0.0.0.0:0,password</code> 然后设置密码…… 比较复杂，建议放弃。</p>
+<p>然后使用VNC客户端连接即可，要注意macOS自带的VNC客户端需要密码，但是我们并没有设置密码，因此是用不了的。使用VNC viewer可破</p>
+<p>brew install –cask vnc-viewer</p>
+<p>[v_blue]辣鸡macOS自带的VNC Client也连不上127.0.0.1的，辣鸡。 [&#x2F;v_blue] <img src="/images/2021122518124036.png"></p>
+<p>我们已经能够看到Ubuntu的安装界面啦，并且在这台VM中，网络也是通的，QEMU分配了一个10段IP.如果你发现不能ping，那么在host中 <code>sysctl -w net.ipv4.ping_group_range=&#39;0 2147483647&#39;</code>就可以啦。</p>
+<p><img src="/images/2021122518124692.png"></p>
+<h2 id="分配磁盘"><a href="#分配磁盘" class="headerlink" title="分配磁盘"></a>分配磁盘</h2><p>像往常使用虚拟机一样，我们也需要为虚拟机分配一个虚拟磁盘，这样才能够安装操作系统。总不能每次都从光盘启动吧。分配虚拟磁盘也有很多讲究，比如10G是一下子都分配了，还是用多少分配多少？</p>
+<p>qemu-img create -f qcow2 &#x2F;root&#x2F;test.qcow2 16G</p>
+<p>-f 表示虚拟磁盘的格式，支持raw和qcow2，raw顾名思义就是原始的，对vm来说就是一个块设备。如果vm文件系统支持空洞，那么raw是一点点填满的，raw性能较好。qcow2是qemu推荐的格式，支持加密快照等等，别想了就这个吧。当然qemu还支持vmdk、vdi之类的。</p>
+<p>需要注意的是，别给磁盘撑爆了。</p>
+<h2 id="安装Ubuntu-Desktop"><a href="#安装Ubuntu-Desktop" class="headerlink" title="安装Ubuntu Desktop"></a>安装Ubuntu Desktop</h2><p>创建好磁盘之后，使用如下命令即可开始开vm安装Ubuntu</p>
+<p>qemu-system-x86_64 -nographic -enable-kvm -m 4096 -cpu host -smp 4 -drive file&#x3D;&#x2F;root&#x2F;test.qcow2 -cdrom &#x2F;root&#x2F;ubuntu-20.04.3-desktop-amd64.iso -vnc 0.0.0.0:0</p>
+<p>安装过程和普通VM没什么差别，就是…… 慢了点。</p>
+<h2 id="启动VM"><a href="#启动VM" class="headerlink" title="启动VM"></a>启动VM</h2><p>安装好之后，下次我们可以直接启动VM了，可以删掉-cdrom参数</p>
+<p>qemu-system-x86_64 -nographic -enable-kvm -m 4096 -cpu host -smp 4 -drive file&#x3D;&#x2F;root&#x2F;test.qcow2 -vnc 0.0.0.0:0</p>
+<h2 id="跑arm……"><a href="#跑arm……" class="headerlink" title="跑arm……"></a>跑arm……</h2><p>都知道qemu是个模拟神器，想要跑arm也不是不可能，比如跑个liveCD做个测试什么的：</p>
+<p>apt install qemu-system-arm</p>
+<p>dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;flash0.img bs&#x3D;1M count&#x3D;64<br>dd if&#x3D;&#x2F;usr&#x2F;share&#x2F;qemu-efi&#x2F;QEMU_EFI.fd of&#x3D;flash0.img conv&#x3D;notrunc<br>dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;flash1.img bs&#x3D;1M count&#x3D;64</p>
+<p>qemu-system-aarch64 -m 1024 -cpu cortex-a57 -M virt -nographic -pflash flash0.img -pflash flash1.img -drive if&#x3D;none,file&#x3D;alpine-virt-3.15.0-aarch64.iso,id&#x3D;hd0 -device virtio-blk-device,drive&#x3D;hd0 -net nic -net user</p>
+<p>这次启动的速度就会非常慢了，如果启动成功之后没有网络，那么要开下dhcp，以alpine为例</p>
+<p>vi &#x2F;etc&#x2F;network&#x2F;interfaces</p>
+<p>auto lo<br>iface lo inet loopback<br>auto eth0<br>iface eth0 inet dhcp</p>
+<p>然后<code>ifup eth0</code>即可</p>
+<p>如果想要安装到某个磁盘中，拿Ubuntu为例</p>
+<p>qemu-img create -f qcow2 ubuntu.qcow2 8G</p>
+<p>mount -o loop ubuntu-20.04.3-live-server-arm64.iso &#x2F;mnt</p>
+<p>cp &#x2F;mnt&#x2F;casper&#x2F;vmlinuz .&#x2F;<br>cp &#x2F;mnt&#x2F;casper&#x2F;initrd .&#x2F;</p>
+<p>qemu-system-aarch64 -m 1024 -cpu cortex-a57 -smp cpus&#x3D;4 -M virt -nographic \<br>-kernel .&#x2F;vmlinuz -initrd .&#x2F;initrd \<br>-drive file&#x3D;ubuntu.qcow2,if&#x3D;none,format&#x3D;qcow2,id&#x3D;hd0 -device virtio-blk-device,drive&#x3D;hd0 \<br>-drive file&#x3D;ubuntu-20.04.3-live-server-arm64.iso,if&#x3D;none,format&#x3D;raw,id&#x3D;hd1 -device virtio-blk-device,drive&#x3D;hd1 \<br>-net nic -net user</p>
+<p>之后开始正常的安装步骤，会比较慢，而且电脑起飞。</p>
+<p><img src="/images/2021122518124721.png"></p>
+<p>安装好就可以去掉iso那行单独启动了。</p>
+<p>实际上，Docker 的Multi Arch build也是恰巧利用了QEMU啦。</p>
+<h2 id="binfmt"><a href="#binfmt" class="headerlink" title="binfmt"></a>binfmt</h2><p>如果只是简单的想要跑下异构的image的话，可以试试<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Binfmt_misc">binfmt</a>，Windows和Mac的Docker Desktop直接支持，Linux需要先这样：</p>
+<p>docker run –rm –privileged docker&#x2F;binfmt:66f9012c56a8316f9244ffd7622d7c21c1f6f28d</p>
+<p>然后跑吧</p>
+<p>docker run -it –platform linux&#x2F;arm64 alpine sh</p>
+<h2 id="使用已有的cloud-image"><a href="#使用已有的cloud-image" class="headerlink" title="使用已有的cloud image"></a>使用已有的cloud image</h2><p>我们当然可以选择把OS安装到虚拟磁盘中，但是这样要麻烦一些，安装过程比较繁琐而且很慢。有没有办法用别人已经准备好的qcow2呢？</p>
+<p>当然有啦。对于Ubuntu来说，可以去下载cloud image，img结尾的就是 <a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/focal/current/">https://cloud-images.ubuntu.com/focal/current/</a></p>
+<p>然后我们需要创建一个user data来初始化我们的密码</p>
+<p>cat &gt;user-data &lt;&lt;EOF<br>#cloud-config<br>password: 123456<br>chpasswd: { expire: False }<br>ssh_pwauth: True<br>EOF</p>
+<p>cloud-localds user-data.img user-data</p>
+<p>qemu-system-x86_64 -nographic -enable-kvm -m 2048 -cpu host -smp 4 -drive file&#x3D;&#x2F;root&#x2F;focal-server-cloudimg-amd64.img -drive file&#x3D;user-data.img,format&#x3D;raw</p>
+<p>等待启动，用户名ubuntu密码123456</p>
+<p>之后你的所有更改实际上都会写入到这个img文件中，下次启动的时候就不用user-data啦。</p>
+<p>那这个img只有2G，不够用怎么办？<code>qemu-img</code>扩容！</p>
+<p>root@e769eaf9e4ab:~# qemu-img resize focal-server-cloudimg-amd64.img +5G<br>Image resized.</p>
+<p>root@e769eaf9e4ab:~# qemu-img info focal-server-cloudimg-amd64.img<br>image: focal-server-cloudimg-amd64.img<br>file format: qcow2<br>virtual size: 7.2 GiB (7730102272 bytes)<br>disk size: 601 MiB<br>cluster_size: 65536<br>Format specific information:<br>compat: 0.10<br>refcount bits: 16</p>
+<p>然后…… 如果有LVM，那就好办了，如果没LVM，那就liveCD扩容吧。所以建议一开始就<code>qemu-img resize</code>好。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/kholia/OSX-KVM">https://github.com/kholia/OSX-KVM</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.ihomura.cn/2020/11/12/%E5%9C%A8qemu-system%E4%B8%8A%E8%B7%91arm-Debian/">https://blog.ihomura.cn/2020/11/12/%E5%9C%A8qemu-system%E4%B8%8A%E8%B7%91arm-Debian/</a></p>
+<p><a target="_blank" rel="noopener" href="https://hub.docker.com/repository/docker/bennythink/vmid">https://hub.docker.com/repository/docker/bennythink/vmid</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/12/25/docker-windows-container/index/" data-id="clhp7rtfy002ds2qr20ke2194" data-title="使用Docker跑Windows！" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-docker-nat-vps/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/24/docker-nat-vps/index/" class="article-date">
+  <time class="dt-published" datetime="2021-12-24T00:00:00.000Z" itemprop="datePublished">2021-12-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/24/docker-nat-vps/index/">使用docker开NAT小鸡</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>人们常说，「精神病人思路广，智障儿童欢乐多」。像我这种病得不轻的人，自然就在想有没有办法拿docker来开NAT小鸡呢？</p>
+<p>Docker作为一种容器化技术，通过cgroup可以在一定程度上做到资源隔离，虽然不算虚拟化，但是也可以勉强开NAT小鸡玩玩。技术要点大概有如下：</p>
+<ul>
+<li>小鸡里需要ssh，而且需要一个守护进程</li>
+<li>需要映射端口</li>
+<li>需要限制CPU、内存等资源</li>
+<li>制作各种OS的image</li>
+</ul>
+<h2 id="容器sshd"><a href="#容器sshd" class="headerlink" title="容器sshd"></a>容器sshd</h2><p>N多年前，当我第一次接触到Docker时，我曾经在网络上搜索“如何ssh到容器内”。</p>
+<p>（╯‵□′）╯︵┴─┴ 容器一般不是这么用的啦。</p>
+<p>但既然开NAT小鸡，就必然要ssh进去了。通常来说就是在容器里安装配置sshd或者dropbear，然后把端口publish就可以了。直接&amp;可不太好，更好的方案是我们需要一个守护进程。可以用Go port of supervisor，<a target="_blank" rel="noopener" href="https://github.com/ochinchina/supervisord">https://github.com/ochinchina/supervisord</a></p>
+<h2 id="映射端口"><a href="#映射端口" class="headerlink" title="映射端口"></a>映射端口</h2><p>这个就简单了，跑容器的时候直接 -p就好了，由于是NAT小鸡，直接让docker随机分配端口岂不是更好！</p>
+<p>docker run -p 22 image</p>
+<h2 id="限制资源"><a href="#限制资源" class="headerlink" title="限制资源"></a>限制资源</h2><p>限制CPU和RAM比较容易，run的时候加上<code>-cpus</code> 和<code>-m</code>就可以了</p>
+<p>限制磁盘比较麻烦，可以参考这篇 <a target="_blank" rel="noopener" href="https://www.lizi.tw/web/21084.html">https://www.lizi.tw/web/21084.html</a></p>
+<h2 id="OS-image"><a href="#OS-image" class="headerlink" title="OS image"></a>OS image</h2><p>这个其实就是个手工活，写好Dockerfile，带好sshd，然后build就可以了。</p>
+<p>然后到了真正要开小鸡的时候，一顿查之前的命令，不停地docker run xxx，有没有更好的、鼠标点点点的方案呢？答案当然是有的！</p>
+<p>欢迎使用我fork之后魔改的Docker Web，真正实现了鼠标点点点即可开NAT小鸡的功能！</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/BennyThink/EasyDockerWeb">https://github.com/BennyThink/EasyDockerWeb</a></p>
+<p>clone回来，<code>yarn &amp;&amp; yarn start</code>，然后<code>fab prepare</code>（提前<code>pip3 install fabric3</code>）即可，默认用户名密码是admin&#x2F;admin</p>
+<p>在Image下面可以选择所有我构建好的image，用户名密码均为root&#x2F;root</p>
+<p><img src="/images/2021122418282111.png"></p>
+<p>比如这里我们选择Kali，然后给这个小鸡开80和443端口，并映射到宿主机的随机端口，512M内存，0.5个CPU</p>
+<p>点击确认，你的NAT小鸡就开好了！</p>
+<p><img src="/images/2021122418282317.png"></p>
+<p>点击确认</p>
+<p><img src="/images/2021122418282426.png"></p>
+<p>你的小鸡好了，赶快ssh一下？</p>
+<p><img src="/images/2021122418282671.png"></p>
+<p>选择Debian Sid，80-90端口</p>
+<p><img src="/images/2021122418282799.png"></p>
+<p><img src="/images/2021122418282996.png"></p>
+<p>多么亦可赛艇！就是这么愉快！bug多也不修，能开小鸡就挺好</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/12/24/docker-nat-vps/index/" data-id="clhp7rtf7001os2qr8q4a2yh9" data-title="使用docker开NAT小鸡" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-hysteria/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/12/03/hysteria/index/" class="article-date">
+  <time class="dt-published" datetime="2021-12-03T00:00:00.000Z" itemprop="datePublished">2021-12-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/gfw/">gfw</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/12/03/hysteria/index/">一起来歇斯底里（hysteria）吧！</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>没疯，真没疯。</p>
+<p>Hysteria 是一个功能丰富的，专为恶劣网络环境进行优化的网络工具（双边加速），比如卫星网络、拥挤的公共 Wi-Fi、在中国连接国外服务器等。</p>
+<p>😂在我等人看来，这看起来是很适合做梯子的。</p>
+<p>测了一下，速度确实非常棒</p>
+<p>使用shadowsocks&#x2F;trojan的速度</p>
+<p><img src="/images/2021120317392893.png"></p>
+<p>使用hysteria</p>
+<p><img src="/images/2021120317393067.png"></p>
+<p>速度足足提升了10倍，跑满了本地带宽</p>
+<p>配置起来很简单😂就以自签名证书为例了</p>
+<h2 id="配置服务端"><a href="#配置服务端" class="headerlink" title="配置服务端"></a>配置服务端</h2><h3 id="自签名证书"><a href="#自签名证书" class="headerlink" title="自签名证书"></a>自签名证书</h3><p>openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 3650 -out certificate.pem</p>
+<h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><p>去GitHub Release可以找到，我的是OpenVZ的🐤，下载了non-tun版本的。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/HyNetwork/hysteria/releases">https://github.com/HyNetwork/hysteria/releases</a></p>
+<h3 id="创建配置文件"><a href="#创建配置文件" class="headerlink" title="创建配置文件"></a>创建配置文件</h3><p>config.json</p>
+<p>{<br>    “listen”: “:443”,<br>    “cert”: “&#x2F;etc&#x2F;hysteria&#x2F;certificate.pem”,<br>    “key”: “&#x2F;etc&#x2F;hysteria&#x2F;key.pem”,<br>    “up_mbps”: 300,<br>    “down_mbps”: 300,<br>    “obfs”: “dankdhsawj”<br>}</p>
+<p>可选的 obfs 选项使用提供的密码对协议进行混淆，这样协议就不容易被检测出是 Hysteria&#x2F;QUIC，可以用来绕过针对性的 DPI 屏蔽或者 QoS。 如果服务端和客户端的密码不匹配就不能建立连接，因此这也可以作为一个简单的密码验证。</p>
+<p><code>up_mbps</code> 和 <code>down_mbps</code>用来限制每个客户端最大下载速度和上传速度，可选</p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>hysteria server</p>
+<p>即可。使用<code>-config</code>参数指定配置文件路径</p>
+<p>hysteria -config &#x2F;etc&#x2F;hysteria&#x2F;config.json server</p>
+<h2 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h2><h3 id="iOS"><a href="#iOS" class="headerlink" title="iOS"></a>iOS</h3><p>iOS可以使用shadowrocket，混淆字段写obfs的值，密码留空，允许不安全勾选</p>
+<p>shadowrocket测速会显示超市，延迟测试方法改成CONNECT就好了，可能是个bug</p>
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><p>{<br>    “server”: “1.1.1.1:443”,<br>    “obfs”: “1231”,<br>    “up_mbps”: 300,<br>    “down_mbps”: 300,<br>    “socks5”: {<br>        “listen”: “127.0.0.1:1080”<br>    },<br>    “insecure”: true<br>}</p>
+<p>然后直接运行<code>hysteria</code>就可以，之后可以用proxychains之类的工具了。如有需要也可以添加http字段</p>
+<p>“http”: {</p>
+<p>“listen”: “127.0.0.1:8080”</p>
+<p>}</p>
+<h2 id="systemd自动启动"><a href="#systemd自动启动" class="headerlink" title="systemd自动启动"></a>systemd自动启动</h2><p><code>/lib/systemd/system/hysteria.service</code></p>
+<p>如果是systemd的话，写个单元文件</p>
+<p>[Unit]<br>Description&#x3D;Hysteria<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
+<p>[Service]<br>Restart&#x3D;on-failure<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;sbin&#x2F;hysteria -config &#x2F;etc&#x2F;hysteria&#x2F;config.json server</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<p>systemctl daemon-reload # 重新加载<br>systemctl enable hysteria # 开机自启<br>systemctl start hysteria # 启动</p>
+<h2 id="🐤专属配置"><a href="#🐤专属配置" class="headerlink" title="🐤专属配置"></a>🐤专属配置</h2><p>这个小鸡，是从<a target="_blank" rel="noopener" href="https://dmesg.app/super-cheap-3-5-three-years-united-states-vps-science-internet-special.html">sentris那里弄来的</a>，这么多年没想到竟然没倒闭没跑路。</p>
+<p>由于小鸡配置堪忧，<a target="_blank" rel="noopener" href="https://t.me/mikuri520/1230">我想办法给搞成了Alpine</a>，毕竟Alpine是出了名的小，省内存也是必然的。</p>
+<p><img src="/images/2021120317393327.jpeg"></p>
+<p>因为是Alpine所以自然也就是OpenRC了。</p>
+<h3 id="hysteria额外配置"><a href="#hysteria额外配置" class="headerlink" title="hysteria额外配置"></a>hysteria额外配置</h3><p>由于小鸡内存少，必须额外配置下，要不然总是被OOM Kill</p>
+<p>“recv_window_conn”: 2097152,<br>“recv_window_client”: 8388608,</p>
+<p>这样会减少OOM的可能性</p>
+<h3 id="OpenRC启动项"><a href="#OpenRC启动项" class="headerlink" title="OpenRC启动项"></a>OpenRC启动项</h3><p>如果是OpenRC……<code>/etc/init.d/hysteria</code></p>
+<p>#!&#x2F;sbin&#x2F;openrc-run</p>
+<p>name&#x3D;”hysteria”<br>command&#x3D;”&#x2F;usr&#x2F;sbin&#x2F;hysteria”<br>command_args&#x3D;”-config &#x2F;etc&#x2F;hysteria&#x2F;config.json server”<br>command_background&#x3D;”yes”<br>pidfile&#x3D;”&#x2F;run&#x2F;hysteria.pid”</p>
+<p>depend() {<br>    after sshd<br>}</p>
+<p>然后</p>
+<p>chmod +x &#x2F;etc&#x2F;init.d&#x2F;hysteria<br>rc-update add hysteria # 开机自启动<br>rc-service hysteria start # 启动</p>
+<p>非常不幸的是，如果进程挂掉了，OpenRC是没什么办法给拉起来的。可以办法是用supervisor，可以使用Go版本的 <a target="_blank" rel="noopener" href="https://github.com/ochinchina/supervisord">https://github.com/ochinchina/supervisord</a></p>
+<p>然而这个内存占用有点可怕，毕竟我整个只有64M的内存啊，这一个用了22.5%，14M了。</p>
+<p><img src="/images/2021120317393477.png"></p>
+<p>那就只能魔改crontab，10秒一次，最多20秒拉起（</p>
+<p># 创建一个shell脚本 &#x2F;usr&#x2F;bin&#x2F;restart</p>
+<p>#!&#x2F;bin&#x2F;sh<br>echo Restarting…</p>
+<p>for svc in $(rc-status –crashed); do<br>  rc-service $svc – –nodeps restart<br>done</p>
+<h1 id="加x权限"><a href="#加x权限" class="headerlink" title="加x权限"></a>加x权限</h1><p>chmod+x &#x2F;usr&#x2F;bin&#x2F;restart</p>
+<h1 id="crontab中"><a href="#crontab中" class="headerlink" title="crontab中"></a>crontab中</h1><p>* * * * * for i in {1..6}; do &#x2F;usr&#x2F;bin&#x2F;restart &amp; sleep 10; done</p>
+<p>😂感觉还行（（（</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/12/03/hysteria/index/" data-id="clhp7rtgr003xs2qr2ien8kns" data-title="一起来歇斯底里（hysteria）吧！" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-dyd-e12a3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/11/07/dyd-e12a3/index/" class="article-date">
+  <time class="dt-published" datetime="2021-11-07T00:00:00.000Z" itemprop="datePublished">2021-11-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/11/07/dyd-e12a3/index/">如何控制德业DYD E12A3</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>8月份的时候买了个除湿器，这东西可以联网，用他们自己的APP进行控制。当然也可以直接按实体按钮控制，说好听点叫没网也能用😂</p>
+<p>我一直不喜欢用装这种APP，那么既然如此，就要搞一波这个德业智能APP了。</p>
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ol>
+<li>先拿到除湿器的IP地址， 先nmap一波看看，也许有什么隐藏的接口</li>
+<li>在路由器上用tcpdump抓这个IP地址的包，又回到了我搞小米摄像头的时候（这个也许以后会写文章讲讲我都做了哪些奇葩的事情）</li>
+<li>在iOS上抓包，看看都发了什么请求控制开启和关闭，也许是简单的http</li>
+</ol>
+<h2 id="除湿器IP"><a href="#除湿器IP" class="headerlink" title="除湿器IP"></a>除湿器IP</h2><p>在路由器的DHCP分配记录中可以看到我有一个叫 MiCO 的设备，IP地址是<code>192.168.7.119</code>。全部TCP 65535端口都扫了一波，发现只开了一个53端口。难道这东西是DNS？咱也不知道，因为所有的DNS请求都会被拦截到路由器，因此也没有进行进一步测试。</p>
+<h2 id="路由器抓包"><a href="#路由器抓包" class="headerlink" title="路由器抓包"></a>路由器抓包</h2><p>有点懒，还要先搞tcpdump，再加上好像不太会用tcpdump，嗯先不管这个</p>
+<h2 id="iOS抓包"><a href="#iOS抓包" class="headerlink" title="iOS抓包"></a>iOS抓包</h2><p>在iOS上抓包，有很多选择，比较简单的用stream，在APP里设置一下就可以解密HTTPS了。不过缺点是stream只能抓https和http的，其他协议看不到</p>
+<p>抓包之后可以分享har文件，其实就是个json。抓包结果中有这样几个关键信息：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://api.deye.com.cn/v3/enduser/userInfo/">https://api.deye.com.cn/v3/enduser/userInfo/</a></li>
+<li><code>Authorization JWT xxxx</code> 看来是Json Web Token做的认证</li>
+<li>接口包含 <code>userInfo, device_list, refresh_token, auth, mqttinfo</code>等。</li>
+</ul>
+<p>随手拿浏览器打开这个api看了一下，令人痴呆惊呆的事情发生了</p>
+<p><img src="/images/2021110719210916.png"></p>
+<p>这竟然是个Django WebApp，并且还开启了DEBUG模式，这……😓</p>
+<p>简单整理了下有这么几个接口比较管用</p>
+<h3 id="登录接口"><a href="#登录接口" class="headerlink" title="登录接口"></a>登录接口</h3><p><a target="_blank" rel="noopener" href="https://api.deye.com.cn/v3/enduser/login/">https://api.deye.com.cn/v3/enduser/login/</a></p>
+<p>body里提交 <code>loginname</code>、<code>password</code>、<code>appid</code>（任意字符串就可以）、<code>extend</code>（json string），POST方法，会在返回的数据中拿到<code>token</code>和<code>clientid</code></p>
+<p>{<br>    “meta”: {<br>        “code”: 0,<br>        “message”: “signup ok.”<br>    },<br>    “data”: {<br>        “token”: “xxxxx”,<br>        “clientid”: “123456”<br>    }<br>}</p>
+<p>这个<code>TOKEN</code>就是后续的JWT TOKEN</p>
+<p>注意这个登录是单点登录的！但是TOKEN一直有效就是了。</p>
+<h3 id="获取设备列表"><a href="#获取设备列表" class="headerlink" title="获取设备列表"></a>获取设备列表</h3><p><a target="_blank" rel="noopener" href="https://api.deye.com.cn/v3/enduser/deviceList/?app=new">https://api.deye.com.cn/v3/enduser/deviceList/?app=new</a></p>
+<p>GET请求，携带JWT TOKEN，会返回当前帐号绑定的所有设备</p>
+<pre><code>&#123;
+    &quot;meta&quot;: &#123;
+        &quot;code&quot;: 0,
+        &quot;message&quot;: &quot;device list by user.&quot;
+    &#125;,
+    &quot;data&quot;: \[
+        &#123;
+            &quot;online&quot;: true,
+            &quot;product\_icon&quot;: &quot;https://deye-cloud.oss-cn-shanghai.aliyuncs.com/profile/1597889707825.png&quot;,
+            &quot;product\_id&quot;: &quot;c2c34567df&quot;,
+            &quot;product\_name&quot;: &quot;DYD-E12A3&quot;,
+            &quot;device\_id&quot;: &quot;609&quot;,
+            &quot;mac&quot;: &quot;04xxxx&quot;,
+            &quot;payload&quot;: &quot;1411xxxxxhiddenxxxx&quot;,
+            &quot;role&quot;: 1,
+            &quot;gatewaytype&quot;: 0,
+            &quot;device\_name&quot;: &quot;不再潮湿&quot;,
+            &quot;product\_type&quot;: &quot;dehumidifier&quot;,
+            &quot;is\_combo&quot;: false,
+            &quot;protocol\_version&quot;: &quot;wifi\_V2.4&quot;
+        &#125;
+    \]
+&#125;
+</code></pre>
+<p>比较关键的信息有<code>product_id，product_name，device_id</code>等。<code>Payload</code>还不知道是个啥看起来像是一段hex</p>
+<h3 id="MQTT-info"><a href="#MQTT-info" class="headerlink" title="MQTT info"></a>MQTT info</h3><p><a target="_blank" rel="noopener" href="https://api.deye.com.cn/v3/enduser/mqttInfo/">https://api.deye.com.cn/v3/enduser/mqttInfo/</a></p>
+<p>同样是GET请求，会返回如下数据</p>
+<p>{<br>    “meta”: {<br>        “code”: 0,<br>        “message”: “mqtt info”<br>    },<br>    “data”: {<br>        “loginname”: “ff123&#x2F;123abc”,<br>        “clientid”: “app_123abc”,<br>        “endpoint”: “ff123”,<br>        “password”: “123456”,<br>        “mqtthost”: “ff123.mqtt.iot.gz.baidubce.com”,<br>        “mqttport”: 1883,<br>        “sslport”: 1884<br>    }<br>}</p>
+<p>看来用户名和密码都有了，并且用的是MQTT协议，这是个啥？</p>
+<h3 id="MQTT协议"><a href="#MQTT协议" class="headerlink" title="MQTT协议"></a>MQTT协议</h3><p>[v_blue] 国内有一家做MQTT协议的公司，叫EMQ，文档写的非常不错！</p>
+<p><a target="_blank" rel="noopener" href="https://www.emqx.com/zh/blog/what-is-the-mqtt-protocol">https://www.emqx.com/zh/blog/what-is-the-mqtt-protocol</a> [&#x2F;v_blue] 简单的来说，MQTT主要就是一种适合物联网等处理能力比较差、内存比较小、网络环境复杂不可靠的终端设备用的协议。</p>
+<p>这东西简单的说有点像消息队列，属于publish&#x2F;subscribe的模式，但是设计非常简单。盗个图是这样的</p>
+<p><img src="/images/202111071921094.png"></p>
+<p>publisher向news这个topic发送消息，所有订阅了news的用户都会收到消息。</p>
+<p>当然了每个用户既可以是publisher也可以是subscriber。</p>
+<p>这个消息，图片中的some msg就是payload，格式一般有json，plaintext，base64和hex</p>
+<p>那既然如此，肯定是我的iPhone发了MQTT协议的数据，看来只能继续抓包了</p>
+<h2 id="Wireshark抓包iOS"><a href="#Wireshark抓包iOS" class="headerlink" title="Wireshark抓包iOS"></a>Wireshark抓包iOS</h2><p>想要抓到iOS全部通信的数据，那最好的办法是用Wireshark了。当然我这里不是说在iOS上装Wireshark，想啥呢，App Store可没有Wireshark。</p>
+<p>具体来说其实很简单，让iPhone的全部流量走你的电脑，电脑抓包就可以了。Windows本本的话，只能想办法开个热点，然后抓无线网卡了，这个操作过于简单，我就不说了。</p>
+<p>macOS的话，这样也行，但是还有一种更方便的、开发iOS APP时用到的办法🤔</p>
+<h3 id="获取iPhone-UDID"><a href="#获取iPhone-UDID" class="headerlink" title="获取iPhone UDID"></a>获取iPhone UDID</h3><p>把iPhone用线连接到电脑，打开Apple Music，就可以看到UDID，一大长串，别认错了不是序列号。iPhone记得解锁。</p>
+<p><img src="/images/202111071921105.png"></p>
+<h2 id="创建虚拟网卡"><a href="#创建虚拟网卡" class="headerlink" title="创建虚拟网卡"></a>创建虚拟网卡</h2><p>这一步需要<code>rvictl</code>这个命令，如果你不开发iOS APP，那么大概率这个命令是找不到的，因为这个命令包含在Xcode之中。</p>
+<p>当然这并不意味着我们要为了这么一点小事安装10G+的Xcode。这就像你爸爸想要捶你并不需要拿出鸡毛掸子，他只要拎起拳头就够了。同理，我们只要Xcode的一小部分就可以了。当然了，整个Xcode还是要下载的，爸爸毕竟还要从箱子里拿出来鸡毛掸子吓唬吓唬你嘛。</p>
+<p>在Apple官网下载适合你的版本的Xcode之后，解压缩，然后进到Xcode.app中（右键-显示包内容），找到这两个文件：</p>
+<p>Xcode.app&#x2F;Contents&#x2F;Resources&#x2F;Packages&#x2F;MobileDevice.pkg<br>Xcode.app&#x2F;Contents&#x2F;Resources&#x2F;Packages&#x2F;MobileDeviceDevelopment.pkg</p>
+<p>安装这两个就可以了。</p>
+<p>如果你不想下载10G+的Xcode的话，那么也可以用我的，Catalina 10.15.7，Xcode 12.4</p>
+<p><a target="_blank" rel="noopener" href="https://www.dropbox.com/sh/4sdl3zyx1m0sw08/AADNcp8WdFEBtNHdUjkiIQmIa?dl=0">https://www.dropbox.com/sh/4sdl3zyx1m0sw08/AADNcp8WdFEBtNHdUjkiIQmIa?dl=0</a></p>
+<p>安装完成后 <code>sudo rvictl -s UDID</code>即可看到success</p>
+<p>想要停止可以用<code>sudo rvictl -x UDID</code></p>
+<p>如果失败，可能需要先运行</p>
+<p>sudo launchctl load -w &#x2F;Library&#x2F;Apple&#x2F;System&#x2F;Library&#x2F;LaunchDaemons&#x2F;com.apple.rpmuxd.plist</p>
+<p>之后会多出来一个<code>rvi0</code>的网卡，Wireshark打开，开始吧！</p>
+<h2 id="分析MQTT协议"><a href="#分析MQTT协议" class="headerlink" title="分析MQTT协议"></a>分析MQTT协议</h2><p>首先我们要在wireshark的设置中开启MQTT协议，这样Wireshark会解析出来，更方便我们看。然后需要过滤一下</p>
+<p>mqtt and ip.addr&#x3D;&#x3D;192.168.7.116</p>
+<h3 id="connect"><a href="#connect" class="headerlink" title="connect"></a>connect</h3><p>就像在教科书中说的一样，德业智能先是连接到了MQTT服务器</p>
+<ul>
+<li>Cliend ID: 其实是任意一个随机尽量不可能重复的字符串就可以了，德业智能这里是login接口中的clientid和时间戳的拼接</li>
+<li>username可以从mqttinfo接口中获得，格式其实是<code>endpoint/clientid</code></li>
+<li>密码从接口中获得</li>
+<li>host当然也是接口中获得了，看起来是百度云哦</li>
+</ul>
+<p><img src="/images/2021110719211336.png"></p>
+<h3 id="subscribe"><a href="#subscribe" class="headerlink" title="subscribe"></a>subscribe</h3><p>随后德业智能订阅了两条消息，分别为</p>
+<h4 id="status-x2F-hex"><a href="#status-x2F-hex" class="headerlink" title="status&#x2F;hex"></a>status&#x2F;hex</h4><p><code>endpoint/product_id/device_id/status/hex</code></p>
+<h4 id="online-x2F-json"><a href="#online-x2F-json" class="headerlink" title="online&#x2F;json"></a>online&#x2F;json</h4><p><code>endpoint/product_id/device_id/online/json</code></p>
+<p>{<br>    “type”: “online”,<br>    “data”: {<br>        “online”: true<br>    }<br>}</p>
+<p>看起来是德业智能在获取当前除湿器的状态，然后APP动态显示按钮类别</p>
+<h3 id="publish"><a href="#publish" class="headerlink" title="publish"></a>publish</h3><p>publish证明德业智能向某个topic发布了消息，那么这非常有可能是在控制除湿器，这就需要一点点尝试了</p>
+<h4 id="publish-online-x2F-json"><a href="#publish-online-x2F-json" class="headerlink" title="publish online&#x2F;json"></a>publish online&#x2F;json</h4><p>德业智能向<code>online/json</code>发布了一条消息，内容是一串十六进制</p>
+<p><img src="/images/2021110719211557.png"></p>
+<p><code>7b2274797065223a226f6e6c696e65222c2264617461223a7b226f6e6c696e65223a747275657d7d</code> 随便找个网站转换一下，发现竟然是如下结果</p>
+<p><img src="/images/2021110719211664.png"></p>
+<p>尝试在MQTTX中连接到这台设备的MQTT服务器，然后以hex格式发布消息到topic，除湿器没有响应</p>
+<h4 id="publish-command-x2F-hex"><a href="#publish-command-x2F-hex" class="headerlink" title="publish command&#x2F;hex"></a>publish command&#x2F;hex</h4><p>从名字上来看，这个非常像在控制除湿器</p>
+<p><img src="/images/2021110719211711.png"></p>
+<p>而且message是16进制的<code>0001</code>，会让人联想是不是<code>0001</code>是开，<code>0000</code>是关？</p>
+<p>在MQTTX中设置一波，发送，除湿器并没有开……</p>
+<p>再往下看，还有一串神奇的数字 <code>080203403c0000000000</code>，MQTTX中尝试一下，奇迹出现了，除湿器开了。🧐</p>
+<p>再抓个包，就会发现<code>080202403c0000000000</code>是关机代码。</p>
+<p>尽管俺也不知道这神秘代码是什么，但是这就像是伏拉夫经常说的“我爱中国”，“咱们中国真是太棒了”一样，直接拿去用就能过上心想事成的生活。</p>
+<h2 id="Python实现"><a href="#Python实现" class="headerlink" title="Python实现"></a>Python实现</h2><p>已经知道了神秘代码和topic，那么接下来封装一下就可以了。使用paho.mqtt.python</p>
+<p>server.publish(“endpoint&#x2F;product_id&#x2F;device_id&#x2F;command&#x2F;hex”, “080203403c0000000000”)</p>
+<p><img src="/images/2021110719211899.png" alt="图像"></p>
+<p>嗯？？没开啊，咋回事？完全没效果。网络不好吗，再试一次，还是如此</p>
+<p>莫非财富密码神秘代码失灵了？打开MQTTX订阅这个topic，发现好像不对，怎么是那么一长串数字……</p>
+<p>仔细想一下……</p>
+<p><img src="/images/2021110719211868.png"></p>
+<p>噢要hex格式，可是这个库并没有额外参数设置payload的格式啊</p>
+<p><img src="/images/2021110719211862.jpeg" alt="这个要慌问题很大- 斗图表情包- 斗图神器- adoutu.com"></p>
+<p>不慌不慌，经过我的摸着石头过河、然后搬起石头砸自己的脚的艰苦探索的经历，完全不用考虑<code>struct.pack</code> 什么的，直接发送这样的消息就可以啦</p>
+<p>codecs.decode(b”080203403c0000000000”,”hex”)</p>
+<h1 id="当然你也可以选择使用base64"><a href="#当然你也可以选择使用base64" class="headerlink" title="当然你也可以选择使用base64"></a>当然你也可以选择使用base64</h1><p>base64.b64decode(“CAICQDwAAAAAAA&#x3D;&#x3D;”)</p>
+<h2 id="封装"><a href="#封装" class="headerlink" title="封装"></a>封装</h2><p>那么要素已经齐全了，接下来就是上click、requests等，写个setup.py，做成console application，直接<code>pip install deye</code>然后就可以啦！包含登录功能，登录之后会把信息写到 <code>~/.deye.dbm</code>中</p>
+<p>可以看下面这个视频</p>
+<p>[video width&#x3D;”1624” height&#x3D;”1162” mp4&#x3D;”<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/11/2021110719385795.mp4%22/]/[/video/]">https://dmesg.app/wp-content/uploads/2021/11/2021110719385795.mp4&quot;\]\[/video\]</a></p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><ol>
+<li>这个Python package的bug很多！我知道！因为我不太会用click</li>
+<li>我并没有什么打算添加其他设备的想法，也不想添加更多的command。因为既没有时间、也没有钱购入更多德业的设备，不过接口已经写好了就是……按照原本的想法，是想把这个接入米家的，可是一想这个工作量++</li>
+<li>花了好几个小时，写完了，把不需要的文件丢到回收站，清空。发现写好的文章也被我顺带着删了……🤬想嘴自己</li>
+</ol>
+<p>代码开源在这里 <a target="_blank" rel="noopener" href="https://github.com/BennyThink/deye">https://github.com/BennyThink/deye</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/11/07/dyd-e12a3/index/" data-id="clhp7rtg0002fs2qrfxypg7sl" data-title="如何控制德业DYD E12A3" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-fix-ax3600/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/11/01/fix-ax3600/index/" class="article-date">
@@ -568,454 +1228,11 @@
 
 
   
-    <article id="post-riseup-alias-email/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/07/29/riseup-alias-email/index/" class="article-date">
-  <time class="dt-published" datetime="2021-07-29T00:00:00.000Z" itemprop="datePublished">2021-07-29</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/07/29/riseup-alias-email/index/">riseup如何使用自己域名邮箱发邮件</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>先说说一些收邮件的方法吧</p>
-<h2 id="收邮件-–-Email-Forwarding"><a href="#收邮件-–-Email-Forwarding" class="headerlink" title="收邮件 – Email Forwarding"></a>收邮件 – Email Forwarding</h2><p>收邮件的话，最简单的办法就是去注册商哪里设置一个Email Forwarding，比如namesilo中可以这样设置：</p>
-<p><img src="/images/2021072919313862.png"></p>
-<p>等几分钟生效，发给 <a href="mailto:benny@dmesg.app">benny@dmesg.app</a> 的邮件就会被转发给我的Gmail啦。</p>
-<h2 id="收邮件-–-自建"><a href="#收邮件-–-自建" class="headerlink" title="收邮件 – 自建"></a>收邮件 – 自建</h2><p>也可以选择自建，比如说用iRedMail。配置起来是挺麻烦的，但是会让人很有成就感。同时也可以发邮件了。缺点就是有很多时候会被当成SPAM，需要进一步设置DKIM呀什么的。</p>
-<h2 id="收邮件-–-企业邮箱"><a href="#收邮件-–-企业邮箱" class="headerlink" title="收邮件 – 企业邮箱"></a>收邮件 – 企业邮箱</h2><p>比如用Gsuite啦，腾讯企业邮箱啦，都很容易，改个MX就行。</p>
-<h2 id="发邮件"><a href="#发邮件" class="headerlink" title="发邮件"></a>发邮件</h2><p>发邮件相比之下就要麻烦点了，可选的方案有自建、企业邮箱。还有就是可以让riseup帮忙发！当然啦，用Gmail也是可以的。</p>
-<p>用riseup发邮件的话，需要先让你的邮箱能够收到邮件，无论你是通过Email Forwarding还是企业邮箱，总之要能收到邮件。</p>
-<p>然后设置alias，在这个页面中 <a target="_blank" rel="noopener" href="https://account.riseup.net/mail/aliases">https://account.riseup.net/mail/aliases</a></p>
-<p><img src="/images/2021072919314134.png"></p>
-<p>确认邮箱并且已经生效之后，之后去邮箱的identities里添加一下这个邮箱</p>
-<p><img src="/images/2021072919314274.png"></p>
-<p>然后在riseup的web页面就可以用这个邮箱发邮件啦</p>
-<p><img src="/images/2021072919314467.png"></p>
-<p>想要用代码来解决的话，也很简单，Python的话直接用自带的smtplib就可以了</p>
-<p><code>from_addr</code>就是加的那个alias，别想着加一个 <a href="mailto:&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>，不行的（这种情况倒是可以用mailhog自娱自乐）。</p>
-<p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
-<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; os.getenv(“email_user”)<br>    password &#x3D; os.getenv(“email_password”)<br>    host &#x3D; os.getenv(“email_host”) or “localhost”<br>    port &#x3D; os.getenv(“email_port”) or “1025”  # mailhog<br>    from_addr &#x3D; os.getenv(“from_addr”) or “<a href="mailto:&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;">&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;</a>“</p>
-<pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
-msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
-msg\[&#39;To&#39;\] = \_format\_addr(to)
-msg\[&#39;Subject&#39;\] = Header(subject, &#39;utf-8&#39;).encode()
-
-if port == &quot;1025&quot;:
-    server = smtplib.SMTP(host, port)
-else:
-    server = smtplib.SMTP\_SSL(host, port)
-server.login(user, password)
-server.sendmail(from\_addr, \[to\], msg.as\_string())
-server.quit()
-</code></pre>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a>“, “subj”, ‘aaaa<br>bbb’)</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/07/29/riseup-alias-email/index/" data-id="clhp7rtik007ps2qrfb710m85" data-title="riseup如何使用自己域名邮箱发邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-github-actions-docker-image/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/07/04/github-actions-docker-image/index/" class="article-date">
-  <time class="dt-published" datetime="2021-07-04T00:00:00.000Z" itemprop="datePublished">2021-07-04</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/07/04/github-actions-docker-image/index/">使用GitHub Actions构建Multi-arch Docker image</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_notice]参考配置，直接把这个文件丢到你的repository下，就可以用啦</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/BennyThink/ActionTest/blob/master/.github/workflows/builder.yaml">https://github.com/BennyThink/ActionTest/blob/master/.github/workflows/builder.yaml</a> [&#x2F;v_notice] 这个世界对arm是如此的不友好：</p>
-<blockquote>
-<p>standard_init_linux.go:178: exec user process caused “exec format error”</p>
-</blockquote>
-<p>大部分docker image都是为了amd64构建的，那么这些image无法在arm64上运行，如果运行就会出现如上报错。</p>
-<p>有一种构建方式，叫做 Multi-arch，在docker hub上看到是这样的</p>
-<p><img src="/images/202107042101132.png"></p>
-<p>构建起来也挺简单，需要安装buildx，Linux需要额外开启binfmt_misc，创建新的构建器，然后buildx开始构建，整体命令大概如下：</p>
-<p># 开启buildx<br>export DOCKER_CLI_EXPERIMENTAL&#x3D;enabled</p>
-<h1 id="验证buildx"><a href="#验证buildx" class="headerlink" title="验证buildx"></a>验证buildx</h1><p>docker buildx version</p>
-<h1 id="如果上述命令报错，未安装-buildx，需要手动安装一下"><a href="#如果上述命令报错，未安装-buildx，需要手动安装一下" class="headerlink" title="如果上述命令报错，未安装 buildx，需要手动安装一下"></a>如果上述命令报错，未安装 buildx，需要手动安装一下</h1><p>mkdir -p ~&#x2F;.docker&#x2F;cli-plugins<br>wget -O ~&#x2F;.docker&#x2F;cli-plugins&#x2F;docker-buildx <a target="_blank" rel="noopener" href="https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64">https://github.com/docker/buildx/releases/download/v0.5.1/buildx-v0.5.1.linux-amd64</a><br>chmod a+x ~&#x2F;.docker&#x2F;cli-plugins&#x2F;docker-buildx</p>
-<h1 id="开启-binfmt-misc，-Linux-only"><a href="#开启-binfmt-misc，-Linux-only" class="headerlink" title="开启 binfmt_misc， Linux only"></a>开启 binfmt_misc， Linux only</h1><p>docker run –rm –privileged docker&#x2F;binfmt:66f9012c56a8316f9244ffd7622d7c21c1f6f28d</p>
-<h1 id="验证qemu"><a href="#验证qemu" class="headerlink" title="验证qemu"></a>验证qemu</h1><p>ls -al &#x2F;proc&#x2F;sys&#x2F;fs&#x2F;binfmt_misc&#x2F;<br>cat &#x2F;proc&#x2F;sys&#x2F;fs&#x2F;binfmt_misc&#x2F;qemu-aarch64</p>
-<h1 id="创建新的构建器"><a href="#创建新的构建器" class="headerlink" title="创建新的构建器"></a>创建新的构建器</h1><p>docker buildx create –use –name mybuilder</p>
-<h1 id="构建"><a href="#构建" class="headerlink" title="构建"></a>构建</h1><p>docker buildx build -t bennythink&#x2F;test –platform&#x3D;linux&#x2F;arm,linux&#x2F;arm64,linux&#x2F;amd64 . –push</p>
-<p>当然了不能每次都这样手动构建，可是Docker Hub的自动构建不仅要停了，还不能这么构建。那么剩下的比较优雅的解决方案就是 GitHub Actions啦。</p>
-<p>整个流程也很简单。</p>
-<ol>
-<li>checkout代码，如有需要也要准备好submodule</li>
-<li>配置buildx、QEMU什么的</li>
-<li>构建</li>
-<li>推送到Docker Hub</li>
-</ol>
-<p>build-push-action文档已经写的很好啦，我简单复制粘贴一下</p>
-<h2 id="checkout"><a href="#checkout" class="headerlink" title="checkout"></a>checkout</h2><p>使用 actions&#x2F;checkout@v2</p>
-<p>- name: Checkout<br>  uses: actions&#x2F;checkout@v2<br>  with:<br>    submodules: true</p>
-<p>如果没有submodule的话，整个step可以删掉，build-push-action会自动checkout</p>
-<h2 id="配置buildx"><a href="#配置buildx" class="headerlink" title="配置buildx"></a>配置buildx</h2><p>- name: Set up QEMU<br>  uses: docker&#x2F;setup-qemu-action@v1</p>
-<ul>
-<li>name: Set up Docker Buildx<br>uses: docker&#x2F;setup-buildx-action@v1</li>
-</ul>
-<p>然后登录到Docker Hub，需要在repository – settings中设置secrets</p>
-<p>- name: Login to DockerHub<br>  uses: docker&#x2F;login-action@v1<br>  with:<br>    username: $<br>    password: $</p>
-<h2 id="构建推送"><a href="#构建推送" class="headerlink" title="构建推送"></a>构建推送</h2><p>- name: Build and push<br>  uses: docker&#x2F;build-push-action@v2<br>  with:<br>    context: .<br>    platforms: linux&#x2F;amd64,linux&#x2F;arm64<br>    push: true<br>    tags: bennythink&#x2F;yyetsbot:latest</p>
-<p>这样一波操作之后，每次push之后，GitHub Actions就会自动运行，然后Docker Hub上就可以有amd64&#x2F;arm64的image啦。</p>
-<p>几乎是0排队，再也不用“构建100秒，排队90秒”啦。</p>
-<h2 id="使用cache"><a href="#使用cache" class="headerlink" title="使用cache"></a>使用cache</h2><p>GitHub Actions似乎也能利用build cache，这样可以大幅增加构建速度</p>
-<p>参考这里可以配置一下</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md#github-cache">https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md#github-cache</a></p>
-<h2 id="获取secret"><a href="#获取secret" class="headerlink" title="获取secret"></a>获取secret</h2><p>使用如下形式就可以获取到secrets中配置的值</p>
-<p>$</p>
-<p>可以配置环境变量中，在build时可以访问。同时也可以在某一个step中的run手动运行任意命令，来达到build hooks的效果。比如：</p>
-<p>- name: Run hooks<br>  env:<br>    SENTRY_ORG: $<br>  run: echo $SENTRY_ORG &gt;&gt; &#x2F;tmp&#x2F;1.txty</p>
-<p>[v_blue]要记得区分构建时环境变量、运行时环境变量还有build-arg哦。[&#x2F;v_blue]</p>
-<h2 id="Yarn-There-appears-to-be-trouble-with-your-network-connection-Retrying"><a href="#Yarn-There-appears-to-be-trouble-with-your-network-connection-Retrying" class="headerlink" title="Yarn - There appears to be trouble with your network connection. Retrying"></a>Yarn - There appears to be trouble with your network connection. Retrying</h2><p>我在构建时经常会出这种错，毕竟是在QEMU中跑的node，所以会很慢。一个可行的解决方案就是加长超时时间</p>
-<p>yarn –network-timeout 100000</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>build-push-action <a target="_blank" rel="noopener" href="https://github.com/docker/build-push-action">https://github.com/docker/build-push-action</a></p>
-<p>YYeTsBot workflow <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/blob/master/.github/workflows/builder.yaml">https://github.com/tgbot-collection/YYeTsBot/blob/master/.github/workflows/builder.yaml</a></p>
-<p>如何构建多架构 Docker 镜像？ <a target="_blank" rel="noopener" href="https://www.infoq.cn/article/v9qj0fjj6hsgyq0lphxg">https://www.infoq.cn/article/v9qj0fjj6hsgyq0lphxg</a></p>
-<p>🤨等我有空的，就把我自己的经常维护的项目都docker image都弄到GitHub Actions上！</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/07/04/github-actions-docker-image/index/" data-id="clhp7rtge0036s2qra9xab40s" data-title="使用GitHub Actions构建Multi-arch Docker image" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-r7000-ng386/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/27/r7000-ng386/index/" class="article-date">
-  <time class="dt-published" datetime="2021-06-27T00:00:00.000Z" itemprop="datePublished">2021-06-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/27/r7000-ng386/index/">NETGEAR R7000升级NG386踩坑笔记</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>一直以来，我的NETGEAR R700使用的是Legacy的380固件，反正也能用，不差什么。但是一直都有一个很严重的问题，就是会panic然后自己重启。最频繁的情况下可能每开机几分钟就重启一次。</p>
-<p>经过我的测试，发现这种情况会在大流量BT时比较频繁出现，Xbox下载游戏就从来不会。如果此时我在路由器上抓包，那么出现的概率似乎就更高了。</p>
-<p>今天实在忍不了了，就想着升级一波吧。主要参考了这篇教程：</p>
-<p><a target="_blank" rel="noopener" href="https://koolshare.cn/thread-193031-1-1.html">https://koolshare.cn/thread-193031-1-1.html</a></p>
-<p>反正没少踩坑。</p>
-<p><img src="/images/202106272044406.png"></p>
-<h2 id="改cfe的mac地址"><a href="#改cfe的mac地址" class="headerlink" title="改cfe的mac地址"></a>改cfe的mac地址</h2><p>我有点没咋看明白他的意思，但是我猜测了一下，应该是去找原来路由器的eth0和eth1的mac地址，最后+4应该是把mac地址最后一位运算一下，比如最后一位是F3，那么就写F7.好歹我也曾是Enginerring - Network，这点问题还能难得倒我？</p>
-<p>至少我是这么搞的……然后刷进去了。</p>
-<p>在CFEEDIT里可以看到有这样的IP，记住啦</p>
-<p>lan_ipaddr&#x3D;192.168.1.1<br>lan_netmask&#x3D;255.255.255.0</p>
-<h2 id="无法进入miniWeb-Server"><a href="#无法进入miniWeb-Server" class="headerlink" title="无法进入miniWeb Server"></a>无法进入miniWeb Server</h2><p>连网线，改IP。这个IP其实就应该是上面CFE的那个IP</p>
-<p>手动设定IP为192.168.1.11，ping 192.168.1.1，然后我ping通了，但是网页打不开。都快把人家屁股捅漏了，也打不开。各种尝试都不行。我都上nmap扫端口了。😠</p>
-<p>后来实在没办法，Boot Camp启动到Windows，竟然打开了！我也不知道这是因为啥……有毒吧。🤬</p>
-<p>miniWeb Server比较慢，上传固件也很慢，慢慢等就好了</p>
-<h2 id="Wi-Fi重启自动关闭"><a href="#Wi-Fi重启自动关闭" class="headerlink" title="Wi-Fi重启自动关闭"></a>Wi-Fi重启自动关闭</h2><p>新的固件成功启动了，但是发现没Wi-Fi……在网上搜到可以在无线网络-专业设置里启用。但是每次重启之后又自动关闭了，我也不能每次都这么插网线搞啊。万一我不在家它自己重启了叫我怎么插网线啊🤬</p>
-<p>后来找到个帖子： <a target="_blank" rel="noopener" href="https://koolshare.cn/thread-109794-1-1.html">https://koolshare.cn/thread-109794-1-1.html</a></p>
-<p>算是解决了吧。似乎sleep没那么必要……，反正就放着吧也不差20秒，不想测试了。</p>
-<p>benny@router:&#x2F;tmp&#x2F;home&#x2F;root# cat &#x2F;jffs&#x2F;scripts&#x2F;init-start<br>#!&#x2F;bin&#x2F;sh<br>sleep 20<br>nvram set wl0_radio&#x3D;1<br>nvram set wl1_radio&#x3D;1<br>nvram commit</p>
-<p>service restart_wireless</p>
-<h2 id="梯子始终是❌"><a href="#梯子始终是❌" class="headerlink" title="梯子始终是❌"></a>梯子始终是❌</h2><p>用的是这个项目 <a target="_blank" rel="noopener" href="https://github.com/hq450/fancyss">https://github.com/hq450/fancyss</a></p>
-<p>下载地址在这里</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/hq450/fancyss_history_package/tree/master/fancyss_arm384">https://github.com/hq450/fancyss_history_package&#x2F;tree&#x2F;master&#x2F;fancyss_arm384</a></p>
-<p>离线安装前先把koolshare傻逼非法关键词的功能干了。</p>
-<p>但是配置完依旧是❌。后来发现它是用的httping做检测，那会不会是httping有问题？</p>
-<p>benny@router:&#x2F;tmp&#x2F;home&#x2F;root# .&#x2F;httping<br>.&#x2F;httping: can’t load library ‘libssl.so.1.0.0’</p>
-<p>果然🤔🤬🤦‍♀️</p>
-<p>去<a target="_blank" rel="noopener" href="https://firmware.koolshare.cn/binary/httping/">这里</a>下载替换一个就好了</p>
-<p>cd &#x2F;koolshare&#x2F;bin<br>wget <a target="_blank" rel="noopener" href="http://firmware.koolshare.cn/binary/httping/armv7/httping">http://firmware.koolshare.cn/binary/httping/armv7/httping</a><br>chmod +x httping</p>
-<p>但是我好像harpoxy下还是各种❌，先跑单个节点算了吧。又不是不能用</p>
-<h2 id="htop问题"><a href="#htop问题" class="headerlink" title="htop问题"></a>htop问题</h2><p>在刚刚那看到了htop，就想顺便也用上算了。</p>
-<p>Error opening terminal: xterm-256color</p>
-<p>🤨</p>
-<p>查了一下，似乎export一下就可以了</p>
-<p>export TERM&#x3D;xterm-256color</p>
-<p>那我也不能每次运行时都export啊，这玩意它也没有zsh更没有oh-my-zsh，这让我这个记忆退化的老年痴呆怎么办。找环境变量文件呗，<code>/etc/profile, /etc/environment, /tmp/etc</code>….</p>
-<p>真棒<code>/etc/profile</code>无权限写，因为这个文件系统是RO的。</p>
-<p>后来发现是这个文件……<code>/jffs/configs/profile.add</code></p>
-<h2 id="指示灯太闪"><a href="#指示灯太闪" class="headerlink" title="指示灯太闪"></a>指示灯太闪</h2><p>我一直不太喜欢指示灯，费我电不说，还闪瞎我狗眼。在设置里可以关掉。但是重启了之后又回来了……懒得研究太多了，反正这几行能管用</p>
-<p>#!&#x2F;bin&#x2F;sh<br>nvram set led_disable&#x3D;1<br>nvram commit<br>service restart_leds</p>
-<p>不过灯还是好多，之前是只有电源灯在亮，现在只是关掉了LAN 1234.啊算了就这样吧。哪天心情不好了拿黑胶带给它贴上。</p>
-<p>加到启动项<code>/jffs/scripts/services-start</code> 好像不太好用，估计是时机不对。不管了手动执行算了吧。</p>
-<h2 id="自定义启动项"><a href="#自定义启动项" class="headerlink" title="自定义启动项"></a>自定义启动项</h2><p>我的路由器上跑了一个自定义的网络相关的小程序，用Go写的，交叉编译成了armv7l的二进制，这次没想到加到<code>/jffs/scripts/services-start</code>里管用了。看来以后不用手动检查了。</p>
-<p>nohup &#x2F;jffs&#x2F;xxx&amp;</p>
-<p>管它优雅不优雅的，能跑就行。用奶子走路又怎么了啊！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062720570093.gif"><img src="/images/2021062720570093.gif"></a></p>
-<h2 id="IP与mac地址绑定"><a href="#IP与mac地址绑定" class="headerlink" title="IP与mac地址绑定"></a>IP与mac地址绑定</h2><p>我的那个程序是写死了IP地址的，刷了固件之后原来的绑定全丢了。懒得再重新编译，直接重新绑定然后重启下设备就好了。</p>
-<p>这个很好办了，WebUI上点点就好了。顺便把搜索域改成lan，我的那个程序也是写死了搜索域。别黑我了，今天就流行写死。</p>
-<p><img src="/images/2021062720444046.png"></p>
-<h2 id="日志系统"><a href="#日志系统" class="headerlink" title="日志系统"></a>日志系统</h2><p>为了更好的弄明白为什么它会自动重启，我觉得我需要把log保存起来。庆幸的是在固件的设置中可以找到远程记录服务器。那么我们只要配置一个syslog server就可以了。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062812333552.png"><img src="/images/2021062812333552.png"></a></p>
-<p>这方面的选择其实挺多的，VMware vRealize Log Insights，logstash+kibana+elastic search，loki，甚至SolarisWinds也有一个kiwi log server，这些都支持syslog。但是他们的缺点就是配置起来太麻烦！我的需求太简单了，能把syslog收下来存起来方便以后看，更好的话提供一个web界面省的我每次ssh打命令那就更好了。</p>
-<p>简单的说，大部分发行版都有rsyslog这个东西，简单配置一下就可以拿来收日志了，可以参考这篇 <a target="_blank" rel="noopener" href="https://leeyr.com/330.html">https://leeyr.com/330.html</a></p>
-<p>有能力的也可以手写，比如<a target="_blank" rel="noopener" href="https://github.com/mcuadros/go-syslog">go-syslog</a>这个库，很简单，注意logformat是RFC3164</p>
-<p>package main</p>
-<p>import (<br>   “fmt”<br>   “gopkg.in&#x2F;mcuadros&#x2F;go-syslog.v2”<br>)<br>func main() {<br>   channel :&#x3D; make(syslog.LogPartsChannel)<br>   handler :&#x3D; syslog.NewChannelHandler(channel)</p>
-<p>   server :&#x3D; syslog.NewServer()<br>   server.SetFormat(syslog.RFC3164)<br>   server.SetHandler(handler)<br>   server.ListenUDP(“0.0.0.0:514”)<br>   server.Boot()</p>
-<p>   go func(channel syslog.LogPartsChannel) {<br>      for logParts :&#x3D; range channel {<br>         fmt.Println(logParts)<br>      }<br>   }(channel)</p>
-<p>   server.Wait()<br>}</p>
-<p>用起来是这样滴</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062812365940.png"><img src="/images/2021062812365940.png"></a></p>
-<p>后来在GitHub上找到一个简单的工具<a target="_blank" rel="noopener" href="https://github.com/pierredavidbelanger/raftman">raftman</a>，自带了一个简单的UI，用SQLite存数据。</p>
-<p>由于我们要用RFC3164的格式，因此稍微改下它的<code>Dockerfile</code></p>
-<p>ENTRYPOINT [“&#x2F;usr&#x2F;local&#x2F;bin&#x2F;raftman”, “-frontend”, “syslog+udp:&#x2F;&#x2F;:514?format&#x3D;RFC3164”, “-frontend”, “ui+http:&#x2F;&#x2F;:8282&#x2F;“]</p>
-<p>然后build</p>
-<p>docker build -t raftman .</p>
-<p>然后再起飞</p>
-<p>docker run -d –restart&#x3D;always –name raftman \<br>-v &#x2F;tmp:&#x2F;var&#x2F;lib&#x2F;raftman \<br>-p 514:514&#x2F;udp \<br>-p 5514:5514 \<br>-p 8181:8181 \<br>-p 8282:8282 \<br>raftman</p>
-<p>好的没问题。打开<a href="http://ip:8282就有了。">http://ip:8282就有了。</a></p>
-<p>我知道我穿越了8个小时，我也不知道为啥，懒得去看代码啦。能用就行！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/06/2021062812385946.png"><img src="/images/2021062812385946.png"></a></p>
-<p>啊知道怎么fix这个啦，暴力点 <code>frontend/static/ui/index.js</code></p>
-<p>var tsFormatter &#x3D; function (s) {<br>d &#x3D; new Date(s);<br>d.setHours(d.getHours() - 8);<br>return tsFormat(d);<br>};</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>差不多就踩了这么多坑，主要还是进miniweb浪费了太多时间，也不知道用Windows好了是不是偶然。</p>
-<p>似乎可以直接升级AC68U的固件？我懒得折腾了。😠💢</p>
-<p>感觉这个koolshare改的可能还会有各种bug，再不行我就换回原版……感觉还是padavan省心啊，但是MT7620似乎性能总是差了那么点。</p>
-<p>好心累！本应该看洛基的，我却折腾了一下午这玩意……</p>
-<p>本来人家心情就不好，还踩了这么多坑……怎么不坑底躺平得了呢。😫😖</p>
-<p><strong>本文由暴躁Benny狂暴且抑郁地创作</strong></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/27/r7000-ng386/index/" data-id="clhp7rtig0079s2qr14631dao" data-title="NETGEAR R7000升级NG386踩坑笔记" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-encounter/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/22/encounter/index/" class="article-date">
-  <time class="dt-published" datetime="2021-06-22T00:00:00.000Z" itemprop="datePublished">2021-06-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/22/encounter/index/">遇见</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前段时间的端午节假期，心情非常差劲。于是我便一个人出去散步，放松一下心情顺便当作锻炼身体了。在经过家附近的商场时，安慕希在促销，挺热闹的，我就过去围观了一会。</p>
-<p>在人群中我看到了一个穿着白色连衣裙的女孩，看起来应该是工作人员。黑色的长长的头发，很优雅很有气质，是我喜欢的类型呀。于是我就在旁边装作路过的路人，默默地看了一晚上。</p>
-<p>第二天下午，我又路过了那个商场，同样看到了她。于是我就坐在旁边，从下午呆到了晚上。心情还是像第一天假期那样差劲，不过在外面总比在家里发呆好，再加上这边有养眼的姑娘，那就更好了呀。</p>
-<p>我在想，这个工作应该很辛苦吧，要一直站着，还要端着盘子去问经过的路人要不要品尝一下。我在旁边坐着都觉得很累，更何况是站着一直在忙呢。</p>
-<p>期间看到姑娘在时不时的放松一下自己，一定很累，很饿吧，八点钟了还没办法去吃饭。尽管穿着运动鞋，腿也一定酸酸的。</p>
-<p>那时，我在想，要不然我去搭讪吧，可是我又从来没这样做过，不知道该怎么说，被拒绝了怎么办。</p>
-<p>那晚，她就站在我身边，被台上的表演逗笑了。就这样犹豫着过了第二天。</p>
-<p>第三天，有一点下雨。我趁着雨停去看了，那个姑娘已经不在了。下午和晚上又分别去了一次，也没有看到她。</p>
-<p>她应该是兼职吧，三天的假期，两天时间用来兼职，一天休息。真的很辛苦啊。</p>
-<p>第四天，工作日，同样在下雨。雨停了之后我去看了一下，舞台已经撤走了，什么都没有了，一点痕迹都没有留下来。</p>
-<p>第五天，第六天……</p>
-<p>我猜，已经不会再见到这个姑娘了吧。我不知道她的名字，没有她的联系方式，甚至连她是做什么的都不知道。在这座2500万人的城市里，我再也见不到她了。</p>
-<p>就算运气好真的见到了，那又能怎样。我真的能鼓起勇气去做什么吗？还是不要再抱有任何希望了。</p>
-<p>希望对我而言，到最后，就是绝望。</p>
-<p>「喜欢的人是不可能的，想要的东西是拿不到的，未来是看不见的。」</p>
-<p>究竟要说多少次才能让自己记住这句话。明明已经知道结果了，就不要再挣扎了，不要再做无所谓的努力然后自我感动了。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/03/2018030604125565.jpeg"><img src="/images/2018030604125565.jpeg" alt="平匡与实栗"></a></p>
-<p><strong>我才是那个每天都处在充满希望和坠入堕落里来回转换的人。</strong></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/22/encounter/index/" data-id="clhp7rtfu0028s2qr8aov6c7x" data-title="遇见" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-dockerhub-submodule/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/19/dockerhub-submodule/index/" class="article-date">
-  <time class="dt-published" datetime="2021-06-19T00:00:00.000Z" itemprop="datePublished">2021-06-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/19/dockerhub-submodule/index/">Docker Hub与submodule踩坑小记</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>大家都懂，使用 Docker分发应用是非常舒服畅快的事情！通常来说，如果我们在GitHub开源代码，通常也就会选择Docker Hub来构建镜像。当然啦，用GitHub Action，或者自己构建再提交也是一种办法哦。</p>
-<p>怎么写Dockerfile，比如不同层级的RUN，正确应用multi stage build，那是另外一个话题啦。今天来说说在为 yyetsweb构建docker image的时候，我踩到的坑……</p>
-<h2 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h2><p>说到环境变量，首先我们要区分一下运行时环境变量和构建时环境变量。</p>
-<h3 id="运行时环境变量"><a href="#运行时环境变量" class="headerlink" title="运行时环境变量"></a>运行时环境变量</h3><p>我们在Dockerfile中使用 <code>ENV</code>定义的变量就可以算运行时环境变量啦，比如说这样：</p>
-<p>ENV TZ&#x3D;Asia&#x2F;Shanghai</p>
-<p>这个<code>TZ</code>变量会被容器中的程序直接读取使用。</p>
-<h3 id="构建时环境变量"><a href="#构建时环境变量" class="headerlink" title="构建时环境变量"></a>构建时环境变量</h3><p>在构建时会被读取使用的变量，比如说在Docker Hub会有这样的设置：</p>
-<p><img src="/images/2021061914224777.png"></p>
-<p>那么这个变量就是可以在Dockerfile里使用：</p>
-<p>RUN echo $REACT_APP_DOMAIN</p>
-<p>使用的啦。</p>
-<h2 id="我的使用"><a href="#我的使用" class="headerlink" title="我的使用"></a>我的使用</h2><p>因为前端的SPA应用要在构建时使用一些环境变量，所以我就在 Docker Hub的设置中加了这几个，但是似乎并没有生效。不知道为什么会这样，考虑到构建时会读取项目根目录下的 <code>.env</code>文件，那不如应用一下Docker Hub的hooks吧！</p>
-<p>Docker Hub的build hooks一共有这么几种：</p>
-<ul>
-<li>hooks&#x2F;post_checkout</li>
-<li>hooks&#x2F;pre_build</li>
-<li>hooks&#x2F;post_build</li>
-<li>hooks&#x2F;pre_test</li>
-<li>hooks&#x2F;post_test</li>
-<li>hooks&#x2F;pre_push (only used when executing a build rule or automated build )</li>
-<li>hooks&#x2F;post_push (only used when executing a build rule or automated build )</li>
-</ul>
-<p>每一个hook都可以包含docker命令和各种bash命令。那对于我的场景来说， 创建一个<code>pre_build</code>就可以啦</p>
-<p>#!&#x2F;bin&#x2F;bash<br>cat &lt;&lt; EOF &gt;&gt; YYeTsFE&#x2F;.env<br>SENTRY_ORG&#x3D;$SENTRY_ORG<br>SENTRY_PROJECT&#x3D;$SENTRY_PROJECT<br>SENTRY_AUTH_TOKEN&#x3D;$SENTRY_AUTH_TOKEN</p>
-<p>REACT_APP_SENTRY_DSN&#x3D;$REACT_APP_SENTRY_DSN<br>REACT_APP_DOMAIN&#x3D;$REACT_APP_DOMAIN<br>REACT_APP_GA&#x3D;$REACT_APP_GA</p>
-<h1 id="sourcemap"><a href="#sourcemap" class="headerlink" title="sourcemap"></a>sourcemap</h1><p>GENERATE_SOURCEMAP&#x3D;$GENERATE_SOURCEMAP<br>EOF</p>
-<p>完美！</p>
-<h2 id="submodule"><a href="#submodule" class="headerlink" title="submodule"></a>submodule</h2><p>使用git submodule继承其他项目是非常理想的一种开发方式。我们可以控制submodule跟踪到上游的哪一个commit，需要更新时只需要一个 <code>git submodule update --remote</code>，然后再把hash commit就可以啦。</p>
-<p>Docker Hub在build时会自动clone相应的submodule，因此常规情况下来讲，大部分情况下都是可以顺利构建的。只不过有几点需要注意：</p>
-<ol>
-<li>docker hub执行的是shallow copy，因此只有最新的commit和对应的branch会被拉下来，因此如果你的build脚本是依赖了git branch和不同的commit，那会失败的哦。这个时候要用hooks来解决</li>
-<li>private submodule需要一些额外设置，可以参考官网文档来解决</li>
-<li>在module里执行git相关的命令，很有可能失败的哦（这可能是Docker Hub的bug，也有可能是git版本的问题）。</li>
-</ol>
-<p>我要详细的说下第三点🤣</p>
-<p>在我的构建脚本中，我用了<code>git rev-parse --short HEAD</code> 来获取submodule的hash，然后把这个hash作为tag推送到sentry上。但是在构建日志中发现了这种错误：</p>
-<p>-–&gt; Running in 4c09a0ea3725</p>
-<p>yarn run v1.22.5</p>
-<p>$ (export REACT_APP_SENTRY_RELEASE&#x3D;$(git rev-parse –short HEAD); react-scripts build &amp;&amp; node scripts&#x2F;sentry.js)</p>
-<p>[91mfatal: not a git repository: &#x2F;src&#x2F;bt57w8kzzcjnpmscaemsqqq&#x2F;.git&#x2F;modules&#x2F;YYeTsFE</p>
-<p>然而在本地完全是无法复现的，整个目录树如下，我保证Docker Hub在build时也有同样的结构：</p>
-<p>$ tree -L 2 -a</p>
-<p>|– .dockerignore<br>|– .git<br>| |– HEAD<br>| |– branches<br>| |– config<br>| |– description<br>| |– hooks<br>| |– index<br>| |– info<br>| |– logs<br>| |– modules<br>| |– objects<br>| |– packed-refs<br>| `– refs<br>|– .gitattributes<br>|– .gitignore<br>|– .gitmodules<br>|– .travis.yml<br>|– Dockerfile<br>|– Makefile<br>|– README.md<br>|– YYeTsFE<br>| |– .env.example<br>| |– .git<br>| |– .gitignore<br>| |– .sentryclirc<br>| |– README.md<br>| |– package.json<br>| |– public<br>| |– scripts<br>| |– src<br>| |– tsconfig.json<br>| `– yarn.lock</p>
-<p>submodule也有.git，项目根目录也有.git，为什么就会失败呢？进行了无数次尝试，让Docker Hub一晚上疯狂构建😂</p>
-<p>后来研究了一下，submodule的.git其实是一个到父目录<code>.git/modules/ModuleName</code>的引用。</p>
-<p>~&#x2F;PycharmProjects&#x2F;YYeTsBot&#x2F;YYeTsFE (60c497b*) [02:06:51]<br>benny$ cat .git<br>gitdir: ..&#x2F;.git&#x2F;modules&#x2F;YYeTsFE</p>
-<p>然而在 Docker Hub上，这个目录是绝对路径，并且是host的路径🤦‍♂️：</p>
-<p>gitdir: &#x2F;src&#x2F;brp47ykf7wlmztspk2mtpl8&#x2F;.git&#x2F;modules&#x2F;YYeTsFE</p>
-<p>这不报错就怪了。</p>
-<p>解决方法也很简单，在hook中改掉<code>.git</code>文件，或者在Dockerfile中改掉，考虑到无法定位到问题究竟是出在Docker Hub还是git，我就选择在Dockerfile中搞啦</p>
-<p>RUN echo “gitdir: ..&#x2F;.git&#x2F;modules&#x2F;YYeTsFE” &gt; .git</p>
-<p>就这么一行代码，花了我两三个小时🌚🌚🤬</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>Docker Hub build hooks: <a target="_blank" rel="noopener" href="https://docs.docker.com/docker-hub/builds/advanced/">https://docs.docker.com/docker-hub/builds/advanced/</a></p>
-<p>YYeTsBot: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">https://github.com/tgbot-collection/YYeTsBot</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/19/dockerhub-submodule/index/" data-id="clhp7rtfx002as2qrcidr0r1z" data-title="Docker Hub与submodule踩坑小记" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1055,7 +1272,7 @@ server.quit()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1068,23 +1285,23 @@ server.quit()
       <ul>
         
           <li>
-            <a href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
           </li>
         
           <li>
-            <a href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
           </li>
         
           <li>
-            <a href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
           </li>
         
           <li>
-            <a href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
           </li>
         
           <li>
-            <a href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
           </li>
         
       </ul>

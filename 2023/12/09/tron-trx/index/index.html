@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用 Tron(TRX) 收款 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="今年年初的时候，我写过如何用 Stripe 收款。但是 Stripe 的注册门槛确实要高一些，这一点就足够劝退很多人了。 退而求其次，用加密货币来收款也是可以的。区块链上所有的交易都是公开的，因此我们可以通过这一点来验证用户的付款情况。 想要验证用户付款，包括但不限于如下方式：  每笔交易都生成一对密钥，对应一个付款地址。密钥管理会非常麻烦 有些交易可以添加一个描述字段，用于区分。像极了给对公账户">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Tron(TRX) 收款">
+<meta property="og:url" content="http://example.com/2023/12/09/tron-trx/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="今年年初的时候，我写过如何用 Stripe 收款。但是 Stripe 的注册门槛确实要高一些，这一点就足够劝退很多人了。 退而求其次，用加密货币来收款也是可以的。区块链上所有的交易都是公开的，因此我们可以通过这一点来验证用户的付款情况。 想要验证用户付款，包括但不限于如下方式：  每笔交易都生成一对密钥，对应一个付款地址。密钥管理会非常麻烦 有些交易可以添加一个描述字段，用于区分。像极了给对公账户">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2023120904562828.png">
+<meta property="article:published_time" content="2023-12-09T00:00:00.000Z">
+<meta property="article:modified_time" content="2024-01-03T08:03:59.522Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2023120904562828.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-tron-trx/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/12/09/tron-trx/index/" class="article-date">
+  <time class="dt-published" datetime="2023-12-09T00:00:00.000Z" itemprop="datePublished">2023-12-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用 Tron(TRX) 收款
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今年年初的时候，我写过<a target="_blank" rel="noopener" href="https://dmesg.app/stripe-telegram.html">如何用 Stripe 收款</a>。但是 Stripe 的注册门槛确实要高一些，这一点就足够劝退很多人了。</p>
+<p>退而求其次，用加密货币来收款也是可以的。区块链上所有的交易都是公开的，因此我们可以通过这一点来验证用户的付款情况。</p>
+<p>想要验证用户付款，包括但不限于如下方式：</p>
+<ul>
+<li>每笔交易都生成一对密钥，对应一个付款地址。密钥管理会非常麻烦</li>
+<li>有些交易可以添加一个描述字段，用于区分。像极了给对公账户转账时的OCR&#x2F;Reference</li>
+<li>尾数标记，略微改变付款金额，比如同样需要付款1 USDT，可以一个用户需要付款1.000001另外一个需要付款1.000002</li>
+</ul>
+<p>前几天了解到 HD 钱包（高清钱包 分层确定性钱包 Hierarchical Deterministic Wallet），发现这种技术非常有趣。它允许通过单个种子源生成一整套密钥对（即公钥和私钥），像树形结构一样。有一个根，就可以计算出树上任意一个节点的公私钥。</p>
+<p>那这就刚刚好，每一笔交易我都给树上增加一个叶子节点，只要有根和路径，就可以计算出这个节点的公私钥。</p>
+<p>这里我选择 Tron的TRX，主要原因还是转账手续费比较低😂</p>
+<h2 id="钱包路径"><a href="#钱包路径" class="headerlink" title="钱包路径"></a>钱包路径</h2><p>从树根走到某一个叶子，肯定要一个特定的路径的。对于 tron来说，一个典型的路径是这样的</p>
+<p><strong>m&#x2F;44’&#x2F;195’&#x2F;0’&#x2F;0&#x2F;0</strong></p>
+<ul>
+<li><strong>m&#x2F;44</strong>表示BIP44标准</li>
+<li><strong>195</strong>表示 TRON，每种加密货币都分配有一个唯一的编号</li>
+<li>**0’**表示钱包的第一个账户，创建多个账户那就是1‘ 2’</li>
+<li><strong>0</strong> 链接层级 一般0表示接收 1表示找零</li>
+<li><strong>0</strong> 特定地址索引，改变这个数字就会生成新的地址</li>
+</ul>
+<p>由于我们想每一笔交易都生成不同的地址，那么我们可以这样设想</p>
+<ul>
+<li><strong>m&#x2F;44’&#x2F;195’&#x2F;0’&#x2F;0&#x2F;0</strong> 这个路径用于保存所有的余额</li>
+<li><strong>m&#x2F;44’&#x2F;195’&#x2F;1’&#x2F;0&#x2F;(0-10000)</strong> 每一笔交易请求都通过1钱包的不同索引生成不同地址</li>
+<li>每一笔交易确认后，都计算出这个地址的私钥，然后把钱转到0账户中</li>
+</ul>
+<h2 id="库"><a href="#库" class="headerlink" title="库"></a>库</h2><p>Python 中有很多库可以处理加密货币。比如 <a target="_blank" rel="noopener" href="https://github.com/meherett/python-hdwallet">python-hdwallet</a> 实现了一百多种货币的HD钱包；我们本次的目的非常简单，只使用 TRON，那么就用 <a target="_blank" rel="noopener" href="https://github.com/andelf/tronpy">tronpy</a> 好了</p>
+<h2 id="生成助记词"><a href="#生成助记词" class="headerlink" title="生成助记词"></a>生成助记词</h2><p>[v_tips]mnemonic, m不发音[&#x2F;v_tips] 这个助记词也就是所谓的根密钥，可以拿来生成下面任意节点的密钥。可不能泄漏出去，要不然所有的节点的密钥都可以被推断出来。</p>
+<p>from tronpy.hdwallet import generate_mnemonic<br>m &#x3D; generate_mnemonic(12, “english”)<br>print(m)</p>
+<h2 id="连接区块链网络"><a href="#连接区块链网络" class="headerlink" title="连接区块链网络"></a>连接区块链网络</h2><p>TRON 有如下几个网络：</p>
+<ul>
+<li>mainnet 主网，里面的钱是具有经济价值的，意味着可以兑换法币</li>
+<li>shasta、nile 测试网，里面的钱没经济价值，完全测试用</li>
+</ul>
+<p><strong>由于不同国家和地区对于加密货币的法律政策限制不同</strong>，同时我并不想真正的去花钱，那么测试网就是再好不过的了。</p>
+<p>from tronpy import Tron</p>
+<p>MNEMONIC &#x3D; “slogan reduce clap umbrella liquid crumble outer exchange quiz promote owner buffalo”<br>client &#x3D; Tron(network&#x3D;”nile”)<br>addr &#x3D; client.generate_address_from_mnemonic(MNEMONIC, “”, “m&#x2F;44’&#x2F;195’&#x2F;0’&#x2F;0&#x2F;0”)<br>print(addr[“base58check_address”])</p>
+<p>输出如下</p>
+<p>TERbSCnpFp4FG6SLpUHpFRBRT69ZhHbLFp</p>
+<p>你看我们这里使用了 account path，这个<code>0&#39;/0/0</code>就是我们最终集资的钱包</p>
+<h2 id="为每笔交易生成收款地址"><a href="#为每笔交易生成收款地址" class="headerlink" title="为每笔交易生成收款地址"></a>为每笔交易生成收款地址</h2><p>我们使用 1’账户，然后需要在数据库中记录下索引，每笔交易都要生成不同的索引，自增就可以了，要记住这个索引，否则就没办法生成私钥了</p>
+<p>addr &#x3D; client.generate_address_from_mnemonic(MNEMONIC, “”, “m&#x2F;44’&#x2F;195’&#x2F;1’&#x2F;0&#x2F;1”)<br>print(addr[“base58check_address”])</p>
+<p>输出如下，这个地址就是用户要打钱的地方</p>
+<p>TD2g6siz3NP4wcjP5iAueW9tottaAgP98a</p>
+<h2 id="模拟用户"><a href="#模拟用户" class="headerlink" title="模拟用户"></a>模拟用户</h2><p>模拟用户付钱，那么就要先弄到一个有数字货币的钱包地址。可是这又是测试网，没办法真正兑换法币的。不慌，有网站可以免费领用于测试的币，如： <a target="_blank" rel="noopener" href="https://nileex.io/join/getJoinPage">https://nileex.io/join/getJoinPage</a></p>
+<p>同样生成一个地址，记住地址和私钥，然后页面提交就好了。</p>
+<p>为了方便实用，我们可以封装一个简单的命令行小程序</p>
+<h2 id="付款"><a href="#付款" class="headerlink" title="付款"></a>付款</h2><p>client.trx.transfer(from_, to, amount).build().inspect().sign(priv).broadcast()<br>print(t.wait())</p>
+<p><code>amount</code>是金额，<code>1_000_000</code> 是 1 TRX</p>
+<p><code>priv</code> 是私钥，如果通过助记词和路径生成key，可以使用如下代码</p>
+<p>def mnemonic_to_private_key():<br>    seed &#x3D; seed_from_mnemonic(mnemonic, passphrase&#x3D;””)<br>    private_key &#x3D; key_from_seed(seed, account_path&#x3D;”m&#x2F;44’&#x2F;195’&#x2F;0’&#x2F;0&#x2F;0”)<br>    return PrivateKey(private_key)</p>
+<h2 id="验证付款"><a href="#验证付款" class="headerlink" title="验证付款"></a>验证付款</h2><p>简单的轮询即可</p>
+<p># 获取地址信息<br>client.get_account(“TD2g6siz3NP4wcjP5iAueW9tottaAgP98a”)<br>获取地址余额，返回值类型是 Decimal 避免出现 0.1 + 0.2 &#x3D; 0.30000000000000004 的悲剧<br>client.get_account_balance(“TD2g6siz3NP4wcjP5iAueW9tottaAgP98a”)</p>
+<h2 id="验证成功后转钱到集中地址"><a href="#验证成功后转钱到集中地址" class="headerlink" title="验证成功后转钱到集中地址"></a>验证成功后转钱到集中地址</h2><p>和付款一样，把 To 改成自己的地址就好。如果你想也可以弄成交易所给的地址、或者本地钱包软件给的地址。</p>
+<p>在转账失败时，应该把金额减少 1.1 TRX用于付矿工费</p>
+<h2 id="使用-Telegram-Bot处理"><a href="#使用-Telegram-Bot处理" class="headerlink" title="使用 Telegram Bot处理"></a>使用 Telegram Bot处理</h2><p>理解了以上所有步骤之后，简单封装一下就可以了，下面是一组示例代码，使用 apscheduler 轮询获取付款状态。简单起见没有引入数据库，正常要用起来的话，还是要把一些关键的信息，如付款地址、路径等写入到数据库中的。</p>
+<p>import logging</p>
+<p>import telebot<br>from apscheduler.schedulers.background import BackgroundScheduler<br>from telebot.types import Message<br>from tronpy import Tron<br>from tronpy.exceptions import TransactionError, ValidationError<br>from tronpy.hdwallet import key_from_seed, seed_from_mnemonic<br>from tronpy.keys import PrivateKey</p>
+<p>logging.basicConfig(level&#x3D;logging.INFO)<br>bot &#x3D; telebot.TeleBot(“12345”)</p>
+<p>index &#x3D; 0</p>
+<h1 id="address-user-id-123-path-“m-x2F-44’-x2F-195’-x2F-1’-x2F-0-x2F-0”"><a href="#address-user-id-123-path-“m-x2F-44’-x2F-195’-x2F-1’-x2F-0-x2F-0”" class="headerlink" title="address: {user_id: 123, path: “m&#x2F;44’&#x2F;195’&#x2F;1’&#x2F;0&#x2F;0”"></a>address: {user_id: 123, path: “m&#x2F;44’&#x2F;195’&#x2F;1’&#x2F;0&#x2F;0”</h1><p>unpaid_map &#x3D; {}</p>
+<p>mnemonic &#x3D; “slogan reduce clap umbrella liquid crumble outer exchange quiz promote owner buffalo”</p>
+<p>class TronTrx:<br>    def __init__(self):<br>        self.client &#x3D; Tron(network&#x3D;”nile”)<br>        self.central &#x3D; “m&#x2F;44’&#x2F;195’&#x2F;0’&#x2F;0&#x2F;0”</p>
+<pre><code>def mnemonic\_to\_private\_key(self, path):
+    seed = seed\_from\_mnemonic(mnemonic, passphrase=&quot;&quot;)
+    private\_key = key\_from\_seed(seed, account\_path=path)
+    return PrivateKey(private\_key)
+
+def central\_wallet(self):
+    return self.client.generate\_address\_from\_mnemonic(mnemonic, &quot;&quot;, self.central)\[&quot;base58check\_address&quot;\]
+
+def generate\_address(self, user\_id):
+    global index
+    path = f&quot;m/44&#39;/195&#39;/1&#39;/0/&#123;index&#125;&quot;
+    logging.info(&quot;Generating address for user %s with path %s&quot;, user\_id, path)
+    addr = self.client.generate\_address\_from\_mnemonic(mnemonic, &quot;&quot;, path)\[&quot;base58check\_address&quot;\]
+    unpaid\_map\[addr\] = &#123;&quot;user\_id&quot;: user\_id, &quot;path&quot;: path&#125;
+    index += 1
+    return addr
+
+def transfer(self, from\_: str, to: str, amount: int):
+    logging.info(&quot;Transfer %s TRX from %s to %s&quot;, amount, from\_, to)
+    from\_path = unpaid\_map\[from\_\]\[&quot;path&quot;\]
+    try:
+        (
+            self.client.trx.transfer(from\_, to, amount)
+            .build()
+            .sign(self.mnemonic\_to\_private\_key(from\_path))
+            .broadcast()
+        )
+    except (TransactionError, ValidationError):
+        logging.warning(&quot;Balance not enough, try to transfer %s TRX&quot;, amount - 1\_100\_000)
+        (
+            self.client.trx.transfer(from\_, to, amount - 1\_100\_000)
+            .build()
+            .sign(self.mnemonic\_to\_private\_key(from\_path))
+            .broadcast()
+        )
+
+def verify\_payment(self):
+    logging.info(&quot;Checking %s unpaid payment&quot;, len(unpaid\_map))
+    for addr, meta in unpaid\_map.items():
+        try:
+            balance = self.client.get\_account\_balance(addr)
+        except:
+            balance = 0
+        if balance:
+            logging.info(&quot;addr %s has %s TRX&quot;, addr, balance)
+            self.transfer(addr, self.central\_wallet(), int(balance \* 1\_000\_000))
+            bot.send\_message(meta\[&quot;user\_id&quot;\], f&quot;You have paid &#123;balance&#125; TRX&quot;)
+            del unpaid\_map.copy()\[addr\]
+</code></pre>
+<p>trx &#x3D; TronTrx()</p>
+<p>@bot.message_handler(commands&#x3D;[“pay”])<br>def send_address(message: Message):<br>    bot.send_message(message.chat.id, trx.generate_address(message.chat.id))</p>
+<p>@bot.message_handler(commands&#x3D;[“start”])<br>def send_start(message: Message):<br>    bot.send_message(message.chat.id, “hello”)</p>
+<p>if __name__ &#x3D;&#x3D; “__main__“:<br>    scheduler &#x3D; BackgroundScheduler()<br>    scheduler.add_job(trx.verify_payment, “interval”, seconds&#x3D;10, max_instances&#x3D;1)<br>    scheduler.start()<br>    bot.infinity_polling()</p>
+<p><img src="/images/2023120904562828.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/12/09/tron-trx/index/" data-id="clqxhsveu0005w1qr9o58cj7i" data-title="使用 Tron(TRX) 收款" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2023/12/31/2023-end/index/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          2023 年终总结
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2023/11/26/nodejs-dual-stack/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Node.js 18升级：双栈协议踩坑</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+          </li>
+        
+          <li>
+            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+          </li>
+        
+          <li>
+            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+          </li>
+        
+          <li>
+            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+          </li>
+        
+          <li>
+            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
