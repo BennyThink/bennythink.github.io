@@ -73,6 +73,666 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-flying-webp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/03/01/flying-webp/index/" class="article-date">
+  <time class="dt-published" datetime="2020-03-01T00:00:00.000Z" itemprop="datePublished">2020-03-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/03/01/flying-webp/index/">个人网站无缝切换图片到webp</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>咱都知道，webp是一种非常优秀的图片格式，相比较png&#x2F;jpg，webp的图片体积要小，图像质量却基本没有什么下降。网站如果使用webp，那么自然也会减少图片文件的加载时间。</p>
+<p>大部分发行版里都应该有个工具叫做cwebp，咱可以用cwebp转换下看下具体效果</p>
+<p>~&#x2F;Downloads&#x2F;test cwebp yui.png -q 80 -o result.webp</p>
+<h1 id="省略若干提示信息"><a href="#省略若干提示信息" class="headerlink" title="省略若干提示信息"></a>省略若干提示信息</h1><p>~&#x2F;Downloads&#x2F;test ls -lh<br>total 8160<br>-rw-r–r– 1 benny staff 335K Mar 1 20:06 result.webp<br>-rw-r--r--@ 1 benny staff 3.7M May 2 2019 yui.png</p>
+<p>新文件大概是原来的8%左右，是不是很优秀！</p>
+<p>但是如果一个一个转……聪明的你可能想要写个脚本递归转换，然后还要相应的修改数据库什么的，这样可是有点麻烦呢。那么有没有什么直接的方式呢？这就好像是，开飞机没油了，只能找个机场落地加油，然后再起飞。能不能像下面这张图这样子?？</p>
+<p><img src="/images/2020030120431833.jpeg"></p>
+<p>这种技术呢，叫做空中加油。你看，咱都不用落地就能加油。On-the-fly哦</p>
+<p>那么我们的……答案当然是有的啦??那就是本文的重点，这个工具就是由<a target="_blank" rel="noopener" href="https://nova.moe/">Nova童鞋</a>、<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>、<a target="_blank" rel="noopener" href="https://blog.0xbbc.com/">cocoa</a>以及Benny小盆友一起鼓捣的webp_server_go啦！</p>
+<p>不如先看看这里吧??</p>
+<p><a target="_blank" rel="noopener" href="https://webp.sh/#/">https://webp.sh/#/</a> </p>
+<p>放心，从[caniuse](<a target="_blank" rel="noopener" href="https://caniuse.com/">https://caniuse.com/</a>“ \l “search&#x3D;webp)的统计来看，主流浏览器都支持webp了，如果遇到Safari这样的奇葩，咱直接返回了原图</p>
+<p><img src="/images/2020030120431998.png"></p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>使用方法很简单哦，<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go/releases">从这里下载binary</a>（或者自己build也行，deb和rpm也会稍后提供），创建如下json配置文件</p>
+<p>{<br>“HOST”: “127.0.0.1”,<br>“PORT”: “3333”,<br>“QUALITY”: “80”,<br>“IMG_PATH”: “&#x2F;path&#x2F;to&#x2F;pics”,<br>“ALLOWED_TYPES”: [“jpg”,”png”,”jpeg”]<br>}</p>
+<p>每一个配置项都很容易懂懂吧！如果不需要监听公网，那<code>HOST</code>就写127，藏在nginx后面。<code>ALLOWED_TYPES</code>是转换的图片类型，实际上目前最多用的也就是jpg和png了，暂时还未添加对bmp对支持。</p>
+<p>我用WordPress，那么IMG_PATH就可以写<code>/var/www/html</code>这种，不用写到<code>wp-content/uploads</code>哦。</p>
+<p>然后</p>
+<p>.&#x2F;webp-server -config &#x2F;path&#x2F;to&#x2F;config.json</p>
+<p>Ok! 你的3333端口已经被我接管了。接下来配置下nginx什么的，比如WordPress可以这么配置，在server段中哦</p>
+<p>location ^~ &#x2F;wp-content&#x2F;uploads&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3333/">http://127.0.0.1:3333</a>;<br>}</p>
+<p>然后就可以起飞啦！</p>
+<p>哦对了，不用担心，一张图片只会被转换一次，除非原图片变了，才会重新转换。</p>
+<p>[v_blue]?呃……就是个转换图片的东西……？ ?‍♀️No, it’s more than that.[&#x2F;v_blue]</p>
+<h2 id="持久运行"><a href="#持久运行" class="headerlink" title="持久运行"></a>持久运行</h2><p>都知道，session和shell是绑定的，所以总不能一直开着终端吧？那么简单的话，我们可以用screen来解决这个问题</p>
+<p>screen -S webp<br>.&#x2F;webp-server –config &#x2F;path&#x2F;to&#x2F;config.json</p>
+<p>甚至我们可以使用systemd</p>
+<p>cp init&#x2F;webps.service &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;<br>systemctl daemon-reload<br>systemctl enable webps.service<br>systemctl start webps.service</p>
+<h2 id="预缓存功能"><a href="#预缓存功能" class="headerlink" title="预缓存功能"></a>预缓存功能</h2><p>咱可能是有很多图片的，如果收到请求的时候去转换，那么其实会慢的，那怎么办！</p>
+<p><code>./webp-server --prefetch</code>，这样就会帮你预先转换图片哦！到时候请求来了直接返回，经济方便又实惠。</p>
+<p>批量转换进行中</p>
+<p><img src="/images/202003012043237.png"></p>
+<p>臣妾无法转换php文件为webp呀?️</p>
+<p>转换时，你的CPU处于被支配的痛苦中……</p>
+<p><img src="/images/2020030120432442.png"></p>
+<h2 id="使用效果图"><a href="#使用效果图" class="headerlink" title="使用效果图"></a>使用效果图</h2><p><img src="/images/2020030120432636.png"></p>
+<h2 id="benchmark"><a href="#benchmark" class="headerlink" title="benchmark"></a>benchmark</h2><h3 id="用老婆照片做benchmark"><a href="#用老婆照片做benchmark" class="headerlink" title="用老婆照片做benchmark"></a>用老婆照片做benchmark</h3><p>179张，各式各样的壁纸</p>
+<p>这个是原图</p>
+<p><img src="/images/2020030120432648.png"></p>
+<p>这个是转换之后的大小，大概只有原来的13%</p>
+<p><img src="/images/2020030120432797.png"></p>
+<h3 id="1-4M"><a href="#1-4M" class="headerlink" title="1-4M"></a>1-4M</h3><p>（感谢<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>提供的图片）</p>
+<p>压缩比为9.3%</p>
+<p><img src="/images/2020030120432897.png"></p>
+<h3 id="4-32M"><a href="#4-32M" class="headerlink" title="4-32M"></a>4-32M</h3><p>压缩比为6.7%</p>
+<p><img src="/images/2020030120433042.png"></p>
+<h3 id="500K-1M"><a href="#500K-1M" class="headerlink" title="500K-1M"></a>500K-1M</h3><p>14.68%</p>
+<p><img src="/images/2020030120433161.png"></p>
+<h3 id="500K"><a href="#500K" class="headerlink" title="500K"></a>500K</h3><p>23.3%</p>
+<p><img src="/images/2020030120433299.png"></p>
+<h3 id="手机拍摄的人像"><a href="#手机拍摄的人像" class="headerlink" title="手机拍摄的人像"></a>手机拍摄的人像</h3><p>小部分是Pixel 3拍摄的，剩下是其他手机&#x2F;相机拍摄的人像。</p>
+<p>16%</p>
+<p><img src="/images/202003012043334.png"></p>
+<p>所以基本上，大概图片大小会变为原来的20%左右。</p>
+<h2 id="嗯哼？"><a href="#嗯哼？" class="headerlink" title="嗯哼？"></a>嗯哼？</h2><p>欢迎star、fork！欢迎提出建议，功能优化等等，不过建议使用英文哦！</p>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p>开源地址： <a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go">https://github.com/webp-sh/webp_server_go</a> 官方网站：<a target="_blank" rel="noopener" href="https://webp.sh/">https://webp.sh/</a></p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp/_server/_go'/]%E5%BF%AB%E6%9D%A5%E6%88%B3%E7%AB%A0%E9%B1%BC%E7%8C%AB/[/gt/]">https://github.com/webp-sh/webp\_server\_go&#39;\]快来戳章鱼猫\[/gt\]</a></p>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://nova.moe/re-introduce-webp-server/">让站点图片加载速度更快——引入 WebP Server 无缝转换图片为 WebP</a> ??‍♂️</p>
+<p><a target="_blank" rel="noopener" href="https://await.moe/2020/02/webp-server-in-rust/">WebP Server in Rust、</a><a target="_blank" rel="noopener" href="https://await.moe/2020/02/note-about-encountered-memory-changes-for-no-reason-in-golang/">记 Golang 下遇到的一回「毫无由头」的内存更改</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/03/01/flying-webp/index/" data-id="clhp7rtgb002ws2qr19dt6gr9" data-title="个人网站无缝切换图片到webp" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ballon/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/01/30/ballon/index/" class="article-date">
+  <time class="dt-published" datetime="2020-01-30T00:00:00.000Z" itemprop="datePublished">2020-01-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/01/30/ballon/index/">自由的气球</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>1945年，二战结束。根据《波茨坦协定》，德国在战败之后由英、美、法、苏四国占领。由于与苏联理念上的差异，英美法三国所占领土最终合并为一个占领区，组建新政权西德。</p>
+<p>随着冷战的加剧，1961年柏林墙修建。至此，德国人开始了十八番武艺穿越柏林墙的故事。</p>
+<p>2018年的德国电影《气球》便讲述了穿越柏林墙中的一个真实故事。</p>
+<p><img src="/images/2020013013350445.jpeg"></p>
+<p>以下内容可能涉及剧透，请谨慎阅读。</p>
+<p>影片时长125分钟，情节十分紧张，听我的， 专心看，别玩手机了。</p>
+<p>[collapse title&#x3D;”剧情概要”]</p>
+<ul>
+<li>第一次热气球</li>
+</ul>
+<p>影片刚开始，皮特一家人就升起了热气球。可惜由于没有考虑到高空温度低等问题，导致失败。</p>
+<p>坠落的热气球等被东德当局发现。</p>
+<ul>
+<li>美国人</li>
+</ul>
+<p>为了准备热气球，两家人准备了两年。意识到气球可能不行之后，皮特一家人打算去美国大使馆附近寻求美国人的帮助。一家人把写有求救信的烟盒塞到了一个女人的背包里，然而却只是徒劳，美国人以为他想要烟。无奈之下，他们只能再次选择热气球</p>
+<ul>
+<li>第二次热气球</li>
+</ul>
+<p>德国当局已经开始进行进一步的调查与抓捕，皮特和冈特两家人只能分秒必争努力打造新的热气球。最终，他们的热气球成功降在了西德。 [&#x2F;collapse]</p>
+<h2 id="小人物"><a href="#小人物" class="headerlink" title="小人物"></a>小人物</h2><p>在影片中，冈特的儿子不小心对幼儿园老师说出自己爸爸在没日没夜的缝纫。秘密警察过来调查，问到幼儿园老师大家有没有什么搞什么大件、或者说缝纫什么的打算</p>
+<p>女老师思考片刻，回答：有，大家都在努力的缝国旗，庆祝东德建国30年。</p>
+<p><img src="/images/2020013013350521.png"></p>
+<p>这个情节让我想起了韩国电影《出租车司机》里的一个类似的情节：士兵发现了德国记者的汉城车牌，他似乎明白了什么，然后放他们走了。</p>
+<p><img src="/images/2020013013350640.jpeg"></p>
+<p>1989年，东欧巨变，苏联也摇摇欲坠。柏林墙拆毁，两德统一。</p>
+<p>30年过去了，柏林墙已经不在了，另一堵墙却越来越高。共同点是，两堵“墙”都是用来阻止本国人民对自由的追求。不同点是，德国人用一系列可歌可泣的行动歌颂了有史以来最伟大的逃亡，为了追求自由而进行的前仆后继的逃离——向往自由，是人类与生俱来的本能。柏林墙最终被拆毁了。</p>
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>有的时候，可能我们别无选择，甚至连反抗都不敢。可是，如果敢于反抗的人都离开了，那他们就赢了。</p>
+<p>环境也许很恶劣，恶劣到连说一句不是赞美的话都会被千夫所指。也许我们不敢坚持自己的立场，不敢说出真话。但是我们至少可以选择沉默，至少要有conscious。就像两部影片中的小人物一样。</p>
+<p>想想看，你就是多买了点布，有人就要向上汇报；走在大使馆附近，看到有无数只眼睛在偷瞄着你，酒店中也有人在监视着你；说不准因为看到了什么就会被带走讯问，警察可以随意进你家搜查；对面邻居就是秘密警察，阶级斗争从娃娃抓起，甚至人们以举报为荣。即使是军人，可能也会因为没有抓到人而遭受严厉的讯问。这一切的一切，就仿佛是奥威尔的《1984》中所描述的大洋国一样。你想要这样的生活吗？想要吗？嗯？？摸着自己的良心问下，现在，此时此刻，你应该怎么做？问问自己，谎言的代价是什么？</p>
+<p><img src="/images/2020013013350735.jpeg"></p>
+<blockquote>
+<p>Freedom has many difficulties and democracy is not perfect, but we have never had to put a wall up to keep our people in, to prevent them from leaving us.</p>
+<p>自由有许多困难，民主亦非完美，然而我们从未建造一堵墙把我们的人民关在里面，不准他们离开。</p>
+<p> </p>
+<p>约翰·肯尼迪 <a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%88%91%E6%98%AF%E6%9F%8F%E6%9E%97%E4%BA%BA">《我是柏林人》</a></p>
+</blockquote>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2009/07/break-through-berlin-wall.html">《学习一下德国人民的翻墙精神》</a></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9F%8F%E6%9E%97%E5%9C%8D%E7%89%86">柏林墙 – 维基百科</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.502.li/archives/thinking-2019.html">《【旧文重写】毕业后的一些思考》</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/01/30/ballon/index/" data-id="clhp7rteh000ms2qrcanq6wjy" data-title="自由的气球" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-wp-tgbot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/01/19/wp-tgbot/index/" class="article-date">
+  <time class="dt-published" datetime="2020-01-19T00:00:00.000Z" itemprop="datePublished">2020-01-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/01/19/wp-tgbot/index/">使用Telegram Bot接受和回复WordPress评论</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>当你的博客收到了一条评论的时候，想要回复，应该怎么做呢？打开浏览器，打开后台，等待加载，回复……哦对了，我还有一个步骤，就是不在家的话还得<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1214369246324543488?s=20">开一个全局代理</a>。</p>
+<p>这怎么行，我都要懒死了。生气??</p>
+<p>[v_blue] 没错的，历经1958天，我的博客被DNS污染啦。</p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1214369246324543488?s=20">https://twitter.com/BennyThinks/status/1214369246324543488?s=20</a></p>
+<p>[&#x2F;v_blue]</p>
+<p>假如能够用telegram bot完成这种回复操作就好了！那么是当然的了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911361630.png"><img src="/images/2020011911361630.png"></a></p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/202001191136176.jpeg"><img src="/images/202001191136176.jpeg"></a></p>
+<p> </p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><h3 id="Basic-Auth"><a href="#Basic-Auth" class="headerlink" title="Basic Auth"></a>Basic Auth</h3><p>插件会为WordPress开启Basic Auth，因此要用复杂的密码，非常复杂的那种，并且https哦！</p>
+<h3 id="WordPress-Hook"><a href="#WordPress-Hook" class="headerlink" title="WordPress Hook"></a>WordPress Hook</h3><p>WordPress博客在新添加一条评论的时候，会触发N多钩子，其中有一个钩子叫comment_post，这个钩子被触发后，就会给调用并给相应的回调函数三个参数<code>$comment_ID, $comment_approved, $comment_obj</code>。<code>$comment_obj</code>就是评论者留下的信息了，大概是如下结构的数组</p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911361943.jpeg"><img src="/images/2020011911361943.jpeg"></a></p>
+<p>根据post_id comment_id等，使用WordPress自带的函数就能生成完整的评论信息。</p>
+<p>之后调用Telegram bot的REST API，就可以发送消息给用户了。</p>
+<h3 id="Telegram"><a href="#Telegram" class="headerlink" title="Telegram"></a>Telegram</h3><p>当回复机器人消息时，会直接向WordPress的REST API发起评论添加请求。当然啦，你注意到了机器人消息里的id:123,456了吗？这个就是小小的标识符哦。</p>
+<p>这个是用golang实现的机器人，轮询模式。其实我知道这个是可以用Telegram webhook完成的，直接写在插件里用PHP实现。更进一步，可以做到不开启Basic Auth，直接用WordPress的接口甚至是直接插入数据库。不过为了练习嘛……</p>
+<h2 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h2><p>基本可以如下归纳</p>
+<ol>
+<li>安装插件</li>
+<li>创建bot、获取自己的user id</li>
+<li>插件中添加相应的设置</li>
+<li>编辑配置，并运行bot后端</li>
+<li>可以了。</li>
+</ol>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><h3 id="服务器在国内"><a href="#服务器在国内" class="headerlink" title="服务器在国内"></a>服务器在国内</h3><p>WordPress的服务器上，想办法开个代理（目前只支持http代理），然后插件设置里加入配置信息；</p>
+<p>Telegram的服务器上，也想办法开个代理，然后设置这样两条环境变量</p>
+<p>export http_proxy&#x3D;<a href="http://127.0.0.1:1087;export">http://127.0.0.1:1087;export</a> https_proxy&#x3D;<a target="_blank" rel="noopener" href="http://127.0.0.1:1087/">http://127.0.0.1:1087</a>;</p>
+<p>或者干脆上<a target="_blank" rel="noopener" href="https://github.com/rofl0r/proxychains-ng">proxychains</a>试试。</p>
+<p>[v_error]proxychains貌似只能代理dynamically linked 的程序，golang的二进制是statically linked的哎 [&#x2F;v_error]</p>
+<h3 id="Basic-Auth-1"><a href="#Basic-Auth-1" class="headerlink" title="Basic Auth"></a>Basic Auth</h3><p>Basic Auth就是在HTTP请求头里加上base64编码之后的认证信息。优点是简单方便，易于实现，缺点很多。</p>
+<p>但是有一点是肯定的，在www这个层面上，不走TLS的登录，都是耍流氓。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911362066.png"><img src="/images/2020011911362066.png"></a></p>
+<p>全程TLS，啥都看不到。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911362539.png"><img src="/images/2020011911362539.png"></a></p>
+<p>未TLS，底裤?都看光了</p>
+<h3 id="机器人配置与命令行参数"><a href="#机器人配置与命令行参数" class="headerlink" title="机器人配置与命令行参数"></a>机器人配置与命令行参数</h3><p>{<br>“username”: “admin”,<br>“password”: “admin”,<br>“url”: “<a target="_blank" rel="noopener" href="http://localhost/">http://localhost/</a>“,<br>“token”: “907J6Tw”,<br>“uid”: “23231321”,<br>“admin”: 1,<br>“tail”: “本评论由Telegram Bot回复～❤️”<br>}</p>
+<p>-c指定配置文件路径，默认使用当前目录下的config.json</p>
+<p>-f强制运行，哪怕是http的……</p>
+<p>-c file set configuration file (default “config.json”)<br>-f force to run even on http sites.<br>-h this help<br>-v show version and exit</p>
+<h2 id="适配其他博客程序"><a href="#适配其他博客程序" class="headerlink" title="适配其他博客程序"></a>适配其他博客程序</h2><p>其实没啥好适配的……因为基本上要重写的。</p>
+<p>只要能够找到相应的hook，在评论之后触发一个事件，那么就可以了。???</p>
+<h2 id="开源地址"><a href="#开源地址" class="headerlink" title="开源地址"></a>开源地址</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/wp-comments-tgbot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/wp-comments-tgbot&#39;\]开源地址\[/gt\]</a></p>
+<blockquote>
+<p>为了更好的偷懒，付出成倍的精力?</p>
+<p>————<a target="_blank" rel="noopener" href="https://www.zuiyu.xyz/">zuiyu</a></p>
+</blockquote>
+<p>然后就这么水了一波？????</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/01/19/wp-tgbot/index/" data-id="clhp7rtnl00bis2qr4q0a41zb" data-title="使用Telegram Bot接受和回复WordPress评论" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-work-life-balance/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/12/25/work-life-balance/index/" class="article-date">
+  <time class="dt-published" datetime="2019-12-25T00:00:00.000Z" itemprop="datePublished">2019-12-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/12/25/work-life-balance/index/">工作与生活</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>很久之前，看到一个人的博客，副标题中写到：不折腾，怎么对得起好奇害死猫的世界。</p>
+<p>现在大概已经找不到这个博客了，但是这句话倒还是记得很清楚的。因为我也很喜欢折腾。为什么这么说呢？</p>
+<p>作为以写代码为生的码农，必备的技能自然是以各种有趣的、奇怪的写码姿势完成各式各样的需求，除此之外，外带一些附加技能，跑个代码啦，导个数据库什么的。相信每一位码农，至少也是能够做这些的。</p>
+<p>只不过呢，我这个“码农”有点喜欢折腾，我比较喜欢鼓捣各种有意思没意思的东西。比如就从我的过往博文来看吧：</p>
+<p>信息安全：一个连高数都学不明白的孩子，竟然如此胆大妄为的说自己写过整整十几篇信息安全相关的文章，真是初生牛犊；</p>
+<p>建站运维：ESXi VPS 微软小冰API……；</p>
+<p>翻墙：使用trojan……</p>
+<p>树莓派、Grafana、iSCSI、TLS1.3、HTTP&#x2F;2、Radius、TimeMachine……</p>
+<p>（哦这个是macOS备份的那个，不是你想的时光机，要不我就回到6年前right the wrong了。）</p>
+<h2 id="折腾"><a href="#折腾" class="headerlink" title="折腾"></a>折腾</h2><p>所谓折腾，自然也就是说，我在这方面有些成果，尽管可能也只是一些皮毛，不至于有多高深。我写不出来RSA的公式，讲不明白它的算法，但至少我了解什么是非对称加密算法，熟悉GPG的用法。虽说不至于得个奖什么的，但至少技术水平上是有一定提升和拓宽的。</p>
+<p>也许正是因为有一个博客，可以把自己折腾的成果分享出来，至少能满足一下虚荣心。所以也是乐在其中吧。</p>
+<h2 id="可是这与标题有什么关系呢？"><a href="#可是这与标题有什么关系呢？" class="headerlink" title="可是这与标题有什么关系呢？"></a>可是这与标题有什么关系呢？</h2><p>我觉得是有的，因为这些对于我来说是生活，折腾是我的生活中的一部分。而我已经不再是无忧无虑的学生了，为了活下去，就要有工作。工作与生活之间，必然要有一定的取舍和界限。如果某一天，工作与生活之间的界限越来越不清晰，那么会怎样呢？</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2019/12/20191225153801100.jpg"><img src="/images/20191225153801100.jpg"></a></p>
+<p>俗话说，文不可以一篇无图。那么……</p>
+<h2 id="一个现象"><a href="#一个现象" class="headerlink" title="一个现象"></a>一个现象</h2><p>先从一个现象说起吧：</p>
+<p>2017年，我总计写了三四十篇博文，2018年，总计19篇。到了几年，2019年，总计16篇，一部分还都是简单的感慨，2017年的长篇大论几乎都没有了。可以预见，2020年我大概只能写十篇出头、甚至是个位数博文。希望2020年的这个时候大家能来<strong>使劲打我的脸</strong>。</p>
+<p>为啥会这样呢？本人没多少墨水，知识储备量比较少，学习新知识又比较慢，再加上又懒又笨，技术的学习总是有瓶颈期的。这是一方面原因。</p>
+<p>另一方面原因，我需要讲一个故事。</p>
+<h2 id="一个故事"><a href="#一个故事" class="headerlink" title="一个故事"></a>一个故事</h2><p>这个故事是来源于一位友人。有几次偶然和她聊天，谈到工作，谈到优化自己的基础设施，谈到博客，谈到去北京出差。（其实哪有谈到嘛，就是有一句没一句的聊着。）</p>
+<p>我：去北京出差，我要再准备一个手机，怕被查手机</p>
+<p>她：你手机有啥见不得人的秘密</p>
+<p>我：无论我手机有没有见不得人的秘密，我都拒绝行政机构在没有拿到司法机构的授权前检查我的设备。</p>
+<p>（其实这个时候我是想说下面这句话的，谢谢Edward）</p>
+<blockquote>
+<p>Arguing that you don’t care about the right to privacy because you have nothing to hide is no different than saying you don’t care about free speech because you have nothing to say.</p>
+</blockquote>
+<p>她：看来你还是太闲，有时间想这些。</p>
+<p>几个月之后。</p>
+<p>我：zsh插件……博客……</p>
+<p>她：忙得要死，没时间弄博客，睡觉都不够。</p>
+<p>故事讲完了。</p>
+<h3 id="但是关于隐私与自由，关于Nothing-to-hide，我还想再说一句："><a href="#但是关于隐私与自由，关于Nothing-to-hide，我还想再说一句：" class="headerlink" title="但是关于隐私与自由，关于Nothing to hide，我还想再说一句："></a>但是关于隐私与自由，关于Nothing to hide，我还想再说一句：</h3><blockquote>
+<p>Ultimately, saying that you don’t care about privacy because you have nothing to hide is no different from saying you don’t care about freedom of speech because you have nothing to say. Or that you don’t care about freedom of the press because you don’t like to read. Or that you don’t care about freedom of religion because you don’t believe in God. Or that you don’t care about the freedom to peaceably assemble because you’re a lazy, antisocial agoraphobe. Just because this or that freedom might not have meaning to you today doesn’t mean that that it doesn’t or won’t have meaning tomorrow, to you, or to your neighbor – or to the crowds of principled dissidents I was following on my phone who were protesting halfway across the planet, hoping to gain just a fraction of the freedom that my country was busily dismantling.</p>
+</blockquote>
+<p>针针见血，Edward Snowden <em>- Permanent Record</em></p>
+<h2 id="另一方面原因"><a href="#另一方面原因" class="headerlink" title="另一方面原因"></a>另一方面原因</h2><p>好吧，我要说，学生时代我是个比较奇怪的孩子。</p>
+<p>对于那些我认为的完全没有用、或者对自己并无太大帮助的课，我会去干点别的事情，比如看书、或者研究点什么。《鸟哥Linux》这种技术书籍，《学会提问》这种非技术书籍都有，有时偷懒也会看一些优秀博主的博文。</p>
+<p>也正是因为学生嘛，课再多能有多少，以我的智商能够应付考试就够了（?这也是我没拿奖学金的原因吧）。所以空闲时间比较多……我啊，一旦闲下来……就容易折腾，就容易因为<strong>好奇而害死猫</strong>。</p>
+<p>所以，这就是我要说的另一方面的原因：有了充足的时间可以让我瞎鼓捣。</p>
+<p>工作与生活，更准确的说，工作与折腾中技术的长进。工作，真的能够让我们的技术得到长足的发展吗？</p>
+<p>这个问题很难回答，不同的公司，不同的文化，不同的部门，甚至是不同的领导和老板，都会导致这个问题的基准的偏向。</p>
+<h2 id="愚以为"><a href="#愚以为" class="headerlink" title="愚以为"></a>愚以为</h2><p>但是，以我个人的短暂的工作经验来看，对于大部分普通人而言：</p>
+<ul>
+<li>公司规模越大，也就越倾向于分工明确，分工明确也就意味着一个萝卜一个坑，做Web开发的不可能让你去维护官网；</li>
+<li>某种工作的初期，需要学习适应新的环境，包括相应的开发框架、语言、数据存储等。在这个阶段，自然会得到一定程度的提升；</li>
+<li>之后，随着工作模式的固定，能够应付工作了，自然很容易做着重复的事情；</li>
+<li>工作很忙，甚至还要加班，导致没有时间去学习、提升；</li>
+<li>更进一步，如果忙得连睡觉都变成了难得的享受，那生活只剩下工作，连思考也会变得局限。</li>
+</ul>
+<p>如果连思考也会变为局限，那简直是太不幸了。<strong>技术可以一日千里，但是思维能力却不能</strong>。思维能力需要长时间的锻炼，需要长时间的阅读、理解、思考、输出。</p>
+<p>工作是工作，生活是生活。人们都说下班后的三个小时会决定你的余生的高度，能不能决定余生的高度这我倒不知道，有人拿来看剧，有人拿来学习。但是有一点我很确定：如果连下班后的三个小时都不是自己的，那还有什么生活，还能有什么长进，拿什么来折腾，拿什么来思考。梦里吗。Guido还不是<a target="_blank" rel="noopener" href="https://www.python.org/doc/essays/foreword/">闲得打发时间</a>才发明了Python。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>很早以前，在<a target="_blank" rel="noopener" href="https://dmesg.app/silence-is-harmful.html">《沉默是最大的伤害》</a>中就提到了思维能力与技术的观点：</p>
+<p>作为IT 从业者应该不只是有技术能力，还应该有更强的<strong>自由思想、独立思考、批判性思维能力</strong>——只有这样才能跳出围墙。</p>
+<p>在这堵围墙之内，你的思想只不过是党允许的；在这堵围墙之内，党拥有定义2+2&#x3D;5的权力；在这堵围墙之内，你并不具有任何实质性的自由意志；在这堵围墙之内，你只不过是傻傻被割的韭菜。</p>
+<p>这也是3年前，我灌水的一篇<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">《除了技术，你还应该会什么》</a>曾经提到过三点非常重要的能力：</p>
+<p><strong>自由思想、独立思考、批判性思维</strong>。</p>
+<p>人人都知道，越是多样性的生态系统，越是稳定，越是不容易遭到破坏；即使遭到破坏，也较容易恢复过来。</p>
+<p>我想，作为程序员，怎么说也是个有点门槛的工作，英文阅读能力更强，更能有机会使用Google，更能有机会了解到外面的世界，更能有机会了解一些除了技术之外的事情吧，更能够<strong>摆脱洗脑教育并形成多元化的自由思想</strong>。看来真的是我想多了。哎。</p>
+<p>希望，读到这篇文章的读者们，能够渐渐理解这三点吧。那么我也就没白费口水，我的下班后的三个小时四个小时也就没有白费。</p>
+<hr>
+<p> </p>
+<p>这篇应该是本博客2019年的最后一篇了，希望各位读者们2019年完美收尾，2020年生活工作双加好更加顺利。俺也会再接再厉，争取2020年多写点，打破前面自己的预言:-)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/12/25/work-life-balance/index/" data-id="clhp7rtne00bes2qr36l44db7" data-title="工作与生活" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-akira/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/12/15/akira/index/" class="article-date">
+  <time class="dt-published" datetime="2019-12-15T00:00:00.000Z" itemprop="datePublished">2019-12-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/12/15/akira/index/">深海晶好难啊</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>有一句话一定要小点声说?，新垣结衣是我老婆。</p>
+<p>一年前，我刚刚参加工作，正好碰到ガッキー老婆主役的《无法成为野兽的我们》，于是便去追了。</p>
+<p>直到剧终，我都没怎么理解这部剧究竟在讲什么。阿晶怎么就和京谷分手了，恒星怎么就身败名裂了，我老婆怎么就跟了松田龙平。野木阿姨是不是有点玩脱了。</p>
+<p>好吧，我要承认，可能是当初看剧不认真，总是一边玩手机一边看，哎。老婆对不起你，我下次再也不敢玩手机了。</p>
+<hr>
+<p>一年后的今天，在一个非常阳光明媚的、难得的风平浪静的闲暇的周末下午，我从移动硬盘里找到了这部剧，重新看了起来。</p>
+<p>深海晶真的好难啊。生活真的好难啊。阿晶如果能再强势一点就好了。强势一点，把朱里撵走；强势一点，怕他什么99老娘就是要辞职。</p>
+<p>阿晶工作能力这么强，公关、接待、写PPT、演示业务，一个人干三四个人的活，带薪假还要被人吵醒工作，不明不白的做了很多本来应该工作职责以外的事情。社长像精神病一样大吼大叫，分不清工作任务。此时应该呼叫一下程序员津崎平匡：指示非常明确。</p>
+<p>竟然还要为人擦屁股而土下座，甚至在之后还要被职务骚扰。我的刀已经拔出来了。</p>
+<p><img src="/images/2019121513315242.png" alt="《我们无法成为野兽》这部剧火到爆"></p>
+<p>周一零点，哦不是周二，地铁站的末班电车，被人撞翻的手机，如果跳下去了一切就都解决了吧。四杯啤酒都无法排遣的艰难。</p>
+<p>一切都是生活所迫啊，另一边的根元恒星也被人抓着把柄。恒星说阿晶的笑容恶心，是假笑。是恒星的冷嘲热讽使得深海晶脱下了只会逃避、不会拒绝、只会忍让、总是以虚假的笑容面对一切的面具。</p>
+<p>也许，只有到了一定年纪，有了一定的经历，才能体会到吧。</p>
+<hr>
+<p>日本人这一两年就是不想上班呢……</p>
+<p>从《无法成为野兽里的》到《凪的新生活》中就是不想上班的黑木华；</p>
+<p>《我要准时下班》里准时下班的东山结衣（吉高由里子）；</p>
+<p>《我的事说来话长》家里蹲，话多喜欢和秘书姐姐对着干的生田斗真；</p>
+<p>就算上班，《这个不可以报销》里的多部未华子也会让你的报销很痛苦的哦；</p>
+<p>那还是不上班了，但是《坡道上的家》带孩子也是很困难的哦！</p>
+<hr>
+<p>你看，就是要这样贴近生活嘛。</p>
+<p>工作一年半之后，再次看这部剧，莫名的觉得感同身受，真的好难啊。我也好难啊。什么时候能够像野兽一样自由自在就好了。????</p>
+<p>哦对了，这位冈持三郎，有没有觉得有些好似戏外的我们呢？</p>
+<p><img src="/images/2019121513320032.jpeg" alt="https://pic.pimg.tw/ricgrady/1540040590-2364988629_l.jpg"></p>
+<p><img src="/images/2019121513320775.jpeg" alt="https://pic.pimg.tw/ricgrady/1540040592-1740601626_l.jpg"></p>
+<hr>
+<p>不说了，我爱老婆。老婆爱我。</p>
+<blockquote>
+<p>在这一点上我不接受一切异议和反驳。</p>
+</blockquote>
+<p><img src="/images/2019121513321127.jpeg" alt="https://2.bp.blogspot.com/-HAbvKir5GTY/WGXhP-Q62zI/AAAAAAAABig/DtBLL9pkEUgAPEsDKs2xEdzZpbj7kgaiACLcB/s1600/snapshot20161230122157.jpg"></p>
+<p>我要去赚钱养老婆啦。じゃあね。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/12/15/akira/index/" data-id="clhp7rtds0003s2qr484jemdg" data-title="深海晶好难啊" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-esxi-tutorial/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/11/16/esxi-tutorial/index/" class="article-date">
+  <time class="dt-published" datetime="2019-11-16T00:00:00.000Z" itemprop="datePublished">2019-11-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/11/16/esxi-tutorial/index/">ESXi入门指南</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是ESXi"><a href="#什么是ESXi" class="headerlink" title="什么是ESXi"></a>什么是ESXi</h2><blockquote>
+<p>VMware ESXi是由VMware开发的用于部署和服务虚拟计算机的企业级1类管理程序。作为Type-1虚拟机管理程序，ESXi不是操作系统上安装的软件应用程序；相反，它包括并集成了重要的OS组件，例如内核。在4.1版之后，VMware将ESX重命名为ESXi。</p>
+</blockquote>
+<p>摘自维基百科英文版翻译</p>
+<p>简单的说，ESXi就是一个虚拟机。但是与VMware Workstation、VirtualBox等工具却又有些不同。更具体的说，VMware Workstation等工具是运行在操作系统之上的一个软件，如果没有对应的操作系统（Windows、macOS、Linux）等，它自身是无法运行的，操作系统不让它做的事情它也做不了，这种虚拟机我们一般叫“Type 2”虚拟机。</p>
+<p>既然有Type 2，那也是有Type 1的，所谓Type 1虚拟机，就是它本身就是一个操作系统，直接运行在裸机上。ESXi就属于这种。</p>
+<p> </p>
+<p>“人傻钱多戴，美帝良心想”</p>
+<p>提到戴尔，我相信绝大部分人的印象都是这家伙不是卖笔记本、卖显示器，还卖服务器的吗？</p>
+<p>哦好吧，其实<strong>VMware是DELL的子公司</strong>。是这样的，VMware被EMC收购了，DELL又把EMC收购了。</p>
+<h2 id="ESXi硬件要求"><a href="#ESXi硬件要求" class="headerlink" title="ESXi硬件要求"></a>ESXi硬件要求</h2><p>ESXi的硬件要求很低，总结来说大概如下：</p>
+<ul>
+<li>至少双核CPU</li>
+<li>至少4G内存</li>
+<li>以太网控制器</li>
+</ul>
+<p>除此之外，最好再支持硬件虚拟化Intel VT-x 或 AMD RVI</p>
+<p>具体详细硬件配置可以查看官网的文档 <a target="_blank" rel="noopener" href="https://docs.vmware.com/cn/VMware-vSphere/6.5/com.vmware.vsphere.install.doc/GUID-DEB8086A-306B-4239-BF76-E354679202FC.html">ESXi硬件要求</a></p>
+<p>相信大家的配置绝对足够跑ESXi了，不过有几点需要注意的地方</p>
+<ul>
+<li>ESXi本身不支持无线网卡，但是我们可以把无线网卡直通给虚拟机</li>
+<li>“不支持”Realtek 螃蟹?️网卡，VMware因为商业化原因移除了对Realtek的支持，但是可以找办法添加回去的</li>
+</ul>
+<h2 id="使用什么设备运行ESXi"><a href="#使用什么设备运行ESXi" class="headerlink" title="使用什么设备运行ESXi"></a>使用什么设备运行ESXi</h2><p>很简单，用旧的笔记本，各种服务器……好吧，对于个人使用来说，服务器还是算了，那个耗电和噪音受不了的。</p>
+<p>对于个人使用来说， 淘汰的笔记本（配置足够的话）、各种迷你主机是比较好的选择。</p>
+<p>比如说<a target="_blank" rel="noopener" href="https://www.intel.cn/content/www/cn/zh/products/boards-kits/nuc.html">Intel NUC</a>就是很不错的选择，但是NUC价格又有些贵；所以最终我选择的是占美主机，便宜省电呀……如下图所示</p>
+<p><img src="/images/2019111607252622.jpeg" alt="https://gd2.alicdn.com/imgextra/i2/186209729/O1CN01MJP69n2LjvsAbH8Re_!!186209729.jpg"></p>
+<p>只不过这个无线网卡，被我拆了卖咸鱼了。</p>
+<p>由于NUC这类都是不带内存硬盘的，所以咱要自己买。推荐的话，既然都跑虚拟机了，起步16G为佳。存储的话，自然是M2 NVME或者mSATA的固态了。SATA接口建议还是别插固态，SATA接口留给普通的机械硬盘，做备份存储之类的用途。土豪直接上1T的固态那就不算啦！</p>
+<p><img src="/images/2019111607252949.png"></p>
+<p>这个功耗很低吧，一个月下来也就是三四块钱的电费</p>
+<h2 id="ESXi安装镜像调整（打补丁）"><a href="#ESXi安装镜像调整（打补丁）" class="headerlink" title="ESXi安装镜像调整（打补丁）"></a>ESXi安装镜像调整（打补丁）</h2><h3 id="判断网卡类型"><a href="#判断网卡类型" class="headerlink" title="判断网卡类型"></a>判断网卡类型</h3><p>前面说过，ESXi不支持?️网卡（有好些网卡都是不支持的，所以可以参考上面的硬件要求链接），所以这里需要先判断下自己的机器上什么网卡？如果是螃蟹卡的话，那么需要对安装镜像进行调整。具体判断方法，拆开看芯片，看产品介绍，Live CD下lspci什么的都可以</p>
+<h3 id="下载ESXi镜像"><a href="#下载ESXi镜像" class="headerlink" title="下载ESXi镜像"></a>下载ESXi镜像</h3><p>ESXi介绍页面</p>
+<p><a target="_blank" rel="noopener" href="https://www.vmware.com/products/vsphere.html">https://www.VMware.com/products/vsphere.html</a></p>
+<p>ESXi下载</p>
+<p><a target="_blank" rel="noopener" href="https://my.vmware.com/en/web/vmware/info/slug/datacenter_cloud_infrastructure/vmware_vsphere/6_7">https://my.VMware.com/en/web/VMware/info/slug/datacenter_cloud_infrastructure&#x2F;VMware_vsphere&#x2F;6_7</a></p>
+<p>我们就点击页面上的 VMware vSphere Hypervisor (ESXi) 6.7U3 下载就可以了。</p>
+<p>镜像有两种类型</p>
+<p><img src="/images/2019111607252958.png"></p>
+<p>第一种的ISO，直接能启动；第二种下载回来说一个zip包，我们可以用它来打补丁。如果你是?️卡，那就选第二种吧</p>
+<h3 id="ESXi打补丁"><a href="#ESXi打补丁" class="headerlink" title="ESXi打补丁"></a>ESXi打补丁</h3><p>这个网上文章真的是太多了，基本上就是用ESXi-customer-PS之类的把网卡驱动添加进去</p>
+<p>ESXi-customer-ps官网</p>
+<p><a target="_blank" rel="noopener" href="https://www.v-front.de/p/esxi-customizer-ps.html">https://www.v-front.de/p/ESXi-customizer-ps.html</a></p>
+<p>需要先安装powercli，下载页面</p>
+<p><a target="_blank" rel="noopener" href="https://code.vmware.com/web/tool/11.2.0/vmware-powercli">https://code.VMware.com/web/tool/11.2.0/VMware-powercli</a></p>
+<p>网卡补丁，根据自己的型号下载offline-bundle，避免网络问题</p>
+<p><a target="_blank" rel="noopener" href="https://vibsdepot.v-front.de/wiki/index.php/List_of_currently_available_ESXi_packages">https://vibsdepot.v-front.de/wiki/index.php/List_of_currently_available_ESXi_packages</a></p>
+<p>如何打补丁可以自己搜索下，我这里贴上来两篇</p>
+<p><a target="_blank" rel="noopener" href="https://www.smbinn.com/vmnetwork.html">https://www.smbinn.com/vmnetwork.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://rexzhang.com/post/cf06a796-44d5-11e4-9bb5-f23c9150b910">https://rexzhang.com/post/cf06a796-44d5-11e4-9bb5-f23c9150b910</a></p>
+<p>简单描述是这样的，打开powershell，切换到对应的目录</p>
+<p># 取消可能的系统限制<br>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned<br>Set-ExecutionPolicy Unrestricted</p>
+<h1 id="离线打补丁-official-zip是ESXi的offline-bundle，drivers目录包含了vib文件的目录"><a href="#离线打补丁-official-zip是ESXi的offline-bundle，drivers目录包含了vib文件的目录" class="headerlink" title="离线打补丁  official.zip是ESXi的offline bundle，drivers目录包含了vib文件的目录"></a>离线打补丁  official.zip是ESXi的offline bundle，drivers目录包含了vib文件的目录</h1><p>.\ESXi-Customizer-PS-v2.6.0.ps1 -izip .\official.zip -pkgDir C:\Users\abc\Dropbox\ESXi\drivers</p>
+<h1 id="在线打补丁，依赖比较好的网络环境"><a href="#在线打补丁，依赖比较好的网络环境" class="headerlink" title="在线打补丁，依赖比较好的网络环境"></a>在线打补丁，依赖比较好的网络环境</h1><p>.\ESXi-Customizer-PS-v2.6.0.ps1 -v67 -vft -load net55-r8168</p>
+<h3 id="支持Realtek-8168-x2F-8111-x2F-8411-x2F-8118的成品"><a href="#支持Realtek-8168-x2F-8111-x2F-8411-x2F-8118的成品" class="headerlink" title="支持Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的成品"></a>支持Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的成品</h3><p>如果你的网卡也是Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的话，并且信任我，可以考虑用我的现成的，<a target="_blank" rel="noopener" href="https://www.dropbox.com/s/aly7y4nrhjdpdmr/ESXi-6.7.0-20190802001-standard-customized.iso?dl=0">戳这里去dropbox</a></p>
+<h2 id="ESXi安装"><a href="#ESXi安装" class="headerlink" title="ESXi安装"></a>ESXi安装</h2><p>把iso写到U盘中，比如说使用rufus这种，然后启动插U盘启动电脑，哦对了还要有个显示器和HDMI……</p>
+<p>安装过程很简单，接受，输入密码，下一步，下一步……</p>
+<p> </p>
+<p>小提示：没有显示器怎么办？</p>
+<p>靠着虚拟机、网卡指示灯、硬盘灯摸索着来吧。</p>
+<p>哦当然了，ESXi要插网线直接连到网络设备（如路由器）的，要不玩什么呀！</p>
+<h2 id="ESXi管理"><a href="#ESXi管理" class="headerlink" title="ESXi管理"></a>ESXi管理</h2><p>ESXi安装完成之后，想办法获取到它的IP地址，直接浏览器访问就可以了。</p>
+<h3 id="使用ESXi网页端管理虚拟机"><a href="#使用ESXi网页端管理虚拟机" class="headerlink" title="使用ESXi网页端管理虚拟机"></a>使用ESXi网页端管理虚拟机</h3><p>界面很简洁，看着就会用</p>
+<p><img src="/images/2019111607253217.png"></p>
+<h3 id="使用VMware-Workstation管理虚拟机"><a href="#使用VMware-Workstation管理虚拟机" class="headerlink" title="使用VMware Workstation管理虚拟机"></a>使用VMware Workstation管理虚拟机</h3><p>如果你的电脑上装有VMware Workstation的话，文件-连接到服务器，输入IP用户名（root）、密码也是可以进行简单的管理的</p>
+<h3 id="进一步的管理：Vcenter"><a href="#进一步的管理：Vcenter" class="headerlink" title="进一步的管理：Vcenter"></a>进一步的管理：Vcenter</h3><p>ESXi本身的管理功能比较基础，甚至连克隆、迁移等功能都没有。为了做到这点，可以开个虚拟机安装vcenter。</p>
+<p>什么是注册虚拟机</p>
+<h2 id="ESXi创建虚拟机方法"><a href="#ESXi创建虚拟机方法" class="headerlink" title="ESXi创建虚拟机方法"></a>ESXi创建虚拟机方法</h2><p>ESXi的使用非常简单，只要是用过虚拟机的人应该就是十分清楚的，傻瓜化操作</p>
+<h3 id="直接创建虚拟机"><a href="#直接创建虚拟机" class="headerlink" title="直接创建虚拟机"></a>直接创建虚拟机</h3><p><img src="/images/2019111607253436.png"></p>
+<h3 id="从ovf部署虚拟机"><a href="#从ovf部署虚拟机" class="headerlink" title="从ovf部署虚拟机"></a>从ovf部署虚拟机</h3><p>从VMware Workstation和virtualbox导出的文件都可以导入进来的</p>
+<p><img src="/images/2019111607253765.png"></p>
+<h3 id="注册虚拟机"><a href="#注册虚拟机" class="headerlink" title="注册虚拟机"></a>注册虚拟机</h3><p>假如已经有了虚拟机的vmdk文件，并且这个文件在datastore中，那么我们可以直接注册虚拟机的。方法太简单了，不说了。</p>
+<h3 id="使用cloud-image"><a href="#使用cloud-image" class="headerlink" title="使用cloud image"></a>使用cloud image</h3><p>作为非常爱惜硬盘的我，如果从Ubuntu Server安装一个服务器版Ubuntu的话，不仅浪费时间，需要手工干预安装，而且还很占用硬盘。所以ubuntu官方维护了一个云镜像，其中包含各种环境使用的镜像，可以直接导入。</p>
+<p>下面这个链接是每日构建的，点进去选一个日期，下载对应的ovf&#x2F;ova文件就可以了</p>
+<p><a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/bionic/">https://cloud-images.ubuntu.com/bionic/</a></p>
+<p>这个链接是发布版的，同样下载ovf&#x2F;ova文件</p>
+<p><a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/releases/">https://cloud-images.ubuntu.com/releases/</a></p>
+<p><img src="/images/201911160725385.png"></p>
+<p>下载回来直接导入就可以了</p>
+<p>但是这个cloud image的root密码是什么呀！别怕，随机密码。开机按shift进grub，选择recovery mode破个密码就好了。然后再parted或者fdisk弄下分区，完美。Cloud image安装完占用硬盘不到1G哦～</p>
+<h2 id="ESXi-虚拟机设置"><a href="#ESXi-虚拟机设置" class="headerlink" title="ESXi 虚拟机设置"></a>ESXi 虚拟机设置</h2><h3 id="CPU资源限制"><a href="#CPU资源限制" class="headerlink" title="CPU资源限制"></a>CPU资源限制</h3><p>如下图所示，我们可以为此虚拟机预留一定的CPU资源、限制CPU资源（虚拟机不会使用超过这个频率的CPU）、份额，以及常见的硬件虚拟化、性能计数器等。</p>
+<p><img src="/images/2019111607253924.png"></p>
+<p>份额这个概念比较特殊，详细解释如下：</p>
+<blockquote>
+<p>份额指定虚拟机（或资源池）的相对重要性。如果某个虚拟机的资源份额是另一个虚拟机的两倍，则在这两个虚拟机争用资源时，第一个虚拟机有权消耗两倍于第二个虚拟机的资源。</p>
+<p>份额通常指定为高、正常或低，这些值将分别按 4:2:1 的比例指定份额值。还可以选择自定义为各虚拟机分配特定的份额值（表示比例权重）。</p>
+</blockquote>
+<p>举个例子，</p>
+<blockquote>
+<p>一台聚合 CPU 容量为 8 GHz 的主机上运行着两个受 CPU 约束的虚拟机。它们的 CPU 份额设置为正常，因此各得 4GHz。</p>
+<p>现在打开了第三个受 CPU 约束的虚拟机的电源。它的 CPU 份额设置为高，这意味着它拥有的份额值应该是设置为正常的虚拟机的两倍。新的虚拟机获得 4GHz，其他两个虚拟机各自仅获得 2GHz。如果用户为第三个虚拟机指定的自定义份额值为 2000，也会出现相同的结果。</p>
+</blockquote>
+<h3 id="内存资源限制"><a href="#内存资源限制" class="headerlink" title="内存资源限制"></a>内存资源限制</h3><p>与CPU资源限制类似，内存也是可以进行限制的，道理类似</p>
+<p><img src="/images/2019111607254012.png"></p>
+<h3 id="硬盘资源限制"><a href="#硬盘资源限制" class="headerlink" title="硬盘资源限制"></a>硬盘资源限制</h3><p>同理，可以限制硬盘写入，所以知道怎么做<strong>石头盘</strong>了吧！</p>
+<p><img src="/images/2019111607254134.png"></p>
+<h3 id="添加其他设备"><a href="#添加其他设备" class="headerlink" title="添加其他设备"></a>添加其他设备</h3><p>前面提过，ESXi不支持无线网卡，但是我们可以把无线网卡直接分配给虚拟机，那么就要用到网卡直通。具体方法就是编辑虚拟机设置，添加其他设备-PCI设备&#x2F;USB设备</p>
+<p><img src="/images/2019111607254256.png"></p>
+<h3 id="虚拟机引导选项"><a href="#虚拟机引导选项" class="headerlink" title="虚拟机引导选项"></a>虚拟机引导选项</h3><p>和VMware Workstation的设置基本差不多，一看就懂</p>
+<p><img src="/images/2019111607254455.png"></p>
+<h2 id="ESXi-控制台连接"><a href="#ESXi-控制台连接" class="headerlink" title="ESXi 控制台连接"></a>ESXi 控制台连接</h2><p>我们可以直接通过网页端访问控制台端口，也可以通过下载VMware Remote Console，或是VMware Workstation访问。</p>
+<h2 id="数据存储管理"><a href="#数据存储管理" class="headerlink" title="数据存储管理"></a>数据存储管理</h2><p>要装虚拟机，自然就要用ISO镜像，那ISO镜像自然就要上传到ESXi中……具体就是使用数据存储功能。</p>
+<p>左侧导航栏直接点进去存储</p>
+<p><img src="/images/2019111607254569.png"></p>
+<h3 id="数据存储管理器"><a href="#数据存储管理器" class="headerlink" title="数据存储管理器"></a>数据存储管理器</h3><p>点击数据存储管理器，太简明易懂了……上传就是了。</p>
+<p><img src="/images/2019111607254683.png"></p>
+<h3 id="添加存储"><a href="#添加存储" class="headerlink" title="添加存储"></a>添加存储</h3><p>ESXi默认会识别接驳的硬盘等设备，但是我们也可以添加网络存储，比如NFS，点击新建数据存储，选择NFS</p>
+<p><img src="/images/201911160725471.png"></p>
+<p>相应的添加就好了</p>
+<h2 id="ESXi网络设置之物理网卡"><a href="#ESXi网络设置之物理网卡" class="headerlink" title="ESXi网络设置之物理网卡"></a>ESXi网络设置之物理网卡</h2><p>熟悉VMware Workstation可能知道，VMware Workstation的网络可以分为桥接、NAT、host only等，那么ESXi呢……对不起，ESXi天生桥接。</p>
+<p>在ESXi的网络设置中……</p>
+<p>物理网卡的概念很好理解，就是真实接线的网卡，ESXi本身是支持多网卡的，利用多网卡可以玩出很多花样，比如软路由……</p>
+<p><img src="/images/2019111607254984.png"></p>
+<h2 id="ESXi网络设置之虚拟交换机"><a href="#ESXi网络设置之虚拟交换机" class="headerlink" title="ESXi网络设置之虚拟交换机"></a>ESXi网络设置之虚拟交换机</h2><p>交换机这个概念，对于不是搞网络的人来说，可能很生疏。路由器、交换机、集线器这三者究竟有啥区别啊？这不是本文讨论的重点。</p>
+<p>ESXi中的虚拟机交换机的概念很简单，简单的说就是连到虚拟机的那个“设备”，由ESXi的内核提供，只有二层桥接的功能，不像真实的交换机，又能配ACL又能配这配那的。比如我们看下下面的这个图</p>
+<p><img src="/images/2019111607255041.png"></p>
+<p>这么多台虚拟机都“连接”到了这一虚拟交换机上，然后这个虚拟交换机用两条真实的网线连接到了我的路由器上。</p>
+<p>虚拟交换机有啥意义呢？比如我有两块物理网卡，一块是192.168.1.0&#x2F;24，另一块是192.168.2.0&#x2F;24，那么我们就可以通过添加两个vSwitch，然后不同的虚拟机就可以属于不同的网段啦。</p>
+<h3 id="添加vSwitch"><a href="#添加vSwitch" class="headerlink" title="添加vSwitch"></a>添加vSwitch</h3><p>虚拟交换机这东西，由于是内核虚拟的，自然也可以自己添加。方法也很简单，直接点击添加，起个名字，选择绑定到哪块物理网卡，确定就可以了。如下图所示</p>
+<p><img src="/images/2019111607255231.png"></p>
+<p>当然了需要注意的是，一块网卡一旦属于某个虚拟交换机，那它就不能属于其他的虚拟交换机了。</p>
+<h3 id="虚拟交换机、添加上行链路"><a href="#虚拟交换机、添加上行链路" class="headerlink" title="虚拟交换机、添加上行链路"></a>虚拟交换机、添加上行链路</h3><p>俗话说，狡兔三窟。一个虚拟交换机，如果增加网线作为备份线路，那也是有备无患的。</p>
+<p>所以编辑vSwitch，添加另外一条上行链路作为冗余。这样当你拔掉一条网线，虚拟机们还能无缝切换（真的是无缝，可能连TCP丢包都没有），一点不受影响。</p>
+<p>添加方法很简单，直接编辑，添加另一条物理链路就好了</p>
+<p>另外，假如你的ESXi不接网线，那么属于同一个vSwitch之间的虚拟机还是能通信的，而且是万兆网卡哦！只是流量不能往外走，要不怎么叫上行链路呢。</p>
+<h2 id="虚拟交换机-网卡绑定"><a href="#虚拟交换机-网卡绑定" class="headerlink" title="虚拟交换机 网卡绑定"></a>虚拟交换机 网卡绑定</h2><p>所谓网卡绑定，就是当你为一个虚拟交换机添加多条上行链路的时候，想让ESXi怎么调度啊？类似链路聚合，你是想round-robin，还是active backup，还是load balance呢？网卡绑定就是干这个事情的。</p>
+<p><img src="/images/2019111607255418.png"></p>
+<p>ESXi的这四种模式，对应的意义如下：</p>
+<ul>
+<li>基于源端口 ID 的路由（默认）：则根据流量进入虚拟交换机的虚拟端口选择上行链接。</li>
+</ul>
+<p>基于 IP 哈希的路由：根据每个数据包的源和目标 IP 地址的 Hash 选择上行链接。对于非 IP 数据包，会使用位于这些偏移上的任何内容计算 Hash。</p>
+<ul>
+<li>基于源 MAC 哈希的路由：根据源以太网的 Hash 选择上行链接。</li>
+<li>使用明确故障切换顺序：始终使用“活动适配器”列表中位于最前列的符合故障切换检测标准的上行链路。（本图就是vmnic0）</li>
+</ul>
+<h3 id="虚拟交换机-流量调整"><a href="#虚拟交换机-流量调整" class="headerlink" title="虚拟交换机 流量调整"></a>虚拟交换机 流量调整</h3><p>买VPS的时候……你这个口不是独享的！好吧，ESXi也能针对虚拟交换机进行流量限制，如下图所示</p>
+<p><img src="/images/2019111607255593.png"></p>
+<h2 id="ESXi-网络设置-端口组"><a href="#ESXi-网络设置-端口组" class="headerlink" title="ESXi 网络设置 端口组"></a>ESXi 网络设置 端口组</h2><p>实际上呢，虚拟机并不是直接连到vSwitch的。虚拟机上直接连接到端口组上的。不同的虚拟机可以属于不同的端口组。</p>
+<p>端口组与虚拟机网络设置</p>
+<p><img src="/images/201911160725566.png"></p>
+<p>添加端口组</p>
+<p><img src="/images/2019111607255657.png"></p>
+<h2 id="ESXi-VMkernel网卡"><a href="#ESXi-VMkernel网卡" class="headerlink" title="ESXi VMkernel网卡"></a>ESXi VMkernel网卡</h2><p>ESXi本身是通过网络管理的，那么自然也要有一个对应的“网卡”，这里就是vmk网卡。可以把它理解成一个特殊的端口组，主要就是提供管理相关的访问。</p>
+<p><img src="/images/2019111607255838.png"></p>
+<p>有的时候，我们可能希望，所有虚拟机使用某一段的IP，但是管理使用另一段IP，这里就可以通过添加VMKernel网卡做到。</p>
+<p><img src="/images/2019111607255920.png"></p>
+<p>比如我们希望ESXi的管理IP能够有多个，做个备份，那么添加vmkernel也能做到</p>
+<p>添加之后的结果</p>
+<p><img src="/images/2019111607260117.png"></p>
+<p>此时Vmkernel的拓扑</p>
+<p><img src="/images/2019111607260113.png"></p>
+<h2 id="我的ESXi玩法"><a href="#我的ESXi玩法" class="headerlink" title="我的ESXi玩法"></a>我的ESXi玩法</h2><ul>
+<li>kali，还有一个XP，用途你懂的；</li>
+<li>Windows 7，用于下载电影电视剧什么的；</li>
+<li>Ubuntu Desktop，装了点GUI应用，开了samba服务，默认启动到multi-user。上面的Windows 7下载的文件直接存到了这里，然后电视iPad等直接就能看了；</li>
+<li>csr1000v，模拟Cisco IOS网络设备，其实并无卵用，放着吃灰的。</li>
+<li>TimeMachine，从Cloud Image导入的，用于macOS的时间机器备份，做了LVM，啥都不怕。</li>
+<li>Ubuntu Minimal，从Cloud Image导入的，我也不知道干啥的</li>
+<li>Tiny Core，不知道干啥的，玩的吧。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ESXi真是太强大了，开虚拟机随便玩，部分硬件可以直通到虚拟机中；甚至可以给ESXi主机开ssh，然后可以执行一些ssh命令，甚至可以运行Python，吼。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/11/16/esxi-tutorial/index/" data-id="clhp7rths005vs2qrc9339pvl" data-title="ESXi入门指南" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-first-mbp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2019/11/08/first-mbp/index/" class="article-date">
@@ -470,633 +1130,6 @@
 
 
   
-    <article id="post-vbox-ping/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/08/09/vbox-ping/index/" class="article-date">
-  <time class="dt-published" datetime="2019-08-09T00:00:00.000Z" itemprop="datePublished">2019-08-09</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/08/09/vbox-ping/index/">VirtualBox上的虚拟机无法被ping</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前段时间在Ubuntu上装了VirtualBox，VirtualBox里装了个Windows，桥接了无线网卡。</p>
-<p>然后发现我的电脑总是无故无法访问虚拟机。于是用电脑去ping，竟然不通；但是宿主机和路由器去ping都是通的。</p>
-<p>怀疑是防火墙的原因，于是我把电脑和虚拟机的防火墙全关了，还是不通。然后我虚拟机ping我电脑，第一个包丢了，然后通，我电脑也几乎立刻显示通，然后通一小会之后随着虚拟机ping结束，我电脑不通了。</p>
-<p>但是我用国外&#x2F;国内的的IPv6服务器去ping虚拟机的v6 ，竟然通！但是本机同网络的其他非宿主机、路由器，怎么ping都不通……</p>
-<p>感觉这就像是虚拟机用ping打开一个时光隧道，然后瞬间通了几个包。</p>
-<p>有时也偶尔存在通的情况，但是过一会一定就会不通了的。</p>
-<hr>
-<p>大致情况如下视频，上面的那俩是宿主机和路由器，始终能通，左下角是虚拟机，右下角是树莓派</p>
-<p> </p>
-<p><a target="_blank" rel="noopener" href="https://youtu.be/aFI1d89RQO0">https://youtu.be/aFI1d89RQO0</a></p>
-<hr>
-<p>已经尝试的排查法：</p>
-<ul>
-<li>VirtualBox开混杂模式，没有效果</li>
-<li>Windows的VMWare桥接，直接就是通的</li>
-<li>macOS&#x2F;Windows的VirtualBox桥接，直接就是通的</li>
-<li>宿主机和虚拟机都没开任何防火墙</li>
-</ul>
-<hr>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1155492458915983361?s=20">https://twitter.com/BennyThinks/status/1155492458915983361?s=20</a></p>
-<p>有人知道为什么咩？宿主机的无线网卡是BCM43455，难道是VirtualBox不太兼容这个网卡？</p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p>问题解决了，确实是网卡兼容性问题，换个网卡就好了????</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/08/09/vbox-ping/index/" data-id="clhp7rtmw00ars2qraypwf32a" data-title="VirtualBox上的虚拟机无法被ping" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-grafana-influxdb-telegraf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/07/07/grafana-influxdb-telegraf/index/" class="article-date">
-  <time class="dt-published" datetime="2019-07-07T00:00:00.000Z" itemprop="datePublished">2019-07-07</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/07/07/grafana-influxdb-telegraf/index/">使用grafana+influxdb+telegraf安全的搭建一个监控平台</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>作为一只有很多服务器的萌新，实时掌握服务器的状态是非常必须的。</p>
-<p>前段时间，由于<a target="_blank" rel="noopener" href="https://nodequery.com/">NodeQuery</a>出问题了，于是就想着换一个监控平台。当然在移除nq-agent的时候<a target="_blank" rel="noopener" href="https://dmesg.app/rm-etc.html">就手抖给&#x2F;etc删除了</a>。</p>
-<p>那么今天就来记录一下如何搭建一个中心化的监控平台。</p>
-<h2 id="一些概念的明确"><a href="#一些概念的明确" class="headerlink" title="一些概念的明确"></a>一些概念的明确</h2><p>既然要监控服务器，那么必然要有一个程序运行在服务器上，这个我们一般称作agent，在我们这里就是telegraf；另外一个负责解析，存储，展示数据的，在我们这里就是InfluxDB存储，grafana展示解析数据。</p>
-<p>如果使用zabbix的话，那么zabbix-agent就充当了采集器，zabbix-server和zabbix-frontend就充当了解析展示数据的。（zabbix太丑了，模板不会配……）</p>
-<h2 id="架构的设计"><a href="#架构的设计" class="headerlink" title="架构的设计"></a>架构的设计</h2><p>由于需要监控多台服务器，那么架构的设计也是一个问题，对于需要跨公网而不是全内网的情况来说，有这样两种思路：</p>
-<ul>
-<li>被动模式：采集器收集数据，发送给server，这种架构要求server必须有公网IP</li>
-<li>主动模式：采集器只是运行，由server主动访问采集器获得数据，这就需要所有的agent必须有公网IP</li>
-</ul>
-<p>对于被动模式，使用Telegraf+InfluxDB+Grafana是比较好的选择，只需要将InfluxDB部署在具有公网IP的服务器上就可以了，其他服务器是否具有公网IP并不重要。</p>
-<p>对于主动模式，使用node exporter+Prometheus+Grafana是比较合适的。</p>
-<p>对于两种都想要的呢！zabbix啊，主动被动都支持，就是有点丑(′д｀ )…彡…彡</p>
-<p>所以总体的架构就是：</p>
-<p>Telegraf –&gt; InfluxDB &lt;–&gt; Grafana</p>
-<h2 id="安全性的考虑"><a href="#安全性的考虑" class="headerlink" title="安全性的考虑"></a>安全性的考虑</h2><p>由于数据需要跨公网传输，那么安全性上的考虑就是必不可少的了。那么这个问题怎么解决呢？</p>
-<h3 id="加密，认证，授权"><a href="#加密，认证，授权" class="headerlink" title="加密，认证，授权"></a>加密，认证，授权</h3><p>在我们这种情景下，与InfluxDB之间的通信至少也要实现加密、认证的。</p>
-<p>加密意味着与InfluxDB之间的通信是安全的，其他人无法解密，<strong>这一点在跨公网传输的时候是必不可少的</strong>；</p>
-<p>认证意味着只有特定身份的用户才可以访问数据，比如输入了正确的用户名和密码才可以访问；</p>
-<p>授权意味着，你这个用户可以干什么事情，是只能查询还是什么都能干。</p>
-<p>为了实现加密，我们可以使用TLS那一套，这一点就很好理解了，TLS就是天生干这事的嘛。</p>
-<p>为了实现认证与授权，我们可以使用HTTP Basic Auth，创建一套用户名密码。</p>
-<h3 id="防火墙的保护"><a href="#防火墙的保护" class="headerlink" title="防火墙的保护"></a>防火墙的保护</h3><p>除了以上操作之外，使用防火墙限制访问数据库的源IP也是一种补充方法。当然了加密是必不可少的。除此之外，还有一些方法，比如TLS客户端证书等等。</p>
-<h3 id="大内网"><a href="#大内网" class="headerlink" title="大内网"></a>大内网</h3><p>有些时候配置上面这些太麻烦了，那么还有一个思路就是组建大内网！可以考虑用WireGuard、OpenVPN甚至是SSH隧道试试看。</p>
-<p>不过也有缺点，一是如果服务器是海外的，那么由于GFW的存在，可能有点不太友好；二是可能不太好配，尤其是OpenVPN，一不小心就全局了。</p>
-<h2 id="部署与配置"><a href="#部署与配置" class="headerlink" title="部署与配置"></a>部署与配置</h2><p>下面就简单说说如何安全的配置这么一套平台</p>
-<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
-<p>从页面上选择适合你的操作系统的版本，对于我使用的Ubuntu来说，使用这个就可以了</p>
-<p>wget <a target="_blank" rel="noopener" href="https://dl.influxdata.com/influxdb/releases/influxdb/_1.7.7/_amd64.deb">https://dl.influxdata.com/influxdb/releases/influxdb\_1.7.7\_amd64.deb</a><br>sudo dpkg -i influxdb_1.7.7_amd64.deb</p>
-<h3 id="配置SSL"><a href="#配置SSL" class="headerlink" title="配置SSL"></a>配置SSL</h3><p>这一步我们可以使用openssl自签名的证书，也可以使用Let’s Encrypt申请一个真正的证书（这就需要弄个域名啦）</p>
-<p>以自签名证书来说</p>
-<p>sudo openssl req -x509 -nodes -newkey rsa:2048 -keyout &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key -out &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt -days 3650<br>chown influxdb:influxdb &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.*</p>
-<p>修改配置文件 <code>/etc/influxdb/influxdb.conf</code>，需要更改三处</p>
-<p>https-enabled &#x3D; true</p>
-<p>https-certificate &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt”<br>https-private-key &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key”</p>
-<p>如果使用Let’s Encrypt的话，<code>https-certificate</code>改为<code>fullchain.pem</code>的路径，<code>https-private-key</code>改为<code>privkey.key</code>的路径，注意下权限就可以了。</p>
-<p>然后重启</p>
-<p>sudo systemctl restart influxdb</p>
-<p>验证</p>
-<p>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</p>
-<h3 id="配置认证与授权"><a href="#配置认证与授权" class="headerlink" title="配置认证与授权"></a>配置认证与授权</h3><p>创建一个管理员用户</p>
-<p>使用上述<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器</p>
-<p>CREATE USER paul WITH PASSWORD ‘timeseries4days’ WITH ALL PRIVILEGES</p>
-<p>开启认证</p>
-<p>修改配置文件<code>/etc/influxdb/influxdb.conf</code></p>
-<p>auth-enabled &#x3D; true</p>
-<p>重启进程</p>
-<p>sudo systemctl restart influxdb</p>
-<p>此时再使用<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器，<code>show databases</code>就会报错，只有auth之后才可以</p>
-<h2 id="Telegraf"><a href="#Telegraf" class="headerlink" title="Telegraf"></a>Telegraf</h2><p><a target="_blank" rel="noopener" href="https://github.com/influxdata/telegraf/releases">https://github.com/influxdata/telegraf/releases</a></p>
-<p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
-<p>从以上网址下载对应你的操作系统版本的Telegraf，然后安装（armhf对应树莓派）</p>
-<h3 id="配置数据库服务器"><a href="#配置数据库服务器" class="headerlink" title="配置数据库服务器"></a>配置数据库服务器</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code>，找到urls&#x3D;…，改成https就好了</p>
-<p>urls &#x3D; [“https:&#x2F;&#x2F;&lt;domain_name&gt;.com:8086”]<br>database &#x3D; “telegraf”</p>
-<p>需要注意的是，如果使用的是自签名证书，那么<code>insecure_skip_verify = true</code>也要配置</p>
-<h3 id="配置认证"><a href="#配置认证" class="headerlink" title="配置认证"></a>配置认证</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code></p>
-<p>根据上面配置的进行适当更改</p>
-<p>timeout &#x3D; “5s”</p>
-<p>username &#x3D; “telegraf” #?<br>password &#x3D; “metricsmetricsmetricsmetrics” #?</p>
-<h3 id="配置采集内容"><a href="#配置采集内容" class="headerlink" title="配置采集内容"></a>配置采集内容</h3><p>把这些追加到telegraf.conf末尾就可以了</p>
-<p>[[inputs.cpu]]<br>percpu &#x3D; true<br>totalcpu &#x3D; true<br>collect_cpu_time &#x3D; false<br>report_active &#x3D; false<br>[[inputs.disk]]<br>ignore_fs &#x3D; [“tmpfs”, “devtmpfs”, “devfs”]<br>[[inputs.io]]<br>[[inputs.mem]]<br>[[inputs.net]]<br>[[inputs.system]]<br>[[inputs.swap]]<br>[[inputs.netstat]]<br>[[inputs.processes]]<br>[[inputs.kernel]]</p>
-<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><p><a target="_blank" rel="noopener" href="https://grafana.com/grafana/download">https://grafana.com/grafana/download</a></p>
-<p>同样下载安装适合自己平台的程序</p>
-<p>然后<a target="_blank" rel="noopener" href="http://ip:3000/">http://ip:3000</a></p>
-<p>默认的用户名密码是admin、admin</p>
-<p>Add datasource选择influxdb，按照如下图所示配置</p>
-<p><img src="/images/2019070704385117.png"></p>
-<h3 id="导入dashboard"><a href="#导入dashboard" class="headerlink" title="导入dashboard"></a>导入dashboard</h3><p>导入这个dashboard</p>
-<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
-<p><img src="/images/2019070704385269.png"></p>
-<p>之后保存就可以看到结果啦！</p>
-<p><img src="/images/2019070704385387.png"></p>
-<h2 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h2><h3 id="配置防火墙"><a href="#配置防火墙" class="headerlink" title="配置防火墙"></a>配置防火墙</h3><p>只允许某个IP访问8086</p>
-<p>ufw allow from xx.xx.xx.xx to any port 8086</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/https_setup/">https://docs.influxdata.com/influxdb/v1.7/administration/https_setup&#x2F;</a></p>
-<p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization/">https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization&#x2F;</a></p>
-<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dfd329d30891">https://www.jianshu.com/p/dfd329d30891</a></p>
-<p><a target="_blank" rel="noopener" href="https://grafana.com/docs/installation/behind_proxy/">https://grafana.com/docs/installation/behind_proxy&#x2F;</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/07/07/grafana-influxdb-telegraf/index/" data-id="clhp7rtgg003bs2qrelrad0no" data-title="使用grafana+influxdb+telegraf安全的搭建一个监控平台" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-rm-etc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/06/27/rm-etc/index/" class="article-date">
-  <time class="dt-published" datetime="2019-06-27T00:00:00.000Z" itemprop="datePublished">2019-06-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/06/27/rm-etc/index/">手一抖，我删除了etc目录</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>我死了之后 会变成那些星星吗？ 你想变成星星吗？ 想啊，因为我的家人都在那里 这样啊 真想变成美丽的星星 想变成星星的话…必须先好好地活着才行啊 什么是「活着」？ 活着，就是怀抱希望的意思 希望？ 人若是失去了希望 就无法活下去 如果连希望本身都消失了呢？ 希望不会消失的 是人们变得看不见希望而已</p>
-</blockquote>
-<p>不干了，我开除了黑心公司。不好意思，走错片场了。我不是不干了，我没有开除了黑心公司。我是手一抖，删除了<code>/etc</code>目录……</p>
-<h2 id="嗯？？"><a href="#嗯？？" class="headerlink" title="嗯？？"></a>嗯？？</h2><p>作为一名Linux老司机，我经常自吹自擂拥有n年Linux使用经验，root敢死队从未翻车过。实际上，除了n年前凌晨三四点重装服务器时忘记备份数据库之外，我还真没翻车过。</p>
-<p>然而这次，小手一抖……</p>
-<p>事情是这样的，nodequery挂了，我寻思着换一个监控服务，那就要先把原来的监控脚本删掉，可是我这么懒，又删除用户删除crontab删除文件的，我就直接<a target="_blank" rel="noopener" href="https://www.moerats.com/archives/568/">在网上找了下</a>删除的命令：</p>
-<p>root@abcdef:~# rm -R &#x2F; etc &#x2F; nodequery &amp;&amp;（crontab -u nodequery -l | grep -v“&#x2F;etc&#x2F;nodequery&#x2F;nq-agent.sh”）| crontab -u nodequery  - &amp;&amp;  userdel nodequery</p>
-<p>rm: it is dangerous to operate recursively on ‘&#x2F;‘<br>rm: use –no-preserve-root to override this failsafe<br>rm: cannot remove ‘etc’: No such file or directory<br>rm: it is dangerous to operate recursively on ‘&#x2F;‘<br>rm: use –no-preserve-root to override this failsafe<br>rm: cannot remove ‘nodequery’: No such file or directory</p>
-<p>我这一看，报错了，哎哟啊前面怎么有个空格呢，啊这样</p>
-<p>root@abcdef:~# rm -R &#x2F;etc&#x2F; nodequery &amp;&amp;（crontab -u nodequery -l | grep -v“&#x2F;etc&#x2F;nodequery&#x2F;nq-agent.sh”）| crontab -u nodequery - &amp;&amp; userdel nodequery</p>
-<p>rm: cannot remove ‘nodequery’: No such file or directory</p>
-<p>好像没问题了，确认一下crontab已经没了吧！</p>
-<p>root@abcdef:~# crontab -l</p>
-<p>crontab: your UID isn’t in the passwd file.<br>bailing out.</p>
-<p>哎哟我去？我的UID不在passwd里？什么，卧槽卧槽卧槽……</p>
-<p>事情就是这么个事情，经过就是这么个经过，<code>/etc</code>目录被我干掉了！(╯‵□′)╯︵┻━┻</p>
-<h2 id="没了-x2F-etc会怎样"><a href="#没了-x2F-etc会怎样" class="headerlink" title="没了&#x2F;etc会怎样"></a>没了&#x2F;etc会怎样</h2><p>首先系统的各种配置是没了，ssh肯定也登不上去，因为sshd要检查<code>/etc/ssh/sshd_config</code>的配置的。别想了，VNC也不好用。此时这台服务器就像是行尸走肉一样……</p>
-<p>但是好消息是，Nginx，PHP和MySQL还是运行着的，虽说Let’s Encrypt证书也丢了，但是Nginx还缓存着，所以网站其实还活着。</p>
-<p>还有一个更好的消息，当前的shell还在！这个shell是我唯一的机会！别断网别断网就好……</p>
-<h2 id="备份、转移"><a href="#备份、转移" class="headerlink" title="备份、转移"></a>备份、转移</h2><p>这台服务器的用途比较单一，更可怕的是，<strong>主人还不是我</strong>，天啊我也会做出传说中删库跑路的事情吗！</p>
-<p>冷静了几秒钟之后，趁着没断网赶紧打包备份网站文件，导出数据库，大不了重装。</p>
-<p>文件打包完了，scp发给我的另一个服务器吧</p>
-<p>root@abcdef:~# scp 062WARNING:root:could not open file ‘&#x2F;etc&#x2F;apt&#x2F;sources.list’</p>
-<p>Command ‘awk’ not found, but can be installed with:<br>apt install gawk (You will have to enable component called ‘main’)<br>apt install mawk (You will have to enable component called ‘main’)<br>apt install original-awk (You will have to enable component called ‘universe’)<br>7.tgz ^C</p>
-<p>唉？？bash completion也挂了？那我不补全了可以吧</p>
-<p>root@abcdef:~# scp 0627.tgz <a href="mailto:&#114;&#x6f;&#111;&#x74;&#x40;&#97;&#x63;&#x76;&#100;&#x61;&#x2e;&#x6d;&#x65;">&#114;&#x6f;&#111;&#x74;&#x40;&#97;&#x63;&#x76;&#100;&#x61;&#x2e;&#x6d;&#x65;</a>:&#x2F;root</p>
-<p>unknown user 0</p>
-<p>啊对啊，因为sshd凉了，所以依赖于ssh的一些命令，比如scp也凉了……那我SFTP往回下载文件也不行啊……</p>
-<p>啊那我cp到webroot下，另一台服务器赶紧wget，然后删除webroot下的文件……</p>
-<h2 id="死马当活马医"><a href="#死马当活马医" class="headerlink" title="死马当活马医"></a>死马当活马医</h2><p>数据备份好了，那么现在该思考怎么恢复了，不能一辈子不重启，自己也没法ssh啊……赶紧登录下阿里云看看有没有快照——没有哦。</p>
-<p>重装系统？那太麻烦了。本着死马当活马医的思想，试试移花接木吧——我把另一台配置基本一样的服务器的配置拷贝过来看看ssh能不能活。</p>
-<p>于是另一台服务器上</p>
-<p>tar jcpf etc.tgz &#x2F;etc</p>
-<p>一定要记得带p参数，这样才会保持权限。scp不管用，那也放到webroot下，赶紧wget然后删除，然后解压缩……</p>
-<p>新开一个ssh连接，哇，活了……当然了host keys是另一台服务器的，密码也是，主机名也是……这就好像换头术哦！</p>
-<h2 id="篡改记忆"><a href="#篡改记忆" class="headerlink" title="篡改记忆"></a>篡改记忆</h2><p>医学史上换头术难度极高，也可能有一些伦理问题，但是咱这来说，这就像是换了个身体，灵魂还是另一个服务器……还要做一些配置的</p>
-<h3 id="重新生成ssh-host-key"><a href="#重新生成ssh-host-key" class="headerlink" title="重新生成ssh host key"></a>重新生成ssh host key</h3><p>咱着让两台服务器的host key都一样，自己用起来太不好了，所以要重新生成一组</p>
-<p>rm -v &#x2F;etc&#x2F;ssh&#x2F;ssh_host_*<br>dpkg-reconfigure openssh-server</p>
-<h3 id="修改密码"><a href="#修改密码" class="headerlink" title="修改密码"></a>修改密码</h3><p>这点就不用说了</p>
-<h3 id="重新申请SSL证书"><a href="#重新申请SSL证书" class="headerlink" title="重新申请SSL证书"></a>重新申请SSL证书</h3><p>由于整个letsencrypt目录也没了，所以也没办法revoke证书，直接删除<code>/etc/letsencrypt</code>然后<code>apt install certbot</code>，然后再重新申请一个证书好了</p>
-<p><strong>我还是年轻啊，我做完这些的时候我觉得差不多了，就一个reboot重启了。当然了这怎么够啊……fstab呢，网络呢！！很悲剧的，我ssh不上，还好VNC是好用的</strong></p>
-<h3 id="fstab"><a href="#fstab" class="headerlink" title="fstab"></a>fstab</h3><p>于是我VNC登录上，看着这台服务器还叫着别人的名字，唉……</p>
-<p>由于现在大家基本上是用UUID挂载的磁盘，很少有人直接指定设备名了，所以这里肯定有问题啦。解决办法很简单，remount为rw，改一下下</p>
-<p>mount &#x2F;dev&#x2F;vda1 –o remount,rw &#x2F;</p>
-<p>这样根就是可以读写的了，然后看情况更改<code>/etc/fstab</code></p>
-<h3 id="重新配置网络"><a href="#重新配置网络" class="headerlink" title="重新配置网络"></a>重新配置网络</h3><p>另一台服务器使用的是静态IP，这台服务器使用的是DHCP，所以网络是肯定不通的。首先<code>ifconfig</code>确定下我的网卡叫ens3，由于我用的是Ubuntu 18.04，所以要去修改netplan的配置文件<code>/etc/netplan/01-netcfg.yaml</code>，写如下配置：</p>
-<p>network:<br>  version: 2<br>  renderer: networkd<br>  ethernets:<br>    ens3:<br>        dhcp4: true</p>
-<p>确定缩进也没问题，应用下配置</p>
-<p>netplan apply</p>
-<p>之后再curl下，网络通了</p>
-<h3 id="修改主机名"><a href="#修改主机名" class="headerlink" title="修改主机名"></a>修改主机名</h3><p>hostnamectl set-hostname abcde</p>
-<h3 id="检查其他配置与服务"><a href="#检查其他配置与服务" class="headerlink" title="检查其他配置与服务"></a>检查其他配置与服务</h3><p>这点就因人而异啦~</p>
-<h2 id="后遗症"><a href="#后遗症" class="headerlink" title="后遗症"></a>后遗症</h2><p>毕竟咱这个<code>/etc</code>是别人的，所以有些地方肯定是有问题的。比如说……</p>
-<h3 id="文件和目录的所有者可能会改变"><a href="#文件和目录的所有者可能会改变" class="headerlink" title="文件和目录的所有者可能会改变"></a>文件和目录的所有者可能会改变</h3><p>毕竟uid不同，所以遇到这种情况只能手动改改啦</p>
-<h3 id="某些服务可能启动不了"><a href="#某些服务可能启动不了" class="headerlink" title="某些服务可能启动不了"></a>某些服务可能启动不了</h3><p>比如在我这里就是MySQL启动不起来。第一猜想是权限不够？chown了也不对</p>
-<p>后来发现报错mysqld_safe –malloc-lib can not be read and will not be used</p>
-<p>后来发现把<code>my.cnf</code>里的<code>malloc-lib=/usr/lib/libtcmalloc.so</code>注释了就好</p>
-<p>然后突然想起来，这两台服务器似乎是曾经做的主从，于是现在农奴翻身把歌唱，大家都是奴隶了呗？</p>
-<h3 id="断掉的符号链接"><a href="#断掉的符号链接" class="headerlink" title="断掉的符号链接"></a>断掉的符号链接</h3><p>有些<code>/etc</code>里的文件可能是符号链接到其他目录的，那就自己重新弄下吧。</p>
-<h2 id="损失了什么"><a href="#损失了什么" class="headerlink" title="损失了什么"></a>损失了什么</h2><p>在这接近两个小时（15:45-17:55，包括给人送文件和回家路上），总结下来，我只损失了一套SSL证书，大概半小时左右的网站宕机时间。</p>
-<p>当然如果处置得当，宕机时间应该可以保证在一分钟之内的（重启验证是否恢复）。唉，还是年轻啊。</p>
-<h2 id="哦？"><a href="#哦？" class="headerlink" title="哦？"></a>哦？</h2><p>事后回想起来，直接不检查复制粘贴回车别人的命令真的很危险，这还不是恶意的那种，只是写错了，外加我手抖了一下。</p>
-<p>恶意的命令是什么呢？</p>
-<p>有种命令，复制的和粘贴的不一样哦，这个技术叫<a target="_blank" rel="noopener" href="https://github.com/dxa4481/Pastejacking">pastehijack</a>哦。这时候有一个聪明的SSH工具就很重要了。</p>
-<p><img src="/images/201906271148135.png"></p>
-<p>另外还有一种可能，假如我当初在<code>/</code>下，那这条命令一贴——凉凉。</p>
-<p>行了我也不说啥了，不想引战，管他原创不原创转载不转载的，怪我自己粗心了。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/06/27/rm-etc/index/" data-id="clhp7rtil007ts2qraxrm6600" data-title="手一抖，我删除了etc目录" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-vps-more-disk/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/06/23/vps-more-disk/index/" class="article-date">
-  <time class="dt-published" datetime="2019-06-23T00:00:00.000Z" itemprop="datePublished">2019-06-23</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/06/23/vps-more-disk/index/">vps硬盘不够了怎么办</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>自从搭建了<a target="_blank" rel="noopener" href="https://gakki.photos/">一个图床</a>之后，我开始发现vps的硬盘空间开始慢慢不够用了。随着时间的增长，上传的图片也越来越多。贫穷总是会限制我的想象力，那么有哪些解决方案呢？</p>
-<h2 id="世界加钱可及"><a href="#世界加钱可及" class="headerlink" title="世界加钱可及"></a>世界加钱可及</h2><h3 id="加钱升级配置"><a href="#加钱升级配置" class="headerlink" title="加钱升级配置"></a>加钱升级配置</h3><p>加钱，去服务商那里升级配置就好了，好多钱钱~</p>
-<h3 id="使用block-storage"><a href="#使用block-storage" class="headerlink" title="使用block storage"></a>使用block storage</h3><p>有些服务商可能提供类似block storage这种存储服务（如vultr、DigitalOcean），那就花钱钱买点，然后挂载上就好了。假如不提供这些服务的话，可以考虑试试<a target="_blank" rel="noopener" href="https://cloud.google.com/storage/?hl=zh-cn">Google Cloud Storage</a>，然后挂载到本地，价格也还是可以接受的~</p>
-<h2 id="使用rclone挂载网络硬盘"><a href="#使用rclone挂载网络硬盘" class="headerlink" title="使用rclone挂载网络硬盘"></a>使用rclone挂载网络硬盘</h2><p>可是我是穷人唉，$1都出不起，那该怎么办呢……可不可以把Google Drive、OneDrive、Dropbox什么的挂载上呢？Google Drive有15G，Dropbox有2G，OneDrive有5G，这加起来就是22G，那就是$2.2呢！</p>
-<p>淘宝花个几块钱扩容什么的，那就是血赚啊！</p>
-<p>rclone挂载Google Drive什么的很容易，有很多人写文件介绍过，比如说<a target="_blank" rel="noopener" href="https://moonagic.com/mount-google-drive-with-rclone/">这篇</a>，只不过有两点需要注意的：</p>
-<p>使用mount挂载之后，这个程序会“阻塞”，另开一个窗口<code>df –h</code>就会发现有了</p>
-<p><img src="/images/2019062307425439.png"></p>
-<p>5T滑稽?</p>
-<p>但是咱也不能一直开着，跑个screen也不好，所以还是写个systemd单元文件吧</p>
-<p>[Unit]<br>Description&#x3D;Google Drive mounter<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
-<p>[Service]<br>Restart&#x3D;on-failure<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;rclone mount gdrive_goldstein:&#x2F; &#x2F;mnt&#x2F;gdrive&#x2F; –allow-non-empty –vfs-cache-mode writes –allow-other</p>
-<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
-<p>非常需要注意这个<code>--allow-other</code>参数，如果没有的话，从nginx的webroot下做过来的符号链接www用户无权访问，那就403了哦</p>
-<h2 id="iSCSI"><a href="#iSCSI" class="headerlink" title="iSCSI"></a>iSCSI</h2><p>这网络存储有的时候可能也有点不太够（5T都不够吗？），那该怎么办呢？不如买个大硬盘的vps，然后试试iSCSI！（看来这RHCE是没白考啊ε&#x3D;ε&#x3D;ε&#x3D;(<del>￣▽￣)</del></p>
-<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/ISCSI">iSCSI是个啥呢？Internet小型计算机系统接口</a>，简单理解就是客户端可以通过网络让自己有&#x2F;dev&#x2F;sd*这样的“真实”的物理设备，然后随便格式化挂载什么的。</p>
-<p>iSCSI一般来说是局域网使用的，一般不会跨公网玩，因为这东西对延迟丢包有点敏感。当然了用是能用的，只不过配置起来有点麻烦，而且传输过程是不加密的。(′д｀ )…彡…彡</p>
-<p>iSCSI传输不是加密的这个消息不太好，但是有一些解决方案的，比如套个IPSec啦，比如走个SSH隧道啦。</p>
-<p>本着灵活应用的道理，咱就来挂载个玩玩……</p>
-<h3 id="概念解析"><a href="#概念解析" class="headerlink" title="概念解析"></a>概念解析</h3><p>target – 理解成服务器；initiator – 理解成客户端</p>
-<h3 id="准备“硬盘”"><a href="#准备“硬盘”" class="headerlink" title="准备“硬盘”"></a>准备“硬盘”</h3><p>对于服务端来说，提供服务的“硬盘”可以选择块设备（硬盘啊，U盘啊什么的），也可以选择文件设备，甚至内存够大做ramdisk都是可以的~</p>
-<p>为了方便扩展，我们这里就做一个逻辑卷，这样以后也可以看心情随时扩容的。</p>
-<p>首先~登录到server，需要进行一下分区，总之就是搞出来一个sdb2这种分区做逻辑卷。使</p>
-<h4 id="分区"><a href="#分区" class="headerlink" title="分区"></a>分区</h4><p>用fdisk进行类似操作：</p>
-<p>root@server:~# fdisk &#x2F;dev&#x2F;sda<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.</p>
-<p>Command (m for help): p<br>Disk &#x2F;dev&#x2F;sda: 20 GiB, 21474836480 bytes, 41943040 sectors<br>Units: sectors of 1 * 512 &#x3D; 512 bytes<br>Sector size (logical&#x2F;physical): 512 bytes &#x2F; 512 bytes<br>I&#x2F;O size (minimum&#x2F;optimal): 512 bytes &#x2F; 512 bytes<br>Disklabel type: gpt<br>Disk identifier: DCBEF2AD-7269-4B63-BA34-AE2F15A6D9F7<br>Device Start End Sectors Size Type<br>&#x2F;dev&#x2F;sda1 2048 4095 2048 1M BIOS boot<br>&#x2F;dev&#x2F;sda2 4096 20975615 20971520 10G Linux filesystem</p>
-<p>Command (m for help): n</p>
-<p>Partition number (3-128, default 3):<br>First sector (20975616-41943006, default 20975616):<br>Last sector, +sectors or +size{K,M,G,T,P} (20975616-41943006, default 41943006):<br>Created a new partition 3 of type ‘Linux filesystem’ and of size 10 GiB.</p>
-<p>Command (m for help): w</p>
-<p>The partition table has been altered.<br>Syncing disks.</p>
-<p>输入<code>partprobe</code>更新分区表，这里新分区为sda3，大小10G</p>
-<h4 id="创建逻辑卷"><a href="#创建逻辑卷" class="headerlink" title="创建逻辑卷"></a>创建逻辑卷</h4><p>root@server:~# pvcreate &#x2F;dev&#x2F;sda3<br>Physical volume “&#x2F;dev&#x2F;sda3” successfully created.</p>
-<p>默认的Volume Group大小是4MiB，当然这个创建vg的时候可以改。</p>
-<p>root@server:~# vgcreate idata &#x2F;dev&#x2F;sda3<br>Volume group “idata” successfully created</p>
-<p>创建Logic Volume的时候，n表示名字；大小方面，可以指定是多少个PE，也可以直接写大小，使用l指定多少个PE，256个也就是1G了，L指定大小，</p>
-<p>root@server:~# lvcreate -n iscsi_data -l 256 idata<br>Logical volume “iscsi_data” created.</p>
-<h1 id="直接指定3G"><a href="#直接指定3G" class="headerlink" title="直接指定3G"></a>直接指定3G</h1><p>root@server:~# lvcreate -n test -L 3G idata<br>Logical volume “test” created.</p>
-<p>查看一下 确定信息无误</p>
-<p>root@server:~# lvdisplay</p>
-<p>— Logical volume —<br>LV Path &#x2F;dev&#x2F;idata&#x2F;iscsi_data<br>LV Name iscsi_data<br>VG Name idata<br>LV UUID ueP2uS-zEOG-6B1q-5GuD-9L5f-1ZyZ-86E4ee<br>LV Write Access read&#x2F;write<br>LV Creation host, time server, 2019-06-23 06:19:06 +0000<br>LV Status available</p>
-<h1 id="open-0"><a href="#open-0" class="headerlink" title="open 0"></a>open 0</h1><p>LV Size 1.00 GiB<br>Current LE 256<br>Segments 1<br>Allocation inherit<br>Read ahead sectors auto</p>
-<ul>
-<li>currently set to 256<br>Block device 253:0</li>
-</ul>
-<p>[v_blue]叮咚提示：</p>
-<p>有些vps上来就是一个&#x2F;，这种情况下根本用不了fdisk给分出来空间的。那咋办呢？有这么几种思路，fileio，livecd用gparted，手动重装系统[&#x2F;v_blue]</p>
-<h3 id="配置target"><a href="#配置target" class="headerlink" title="配置target"></a>配置target</h3><p>就假定服务端和客户端都是Ubuntu 啦，16.04之后应该操作都差不多的</p>
-<p>apt install targetcli-fb</p>
-<p>输入<code>targetcli</code>进入交互页面，输入ls可以看下大体情况</p>
-<p><img src="/images/2019062307425576.png"></p>
-<p>我们要做这么几件事情：创建backstore，给backstore增加LUNS，ACL，PORTAL</p>
-<h4 id="创建backstore"><a href="#创建backstore" class="headerlink" title="创建backstore"></a>创建backstore</h4><p>创建block设备</p>
-<p>&#x2F;backstores&#x2F;block create name&#x3D;client1_data dev&#x3D;&#x2F;dev&#x2F;idata&#x2F;iscsi_data</p>
-<p><code>/dev/idata/iscsi_data</code> 就是我们刚刚创建的逻辑卷，name 是名字</p>
-<p>创建iSCSI</p>
-<p>&#x2F;iscsi create wwn&#x3D;iqn.2019-06.com.bennythink:server</p>
-<p>回车之后会发现自动帮我们创建好了portal</p>
-<p>创建luns，这里的<code>client1_data</code>就是我们第一步创建的name</p>
-<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;luns create &#x2F;backstores&#x2F;block&#x2F;client1_data</p>
-<p>创建acl</p>
-<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;acls create wwn&#x3D;iqn.2019-06.com.bennythink:client1</p>
-<p>这几步都做完了之后，ls一下，大概的结构应该是这样的：</p>
-<p><img src="/images/2019062307425778.png"></p>
-<p><code>saveconfig</code>保存退出</p>
-<h3 id="配置客户端"><a href="#配置客户端" class="headerlink" title="配置客户端"></a>配置客户端</h3><p>客户端的配置相比之下就简单多了，只需要改下配置文件就好了</p>
-<h4 id="安装与修改配置"><a href="#安装与修改配置" class="headerlink" title="安装与修改配置"></a>安装与修改配置</h4><p>apt install open-iscsi</p>
-<h1 id="编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi"><a href="#编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi" class="headerlink" title="编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi"></a>编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</p>
-<h1 id="把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1"><a href="#把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1" class="headerlink" title="把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1"></a>把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1</h1><p>InitiatorName&#x3D;iqn.2019-06.com.bennythink:client1</p>
-<h1 id="设置自动login"><a href="#设置自动login" class="headerlink" title="设置自动login"></a>设置自动login</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;iscsid.conf</p>
-<h1 id="原来是manual"><a href="#原来是manual" class="headerlink" title="原来是manual"></a>原来是manual</h1><p>node.startup &#x3D; automatic</p>
-<h4 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h4><p>systemctl restart iscsi<br>systemctl restart iscsid<br>systemctl enable iscsid</p>
-<h4 id="发现与登录节点"><a href="#发现与登录节点" class="headerlink" title="发现与登录节点"></a>发现与登录节点</h4><p>server可以写服务端的域名，或者IP也可以</p>
-<p>root@client:~# iscsiadm –mode discoverydb –type sendtargets –portal server –discover<br>172.21.174.180:3260,1 iqn.2019-06.com.bennythink:server</p>
-<h1 id="把上一步拿到的iqn写到这里"><a href="#把上一步拿到的iqn写到这里" class="headerlink" title="把上一步拿到的iqn写到这里"></a>把上一步拿到的iqn写到这里</h1><p>root@client:~# iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal server:3260 –login<br>Logging in to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] (multiple)<br>Login to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] successful.</p>
-<p>此时就应该多出来一个<code>/dev/sdb</code>了</p>
-<h4 id="分区、格式化与挂载"><a href="#分区、格式化与挂载" class="headerlink" title="分区、格式化与挂载"></a>分区、格式化与挂载</h4><p>使用fdisk对sdb进行分区，这里想怎么分都行，我就直接都分一个主分区了</p>
-<p>root@client:~# fdisk &#x2F;dev&#x2F;sdb<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.<br>Device does not contain a recognized partition table.<br>Created a new DOS disklabel with disk identifier 0x2afb442f.</p>
-<p>Command (m for help): n<br>Partition type<br>p primary (0 primary, 0 extended, 4 free)<br>e extended (container for logical partitions)<br>Select (default p):<br>Using default response p.<br>Partition number (1-4, default 1):<br>First sector (8192-2097151, default 8192):<br>Last sector, +sectors or +size{K,M,G,T,P} (8192-2097151, default 2097151):<br>Created a new partition 1 of type ‘Linux’ and of size 1020 MiB.</p>
-<p>Command (m for help): w<br>The partition table has been altered.<br>Calling ioctl() to re-read partition table.<br>Syncing disks.</p>
-<p>进行格式化、挂载</p>
-<p>mkfs.ext4 &#x2F;dev&#x2F;sdb1<br>mount &#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data&#x2F;</p>
-<p><img src="/images/2019062307425926.png"></p>
-<h4 id="重启之后自动挂载"><a href="#重启之后自动挂载" class="headerlink" title="重启之后自动挂载"></a>重启之后自动挂载</h4><p>为了确保重启之后自动挂载，我们需要更改fstab</p>
-<p>&#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data ext4 defaults,_netdev 0 0</p>
-<h3 id="安全使用iSCSI"><a href="#安全使用iSCSI" class="headerlink" title="安全使用iSCSI"></a>安全使用iSCSI</h3><p>由于iSCSI的传输数据的过程并不是加密的，所以如果跨公网使用，给人的感觉总是不好。为了解决这一问题，我们可以在客户端挂个VPN到服务端，可以用SSH隧道，可以用IPSec保护iSCSI，也可以加密sdb（比如用LUKS、VeraCrypt等呗）</p>
-<p>咱这里就开个SSH隧道吧！要在<strong>配置客户端之前</strong>做好哦</p>
-<p>修改服务端配置<code>vim /etc/ssh/sshd_config</code>，修改如下配置</p>
-<p>PermitTunnel yes</p>
-<p>然后重启sshd</p>
-<p>systemctl restart sshd</p>
-<p>然后输入如下命令，其中<code>root@server</code>替换成自己的服务器</p>
-<p>sudo -E \<br>  ssh -F &#x2F;dev&#x2F;null \<br>  -o PermitLocalCommand&#x3D;yes \<br>  -o LocalCommand&#x3D;”ifconfig tun0 172.18.0.2 pointopoint 172.18.0.1 netmask 255.255.255.0” \<br>  -o ServerAliveInterval&#x3D;60 \<br>  -w 0:0 root@server \<br>  ‘sudo ifconfig tun0 172.18.0.1 pointopoint 172.18.0.2 netmask 255.255.255.0; hostname; echo tun0 ready’</p>
-<p>之后再开一个窗口，discover &amp; login</p>
-<p>iscsiadm –mode discoverydb –type sendtargets –portal 172.18.0.1 –discover<br>iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal 172.18.0.1:3260 –login</p>
-<p>当然理想方式是用key，然后systemd管这个SSH Tunnel啦！</p>
-<p>(′д｀ )…彡…彡还是<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">用wireguard</a>吧</p>
-<h3 id="iSCSI空间不够了怎么办"><a href="#iSCSI空间不够了怎么办" class="headerlink" title="iSCSI空间不够了怎么办"></a>iSCSI空间不够了怎么办</h3><p>还记得我们是使用的Logical Volume创建的吗！此时只需要<code>lvextend -L 10G /dev/idata/iscsi_data</code>就可以把分区调整为10G，然后客户端那边fdisk就能看见</p>
-<p> </p>
-<h2 id="其他类似技术"><a href="#其他类似技术" class="headerlink" title="其他类似技术"></a>其他类似技术</h2><h3 id="NFS、Samba"><a href="#NFS、Samba" class="headerlink" title="NFS、Samba"></a>NFS、Samba</h3><p>同理?</p>
-<h3 id="GlusterFS"><a href="#GlusterFS" class="headerlink" title="GlusterFS"></a>GlusterFS</h3><p>萌新不懂，萌新瑟瑟发抖</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>折腾一大圈，不还是得买大盘鸡吗?还不是贫穷限制了我的想象力</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/06/23/vps-more-disk/index/" data-id="clhp7rtmx00axs2qrev3d07vv" data-title="vps硬盘不够了怎么办" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-rhce-value/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/06/20/rhce-value/index/" class="article-date">
-  <time class="dt-published" datetime="2019-06-20T00:00:00.000Z" itemprop="datePublished">2019-06-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/06/20/rhce-value/index/">RHCE证书含金量高吗</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>小葵花妈妈课堂开课啦！</p>
-<p>经过一小段时间的艰苦奋斗，俺终于拿下了RHCE&amp;RHCSA认证。那么，这东西有什么用呢？</p>
-<p><img src="/images/2019062013564551.jpeg"></p>
-<h2 id="太长不看版"><a href="#太长不看版" class="headerlink" title="太长不看版"></a>太长不看版</h2><p>含金量没有想象中的那么高，是一块敲门砖，写在简历上会比较出彩，能够证明在考试这段时间比较努力。其余的估计没有什么了。</p>
-<p>Okay, let’s track this from the beginning</p>
-<h2 id="RHCSA-amp-RHCE课程"><a href="#RHCSA-amp-RHCE课程" class="headerlink" title="RHCSA&amp;RHCE课程"></a>RHCSA&amp;RHCE课程</h2><p>首先，红帽认证是不接受个人考试报名的，所以一般要考的话都要找培训机构报名。</p>
-<p>按照我这里的安排，RHCSA上了6天，RHCE上了8天，考试前有考前辅导。</p>
-<p>(′д｀ )…彡…彡 不过，俺比较喜欢逃课，所以这14天的课估计也就上了5天吧。</p>
-<p>至于RHCSA&amp;RHCE培训+报名一共需要多少钱，这俺就不清楚了……</p>
-<h2 id="考试题目"><a href="#考试题目" class="headerlink" title="考试题目"></a>考试题目</h2><p>基本上网上一搜，能看到的题目都差不多是真题。考试满分300，拿到210（70%）就算通过。</p>
-<p>RHCSA涉及到配置用户账户、配置文件目录权限、LDAP、逻辑卷、Autofs等非常基础的内容；</p>
-<p>RHCE主要就是各种服务的配置，包括NFS、Samba、Apache、MariaDB、iSCSI，以及链路聚合、端口转发什么的。</p>
-<p>总体考试难度不大，考前稍微认真的多练习练习，高分通过还是可以保证的，零基础都能通过的那种哦。作为多年Linux老司机的我，自然是驾轻就熟了ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛</p>
-<p>我相信在座的各位，稍微准备一下，应该问题不大。</p>
-<h2 id="证书的含金量"><a href="#证书的含金量" class="headerlink" title="证书的含金量"></a>证书的含金量</h2><p>可能由于博主比较年轻（因此还是萌新），据称早期RHCE证书的含金量还是比较高的。但是就现在这个情况来说，我感觉RHCE证书的含金量不算太高。</p>
-<p>实际上，在RHCE&amp;RHCSA考试中遇到的内容都是比较局限的。由于应试的因素，考前往往是有题库的，题库是基本固定不变的，因此解决方案也是固定的，这也就导致造成了考前只需要努力按照题库练习，考试就基本会通过的局面。</p>
-<p>而在真正应用Linux时，所遇到的问题往往是花样比较多，而且没有固定套路的。举个例子，通过了RHCE认证的你，如果遇到下列问题，会怎样解决呢？</p>
-<ul>
-<li>在物理机上安装某个发行版</li>
-<li>在物理机上安装Windows+Linux双系统，甚至是三系统</li>
-<li>查看当前的出网、入网速度</li>
-<li>查看每日、每周的网卡流量信息</li>
-<li>查看本机的硬件信息，如CPU、RAM、硬盘等</li>
-<li>grub rescue修复，修改grub配置</li>
-<li>性能优化，内核参数微调</li>
-<li>持久运行一个程序（关了终端不会退出）</li>
-<li>搭建一个网站，申请SSL证书……</li>
-<li>配置一个用户，只可以用过密钥登录，可以sudo</li>
-<li>配置目录与文件权限</li>
-<li>备份数据到其他服务器，备份到Google Drive，S3等</li>
-<li>扫描一下指定网段有哪些存活的主机</li>
-<li>判断某服务器是否可达</li>
-<li>搭个代理，包括OpenVPN，L2TP，Shadowsocks等</li>
-<li>SSH打洞做跳板</li>
-<li>安装Google Chrome</li>
-<li>安装或配置中文输入法</li>
-<li>根据PID得知这个进程所对应的文件的路径、进程所访问的文件</li>
-<li>配置EPEL源</li>
-<li>command systemctl not found，怎么管理各种服务</li>
-<li>想换个shell，怎么换</li>
-</ul>
-<h2 id="考试与实际的差别"><a href="#考试与实际的差别" class="headerlink" title="考试与实际的差别"></a>考试与实际的差别</h2><p>在RCHSA的试题中，有一道题大概是这样的：</p>
-<p>一个名为 sysadms 的组</p>
-<p>一个名为 natasha 的用户，其属于 sysadms ，这个组是该用户的从属组</p>
-<p>一个名为 harry 的用户，属于 sysadms ，这个组是该用户的从属组</p>
-<p>一个名为 sarah 的用户，其在系统中没有可交互的 shell，并且该用户不是 sysadms 组的成员</p>
-<p>大家都知道，这基本上就是送分题</p>
-<p>groupadd sysadms<br>useradd natasha –G sysadms</p>
-<p>基本上这样就够了。但是在实际中，组与用户的关系，如何巧妙的利用文件和目录的组权限，估计很大程度上都会一脸茫然了吧？毕竟对于考试来说，只需要根据题库练习好了，基本上就是依样画葫芦。至于为什么要这样做，往往是不明不白的。</p>
-<p>再看RHCE的一道题，配置SSH访问。也是接近送分题。</p>
-<p>很幸运的是，考试时使用的RHEL是默认开启sshd服务的。但是有些情况下（比如桌面版，嵌入式版），那么默认可能是没装ssh服务的。怎么装怎么启动？sshd和ssh有什么区别？</p>
-<p>再比如，Linux发行版众多，每个发行版之间可能会有比较大的差距。比如最重要的包管理器，Debian系的dpkg&#x2F;apt和RHEL系的rpm&#x2F;yum；RHEL系一般会带SELinux，但Debian系往往默认都不带SELinux；RHEL系一般使用firewalld，而Debian系使用ufw。</p>
-<p>如果只是专注于考试的话，那么会不会出现换个发行版就不会用了的情况呢？</p>
-<h2 id="评分脚本"><a href="#评分脚本" class="headerlink" title="评分脚本"></a>评分脚本</h2><p>像红帽这种纯操作的考试，实际上还有一个很严肃的问题就是如何进行评分？毫无疑问的是RedHat肯定是使用了脚本去搜集、评分，但是脚本究竟是如何处理的那估计就是商业机密了——是只看过程，还是只看结果，还是二者都看？对于同一个问题，如禁止某个域访问，往往有很多解决方式，究竟该如何验证才能保证不错判也不漏判呢？</p>
-<h2 id="RHCE证书有用吗"><a href="#RHCE证书有用吗" class="headerlink" title="RHCE证书有用吗"></a>RHCE证书有用吗</h2><p>从求职面试的角度来看，简历上如果有证书认证，是比较能抓人眼球的，可以认为是敲门砖；但是实际应用时，考试中的那些操作往往都是无法应用的。当然了，如果面试的是运维、运维开发相关的岗位，那么红帽认证的重要性会提高一点。</p>
-<p>即考下来了RHCE，但是在实际生活与工作中却并没有应用，那么实际上这个证书就无法证明任何价值，分分钟被问懵，考下来RHCE并不证明你具备实践能力，</p>
-<p>就好比一年前我考的CCNA一样，你现在问我生成树协议的具体原理、OSPF的原理，我都说不明白呢。</p>
-<p>对于在职的运维工程师来说，除了可能涨工资评职称之外，对于技术水平的提高几乎没有什么用处；对于有意转运维相关的岗位，写在简历上还是能有点高亮的。</p>
-<p>与语言等级考试（四六级、日语二级等）不同的是，语言等级考试往往需要比较长时间的准备，即使是在应试体制下，也或多或少会沉淀出一点真才实学。</p>
-<p>对于我来说，没啥用，但是你懂的，除了在简历中写上通过了RHCE考试，让面试官眼前一亮（仅限三年）</p>
-<h2 id="Linux究竟该怎么学"><a href="#Linux究竟该怎么学" class="headerlink" title="Linux究竟该怎么学"></a>Linux究竟该怎么学</h2><p>Linux就该这么学</p>
-<p>以我个人的经验来说说，最适合初学者的书籍一定是鸟哥的《鸟哥的Linux私房菜》之《基础学习篇》+《服务器架设篇》，书有点厚，现在应该是出到了第四版。鸟哥的风格比较幽默，很容易理解各种基础概念。</p>
-<p>另外有一本《Linux命令行与shell脚本编程大全》也是非常不错的学习资料。</p>
-<p>至于选择什么发行版，萝卜青菜各有所爱嘛。万一不喜欢，也可以这样：</p>
-<p><img src="/images/2019062013564998.png"></p>
-<p>来源 <a target="_blank" rel="noopener" href="https://twitter.com/crsm855/status/1139791312843001857?s=19">crsm855</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/06/20/rhce-value/index/" data-id="clhp7rtik007ns2qre6mgh9l3" data-title="RHCE证书含金量高吗" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-git-pi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/04/27/git-pi/index/" class="article-date">
-  <time class="dt-published" datetime="2019-04-27T00:00:00.000Z" itemprop="datePublished">2019-04-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/04/27/git-pi/index/">在树莓派上搭建一个git服务器</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>树莓派虽说小，但是性能……也差啊！</p>
-<p>开源的git实现有很多，gitlab community算是一种，但是对硬件要求有点高，这里我使用了<a target="_blank" rel="noopener" href="https://nova.moe/">nova</a>推荐的<a target="_blank" rel="noopener" href="https://gogs.io/">g</a><a target="_blank" rel="noopener" href="https://gogs.io/">ogs</a>，gogs是用golang写的，足够轻量级，足够让我瞎玩……</p>
-<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>一只不可以吃的树莓派</p>
-<p>数据库：MySQL&gt;&#x3D;5.7，PosgreSQL、MSSQL、TiDB</p>
-<p>由于我选择了MySQL，而Raspbian的源里似乎只有5.5的，所以只能自己编译一个5.7的啦……耗时N小时……当然啦有预编译好的deb，当然啦非得用5.5也是没关系的！</p>
-<h2 id="下载配置gogs"><a href="#下载配置gogs" class="headerlink" title="下载配置gogs"></a>下载配置gogs</h2><p># 创建一个git用户，专门用于运行该服务<br>useradd git -s &#x2F;bin&#x2F;bash -m -d &#x2F;home&#x2F;GitServer</p>
-<h1 id="为了方便管理，切换到该目录"><a href="#为了方便管理，切换到该目录" class="headerlink" title="为了方便管理，切换到该目录"></a>为了方便管理，切换到该目录</h1><p>cd &#x2F;home&#x2F;GitServer</p>
-<h1 id="切换到该用户"><a href="#切换到该用户" class="headerlink" title="切换到该用户"></a>切换到该用户</h1><p>su git</p>
-<h1 id="下载二进制并解压缩"><a href="#下载二进制并解压缩" class="headerlink" title="下载二进制并解压缩"></a>下载二进制并解压缩</h1><p>wget –c <a target="_blank" rel="noopener" href="https://dl.gogs.io/0.11.86/gogs/_0.11.86/_raspi2/_armv6.zip">https://dl.gogs.io/0.11.86/gogs\_0.11.86\_raspi2\_armv6.zip</a><br>unzip gogs_0.11.86_raspi2_armv6.zip<br>cd gogs</p>
-<h1 id="运行服务"><a href="#运行服务" class="headerlink" title="运行服务"></a>运行服务</h1><p>.&#x2F;gogs web</p>
-<p>打开浏览器，http:&#x2F;&#x2F;树莓派IP:3000，会进入如下页面</p>
-<p><img src="/images/2019042713050674.png"></p>
-<p>此时如果你使用的是MySQL5.7以下版本，创建一个字符集是utf-8的数据库</p>
-<p>CREATE DATABASE gogs DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci</p>
-<p>5.7及以上直接创建就好了</p>
-<p>其中域名和应用url两项需要填写你的域名（或者是树莓派IP）</p>
-<p><img src="/images/2019042713050763.png"></p>
-<p>之后第一个注册的用户会是管理员用户。管你是screen还是nohup还是supervisor的。</p>
-<h2 id="监听本机"><a href="#监听本机" class="headerlink" title="监听本机"></a>监听本机</h2><p>vim &#x2F;home&#x2F;GitServer&#x2F;gogs&#x2F;custom&#x2F;conf&#x2F;app.ini</p>
-<p>在<code>HTTP_PORT</code>下添加一行</p>
-<p>HTTP_ADDR&#x3D;127.0.0.1</p>
-<h2 id="Nginx-反代配置"><a href="#Nginx-反代配置" class="headerlink" title="Nginx 反代配置"></a>Nginx 反代配置</h2><p>对应的server段添加如下信息就可以了</p>
-<p>location &#x2F; {<br>proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3000/">http://127.0.0.1:3000</a>; # 对应服务<br>}</p>
-<p>完整配置文件<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/blob/master/TLS/gitconfig.nginx">戳这里</a></p>
-<h2 id="systemd配置"><a href="#systemd配置" class="headerlink" title="systemd配置"></a>systemd配置</h2><p>接上，我们需要更改git用户的shell</p>
-<p>usermod git -s &#x2F;usr&#x2F;sbin&#x2F;nologin</p>
-<p>之后交给systemd启动就好了</p>
-<p>[Unit]<br>Description&#x3D;Benny’s Personal Git Server<br>After&#x3D;syslog.target<br>After&#x3D;network.target</p>
-<p>[Service]<br>Type&#x3D;simple<br>User&#x3D;git<br>Group&#x3D;git<br>WorkingDirectory&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs<br>ExecStart&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs&#x2F;gogs web<br>Restart&#x3D;on-failure<br>Environment&#x3D;USER&#x3D;git HOME&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer</p>
-<p>ProtectSystem&#x3D;full<br>PrivateDevices&#x3D;yes<br>PrivateTmp&#x3D;yes<br>NoNewPrivileges&#x3D;true</p>
-<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
-<p><img src="/images/2019042713050811.png"></p>
-<p>Yeah~~</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service">https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service</a></p>
-<p><a target="_blank" rel="noopener" href="https://gogs.io/docs/intro/faqs">https://gogs.io/docs/intro/faqs</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/04/27/git-pi/index/" data-id="clhp7rtgd0034s2qr02dgahza" data-title="在树莓派上搭建一个git服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1141,7 +1174,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1154,23 +1187,23 @@
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

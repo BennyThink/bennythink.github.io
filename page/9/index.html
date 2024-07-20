@@ -73,6 +73,633 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-vbox-ping/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/08/09/vbox-ping/index/" class="article-date">
+  <time class="dt-published" datetime="2019-08-09T00:00:00.000Z" itemprop="datePublished">2019-08-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/08/09/vbox-ping/index/">VirtualBox上的虚拟机无法被ping</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前段时间在Ubuntu上装了VirtualBox，VirtualBox里装了个Windows，桥接了无线网卡。</p>
+<p>然后发现我的电脑总是无故无法访问虚拟机。于是用电脑去ping，竟然不通；但是宿主机和路由器去ping都是通的。</p>
+<p>怀疑是防火墙的原因，于是我把电脑和虚拟机的防火墙全关了，还是不通。然后我虚拟机ping我电脑，第一个包丢了，然后通，我电脑也几乎立刻显示通，然后通一小会之后随着虚拟机ping结束，我电脑不通了。</p>
+<p>但是我用国外&#x2F;国内的的IPv6服务器去ping虚拟机的v6 ，竟然通！但是本机同网络的其他非宿主机、路由器，怎么ping都不通……</p>
+<p>感觉这就像是虚拟机用ping打开一个时光隧道，然后瞬间通了几个包。</p>
+<p>有时也偶尔存在通的情况，但是过一会一定就会不通了的。</p>
+<hr>
+<p>大致情况如下视频，上面的那俩是宿主机和路由器，始终能通，左下角是虚拟机，右下角是树莓派</p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="https://youtu.be/aFI1d89RQO0">https://youtu.be/aFI1d89RQO0</a></p>
+<hr>
+<p>已经尝试的排查法：</p>
+<ul>
+<li>VirtualBox开混杂模式，没有效果</li>
+<li>Windows的VMWare桥接，直接就是通的</li>
+<li>macOS&#x2F;Windows的VirtualBox桥接，直接就是通的</li>
+<li>宿主机和虚拟机都没开任何防火墙</li>
+</ul>
+<hr>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1155492458915983361?s=20">https://twitter.com/BennyThinks/status/1155492458915983361?s=20</a></p>
+<p>有人知道为什么咩？宿主机的无线网卡是BCM43455，难道是VirtualBox不太兼容这个网卡？</p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>问题解决了，确实是网卡兼容性问题，换个网卡就好了????</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/08/09/vbox-ping/index/" data-id="clhp7rtmw00ars2qraypwf32a" data-title="VirtualBox上的虚拟机无法被ping" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-grafana-influxdb-telegraf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/07/07/grafana-influxdb-telegraf/index/" class="article-date">
+  <time class="dt-published" datetime="2019-07-07T00:00:00.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/07/07/grafana-influxdb-telegraf/index/">使用grafana+influxdb+telegraf安全的搭建一个监控平台</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>作为一只有很多服务器的萌新，实时掌握服务器的状态是非常必须的。</p>
+<p>前段时间，由于<a target="_blank" rel="noopener" href="https://nodequery.com/">NodeQuery</a>出问题了，于是就想着换一个监控平台。当然在移除nq-agent的时候<a target="_blank" rel="noopener" href="https://dmesg.app/rm-etc.html">就手抖给&#x2F;etc删除了</a>。</p>
+<p>那么今天就来记录一下如何搭建一个中心化的监控平台。</p>
+<h2 id="一些概念的明确"><a href="#一些概念的明确" class="headerlink" title="一些概念的明确"></a>一些概念的明确</h2><p>既然要监控服务器，那么必然要有一个程序运行在服务器上，这个我们一般称作agent，在我们这里就是telegraf；另外一个负责解析，存储，展示数据的，在我们这里就是InfluxDB存储，grafana展示解析数据。</p>
+<p>如果使用zabbix的话，那么zabbix-agent就充当了采集器，zabbix-server和zabbix-frontend就充当了解析展示数据的。（zabbix太丑了，模板不会配……）</p>
+<h2 id="架构的设计"><a href="#架构的设计" class="headerlink" title="架构的设计"></a>架构的设计</h2><p>由于需要监控多台服务器，那么架构的设计也是一个问题，对于需要跨公网而不是全内网的情况来说，有这样两种思路：</p>
+<ul>
+<li>被动模式：采集器收集数据，发送给server，这种架构要求server必须有公网IP</li>
+<li>主动模式：采集器只是运行，由server主动访问采集器获得数据，这就需要所有的agent必须有公网IP</li>
+</ul>
+<p>对于被动模式，使用Telegraf+InfluxDB+Grafana是比较好的选择，只需要将InfluxDB部署在具有公网IP的服务器上就可以了，其他服务器是否具有公网IP并不重要。</p>
+<p>对于主动模式，使用node exporter+Prometheus+Grafana是比较合适的。</p>
+<p>对于两种都想要的呢！zabbix啊，主动被动都支持，就是有点丑(′д｀ )…彡…彡</p>
+<p>所以总体的架构就是：</p>
+<p>Telegraf –&gt; InfluxDB &lt;–&gt; Grafana</p>
+<h2 id="安全性的考虑"><a href="#安全性的考虑" class="headerlink" title="安全性的考虑"></a>安全性的考虑</h2><p>由于数据需要跨公网传输，那么安全性上的考虑就是必不可少的了。那么这个问题怎么解决呢？</p>
+<h3 id="加密，认证，授权"><a href="#加密，认证，授权" class="headerlink" title="加密，认证，授权"></a>加密，认证，授权</h3><p>在我们这种情景下，与InfluxDB之间的通信至少也要实现加密、认证的。</p>
+<p>加密意味着与InfluxDB之间的通信是安全的，其他人无法解密，<strong>这一点在跨公网传输的时候是必不可少的</strong>；</p>
+<p>认证意味着只有特定身份的用户才可以访问数据，比如输入了正确的用户名和密码才可以访问；</p>
+<p>授权意味着，你这个用户可以干什么事情，是只能查询还是什么都能干。</p>
+<p>为了实现加密，我们可以使用TLS那一套，这一点就很好理解了，TLS就是天生干这事的嘛。</p>
+<p>为了实现认证与授权，我们可以使用HTTP Basic Auth，创建一套用户名密码。</p>
+<h3 id="防火墙的保护"><a href="#防火墙的保护" class="headerlink" title="防火墙的保护"></a>防火墙的保护</h3><p>除了以上操作之外，使用防火墙限制访问数据库的源IP也是一种补充方法。当然了加密是必不可少的。除此之外，还有一些方法，比如TLS客户端证书等等。</p>
+<h3 id="大内网"><a href="#大内网" class="headerlink" title="大内网"></a>大内网</h3><p>有些时候配置上面这些太麻烦了，那么还有一个思路就是组建大内网！可以考虑用WireGuard、OpenVPN甚至是SSH隧道试试看。</p>
+<p>不过也有缺点，一是如果服务器是海外的，那么由于GFW的存在，可能有点不太友好；二是可能不太好配，尤其是OpenVPN，一不小心就全局了。</p>
+<h2 id="部署与配置"><a href="#部署与配置" class="headerlink" title="部署与配置"></a>部署与配置</h2><p>下面就简单说说如何安全的配置这么一套平台</p>
+<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
+<p>从页面上选择适合你的操作系统的版本，对于我使用的Ubuntu来说，使用这个就可以了</p>
+<p>wget <a target="_blank" rel="noopener" href="https://dl.influxdata.com/influxdb/releases/influxdb/_1.7.7/_amd64.deb">https://dl.influxdata.com/influxdb/releases/influxdb\_1.7.7\_amd64.deb</a><br>sudo dpkg -i influxdb_1.7.7_amd64.deb</p>
+<h3 id="配置SSL"><a href="#配置SSL" class="headerlink" title="配置SSL"></a>配置SSL</h3><p>这一步我们可以使用openssl自签名的证书，也可以使用Let’s Encrypt申请一个真正的证书（这就需要弄个域名啦）</p>
+<p>以自签名证书来说</p>
+<p>sudo openssl req -x509 -nodes -newkey rsa:2048 -keyout &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key -out &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt -days 3650<br>chown influxdb:influxdb &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.*</p>
+<p>修改配置文件 <code>/etc/influxdb/influxdb.conf</code>，需要更改三处</p>
+<p>https-enabled &#x3D; true</p>
+<p>https-certificate &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt”<br>https-private-key &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key”</p>
+<p>如果使用Let’s Encrypt的话，<code>https-certificate</code>改为<code>fullchain.pem</code>的路径，<code>https-private-key</code>改为<code>privkey.key</code>的路径，注意下权限就可以了。</p>
+<p>然后重启</p>
+<p>sudo systemctl restart influxdb</p>
+<p>验证</p>
+<p>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</p>
+<h3 id="配置认证与授权"><a href="#配置认证与授权" class="headerlink" title="配置认证与授权"></a>配置认证与授权</h3><p>创建一个管理员用户</p>
+<p>使用上述<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器</p>
+<p>CREATE USER paul WITH PASSWORD ‘timeseries4days’ WITH ALL PRIVILEGES</p>
+<p>开启认证</p>
+<p>修改配置文件<code>/etc/influxdb/influxdb.conf</code></p>
+<p>auth-enabled &#x3D; true</p>
+<p>重启进程</p>
+<p>sudo systemctl restart influxdb</p>
+<p>此时再使用<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器，<code>show databases</code>就会报错，只有auth之后才可以</p>
+<h2 id="Telegraf"><a href="#Telegraf" class="headerlink" title="Telegraf"></a>Telegraf</h2><p><a target="_blank" rel="noopener" href="https://github.com/influxdata/telegraf/releases">https://github.com/influxdata/telegraf/releases</a></p>
+<p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
+<p>从以上网址下载对应你的操作系统版本的Telegraf，然后安装（armhf对应树莓派）</p>
+<h3 id="配置数据库服务器"><a href="#配置数据库服务器" class="headerlink" title="配置数据库服务器"></a>配置数据库服务器</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code>，找到urls&#x3D;…，改成https就好了</p>
+<p>urls &#x3D; [“https:&#x2F;&#x2F;&lt;domain_name&gt;.com:8086”]<br>database &#x3D; “telegraf”</p>
+<p>需要注意的是，如果使用的是自签名证书，那么<code>insecure_skip_verify = true</code>也要配置</p>
+<h3 id="配置认证"><a href="#配置认证" class="headerlink" title="配置认证"></a>配置认证</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code></p>
+<p>根据上面配置的进行适当更改</p>
+<p>timeout &#x3D; “5s”</p>
+<p>username &#x3D; “telegraf” #?<br>password &#x3D; “metricsmetricsmetricsmetrics” #?</p>
+<h3 id="配置采集内容"><a href="#配置采集内容" class="headerlink" title="配置采集内容"></a>配置采集内容</h3><p>把这些追加到telegraf.conf末尾就可以了</p>
+<p>[[inputs.cpu]]<br>percpu &#x3D; true<br>totalcpu &#x3D; true<br>collect_cpu_time &#x3D; false<br>report_active &#x3D; false<br>[[inputs.disk]]<br>ignore_fs &#x3D; [“tmpfs”, “devtmpfs”, “devfs”]<br>[[inputs.io]]<br>[[inputs.mem]]<br>[[inputs.net]]<br>[[inputs.system]]<br>[[inputs.swap]]<br>[[inputs.netstat]]<br>[[inputs.processes]]<br>[[inputs.kernel]]</p>
+<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><p><a target="_blank" rel="noopener" href="https://grafana.com/grafana/download">https://grafana.com/grafana/download</a></p>
+<p>同样下载安装适合自己平台的程序</p>
+<p>然后<a target="_blank" rel="noopener" href="http://ip:3000/">http://ip:3000</a></p>
+<p>默认的用户名密码是admin、admin</p>
+<p>Add datasource选择influxdb，按照如下图所示配置</p>
+<p><img src="/images/2019070704385117.png"></p>
+<h3 id="导入dashboard"><a href="#导入dashboard" class="headerlink" title="导入dashboard"></a>导入dashboard</h3><p>导入这个dashboard</p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
+<p><img src="/images/2019070704385269.png"></p>
+<p>之后保存就可以看到结果啦！</p>
+<p><img src="/images/2019070704385387.png"></p>
+<h2 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h2><h3 id="配置防火墙"><a href="#配置防火墙" class="headerlink" title="配置防火墙"></a>配置防火墙</h3><p>只允许某个IP访问8086</p>
+<p>ufw allow from xx.xx.xx.xx to any port 8086</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/https_setup/">https://docs.influxdata.com/influxdb/v1.7/administration/https_setup&#x2F;</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization/">https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization&#x2F;</a></p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dfd329d30891">https://www.jianshu.com/p/dfd329d30891</a></p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/docs/installation/behind_proxy/">https://grafana.com/docs/installation/behind_proxy&#x2F;</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/07/07/grafana-influxdb-telegraf/index/" data-id="clhp7rtgg003bs2qrelrad0no" data-title="使用grafana+influxdb+telegraf安全的搭建一个监控平台" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rm-etc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/06/27/rm-etc/index/" class="article-date">
+  <time class="dt-published" datetime="2019-06-27T00:00:00.000Z" itemprop="datePublished">2019-06-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/06/27/rm-etc/index/">手一抖，我删除了etc目录</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>我死了之后 会变成那些星星吗？ 你想变成星星吗？ 想啊，因为我的家人都在那里 这样啊 真想变成美丽的星星 想变成星星的话…必须先好好地活着才行啊 什么是「活着」？ 活着，就是怀抱希望的意思 希望？ 人若是失去了希望 就无法活下去 如果连希望本身都消失了呢？ 希望不会消失的 是人们变得看不见希望而已</p>
+</blockquote>
+<p>不干了，我开除了黑心公司。不好意思，走错片场了。我不是不干了，我没有开除了黑心公司。我是手一抖，删除了<code>/etc</code>目录……</p>
+<h2 id="嗯？？"><a href="#嗯？？" class="headerlink" title="嗯？？"></a>嗯？？</h2><p>作为一名Linux老司机，我经常自吹自擂拥有n年Linux使用经验，root敢死队从未翻车过。实际上，除了n年前凌晨三四点重装服务器时忘记备份数据库之外，我还真没翻车过。</p>
+<p>然而这次，小手一抖……</p>
+<p>事情是这样的，nodequery挂了，我寻思着换一个监控服务，那就要先把原来的监控脚本删掉，可是我这么懒，又删除用户删除crontab删除文件的，我就直接<a target="_blank" rel="noopener" href="https://www.moerats.com/archives/568/">在网上找了下</a>删除的命令：</p>
+<p>root@abcdef:~# rm -R &#x2F; etc &#x2F; nodequery &amp;&amp;（crontab -u nodequery -l | grep -v“&#x2F;etc&#x2F;nodequery&#x2F;nq-agent.sh”）| crontab -u nodequery  - &amp;&amp;  userdel nodequery</p>
+<p>rm: it is dangerous to operate recursively on ‘&#x2F;‘<br>rm: use –no-preserve-root to override this failsafe<br>rm: cannot remove ‘etc’: No such file or directory<br>rm: it is dangerous to operate recursively on ‘&#x2F;‘<br>rm: use –no-preserve-root to override this failsafe<br>rm: cannot remove ‘nodequery’: No such file or directory</p>
+<p>我这一看，报错了，哎哟啊前面怎么有个空格呢，啊这样</p>
+<p>root@abcdef:~# rm -R &#x2F;etc&#x2F; nodequery &amp;&amp;（crontab -u nodequery -l | grep -v“&#x2F;etc&#x2F;nodequery&#x2F;nq-agent.sh”）| crontab -u nodequery - &amp;&amp; userdel nodequery</p>
+<p>rm: cannot remove ‘nodequery’: No such file or directory</p>
+<p>好像没问题了，确认一下crontab已经没了吧！</p>
+<p>root@abcdef:~# crontab -l</p>
+<p>crontab: your UID isn’t in the passwd file.<br>bailing out.</p>
+<p>哎哟我去？我的UID不在passwd里？什么，卧槽卧槽卧槽……</p>
+<p>事情就是这么个事情，经过就是这么个经过，<code>/etc</code>目录被我干掉了！(╯‵□′)╯︵┻━┻</p>
+<h2 id="没了-x2F-etc会怎样"><a href="#没了-x2F-etc会怎样" class="headerlink" title="没了&#x2F;etc会怎样"></a>没了&#x2F;etc会怎样</h2><p>首先系统的各种配置是没了，ssh肯定也登不上去，因为sshd要检查<code>/etc/ssh/sshd_config</code>的配置的。别想了，VNC也不好用。此时这台服务器就像是行尸走肉一样……</p>
+<p>但是好消息是，Nginx，PHP和MySQL还是运行着的，虽说Let’s Encrypt证书也丢了，但是Nginx还缓存着，所以网站其实还活着。</p>
+<p>还有一个更好的消息，当前的shell还在！这个shell是我唯一的机会！别断网别断网就好……</p>
+<h2 id="备份、转移"><a href="#备份、转移" class="headerlink" title="备份、转移"></a>备份、转移</h2><p>这台服务器的用途比较单一，更可怕的是，<strong>主人还不是我</strong>，天啊我也会做出传说中删库跑路的事情吗！</p>
+<p>冷静了几秒钟之后，趁着没断网赶紧打包备份网站文件，导出数据库，大不了重装。</p>
+<p>文件打包完了，scp发给我的另一个服务器吧</p>
+<p>root@abcdef:~# scp 062WARNING:root:could not open file ‘&#x2F;etc&#x2F;apt&#x2F;sources.list’</p>
+<p>Command ‘awk’ not found, but can be installed with:<br>apt install gawk (You will have to enable component called ‘main’)<br>apt install mawk (You will have to enable component called ‘main’)<br>apt install original-awk (You will have to enable component called ‘universe’)<br>7.tgz ^C</p>
+<p>唉？？bash completion也挂了？那我不补全了可以吧</p>
+<p>root@abcdef:~# scp 0627.tgz <a href="mailto:&#114;&#x6f;&#111;&#x74;&#x40;&#97;&#x63;&#x76;&#100;&#x61;&#x2e;&#x6d;&#x65;">&#114;&#x6f;&#111;&#x74;&#x40;&#97;&#x63;&#x76;&#100;&#x61;&#x2e;&#x6d;&#x65;</a>:&#x2F;root</p>
+<p>unknown user 0</p>
+<p>啊对啊，因为sshd凉了，所以依赖于ssh的一些命令，比如scp也凉了……那我SFTP往回下载文件也不行啊……</p>
+<p>啊那我cp到webroot下，另一台服务器赶紧wget，然后删除webroot下的文件……</p>
+<h2 id="死马当活马医"><a href="#死马当活马医" class="headerlink" title="死马当活马医"></a>死马当活马医</h2><p>数据备份好了，那么现在该思考怎么恢复了，不能一辈子不重启，自己也没法ssh啊……赶紧登录下阿里云看看有没有快照——没有哦。</p>
+<p>重装系统？那太麻烦了。本着死马当活马医的思想，试试移花接木吧——我把另一台配置基本一样的服务器的配置拷贝过来看看ssh能不能活。</p>
+<p>于是另一台服务器上</p>
+<p>tar jcpf etc.tgz &#x2F;etc</p>
+<p>一定要记得带p参数，这样才会保持权限。scp不管用，那也放到webroot下，赶紧wget然后删除，然后解压缩……</p>
+<p>新开一个ssh连接，哇，活了……当然了host keys是另一台服务器的，密码也是，主机名也是……这就好像换头术哦！</p>
+<h2 id="篡改记忆"><a href="#篡改记忆" class="headerlink" title="篡改记忆"></a>篡改记忆</h2><p>医学史上换头术难度极高，也可能有一些伦理问题，但是咱这来说，这就像是换了个身体，灵魂还是另一个服务器……还要做一些配置的</p>
+<h3 id="重新生成ssh-host-key"><a href="#重新生成ssh-host-key" class="headerlink" title="重新生成ssh host key"></a>重新生成ssh host key</h3><p>咱着让两台服务器的host key都一样，自己用起来太不好了，所以要重新生成一组</p>
+<p>rm -v &#x2F;etc&#x2F;ssh&#x2F;ssh_host_*<br>dpkg-reconfigure openssh-server</p>
+<h3 id="修改密码"><a href="#修改密码" class="headerlink" title="修改密码"></a>修改密码</h3><p>这点就不用说了</p>
+<h3 id="重新申请SSL证书"><a href="#重新申请SSL证书" class="headerlink" title="重新申请SSL证书"></a>重新申请SSL证书</h3><p>由于整个letsencrypt目录也没了，所以也没办法revoke证书，直接删除<code>/etc/letsencrypt</code>然后<code>apt install certbot</code>，然后再重新申请一个证书好了</p>
+<p><strong>我还是年轻啊，我做完这些的时候我觉得差不多了，就一个reboot重启了。当然了这怎么够啊……fstab呢，网络呢！！很悲剧的，我ssh不上，还好VNC是好用的</strong></p>
+<h3 id="fstab"><a href="#fstab" class="headerlink" title="fstab"></a>fstab</h3><p>于是我VNC登录上，看着这台服务器还叫着别人的名字，唉……</p>
+<p>由于现在大家基本上是用UUID挂载的磁盘，很少有人直接指定设备名了，所以这里肯定有问题啦。解决办法很简单，remount为rw，改一下下</p>
+<p>mount &#x2F;dev&#x2F;vda1 –o remount,rw &#x2F;</p>
+<p>这样根就是可以读写的了，然后看情况更改<code>/etc/fstab</code></p>
+<h3 id="重新配置网络"><a href="#重新配置网络" class="headerlink" title="重新配置网络"></a>重新配置网络</h3><p>另一台服务器使用的是静态IP，这台服务器使用的是DHCP，所以网络是肯定不通的。首先<code>ifconfig</code>确定下我的网卡叫ens3，由于我用的是Ubuntu 18.04，所以要去修改netplan的配置文件<code>/etc/netplan/01-netcfg.yaml</code>，写如下配置：</p>
+<p>network:<br>  version: 2<br>  renderer: networkd<br>  ethernets:<br>    ens3:<br>        dhcp4: true</p>
+<p>确定缩进也没问题，应用下配置</p>
+<p>netplan apply</p>
+<p>之后再curl下，网络通了</p>
+<h3 id="修改主机名"><a href="#修改主机名" class="headerlink" title="修改主机名"></a>修改主机名</h3><p>hostnamectl set-hostname abcde</p>
+<h3 id="检查其他配置与服务"><a href="#检查其他配置与服务" class="headerlink" title="检查其他配置与服务"></a>检查其他配置与服务</h3><p>这点就因人而异啦~</p>
+<h2 id="后遗症"><a href="#后遗症" class="headerlink" title="后遗症"></a>后遗症</h2><p>毕竟咱这个<code>/etc</code>是别人的，所以有些地方肯定是有问题的。比如说……</p>
+<h3 id="文件和目录的所有者可能会改变"><a href="#文件和目录的所有者可能会改变" class="headerlink" title="文件和目录的所有者可能会改变"></a>文件和目录的所有者可能会改变</h3><p>毕竟uid不同，所以遇到这种情况只能手动改改啦</p>
+<h3 id="某些服务可能启动不了"><a href="#某些服务可能启动不了" class="headerlink" title="某些服务可能启动不了"></a>某些服务可能启动不了</h3><p>比如在我这里就是MySQL启动不起来。第一猜想是权限不够？chown了也不对</p>
+<p>后来发现报错mysqld_safe –malloc-lib can not be read and will not be used</p>
+<p>后来发现把<code>my.cnf</code>里的<code>malloc-lib=/usr/lib/libtcmalloc.so</code>注释了就好</p>
+<p>然后突然想起来，这两台服务器似乎是曾经做的主从，于是现在农奴翻身把歌唱，大家都是奴隶了呗？</p>
+<h3 id="断掉的符号链接"><a href="#断掉的符号链接" class="headerlink" title="断掉的符号链接"></a>断掉的符号链接</h3><p>有些<code>/etc</code>里的文件可能是符号链接到其他目录的，那就自己重新弄下吧。</p>
+<h2 id="损失了什么"><a href="#损失了什么" class="headerlink" title="损失了什么"></a>损失了什么</h2><p>在这接近两个小时（15:45-17:55，包括给人送文件和回家路上），总结下来，我只损失了一套SSL证书，大概半小时左右的网站宕机时间。</p>
+<p>当然如果处置得当，宕机时间应该可以保证在一分钟之内的（重启验证是否恢复）。唉，还是年轻啊。</p>
+<h2 id="哦？"><a href="#哦？" class="headerlink" title="哦？"></a>哦？</h2><p>事后回想起来，直接不检查复制粘贴回车别人的命令真的很危险，这还不是恶意的那种，只是写错了，外加我手抖了一下。</p>
+<p>恶意的命令是什么呢？</p>
+<p>有种命令，复制的和粘贴的不一样哦，这个技术叫<a target="_blank" rel="noopener" href="https://github.com/dxa4481/Pastejacking">pastehijack</a>哦。这时候有一个聪明的SSH工具就很重要了。</p>
+<p><img src="/images/201906271148135.png"></p>
+<p>另外还有一种可能，假如我当初在<code>/</code>下，那这条命令一贴——凉凉。</p>
+<p>行了我也不说啥了，不想引战，管他原创不原创转载不转载的，怪我自己粗心了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/06/27/rm-etc/index/" data-id="clhp7rtil007ts2qraxrm6600" data-title="手一抖，我删除了etc目录" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-vps-more-disk/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/06/23/vps-more-disk/index/" class="article-date">
+  <time class="dt-published" datetime="2019-06-23T00:00:00.000Z" itemprop="datePublished">2019-06-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/06/23/vps-more-disk/index/">vps硬盘不够了怎么办</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自从搭建了<a target="_blank" rel="noopener" href="https://gakki.photos/">一个图床</a>之后，我开始发现vps的硬盘空间开始慢慢不够用了。随着时间的增长，上传的图片也越来越多。贫穷总是会限制我的想象力，那么有哪些解决方案呢？</p>
+<h2 id="世界加钱可及"><a href="#世界加钱可及" class="headerlink" title="世界加钱可及"></a>世界加钱可及</h2><h3 id="加钱升级配置"><a href="#加钱升级配置" class="headerlink" title="加钱升级配置"></a>加钱升级配置</h3><p>加钱，去服务商那里升级配置就好了，好多钱钱~</p>
+<h3 id="使用block-storage"><a href="#使用block-storage" class="headerlink" title="使用block storage"></a>使用block storage</h3><p>有些服务商可能提供类似block storage这种存储服务（如vultr、DigitalOcean），那就花钱钱买点，然后挂载上就好了。假如不提供这些服务的话，可以考虑试试<a target="_blank" rel="noopener" href="https://cloud.google.com/storage/?hl=zh-cn">Google Cloud Storage</a>，然后挂载到本地，价格也还是可以接受的~</p>
+<h2 id="使用rclone挂载网络硬盘"><a href="#使用rclone挂载网络硬盘" class="headerlink" title="使用rclone挂载网络硬盘"></a>使用rclone挂载网络硬盘</h2><p>可是我是穷人唉，$1都出不起，那该怎么办呢……可不可以把Google Drive、OneDrive、Dropbox什么的挂载上呢？Google Drive有15G，Dropbox有2G，OneDrive有5G，这加起来就是22G，那就是$2.2呢！</p>
+<p>淘宝花个几块钱扩容什么的，那就是血赚啊！</p>
+<p>rclone挂载Google Drive什么的很容易，有很多人写文件介绍过，比如说<a target="_blank" rel="noopener" href="https://moonagic.com/mount-google-drive-with-rclone/">这篇</a>，只不过有两点需要注意的：</p>
+<p>使用mount挂载之后，这个程序会“阻塞”，另开一个窗口<code>df –h</code>就会发现有了</p>
+<p><img src="/images/2019062307425439.png"></p>
+<p>5T滑稽?</p>
+<p>但是咱也不能一直开着，跑个screen也不好，所以还是写个systemd单元文件吧</p>
+<p>[Unit]<br>Description&#x3D;Google Drive mounter<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
+<p>[Service]<br>Restart&#x3D;on-failure<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;rclone mount gdrive_goldstein:&#x2F; &#x2F;mnt&#x2F;gdrive&#x2F; –allow-non-empty –vfs-cache-mode writes –allow-other</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<p>非常需要注意这个<code>--allow-other</code>参数，如果没有的话，从nginx的webroot下做过来的符号链接www用户无权访问，那就403了哦</p>
+<h2 id="iSCSI"><a href="#iSCSI" class="headerlink" title="iSCSI"></a>iSCSI</h2><p>这网络存储有的时候可能也有点不太够（5T都不够吗？），那该怎么办呢？不如买个大硬盘的vps，然后试试iSCSI！（看来这RHCE是没白考啊ε&#x3D;ε&#x3D;ε&#x3D;(<del>￣▽￣)</del></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/ISCSI">iSCSI是个啥呢？Internet小型计算机系统接口</a>，简单理解就是客户端可以通过网络让自己有&#x2F;dev&#x2F;sd*这样的“真实”的物理设备，然后随便格式化挂载什么的。</p>
+<p>iSCSI一般来说是局域网使用的，一般不会跨公网玩，因为这东西对延迟丢包有点敏感。当然了用是能用的，只不过配置起来有点麻烦，而且传输过程是不加密的。(′д｀ )…彡…彡</p>
+<p>iSCSI传输不是加密的这个消息不太好，但是有一些解决方案的，比如套个IPSec啦，比如走个SSH隧道啦。</p>
+<p>本着灵活应用的道理，咱就来挂载个玩玩……</p>
+<h3 id="概念解析"><a href="#概念解析" class="headerlink" title="概念解析"></a>概念解析</h3><p>target – 理解成服务器；initiator – 理解成客户端</p>
+<h3 id="准备“硬盘”"><a href="#准备“硬盘”" class="headerlink" title="准备“硬盘”"></a>准备“硬盘”</h3><p>对于服务端来说，提供服务的“硬盘”可以选择块设备（硬盘啊，U盘啊什么的），也可以选择文件设备，甚至内存够大做ramdisk都是可以的~</p>
+<p>为了方便扩展，我们这里就做一个逻辑卷，这样以后也可以看心情随时扩容的。</p>
+<p>首先~登录到server，需要进行一下分区，总之就是搞出来一个sdb2这种分区做逻辑卷。使</p>
+<h4 id="分区"><a href="#分区" class="headerlink" title="分区"></a>分区</h4><p>用fdisk进行类似操作：</p>
+<p>root@server:~# fdisk &#x2F;dev&#x2F;sda<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.</p>
+<p>Command (m for help): p<br>Disk &#x2F;dev&#x2F;sda: 20 GiB, 21474836480 bytes, 41943040 sectors<br>Units: sectors of 1 * 512 &#x3D; 512 bytes<br>Sector size (logical&#x2F;physical): 512 bytes &#x2F; 512 bytes<br>I&#x2F;O size (minimum&#x2F;optimal): 512 bytes &#x2F; 512 bytes<br>Disklabel type: gpt<br>Disk identifier: DCBEF2AD-7269-4B63-BA34-AE2F15A6D9F7<br>Device Start End Sectors Size Type<br>&#x2F;dev&#x2F;sda1 2048 4095 2048 1M BIOS boot<br>&#x2F;dev&#x2F;sda2 4096 20975615 20971520 10G Linux filesystem</p>
+<p>Command (m for help): n</p>
+<p>Partition number (3-128, default 3):<br>First sector (20975616-41943006, default 20975616):<br>Last sector, +sectors or +size{K,M,G,T,P} (20975616-41943006, default 41943006):<br>Created a new partition 3 of type ‘Linux filesystem’ and of size 10 GiB.</p>
+<p>Command (m for help): w</p>
+<p>The partition table has been altered.<br>Syncing disks.</p>
+<p>输入<code>partprobe</code>更新分区表，这里新分区为sda3，大小10G</p>
+<h4 id="创建逻辑卷"><a href="#创建逻辑卷" class="headerlink" title="创建逻辑卷"></a>创建逻辑卷</h4><p>root@server:~# pvcreate &#x2F;dev&#x2F;sda3<br>Physical volume “&#x2F;dev&#x2F;sda3” successfully created.</p>
+<p>默认的Volume Group大小是4MiB，当然这个创建vg的时候可以改。</p>
+<p>root@server:~# vgcreate idata &#x2F;dev&#x2F;sda3<br>Volume group “idata” successfully created</p>
+<p>创建Logic Volume的时候，n表示名字；大小方面，可以指定是多少个PE，也可以直接写大小，使用l指定多少个PE，256个也就是1G了，L指定大小，</p>
+<p>root@server:~# lvcreate -n iscsi_data -l 256 idata<br>Logical volume “iscsi_data” created.</p>
+<h1 id="直接指定3G"><a href="#直接指定3G" class="headerlink" title="直接指定3G"></a>直接指定3G</h1><p>root@server:~# lvcreate -n test -L 3G idata<br>Logical volume “test” created.</p>
+<p>查看一下 确定信息无误</p>
+<p>root@server:~# lvdisplay</p>
+<p>— Logical volume —<br>LV Path &#x2F;dev&#x2F;idata&#x2F;iscsi_data<br>LV Name iscsi_data<br>VG Name idata<br>LV UUID ueP2uS-zEOG-6B1q-5GuD-9L5f-1ZyZ-86E4ee<br>LV Write Access read&#x2F;write<br>LV Creation host, time server, 2019-06-23 06:19:06 +0000<br>LV Status available</p>
+<h1 id="open-0"><a href="#open-0" class="headerlink" title="open 0"></a>open 0</h1><p>LV Size 1.00 GiB<br>Current LE 256<br>Segments 1<br>Allocation inherit<br>Read ahead sectors auto</p>
+<ul>
+<li>currently set to 256<br>Block device 253:0</li>
+</ul>
+<p>[v_blue]叮咚提示：</p>
+<p>有些vps上来就是一个&#x2F;，这种情况下根本用不了fdisk给分出来空间的。那咋办呢？有这么几种思路，fileio，livecd用gparted，手动重装系统[&#x2F;v_blue]</p>
+<h3 id="配置target"><a href="#配置target" class="headerlink" title="配置target"></a>配置target</h3><p>就假定服务端和客户端都是Ubuntu 啦，16.04之后应该操作都差不多的</p>
+<p>apt install targetcli-fb</p>
+<p>输入<code>targetcli</code>进入交互页面，输入ls可以看下大体情况</p>
+<p><img src="/images/2019062307425576.png"></p>
+<p>我们要做这么几件事情：创建backstore，给backstore增加LUNS，ACL，PORTAL</p>
+<h4 id="创建backstore"><a href="#创建backstore" class="headerlink" title="创建backstore"></a>创建backstore</h4><p>创建block设备</p>
+<p>&#x2F;backstores&#x2F;block create name&#x3D;client1_data dev&#x3D;&#x2F;dev&#x2F;idata&#x2F;iscsi_data</p>
+<p><code>/dev/idata/iscsi_data</code> 就是我们刚刚创建的逻辑卷，name 是名字</p>
+<p>创建iSCSI</p>
+<p>&#x2F;iscsi create wwn&#x3D;iqn.2019-06.com.bennythink:server</p>
+<p>回车之后会发现自动帮我们创建好了portal</p>
+<p>创建luns，这里的<code>client1_data</code>就是我们第一步创建的name</p>
+<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;luns create &#x2F;backstores&#x2F;block&#x2F;client1_data</p>
+<p>创建acl</p>
+<p>&#x2F;iscsi&#x2F;iqn.2019-06.com.bennythink:server&#x2F;tpg1&#x2F;acls create wwn&#x3D;iqn.2019-06.com.bennythink:client1</p>
+<p>这几步都做完了之后，ls一下，大概的结构应该是这样的：</p>
+<p><img src="/images/2019062307425778.png"></p>
+<p><code>saveconfig</code>保存退出</p>
+<h3 id="配置客户端"><a href="#配置客户端" class="headerlink" title="配置客户端"></a>配置客户端</h3><p>客户端的配置相比之下就简单多了，只需要改下配置文件就好了</p>
+<h4 id="安装与修改配置"><a href="#安装与修改配置" class="headerlink" title="安装与修改配置"></a>安装与修改配置</h4><p>apt install open-iscsi</p>
+<h1 id="编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi"><a href="#编辑-x2F-etc-x2F-iscsi-x2F-initiatorname-iscsi" class="headerlink" title="编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi"></a>编辑&#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;initiatorname.iscsi</p>
+<h1 id="把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1"><a href="#把InitiatorName改成我们ACL中配置的那个，也就是iqn-2019-06-com-bennythink-client1" class="headerlink" title="把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1"></a>把InitiatorName改成我们ACL中配置的那个，也就是iqn.2019-06.com.bennythink:client1</h1><p>InitiatorName&#x3D;iqn.2019-06.com.bennythink:client1</p>
+<h1 id="设置自动login"><a href="#设置自动login" class="headerlink" title="设置自动login"></a>设置自动login</h1><p>vim &#x2F;etc&#x2F;iscsi&#x2F;iscsid.conf</p>
+<h1 id="原来是manual"><a href="#原来是manual" class="headerlink" title="原来是manual"></a>原来是manual</h1><p>node.startup &#x3D; automatic</p>
+<h4 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h4><p>systemctl restart iscsi<br>systemctl restart iscsid<br>systemctl enable iscsid</p>
+<h4 id="发现与登录节点"><a href="#发现与登录节点" class="headerlink" title="发现与登录节点"></a>发现与登录节点</h4><p>server可以写服务端的域名，或者IP也可以</p>
+<p>root@client:~# iscsiadm –mode discoverydb –type sendtargets –portal server –discover<br>172.21.174.180:3260,1 iqn.2019-06.com.bennythink:server</p>
+<h1 id="把上一步拿到的iqn写到这里"><a href="#把上一步拿到的iqn写到这里" class="headerlink" title="把上一步拿到的iqn写到这里"></a>把上一步拿到的iqn写到这里</h1><p>root@client:~# iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal server:3260 –login<br>Logging in to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] (multiple)<br>Login to [iface: default, target: iqn.2019-06.com.bennythink:server, portal: 172.21.174.180,3260] successful.</p>
+<p>此时就应该多出来一个<code>/dev/sdb</code>了</p>
+<h4 id="分区、格式化与挂载"><a href="#分区、格式化与挂载" class="headerlink" title="分区、格式化与挂载"></a>分区、格式化与挂载</h4><p>使用fdisk对sdb进行分区，这里想怎么分都行，我就直接都分一个主分区了</p>
+<p>root@client:~# fdisk &#x2F;dev&#x2F;sdb<br>Welcome to fdisk (util-linux 2.31.1).<br>Changes will remain in memory only, until you decide to write them.<br>Be careful before using the write command.<br>Device does not contain a recognized partition table.<br>Created a new DOS disklabel with disk identifier 0x2afb442f.</p>
+<p>Command (m for help): n<br>Partition type<br>p primary (0 primary, 0 extended, 4 free)<br>e extended (container for logical partitions)<br>Select (default p):<br>Using default response p.<br>Partition number (1-4, default 1):<br>First sector (8192-2097151, default 8192):<br>Last sector, +sectors or +size{K,M,G,T,P} (8192-2097151, default 2097151):<br>Created a new partition 1 of type ‘Linux’ and of size 1020 MiB.</p>
+<p>Command (m for help): w<br>The partition table has been altered.<br>Calling ioctl() to re-read partition table.<br>Syncing disks.</p>
+<p>进行格式化、挂载</p>
+<p>mkfs.ext4 &#x2F;dev&#x2F;sdb1<br>mount &#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data&#x2F;</p>
+<p><img src="/images/2019062307425926.png"></p>
+<h4 id="重启之后自动挂载"><a href="#重启之后自动挂载" class="headerlink" title="重启之后自动挂载"></a>重启之后自动挂载</h4><p>为了确保重启之后自动挂载，我们需要更改fstab</p>
+<p>&#x2F;dev&#x2F;sdb1 &#x2F;mnt&#x2F;data ext4 defaults,_netdev 0 0</p>
+<h3 id="安全使用iSCSI"><a href="#安全使用iSCSI" class="headerlink" title="安全使用iSCSI"></a>安全使用iSCSI</h3><p>由于iSCSI的传输数据的过程并不是加密的，所以如果跨公网使用，给人的感觉总是不好。为了解决这一问题，我们可以在客户端挂个VPN到服务端，可以用SSH隧道，可以用IPSec保护iSCSI，也可以加密sdb（比如用LUKS、VeraCrypt等呗）</p>
+<p>咱这里就开个SSH隧道吧！要在<strong>配置客户端之前</strong>做好哦</p>
+<p>修改服务端配置<code>vim /etc/ssh/sshd_config</code>，修改如下配置</p>
+<p>PermitTunnel yes</p>
+<p>然后重启sshd</p>
+<p>systemctl restart sshd</p>
+<p>然后输入如下命令，其中<code>root@server</code>替换成自己的服务器</p>
+<p>sudo -E \<br>  ssh -F &#x2F;dev&#x2F;null \<br>  -o PermitLocalCommand&#x3D;yes \<br>  -o LocalCommand&#x3D;”ifconfig tun0 172.18.0.2 pointopoint 172.18.0.1 netmask 255.255.255.0” \<br>  -o ServerAliveInterval&#x3D;60 \<br>  -w 0:0 root@server \<br>  ‘sudo ifconfig tun0 172.18.0.1 pointopoint 172.18.0.2 netmask 255.255.255.0; hostname; echo tun0 ready’</p>
+<p>之后再开一个窗口，discover &amp; login</p>
+<p>iscsiadm –mode discoverydb –type sendtargets –portal 172.18.0.1 –discover<br>iscsiadm –mode node –targetname iqn.2019-06.com.bennythink:server –portal 172.18.0.1:3260 –login</p>
+<p>当然理想方式是用key，然后systemd管这个SSH Tunnel啦！</p>
+<p>(′д｀ )…彡…彡还是<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">用wireguard</a>吧</p>
+<h3 id="iSCSI空间不够了怎么办"><a href="#iSCSI空间不够了怎么办" class="headerlink" title="iSCSI空间不够了怎么办"></a>iSCSI空间不够了怎么办</h3><p>还记得我们是使用的Logical Volume创建的吗！此时只需要<code>lvextend -L 10G /dev/idata/iscsi_data</code>就可以把分区调整为10G，然后客户端那边fdisk就能看见</p>
+<p> </p>
+<h2 id="其他类似技术"><a href="#其他类似技术" class="headerlink" title="其他类似技术"></a>其他类似技术</h2><h3 id="NFS、Samba"><a href="#NFS、Samba" class="headerlink" title="NFS、Samba"></a>NFS、Samba</h3><p>同理?</p>
+<h3 id="GlusterFS"><a href="#GlusterFS" class="headerlink" title="GlusterFS"></a>GlusterFS</h3><p>萌新不懂，萌新瑟瑟发抖</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>折腾一大圈，不还是得买大盘鸡吗?还不是贫穷限制了我的想象力</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/06/23/vps-more-disk/index/" data-id="clhp7rtmx00axs2qrev3d07vv" data-title="vps硬盘不够了怎么办" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-rhce-value/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/06/20/rhce-value/index/" class="article-date">
+  <time class="dt-published" datetime="2019-06-20T00:00:00.000Z" itemprop="datePublished">2019-06-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/06/20/rhce-value/index/">RHCE证书含金量高吗</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>小葵花妈妈课堂开课啦！</p>
+<p>经过一小段时间的艰苦奋斗，俺终于拿下了RHCE&amp;RHCSA认证。那么，这东西有什么用呢？</p>
+<p><img src="/images/2019062013564551.jpeg"></p>
+<h2 id="太长不看版"><a href="#太长不看版" class="headerlink" title="太长不看版"></a>太长不看版</h2><p>含金量没有想象中的那么高，是一块敲门砖，写在简历上会比较出彩，能够证明在考试这段时间比较努力。其余的估计没有什么了。</p>
+<p>Okay, let’s track this from the beginning</p>
+<h2 id="RHCSA-amp-RHCE课程"><a href="#RHCSA-amp-RHCE课程" class="headerlink" title="RHCSA&amp;RHCE课程"></a>RHCSA&amp;RHCE课程</h2><p>首先，红帽认证是不接受个人考试报名的，所以一般要考的话都要找培训机构报名。</p>
+<p>按照我这里的安排，RHCSA上了6天，RHCE上了8天，考试前有考前辅导。</p>
+<p>(′д｀ )…彡…彡 不过，俺比较喜欢逃课，所以这14天的课估计也就上了5天吧。</p>
+<p>至于RHCSA&amp;RHCE培训+报名一共需要多少钱，这俺就不清楚了……</p>
+<h2 id="考试题目"><a href="#考试题目" class="headerlink" title="考试题目"></a>考试题目</h2><p>基本上网上一搜，能看到的题目都差不多是真题。考试满分300，拿到210（70%）就算通过。</p>
+<p>RHCSA涉及到配置用户账户、配置文件目录权限、LDAP、逻辑卷、Autofs等非常基础的内容；</p>
+<p>RHCE主要就是各种服务的配置，包括NFS、Samba、Apache、MariaDB、iSCSI，以及链路聚合、端口转发什么的。</p>
+<p>总体考试难度不大，考前稍微认真的多练习练习，高分通过还是可以保证的，零基础都能通过的那种哦。作为多年Linux老司机的我，自然是驾轻就熟了ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛</p>
+<p>我相信在座的各位，稍微准备一下，应该问题不大。</p>
+<h2 id="证书的含金量"><a href="#证书的含金量" class="headerlink" title="证书的含金量"></a>证书的含金量</h2><p>可能由于博主比较年轻（因此还是萌新），据称早期RHCE证书的含金量还是比较高的。但是就现在这个情况来说，我感觉RHCE证书的含金量不算太高。</p>
+<p>实际上，在RHCE&amp;RHCSA考试中遇到的内容都是比较局限的。由于应试的因素，考前往往是有题库的，题库是基本固定不变的，因此解决方案也是固定的，这也就导致造成了考前只需要努力按照题库练习，考试就基本会通过的局面。</p>
+<p>而在真正应用Linux时，所遇到的问题往往是花样比较多，而且没有固定套路的。举个例子，通过了RHCE认证的你，如果遇到下列问题，会怎样解决呢？</p>
+<ul>
+<li>在物理机上安装某个发行版</li>
+<li>在物理机上安装Windows+Linux双系统，甚至是三系统</li>
+<li>查看当前的出网、入网速度</li>
+<li>查看每日、每周的网卡流量信息</li>
+<li>查看本机的硬件信息，如CPU、RAM、硬盘等</li>
+<li>grub rescue修复，修改grub配置</li>
+<li>性能优化，内核参数微调</li>
+<li>持久运行一个程序（关了终端不会退出）</li>
+<li>搭建一个网站，申请SSL证书……</li>
+<li>配置一个用户，只可以用过密钥登录，可以sudo</li>
+<li>配置目录与文件权限</li>
+<li>备份数据到其他服务器，备份到Google Drive，S3等</li>
+<li>扫描一下指定网段有哪些存活的主机</li>
+<li>判断某服务器是否可达</li>
+<li>搭个代理，包括OpenVPN，L2TP，Shadowsocks等</li>
+<li>SSH打洞做跳板</li>
+<li>安装Google Chrome</li>
+<li>安装或配置中文输入法</li>
+<li>根据PID得知这个进程所对应的文件的路径、进程所访问的文件</li>
+<li>配置EPEL源</li>
+<li>command systemctl not found，怎么管理各种服务</li>
+<li>想换个shell，怎么换</li>
+</ul>
+<h2 id="考试与实际的差别"><a href="#考试与实际的差别" class="headerlink" title="考试与实际的差别"></a>考试与实际的差别</h2><p>在RCHSA的试题中，有一道题大概是这样的：</p>
+<p>一个名为 sysadms 的组</p>
+<p>一个名为 natasha 的用户，其属于 sysadms ，这个组是该用户的从属组</p>
+<p>一个名为 harry 的用户，属于 sysadms ，这个组是该用户的从属组</p>
+<p>一个名为 sarah 的用户，其在系统中没有可交互的 shell，并且该用户不是 sysadms 组的成员</p>
+<p>大家都知道，这基本上就是送分题</p>
+<p>groupadd sysadms<br>useradd natasha –G sysadms</p>
+<p>基本上这样就够了。但是在实际中，组与用户的关系，如何巧妙的利用文件和目录的组权限，估计很大程度上都会一脸茫然了吧？毕竟对于考试来说，只需要根据题库练习好了，基本上就是依样画葫芦。至于为什么要这样做，往往是不明不白的。</p>
+<p>再看RHCE的一道题，配置SSH访问。也是接近送分题。</p>
+<p>很幸运的是，考试时使用的RHEL是默认开启sshd服务的。但是有些情况下（比如桌面版，嵌入式版），那么默认可能是没装ssh服务的。怎么装怎么启动？sshd和ssh有什么区别？</p>
+<p>再比如，Linux发行版众多，每个发行版之间可能会有比较大的差距。比如最重要的包管理器，Debian系的dpkg&#x2F;apt和RHEL系的rpm&#x2F;yum；RHEL系一般会带SELinux，但Debian系往往默认都不带SELinux；RHEL系一般使用firewalld，而Debian系使用ufw。</p>
+<p>如果只是专注于考试的话，那么会不会出现换个发行版就不会用了的情况呢？</p>
+<h2 id="评分脚本"><a href="#评分脚本" class="headerlink" title="评分脚本"></a>评分脚本</h2><p>像红帽这种纯操作的考试，实际上还有一个很严肃的问题就是如何进行评分？毫无疑问的是RedHat肯定是使用了脚本去搜集、评分，但是脚本究竟是如何处理的那估计就是商业机密了——是只看过程，还是只看结果，还是二者都看？对于同一个问题，如禁止某个域访问，往往有很多解决方式，究竟该如何验证才能保证不错判也不漏判呢？</p>
+<h2 id="RHCE证书有用吗"><a href="#RHCE证书有用吗" class="headerlink" title="RHCE证书有用吗"></a>RHCE证书有用吗</h2><p>从求职面试的角度来看，简历上如果有证书认证，是比较能抓人眼球的，可以认为是敲门砖；但是实际应用时，考试中的那些操作往往都是无法应用的。当然了，如果面试的是运维、运维开发相关的岗位，那么红帽认证的重要性会提高一点。</p>
+<p>即考下来了RHCE，但是在实际生活与工作中却并没有应用，那么实际上这个证书就无法证明任何价值，分分钟被问懵，考下来RHCE并不证明你具备实践能力，</p>
+<p>就好比一年前我考的CCNA一样，你现在问我生成树协议的具体原理、OSPF的原理，我都说不明白呢。</p>
+<p>对于在职的运维工程师来说，除了可能涨工资评职称之外，对于技术水平的提高几乎没有什么用处；对于有意转运维相关的岗位，写在简历上还是能有点高亮的。</p>
+<p>与语言等级考试（四六级、日语二级等）不同的是，语言等级考试往往需要比较长时间的准备，即使是在应试体制下，也或多或少会沉淀出一点真才实学。</p>
+<p>对于我来说，没啥用，但是你懂的，除了在简历中写上通过了RHCE考试，让面试官眼前一亮（仅限三年）</p>
+<h2 id="Linux究竟该怎么学"><a href="#Linux究竟该怎么学" class="headerlink" title="Linux究竟该怎么学"></a>Linux究竟该怎么学</h2><p>Linux就该这么学</p>
+<p>以我个人的经验来说说，最适合初学者的书籍一定是鸟哥的《鸟哥的Linux私房菜》之《基础学习篇》+《服务器架设篇》，书有点厚，现在应该是出到了第四版。鸟哥的风格比较幽默，很容易理解各种基础概念。</p>
+<p>另外有一本《Linux命令行与shell脚本编程大全》也是非常不错的学习资料。</p>
+<p>至于选择什么发行版，萝卜青菜各有所爱嘛。万一不喜欢，也可以这样：</p>
+<p><img src="/images/2019062013564998.png"></p>
+<p>来源 <a target="_blank" rel="noopener" href="https://twitter.com/crsm855/status/1139791312843001857?s=19">crsm855</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/06/20/rhce-value/index/" data-id="clhp7rtik007ns2qre6mgh9l3" data-title="RHCE证书含金量高吗" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-git-pi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/04/27/git-pi/index/" class="article-date">
+  <time class="dt-published" datetime="2019-04-27T00:00:00.000Z" itemprop="datePublished">2019-04-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/04/27/git-pi/index/">在树莓派上搭建一个git服务器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>树莓派虽说小，但是性能……也差啊！</p>
+<p>开源的git实现有很多，gitlab community算是一种，但是对硬件要求有点高，这里我使用了<a target="_blank" rel="noopener" href="https://nova.moe/">nova</a>推荐的<a target="_blank" rel="noopener" href="https://gogs.io/">g</a><a target="_blank" rel="noopener" href="https://gogs.io/">ogs</a>，gogs是用golang写的，足够轻量级，足够让我瞎玩……</p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>一只不可以吃的树莓派</p>
+<p>数据库：MySQL&gt;&#x3D;5.7，PosgreSQL、MSSQL、TiDB</p>
+<p>由于我选择了MySQL，而Raspbian的源里似乎只有5.5的，所以只能自己编译一个5.7的啦……耗时N小时……当然啦有预编译好的deb，当然啦非得用5.5也是没关系的！</p>
+<h2 id="下载配置gogs"><a href="#下载配置gogs" class="headerlink" title="下载配置gogs"></a>下载配置gogs</h2><p># 创建一个git用户，专门用于运行该服务<br>useradd git -s &#x2F;bin&#x2F;bash -m -d &#x2F;home&#x2F;GitServer</p>
+<h1 id="为了方便管理，切换到该目录"><a href="#为了方便管理，切换到该目录" class="headerlink" title="为了方便管理，切换到该目录"></a>为了方便管理，切换到该目录</h1><p>cd &#x2F;home&#x2F;GitServer</p>
+<h1 id="切换到该用户"><a href="#切换到该用户" class="headerlink" title="切换到该用户"></a>切换到该用户</h1><p>su git</p>
+<h1 id="下载二进制并解压缩"><a href="#下载二进制并解压缩" class="headerlink" title="下载二进制并解压缩"></a>下载二进制并解压缩</h1><p>wget –c <a target="_blank" rel="noopener" href="https://dl.gogs.io/0.11.86/gogs/_0.11.86/_raspi2/_armv6.zip">https://dl.gogs.io/0.11.86/gogs\_0.11.86\_raspi2\_armv6.zip</a><br>unzip gogs_0.11.86_raspi2_armv6.zip<br>cd gogs</p>
+<h1 id="运行服务"><a href="#运行服务" class="headerlink" title="运行服务"></a>运行服务</h1><p>.&#x2F;gogs web</p>
+<p>打开浏览器，http:&#x2F;&#x2F;树莓派IP:3000，会进入如下页面</p>
+<p><img src="/images/2019042713050674.png"></p>
+<p>此时如果你使用的是MySQL5.7以下版本，创建一个字符集是utf-8的数据库</p>
+<p>CREATE DATABASE gogs DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci</p>
+<p>5.7及以上直接创建就好了</p>
+<p>其中域名和应用url两项需要填写你的域名（或者是树莓派IP）</p>
+<p><img src="/images/2019042713050763.png"></p>
+<p>之后第一个注册的用户会是管理员用户。管你是screen还是nohup还是supervisor的。</p>
+<h2 id="监听本机"><a href="#监听本机" class="headerlink" title="监听本机"></a>监听本机</h2><p>vim &#x2F;home&#x2F;GitServer&#x2F;gogs&#x2F;custom&#x2F;conf&#x2F;app.ini</p>
+<p>在<code>HTTP_PORT</code>下添加一行</p>
+<p>HTTP_ADDR&#x3D;127.0.0.1</p>
+<h2 id="Nginx-反代配置"><a href="#Nginx-反代配置" class="headerlink" title="Nginx 反代配置"></a>Nginx 反代配置</h2><p>对应的server段添加如下信息就可以了</p>
+<p>location &#x2F; {<br>proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3000/">http://127.0.0.1:3000</a>; # 对应服务<br>}</p>
+<p>完整配置文件<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/blob/master/TLS/gitconfig.nginx">戳这里</a></p>
+<h2 id="systemd配置"><a href="#systemd配置" class="headerlink" title="systemd配置"></a>systemd配置</h2><p>接上，我们需要更改git用户的shell</p>
+<p>usermod git -s &#x2F;usr&#x2F;sbin&#x2F;nologin</p>
+<p>之后交给systemd启动就好了</p>
+<p>[Unit]<br>Description&#x3D;Benny’s Personal Git Server<br>After&#x3D;syslog.target<br>After&#x3D;network.target</p>
+<p>[Service]<br>Type&#x3D;simple<br>User&#x3D;git<br>Group&#x3D;git<br>WorkingDirectory&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs<br>ExecStart&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs&#x2F;gogs web<br>Restart&#x3D;on-failure<br>Environment&#x3D;USER&#x3D;git HOME&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer</p>
+<p>ProtectSystem&#x3D;full<br>PrivateDevices&#x3D;yes<br>PrivateTmp&#x3D;yes<br>NoNewPrivileges&#x3D;true</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<p><img src="/images/2019042713050811.png"></p>
+<p>Yeah~~</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service">https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service</a></p>
+<p><a target="_blank" rel="noopener" href="https://gogs.io/docs/intro/faqs">https://gogs.io/docs/intro/faqs</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/04/27/git-pi/index/" data-id="clhp7rtgd0034s2qr02dgahza" data-title="在树莓派上搭建一个git服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-list-dict-performance/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2019/04/13/list-dict-performance/index/" class="article-date">
@@ -429,626 +1056,6 @@
 
 
   
-    <article id="post-keep-abp-on/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/12/31/keep-abp-on/index/" class="article-date">
-  <time class="dt-published" datetime="2018-12-31T00:00:00.000Z" itemprop="datePublished">2018-12-31</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/12/31/keep-abp-on/index/">Keep APB on：别碰我的广告屏蔽器</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前几天，在偶然浏览某知名博主的博客时，偶然发现开着ABP竟然无法加载博文正文了，取而代之的是一个大大的div告诉我需要关闭广告屏蔽器然后刷新页面。哦这怎么行？弹个小窗，某个div提示我们加到白名单里这是可以考虑的，直接不显示文章？作为一名优秀的全沾工程师，肯定是受不了这种事情的。</p>
-<p>于是<a target="_blank" rel="noopener" href="https://github.com/BennyThink/KeepABPOn">KeepAPBon</a>这个项目因此而生。一句话概括：</p>
-<p>网站永远不应该强迫用户去关闭广告屏蔽器，除非用户想主动关闭。</p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/KeepABPOn'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/KeepABPOn&#39;\]开源地址\[/gt\]</a></p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>安装TamperMonkey扩展，然后搜索KAO，安装你所需要反制的网站的脚本即可。</p>
-<p>目前此项目还处于测试阶段，日后可能会把所有反制措施都集中到一个脚本中。</p>
-<h2 id="处理标准"><a href="#处理标准" class="headerlink" title="处理标准"></a>处理标准</h2><p>所有会影响页面显示、影响阅读体验的“反广告屏蔽器”类网站都会被处理，视频分享类网站排除在外。其他情况的广告不会被处理。</p>
-<p>欢迎提交PR、issue，包括但不限于网站提供、反制措施。</p>
-<h2 id="目前被反制的网站"><a href="#目前被反制的网站" class="headerlink" title="目前被反制的网站"></a>目前被反制的网站</h2><h3 id="KAO-1-ruanyifeng"><a href="#KAO-1-ruanyifeng" class="headerlink" title="KAO#1:ruanyifeng"></a><a target="_blank" rel="noopener" href="https://greasyfork.org/zh-CN/scripts/376131-kao-1-ruanyifeng">KAO#1:ruanyifeng</a></h3><p>浏览阮一峰博客时，不必关闭广告屏蔽器。</p>
-<h2 id="一些观点"><a href="#一些观点" class="headerlink" title="一些观点"></a>一些观点</h2><h3 id="我不讨厌的广告"><a href="#我不讨厌的广告" class="headerlink" title="我不讨厌的广告"></a>我不讨厌的广告</h3><p>在合理展示的情况下，它们为网站所有者创造了收入，为潜在的受众提升了品牌的知名度。可接受的广告，既不会令人烦恼，也不会干扰正在查看的内容</p>
-<p>可不，你看我很喜欢吃的明治就是广告看来的？有广告很正常，我也一直开着ABP里的可接受广告。甚至看到有些博客提示请加入白名单，我还会手动加进去。</p>
-<h3 id="我讨厌的广告"><a href="#我讨厌的广告" class="headerlink" title="我讨厌的广告"></a>我讨厌的广告</h3><p>从我的个人角度来看，有两种广告是我讨厌的：</p>
-<ol>
-<li>铺天盖地、眼花缭乱，一页屏幕半页都是广告，影响浏览体验。</li>
-<li>不关ABP，就不给看。看都不给看，还体验个屁啊</li>
-</ol>
-<h3 id="为什么？"><a href="#为什么？" class="headerlink" title="为什么？"></a>为什么？</h3><p>多少年以来，我一直坚定地认为，互联网的精神是自由与传播。</p>
-<p>我非常憎恨阻止知识传播的行为，这也是我如此憎恨GFW的众多原因之一。</p>
-<p>也许你并不同意我的看法。那很正常。我们有不同的成长环境，接受了不同的教育，形成了不同的观念与想法。我们各自都有不同的想法，那是很正常的事情了。你一句我一句的讨论，找出论据支撑自己的观点，用事实来说明观点，可能经过这样一次讨论，我们对彼此的理解会更加深一点，或者是学习了解到了一些自己的思维体系中原本并不存在的一些观点。所谓思维的碰撞嘛，本应该就是这样美好的设想的。</p>
-<p> </p>
-<h2 id="其他参考"><a href="#其他参考" class="headerlink" title="其他参考"></a>其他参考</h2><p><a target="_blank" rel="noopener" href="https://reek.github.io/anti-adblock-killer/#">Anti-Adblock Killer</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/12/31/keep-abp-on/index/" data-id="clhp7rtgz004as2qr8ai9375g" data-title="Keep APB on：别碰我的广告屏蔽器" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-tls1_3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/12/07/tls1_3/index/" class="article-date">
-  <time class="dt-published" datetime="2018-12-07T00:00:00.000Z" itemprop="datePublished">2018-12-07</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/12/07/tls1_3/index/">为Nginx开启tls 1.3支持，顺便编译openssl1.1.1a</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>8月份的时候，TLS1.3正式发布了（<a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc8446">RFC 8446</a>），9月份的时候，支持TLS 1.3的Openssl 1.1.1正式发布了。对于我这种喜欢追新的人来说，终于可以升级了……（噢现在是12月哦……）其实……这就是个备忘录。</p>
-<h2 id="启用TLS-1-3的要求"><a href="#启用TLS-1-3的要求" class="headerlink" title="启用TLS 1.3的要求"></a>启用TLS 1.3的要求</h2><p>需要重新编译Nginx，加入<code>enable-tls1_3</code>参数，需要浏览器也支持TLS 1.3，如果你使用最新版本的Chrome&amp;Firefox，那么就可以。哦对了，<strong>不需要重新编译openssl哦</strong>。</p>
-<p>下表是目前的几个发行版对openssl版本的支持，虽说和本文内容干毫无关系，仅供观赏。</p>
-<table><tbody><tr><td><span style="font-size: 12pt;">Ubuntu 18.04</span></td><td><span style="font-size: 12pt;">Openssl 1.1.0g</span></td></tr><tr><td><span style="font-size: 12pt;">Ubuntu 18.10</span></td><td><span style="font-size: 12pt;">Openssl 1.1.1</span></td></tr><tr><td><span style="font-size: 12pt;">Debian sid</span></td><td><span style="font-size: 12pt;">Openssl 1.1.1a</span></td></tr><tr><td><span style="font-size: 12pt;">Debian 9 Stretch</span></td><td><span style="font-size: 12pt;">Openssl 1.1.0j</span></td></tr><tr><td><span style="font-size: 12pt;">CentOS 7</span></td><td><span style="font-size: 12pt;">Openssl 1.0.2k</span></td></tr></tbody></table>
-
-<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git</p>
-<h2 id="获取必要组件"><a href="#获取必要组件" class="headerlink" title="获取必要组件"></a>获取必要组件</h2><h3 id="openssl-1-1-1a"><a href="#openssl-1-1-1a" class="headerlink" title="openssl 1.1.1a"></a>openssl 1.1.1a</h3><p>wget <a target="_blank" rel="noopener" href="https://www.openssl.org/source/openssl-1.1.1a.tar.gz">https://www.openssl.org/source/openssl-1.1.1a.tar.gz</a><br>tar xf openssl-1.1.1a.tar.gz &amp;&amp; rm openssl-1.1.1a.tar.gz</p>
-<h3 id="Nginx-1-15-7"><a href="#Nginx-1-15-7" class="headerlink" title="Nginx 1.15.7"></a>Nginx 1.15.7</h3><p>wget <a target="_blank" rel="noopener" href="https://nginx.org/download/nginx-1.15.7.tar.gz">https://nginx.org/download/nginx-1.15.7.tar.gz</a><br>tar xf nginx-1.15.7.tar.gz &amp;&amp; rm nginx-1.15.7.tar.gz<br>cd nginx-1.15.7</p>
-<h2 id="编译Nginx"><a href="#编译Nginx" class="headerlink" title="编译Nginx"></a>编译Nginx</h2><p>.&#x2F;configure –user&#x3D;www –group&#x3D;www –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx –with-openssl&#x3D;..&#x2F;openssl-1.1.1a –with-openssl-opt&#x3D;’enable-tls1_3’ –with-http_v2_module –with-http_ssl_module –with-http_gzip_static_module –with-http_stub_status_module –with-http_sub_module –with-stream –with-stream_ssl_module</p>
-<p>配置完成之后</p>
-<p>make<br>make install</p>
-<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>在你的站点的配置文件中，如下配置即可：</p>
-<p>ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;</p>
-<p>ssl_ciphers ‘TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-GCM-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA’;</p>
-<h2 id="检测与验证"><a href="#检测与验证" class="headerlink" title="检测与验证"></a>检测与验证</h2><h3 id="浏览器"><a href="#浏览器" class="headerlink" title="浏览器"></a>浏览器</h3><p>升级Chrome吧，默认就应该支持了。直接浏览器访问，开F12在security中即可看到。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/12/2018120701580146.jpg"><img src="/images/2018120701580146.jpg"></a></p>
-<h3 id="ssllabs"><a href="#ssllabs" class="headerlink" title="ssllabs"></a>ssllabs</h3><p><a target="_blank" rel="noopener" href="https://www.ssllabs.com/ssltest/">https://www.ssllabs.com/ssltest/</a></p>
-<h3 id="testssl"><a href="#testssl" class="headerlink" title="testssl"></a>testssl</h3><p>需要1.1.1或更高版本的openssl</p>
-<p>.&#x2F;testssl –p –P <a target="_blank" rel="noopener" href="http://www.example.com/">www.example.com</a></p>
-<h3 id="Openssl"><a href="#Openssl" class="headerlink" title="Openssl"></a>Openssl</h3><p>注意，同样需要openssl版本为1.1.1或更高</p>
-<p>openssl s_client -connect <a target="_blank" rel="noopener" href="http://www.example.com:443/">www.example.com:443</a> -tls1_3</p>
-<h2 id="编译openssl-1-1-1"><a href="#编译openssl-1-1-1" class="headerlink" title="编译openssl 1.1.1"></a>编译openssl 1.1.1</h2><h3 id="安装依赖-1"><a href="#安装依赖-1" class="headerlink" title="安装依赖"></a>安装依赖</h3><p>sudo apt update<br>sudo apt install build-essential checkinstall zlib1g-dev -y</p>
-<h3 id="下载并解压缩源代码"><a href="#下载并解压缩源代码" class="headerlink" title="下载并解压缩源代码"></a>下载并解压缩源代码</h3><p>wget <a target="_blank" rel="noopener" href="https://www.openssl.org/source/openssl-1.1.1a.tar.gz">https://www.openssl.org/source/openssl-1.1.1a.tar.gz</a><br>tar xf openssl-1.1.1a.tar.gz &amp;&amp; rm openssl-1.1.1a.tar.gz<br>cd openssl-1.1.1a</p>
-<h3 id="配置、编译与安装"><a href="#配置、编译与安装" class="headerlink" title="配置、编译与安装"></a>配置、编译与安装</h3><p>.&#x2F;config –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;ssl –openssldir&#x3D;&#x2F;usr&#x2F;local&#x2F;ssl shared zlib<br>make &amp;&amp; make test<br>make install</p>
-<p>关于prefix和openssldir这俩参数</p>
-<p><code>prefix</code>和<code>openssldir</code>用于控制openssl安装路径。</p>
-<p><strong>1.0.2及之前的版本</strong></p>
-<p>一般来说不用指定<code>prefix</code>，如果<code>prefix</code>没指定，那么就会使用<code>openssldir</code></p>
-<p>如果未指定<code>openssldir</code>，那么<code>openssldir</code>的默认路径为<code>/usr/local/ssl</code></p>
-<p><strong>1.1.0 及之后版本</strong></p>
-<p>我们改啦！应该同时指定<code>prefix</code> 和 <code>openssldir</code></p>
-<p>简单的办法就是同时指定为<code>/usr/local/ssl</code></p>
-<h3 id="更新动态库"><a href="#更新动态库" class="headerlink" title="更新动态库"></a>更新动态库</h3><p>cd &#x2F;etc&#x2F;ld.so.conf.d&#x2F;</p>
-<h1 id="创建新文件"><a href="#创建新文件" class="headerlink" title="创建新文件"></a>创建新文件</h1><p>vim openssl-1.1.1a.conf</p>
-<h1 id="粘贴如下内容并保存退出"><a href="#粘贴如下内容并保存退出" class="headerlink" title="粘贴如下内容并保存退出"></a>粘贴如下内容并保存退出</h1><p>&#x2F;usr&#x2F;local&#x2F;ssl&#x2F;lib</p>
-<h1 id="重新加载动态库"><a href="#重新加载动态库" class="headerlink" title="重新加载动态库"></a>重新加载动态库</h1><p>ldconfig –v</p>
-<h3 id="删除（备份）旧的openssl"><a href="#删除（备份）旧的openssl" class="headerlink" title="删除（备份）旧的openssl"></a>删除（备份）旧的openssl</h3><p>mv &#x2F;usr&#x2F;bin&#x2F;c_rehash &#x2F;usr&#x2F;bin&#x2F;c_rehash.BEKUP<br>mv &#x2F;usr&#x2F;bin&#x2F;openssl &#x2F;usr&#x2F;bin&#x2F;openssl.BEKUP</p>
-<h3 id="把新的加入PATH"><a href="#把新的加入PATH" class="headerlink" title="把新的加入PATH"></a>把新的加入PATH</h3><p>类似如下语句，或者做软链接</p>
-<p>PATH&#x3D;”&#x2F;usr&#x2F;local&#x2F;sbin:&#x2F;usr&#x2F;local&#x2F;bin:&#x2F;usr&#x2F;sbin:&#x2F;usr&#x2F;bin:&#x2F;sbin:&#x2F;bin:&#x2F;usr&#x2F;games:&#x2F;usr&#x2F;local&#x2F;games:&#x2F;usr&#x2F;local&#x2F;ssl&#x2F;bin”</p>
-<p>参考</p>
-<p><a target="_blank" rel="noopener" href="https://www.howtoforge.com/tutorial/how-to-install-openssl-from-source-on-linux/">https://www.howtoforge.com/tutorial/how-to-install-openssl-from-source-on-linux/</a></p>
-<p><a target="_blank" rel="noopener" href="https://wiki.openssl.org/index.php/Compilation_and_Installation#PREFIX_and_OPENSSLDIR">https://wiki.openssl.org/index.php/Compilation_and_Installation#PREFIX_and_OPENSSLDIR</a></p>
-<p><a target="_blank" rel="noopener" href="https://imququ.com/post/enable-tls-1-3.html">https://imququ.com/post/enable-tls-1-3.html</a></p>
-<p><a target="_blank" rel="noopener" href="https://halfrost.com/tls1-3_start/">https://halfrost.com/tls1-3_start&#x2F;</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/12/07/tls1_3/index/" data-id="clhp7rtmc00a2s2qr9bju6zj3" data-title="为Nginx开启tls 1.3支持，顺便编译openssl1.1.1a" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-one-million-data/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/11/28/one-million-data/index/" class="article-date">
-  <time class="dt-published" datetime="2018-11-28T00:00:00.000Z" itemprop="datePublished">2018-11-28</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/11/28/one-million-data/index/">假如给我一百万（的数据）</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>很长时间之前我写过一篇<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">《使用</a> <a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">Python 将海量 MySQL 数据导入 Elastic Search&#x2F;MongoDB</a><a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">》</a>，主要就说了如何把大量MySQL数据写入键值对数据库。</p>
-<p>现在回过头看来这篇文章还是很有参考价值的。</p>
-<p>有的时候我们会遇到相反的需求，比如说把对应的键值对数据库（或者说是json文件）导入（列数据类型相符）的MySQL表中。通常来说这不是个啥大问题，根据json提取出列，生成SQL语句就可以了。也就这么几行，然后execute加参数就可以了：</p>
-<p>placeholders &#x3D; ‘, ‘.join([‘%s’] * len(raw_dict))<br>columns &#x3D; ‘, ‘.join(raw_dict.keys())<br>insert_sql &#x3D; “INSERT INTO %s ( %s ) VALUES ( %s )” % (insert_table, columns, placeholders)</p>
-<p>当然了你要是想直接生成能用的sql语句那我也没意见（并抛出一个?的表情）</p>
-<p>大量插入数据的时候咋整呢？</p>
-<h1 id="首先我们……"><a href="#首先我们……" class="headerlink" title="首先我们……"></a>首先我们……</h1><p>首先我们要知道，性能是由多方面因素决定的，比如说代码效率质量、Python性能、服务器性能（包含MySQL版本，编译优化，宿主机IO&#x2F;CPU&#x2F;RAM等）、表结构的设计、网络速度等，咱要找到短板才可以。为了找到短板，需要使用控制变量法，但是有些变量不可控，那就很不好办了……</p>
-<p>然后我需要送上MySQL官方文档两篇，说的非常详细了，我简单总结下</p>
-<p>Optimizing INSERT Statements: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html">https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html</a></p>
-<p>Bulk Data Loading for InnoDB Tables: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/optimizing-innodb-bulk-data-loading.html">https://dev.mysql.com/doc/refman/8.0/en/optimizing-innodb-bulk-data-loading.html</a></p>
-<h2 id="优化INSERT语句"><a href="#优化INSERT语句" class="headerlink" title="优化INSERT语句"></a>优化INSERT语句</h2><p>插入时间由以下因素决定，数字代表权重</p>
-<ul>
-<li>Connecting: (3)</li>
-<li>Sending query to server: (2)</li>
-<li>Parsing query: (2)</li>
-<li>Inserting row: (1 × size of row)</li>
-<li>Inserting indexes: (1 × number of indexes)</li>
-<li>Closing: (1)</li>
-</ul>
-<p>可以使用以下方式加速插入：</p>
-<ul>
-<li>如果从同一个客户端同时插入，使用多值的INSERT语句一次性插入多行，这比使用单行的INSERT语句要快得多。如果要将数据添加到非空表中，则可以调整该 <code>bulk_insert_buffer_size</code> 变量以使数据插入速度更快。</li>
-<li>从文本文件加载表格时，请使用 <code>LOAD DATA INFILE</code>。这通常比使用INSERT语句快20倍</li>
-<li>利用列具有默认值的事实。只有当要插入的值不同于默认值时才显式插入值。这减少了MySQL必须执行的解析并提高了插入速度。</li>
-</ul>
-<h2 id="InnoDB表的批量数据加载"><a href="#InnoDB表的批量数据加载" class="headerlink" title="InnoDB表的批量数据加载"></a>InnoDB表的批量数据加载</h2><h3 id="关闭自动提交"><a href="#关闭自动提交" class="headerlink" title="关闭自动提交"></a>关闭自动提交</h3><p>关闭自动提交，因为它为每个操作执行日志刷新。</p>
-<p>实际上默认情况下pymysql帮我们做了，<code>set autocommit=0</code></p>
-<h3 id="关闭唯一性校验"><a href="#关闭唯一性校验" class="headerlink" title="关闭唯一性校验"></a>关闭唯一性校验</h3><p>set unique checks &#x3D; 0</p>
-<p>对于大表而言这会节约很多磁盘IO，不过要确保数据没有重复记录。</p>
-<h3 id="关闭外键校验"><a href="#关闭外键校验" class="headerlink" title="关闭外键校验"></a>关闭外键校验</h3><p>SET foreign_key_checks&#x3D;0;</p>
-<h3 id="多值INSERT"><a href="#多值INSERT" class="headerlink" title="多值INSERT"></a>多值INSERT</h3><p>使用多值INSERT 来减少客户端与服务器之间的通信开销</p>
-<p>INSERT INTO yourtable VALUES (1,2), (5,5), …;</p>
-<p>需要注意的是，MyISAM用这招也管用。</p>
-<p><strong>这一点是我们本文讨论的重点内容。</strong></p>
-<h3 id="自增列的处理"><a href="#自增列的处理" class="headerlink" title="自增列的处理"></a>自增列的处理</h3><p>当对具有自动增量列的表进行批量插入时，请将其设置 <code>innodb_autoinc_lock_mode</code>为2而不是默认值1</p>
-<h3 id="主键排序"><a href="#主键排序" class="headerlink" title="主键排序"></a>主键排序</h3><p>InnoDB表是按照主键顺序排列的，所以将数据顺序按照主键顺序排列好，可以提高导入效率</p>
-<h1 id="Python性能"><a href="#Python性能" class="headerlink" title="Python性能"></a>Python性能</h1><p>这可能是PHP被黑的最惨的一次。</p>
-<p>如果单纯的比较执行性能的话，Python是肯定比不过静态语言的。不过我早就过了单纯的年龄，我很邪恶的。由于这是Python自身的短板，咱也不太好做点什么有实质性的工作，也许仅限于把解释器换成PyPy，编译Python时带上<code>enable-optimizations</code>，把性能关键的模块用C&#x2F;C++写一遍然后胶水糊上。</p>
-<p>但可是啊可但是啊，代码执行时绝大部分的时间都消耗在了网络IO、磁盘IO，在语言本身上的劣势并不是那么明显。当然了非得说语言本身，那动态语言运行时要解释，要运行时检查……</p>
-<h1 id="代码效率质量"><a href="#代码效率质量" class="headerlink" title="代码效率质量"></a>代码效率质量</h1><p>实际上老实说，这部分才是最关键的。一个足够Pythonic的代码看起来是很舒服的嗯……</p>
-<h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><h3 id="查询时SQL注入的预防"><a href="#查询时SQL注入的预防" class="headerlink" title="查询时SQL注入的预防"></a>查询时SQL注入的预防</h3><p>在有些情况下（比如说登录的时候）我们需要进行where限制条件查询，此时如果使用拼接SQL语句的方式，那么被注入几乎就是肯定的了。</p>
-<p>比如某些新手在登录的查询语句可能会构造如下语句：</p>
-<p>SELECT * FROM account WHERE username&#x3D;’benny’ AND password&#x3D;’123456’</p>
-<p>其中benny和123456是由用户输入的变量，通过判断结果集是否为空来判断是否登录成功。乍一看似乎没啥问题，但是……问题太多了。</p>
-<ol>
-<li>无验证登录</li>
-</ol>
-<p>恶意用户只需要把用户名输入为<code>&#39; or 1=1; --</code> ，SQL语句就会变成这样：</p>
-<p>SELECT * FROM account WHERE username&#x3D;’’ or 1&#x3D;1; – ‘ AND password&#x3D;’123456’</p>
-<p>这是一条带不带WHERE都一样的语句，只要表中有数据那么结果集就一定为真，自然也就绕过登录了。</p>
-<ol>
-<li>各种注入</li>
-</ol>
-<p>通过构造各种各样的奇葩的SQL语句，可以摸索出来表的结构，甚至是某些关键库（比如mysql这个库）的数据，比如说<a target="_blank" rel="noopener" href="https://chybeta.github.io/2017/07/21/MySql%E6%B3%A8%E5%85%A5%E5%A4%87%E5%BF%98%E5%BD%95/">这篇</a>。</p>
-<ol>
-<li>密码存储问题</li>
-</ol>
-<p>即使注入不是问题，从系统设计的角度来讲这种设计也是错误的。</p>
-<p>明文密码，无论从传输角度还是从数据库角度来讲都是不合理的。即使是使用安全的散列函数、HMAC也是错误的。</p>
-<p>正确的姿势是用参数化查询查询出密码，使用PBKDF的方法进行等时间比较。</p>
-<p>（如何存储用户密码是一门艺术，以后也许单独开一篇完整介绍吧）</p>
-<h3 id="dictCursor"><a href="#dictCursor" class="headerlink" title="dictCursor"></a>dictCursor</h3><p>有些时候我们可能需要查询出来的结果是一定类型的，默认情况下pymysq使用的cursor会查询出来<code>[(),()]</code>这种格式的数据，如果我们需要字典样式的数据，那么就要在构造con连接对象的时候指定游标，语法大致如下：</p>
-<p>con &#x3D; pymysql.connect(host&#x3D;’localhost’, user&#x3D;’user’, password&#x3D;’passwd’,<br>db&#x3D;’db’, charset&#x3D;’utf8mb4’, cursorclass&#x3D;pymysql.cursors.DictCursor)</p>
-<p>这样就不用再从information_schema里乱查一通了。</p>
-<h3 id="fetch方式"><a href="#fetch方式" class="headerlink" title="fetch方式"></a>fetch方式</h3><p>cur在获取数据时，有<code>fetchall()</code>、<code>fetchone()</code>、<code>fetchmany()</code>三种方法。细节已经<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">在这里说了</a>，所以就暂且不提。</p>
-<h2 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h2><h3 id="插入时SQL注入的预防"><a href="#插入时SQL注入的预防" class="headerlink" title="插入时SQL注入的预防"></a>插入时SQL注入的预防</h3><p>插入数据时也同样需要防范SQL注入，所以应该使用参数化查询。下面会详细说明</p>
-<h3 id="cur-execute-与参数"><a href="#cur-execute-与参数" class="headerlink" title="cur.execute()与参数"></a>cur.execute()与参数</h3><p>首先看一眼原型：<code>def execute(self, query, args=None)</code></p>
-<p>第一个参数query代表要执行的SQL语句，第二个args代表可选的查询参数，类型可为tuple, list or dict</p>
-<p>也就是说，我们应该这样执行execute：</p>
-<ol>
-<li><code>cur.execute(&#39;select version()&#39;)</code> 不需要任何参数，直接一整条SQL语句。</li>
-<li><code>cur.execute(&#39;INSERT INTO sometable VALUES (%s,%s)&#39;, (1, 4))</code> 参数化查询，%s是占位符，不需要考虑字段类型。无脑%s没事的，这不是Python的字符串%格式化风格语法。</li>
-</ol>
-<p>根据<a target="_blank" rel="noopener" href="https://www.python.org/dev/peps/pep-0249/">PEP 249</a>，clientlibrary.paramstyle可以看到占位符风格，比如说自带的sqlite3的占位符就是?，pymysql是pyformat，更多详细信息可以<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/7929364/python-best-practice-and-securest-to-connect-to-mysql-and-execute-queries">看看这里</a></p>
-<p>比较不推荐的执行查询的方式</p>
-<p>sql &#x3D; ‘insert into sometable values(‘<br>sql &#x3D; sql + “‘“ + var1 + “‘,’” + var2 + “‘,’” + var3 + “‘,” + str(1984) + “)”</p>
-<p>以及任何花样循环拼接的方式，看着那些单引号双引号我都头疼，就算USE somedb这种没办法搞参数化查询，那咱用%s、format、f-string拼字符串可读性也比这种+的好。况且+要开辟新的内存空间，会更慢了。</p>
-<p>提示：mysql connector的cursor支持multiLine模式，也就是说可以通过分号执行多条SQL语句。不过，pymysql不支持哟。</p>
-<h3 id="cur-executemany-参数"><a href="#cur-executemany-参数" class="headerlink" title="cur.executemany()参数"></a>cur.executemany()参数</h3><p>以为会execute参数化查询就够了吗？才不是呢，远远还不够。有些时候我们需要大量插入（或是replace）。按照一般的脑回路：</p>
-<p>sql &#x3D; “INSERT INTO sometable VALUES (%s,%s,%s)”<br>for item in data:<br>    cur.execute(sql, item)</p>
-<p>还是先来看下executemany的原型：<code>executemany(self, query, args)</code></p>
-<p>第一个参数query还是带有占位符的SQL语句，第二个参数args一般来说是双层嵌套的参数。例子如下：</p>
-<p>sql &#x3D; ‘INSERT INTO SOMETABLE VALUES (%s,%s,%s)’<br>data &#x3D; [[1, 2, 3], [4, 5, 6], [7, 8, 9]]<br>cur.executemany(sql, data)</p>
-<p>核心关键就在这里，executemany会通过多值的INSERT提升性能，其他情况下就和循环调用execute一样了</p>
-<p>有些小盆友可能想问，为啥executemany能够提高性能呢？因为executemany生成的是类似<code>INSERT INTO sometable VALUES(1,2,3),(4,5,6)</code>这种语句啊，肯定要比一条一条INSERT要快很多了。不过为什么说“肯定”呢？想当然是很正常的，有理有据的想当然才是可以的（…( ＿ ＿)ノ｜继续看就知道为什么了）。</p>
-<p>注意，由于单条SQL语句的长度有限制，这里可能需要看情况分割一下：</p>
-<p>for i in range(0, len(data), SIZE):<br>    part &#x3D; data[i:i + SIZE]<br>    # do something here, such as executemany</p>
-<p>相信我，只要插入数据量足够大，executemany就能够成为性能提升的最关键的一点。</p>
-<p>哦对了，executemany配合参数化查询已经很好用了，还是别多值INSERT，虽说也能提高效率……</p>
-<p>以下测试有一点需要注意，不同的表结构、字段类型所得到的二者比值未必相同，但总体情况毫无疑问是executemany胜出。</p>
-<p>下面是我的测试，测试脚本可以从如下地址获取： [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/one/_million'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/one\_million&#39;\]开源地址\[/gt\]</a></p>
-<table><tbody><tr><td colspan="3"><span style="font-size: 12pt;">简单表的性能benchmark</span></td></tr><tr><td>插入条数</td><td><span style="font-size: 12pt;">execute</span></td><td><span style="font-size: 12pt;">executemany</span></td></tr><tr><td><span style="font-size: 12pt;">1000</span></td><td><span style="font-size: 12pt;">0.35</span></td><td><span style="font-size: 12pt;">0.02</span></td></tr><tr><td><span style="font-size: 12pt;">5000</span></td><td><span style="font-size: 12pt;">0.84</span></td><td><span style="font-size: 12pt;">0.06</span></td></tr><tr><td><span style="font-size: 12pt;">10000</span></td><td><span style="font-size: 12pt;">4.16</span></td><td><span style="font-size: 12pt;">0.34</span></td></tr><tr><td><span style="font-size: 12pt;">20000</span></td><td><span style="font-size: 12pt;">4.87</span></td><td><span style="font-size: 12pt;">0.39</span></td></tr><tr><td><span style="font-size: 12pt;">50000</span></td><td><span style="font-size: 12pt;">19.43</span></td><td><span style="font-size: 12pt;">0.93</span></td></tr><tr><td><span style="font-size: 12pt;">100000</span></td><td><span style="font-size: 12pt;">40.84</span></td><td><span style="font-size: 12pt;">3.18</span></td></tr><tr><td><span style="font-size: 12pt;">500000</span></td><td><span style="font-size: 12pt;">165.72</span></td><td><span style="font-size: 12pt;">9.76</span></td></tr><tr><td><span style="font-size: 12pt;">1000000</span></td><td><span style="font-size: 12pt;">369.46</span></td><td><span style="font-size: 12pt;">29.43</span></td></tr></tbody></table>
-
-<p><img src="/images/2018112701530413.png"></p>
-<p>看一下这个折线图更直观的感受下吧，平均来说executemany要比execute快上至少10倍。</p>
-<h3 id="其他不太好玩方式"><a href="#其他不太好玩方式" class="headerlink" title="其他不太好玩方式"></a>其他不太好玩方式</h3><p><strong>关于事务与commit</strong></p>
-<p>不要尝试花样commit，比如说一条一条插，每插入1000条commit一次；插一条commit一次。这比画蛇添足还过分，这就是自讨苦吃啊。一起commit就得了。（如果数据可能会插入失败，那么一定要用try…except…finally控制好异常确保无误）</p>
-<p><strong>并发INSERT</strong></p>
-<p>在使用InnoDB情况下，由于InnoDB有事务，插入时有排他锁，表的结构可能不同，可能有主键外键唯一约束，可能有自增非空限制，数据库版本&#x2F;配置可能不同，一些库的限制，GIL锁等等，这个变量就有点太大了有点难控制……这个我真的没办法拿数据说话。</p>
-<h3 id="其他小的代码因素"><a href="#其他小的代码因素" class="headerlink" title="其他小的代码因素"></a>其他小的代码因素</h3><p>除了execute&#x2F;executemany这个最大的性能因素之外，还有一些在某些情况下Python层面的对性能提升未必很明显的处理方式:</p>
-<ol>
-<li>拼接字符串：尽量选择f-string、%、format或join，+是最慢的，<a target="_blank" rel="noopener" href="https://realpython.com/python-f-strings/#speed">f-string是最快的</a>。</li>
-<li>Python 2需要特别注意一些方面，比如range和xrange，True和1等</li>
-</ol>
-<h1 id="其他因素"><a href="#其他因素" class="headerlink" title="其他因素"></a>其他因素</h1><h2 id="服务器性能"><a href="#服务器性能" class="headerlink" title="服务器性能"></a>服务器性能</h2><p>包含MySQL版本，编译优化，宿主机IO&#x2F;CPU&#x2F;RAM等。这一点就很难展开说了，说不定某个版本的MySQL在某个平台上通过某个编译优化参数性能就提升了20%呢。哦对了，Python开启<code>--enable-optimizations</code>时据说性能会提升10%-20%呢。</p>
-<h2 id="网络速度"><a href="#网络速度" class="headerlink" title="网络速度"></a>网络速度</h2><p>如果是远程连接到数据库的话，那么减少连接次数、减少数据量是更加的选择，此时就更应该选择批量的executemany而不是execute了。因为多次execute会嗷嗷的增加上传和下载的流量，而executemany不会增加下载的流量，就连上传流量的增加也不那么可怕哟。</p>
-<p>还好都是一个TCP连接里走的，要不就更惨不忍睹了。</p>
-<p>不信我抓包给你看~</p>
-<h3 id="单个execute"><a href="#单个execute" class="headerlink" title="单个execute"></a>单个execute</h3><p><img src="/images/20181127015305100.png"></p>
-<p>一共这么几个请求，一个autocommit&#x3D;0，一个commit，三个查询。</p>
-<p><img src="/images/2018112701530643.png"></p>
-<p>协议统计告诉我们，我发送了682字节，接受了628字节。</p>
-<p>下面我们来看下executemany</p>
-<h3 id="executemany"><a href="#executemany" class="headerlink" title="executemany"></a>executemany</h3><p><img src="/images/2018112701530642.png"></p>
-<p>从图中我们可以看到，一个autocommit&#x3D;0，一个commit，外加一次查询。</p>
-<p><img src="/images/2018112701530789.png"></p>
-<p>协议统计告诉我们，发送了514字节，接收了537字节。</p>
-<p>假如我把数据量从3改成1000，那么……</p>
-<p><img src="/images/2018112701530770.png"></p>
-<p>单次execute发送94K接受65K</p>
-<p><img src="/images/2018112701530850.png"></p>
-<p>Executemany发送10K接受542字节</p>
-<h3 id="网速影响总结"><a href="#网速影响总结" class="headerlink" title="网速影响总结"></a>网速影响总结</h3><p>综上，在数量级为1000的情况下，execute总流量是159K，executemany是10.53K，差了接近15倍。那么在低网速、大数据的情况下谁的优势更明显就不言而喻了。</p>
-<p>那么问题来了，假如单独executemany的时候差了十倍，流量又差了十倍，那是不是一共就差了100倍了？</p>
-<p>(　o&#x3D;^•ェ•)o　┏━┓（你看桌子都翻了，所以呢）不可以这么计算的，大部分情况下网速对性能的影响并不是那么明显，当网速足够慢、数据足够大时，这个影响就会被放大；反之这个影响可以忽略不计。所以正确计算是要加权重的，然而这个权重是几乎无法得到的ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛</p>
-<p>所以，如果在远程连接数据库的情况下执行查询，那么数据量大的时候，因为单次execute导致了网络传输量的急剧上升，execute的负面效应会被一定程度的放大。</p>
-<h2 id="最终的总结"><a href="#最终的总结" class="headerlink" title="最终的总结"></a>最终的总结</h2><ol>
-<li>官方文档是第二好的参考来源，那么第一好的参考来源是什么？源代码啦；</li>
-<li>当遇到问题的时候，想当然是很正常的，但是更重要的是通过分析实验与数据了解并证实猜想；</li>
-<li>某些因素可能会互相影响。像本例execute的副作用之一就是会增加网络流量，所以execute才是根源，网速只是伴随的副作用而已，不可因果倒置；</li>
-<li>某些性能因素是很难控制的，比如服务器CPU&#x2F;RAM&#x2F;IO，Python解释器性能，MySQL版本&#x2F;编译选项&#x2F;配置&#x2F;集群，甚至是操作系统、内核的差距。这种因素的变量几乎很难控制，那么就不要考虑了，等某因素成为关键点的时候再去分析；</li>
-<li>我有代码洁癖；</li>
-<li>这可能是一个火苗</li>
-</ol>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/11/28/one-million-data/index/" data-id="clhp7rthw0069s2qr5c1z6h42" data-title="假如给我一百万（的数据）" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-confess-for-what/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/11/03/confess-for-what/index/" class="article-date">
-  <time class="dt-published" datetime="2018-11-03T00:00:00.000Z" itemprop="datePublished">2018-11-03</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/11/03/confess-for-what/index/">面壁思过...？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>晚上女神突然来找我，我很开心。我知道这段时间她一定会比较频繁的找我，所以也并没有感到有什么意外。本来以为是因为毕设的原因来找我帮忙，没想到是想去Quora让我帮忙搜几个问题(去给留学生的作业什么的)。不过你懂的，我们的GFW是多么伟大啊。</p>
-<p>后来这么一说，事情就简单了，我直接找几篇发给她参考下，也省得帮她配置shadowsocks什么的，尽管我十分愿意，毕竟，这也是为了<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2009/10/use-people-war-to-anti-gfw.html">让GFW陷入人民战争的汪洋大海</a>而做的微不足道的努力吧。话说回来，问题也很简单：为什么最近几年人们都选择移民美国，美国应该紧缩还是宽松移民政策？</p>
-<p>这是个很好的问题啊，很值得讨论。我就顺便说了一句，我无时无刻不在想着逃走。我以前从来不会跟人说我的任何倾向和想法，因为我觉得就某人说的一样：我关注的都是大家不关注的。大家关注的我都没有精力去关注。</p>
-<p>之所以敢和她这么说一句，可能是因为我认为她最近这一两年的经历与思想转变更像是<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/02/brainwash-and-idiot.html">“觉醒”的人</a>吧。我还跟人吹嘘过说我认识这种“异类觉醒”的人呢。呃似乎我这么说人家不太好吧。</p>
-<p>也许她是受到了我当初无心插柳送给她的《1984》的影响吧，也许是那一年遇到了各种奇怪的社会现象吧。总之这种“觉醒”的人越来越多总是好的，虽说从觉醒程度上来讲可能并不足够深、并不理想。</p>
-<p>但是想都没想到，我竟然被她狠狠的训了、或者说是凶了一次。感觉平时那么温文儒雅的她好像是第一次用这么大的声音、这么强烈的语气、加重了的力度的词语跟我说话……我记得她的声音分明是很甜美很温柔的那种圆滚滚的可爱的样子的啊……</p>
-<p>大概就是说作为华人会被歧视，只看到了白板上一个黑点，只想追求自己的所谓的什么什么的。说实话我觉得这些观点都是没什么的，是的<strong>我不同意你的观点，但是我却愿意捍卫你说这些话的权利</strong>。即使我们的思想截然相反，但是思想一旦发生碰撞，就会溅出曼妙的火花。而这种思维火花往往对彼此的发展有积极性作用的。</p>
-<p>只是很平静的说出这些其实也没什么，心情好的话，也许就可以你一句我一句的讨论，找出论据支撑自己的观点，用事实来说明观点，也许在这种事情里并没有绝对的对错（可能这样说也不对，但是至少我很清楚，我不会一定要像古美门那样不择手段的不留余地，毕竟跟我对话的人可是女神），可能经过这样一次讨论，我们对彼此的理解会更加深一点，或者是学习了解到了一些自己的思维体系中原本并不存在的一些观点。<strong>所谓思维的碰撞嘛，本应该就是这样美好的设想的</strong>。</p>
-<p>唯一不同的是，她并不是心态平和的说出了这些，而是以着一种盛气凌人的、怒发冲冠的非常强烈的训斥般的语气说出了这些，如果是一些逻辑严谨的证明也就算了，但是给我的感觉却是分分钟走下滑坡。</p>
-<p>上次有人用这种居高临下盛气凌人的语气跟我说话，还是8月中旬看电影时发生的小意外。不过好歹我和他也不认识，打不打招呼能咋样，又不给我发钱，并不在乎。可是今晚……想一想，是不是我太脆弱了，是不是我太过于看重别人对我的看法了，是不是我太玻璃心了。一定是这样的吧。为什么要轻易相信别人，为什么要轻易的把自己的内心、把自己的想法告诉别人呢？</p>
-<p>我一句话都没敢反驳，甚至都不敢接茬。我立刻怂了，一丁点观点都不敢表达，一丁点事实都不敢描述。我立刻很委婉纠结的试探着问下不会是生气了吧……当然了这么问当然是无用功了。</p>
-<p>得了，先别想这些，怀着忐忑不安的心情，我还是尽全力认真完成她拜托我的事情吧。我才不在乎别人是怎么拜托她的，也不在乎她能拿到什么好处。我所在乎的就是她来找我，她需要我帮忙我这一个环节，在那一瞬间我知道我是被人需要的，还是被女神需要的，所以自然要尽全力的认真的做好交代给我的事情，这样下次她才会更愿意来拜托我。至于其他的环节，其实我并不是很在乎的。</p>
-<p>然后就到了现在。我本来只是想写几个字平静下自己的内心，却开始发现自己的情绪变得越来越不稳定、越来越激动。</p>
-<p>莫非我这是PTSD了？所以我才这样敏感……说出去会被嫌弃笑话的吧。不过也没关系啊，我的心理太阴暗了，我一点都不积极，我总是看不到阳光的那一面，我总是倾向于选择自我毁灭，偶尔还会有着自暴自弃的想法。谁能喜欢这样性情多变的人就怪了。所以我不值得被爱啊，这些全都是我自己作死的后果。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/11/2018110316142082.jpg"><img src="/images/2018110316142082.jpg"></a> 和你一起面壁思过好了。</p>
-<p>也许吧，我再也不是那个你们认识的我了。终有一天我们之间的关系会逐渐切断，终有一天我们会把对方从彼此的记忆中清除。我一直认为自己是一个很绝情的人，所以这些对我来说是都是可以接受的。只是你现在还需要我，那就让我心甘情愿的完成为数不多的几次收官之作吧。</p>
-<p>最后，还是想起了一句话：</p>
-<blockquote>
-<p>宪法原则中最重要的是“自由思想的原则”——不是确保我们喜欢的思想的自由，而是确保我们所憎恨的思想的自由</p>
-<p>if there is any principle of the Constitution that more imperatively calls for attachment than any other it is the principle of free thought—not free thought for those who agree with us but freedom for the thought that we hate.</p>
-</blockquote>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/11/03/confess-for-what/index/" data-id="clhp7rtf5001gs2qr3eps78rt" data-title="面壁思过...？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-python-excel-add-column/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/09/19/python-excel-add-column/index/" class="article-date">
-  <time class="dt-published" datetime="2018-09-19T00:00:00.000Z" itemprop="datePublished">2018-09-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/09/19/python-excel-add-column/index/">使用Python给带合并单元格的Excel加一列</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前几天有这么一个需求，要给Excel表格的最前面加入两列。我想这不是非常简单吗？几行代码而已：</p>
-<p>import openpyxl</p>
-<p>wb &#x3D; openpyxl.load_workbook(‘simple.xlsx’)<br>sh &#x3D; wb.active<br>sh.insert_cols(1)<br>wb.save(‘result.xlsx’)</p>
-<p>非常简单，自己还找了个表格试了下，好像没问题。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913193939.png"><img src="/images/2018091913193939.png"></a></p>
-<p>然后我发现我要处理的表格是带有合并单元格的，用这几行代码处理下发现……</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913194017.png"><img src="/images/2018091913194017.png"></a></p>
-<p>我的单元格都乱套了……</p>
-<p>这可咋整……不管了，掏出了openpyxl</p>
-<h2 id="openpyxl"><a href="#openpyxl" class="headerlink" title="openpyxl"></a>openpyxl</h2><h3 id="处理xlsx合并单元格插入列"><a href="#处理xlsx合并单元格插入列" class="headerlink" title="处理xlsx合并单元格插入列"></a>处理xlsx合并单元格插入列</h3><p>其实处理思路很简单，遍历每一个单元格，给纵坐标+2，然后样式什么的也拷贝一份写到新的表格里就好了。但是一片不大不小的水域，总是有那么不多不少的水坑。</p>
-<h3 id="如何判断合并单元格"><a href="#如何判断合并单元格" class="headerlink" title="如何判断合并单元格"></a>如何判断合并单元格</h3><p>在openpyxl中， 合并单元格是以<code>ws.merged_cells</code>这个列表表示的，这个列表里面的形式如下：I1:I2 D1:E1 A1:A2 B1:C1 F1:H1，每一对用冒号连接的坐标表示这两个之间是合并的。</p>
-<p>这样问题就简单啦，我们只需要把坐标+2就好了，比如说A1:B2变C1:E2，K1:J5变M1:L1，Z1:AA1变AB1:AC1，等等什么？Z1:AA1变AB1:AC1？没办法我这个Excel有点长……</p>
-<p>这个不是普通的加法啊，通过<code>ord()</code>和<code>chr()</code>来回转换吧？进坑了吧少年?</p>
-<h3 id="二十六进制？？"><a href="#二十六进制？？" class="headerlink" title="二十六进制？？"></a>二十六进制？？</h3><p>我们了解到，Excel的坐标变化是字母表的进位，也就是26进制！这……二进制，八进制，十六进制都是咱比较常用的，这二十六进制是什么鬼？来我们<code>if…elif…elif….elif</code>写一波……</p>
-<p>def twenty_six(coord, size):</p>
-<h1 id="A1-B2-AB1-AC2"><a href="#A1-B2-AB1-AC2" class="headerlink" title="A1:B2, AB1:AC2"></a>A1:B2, AB1:AC2</h1><pre><code>left = coord.split(&#39;:&#39;)\[0\]
-right = coord.split(&#39;:&#39;)\[-1\]
-left\_char = left\[0\]
-right\_char = right\[0\]
-
-if len(left\_char) == 1 and len(right\_char) == 1:
-    return &quot;%s:%s&quot; % (chr(ord(left\_char + size)), chr(ord(right\_char + size)))
-elif len(left\_char) == 2 and len(right\_char) == 2:
-    return &quot;%s:%s&quot; % (chr(ord(left\_char + size)), chr(ord(right\_char + size)))
-</code></pre>
-<p>哎？那要坐标是A1:AZ3的呢？不用想了这段代码是错的⛲</p>
-<p>那么我们来创造人类史上的第一个26进制吧！小伙子，又进坑了吧……?</p>
-<p>要什么26进制啊，直接弄个A, B, C, D….AA, AB, AC….BC, BD….ZZ一共26*26个元素的列表，通过index查得了。</p>
-<p>所以所谓的“26进制”咱可以这么处理一波：</p>
-<p>import itertools<br>import string</p>
-<p>table &#x3D; list(itertools.chain(string.ascii_uppercase,(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2))))</p>
-<p>def twenty_six(char, size):<br>    index &#x3D; table.index(char)<br>    return table[index + size]</p>
-<p>其中<code>char</code>是表示字母（不带数字的那种）</p>
-<p>喜欢挑刺的童鞋们可能会说，你这是列表，列表查找可能得全都遍历完了才查找到，你这太浪费时间了。得用字典。</p>
-<p>喂(#`O′)童鞋，如果用字典的话，那么需要不仅能从键（字母）找到值，还得需要通过值找到键，这……行行行，没啥不可能的，键值对反转嘛，面试必会题目。那么用字典，table大概就是这么构造：</p>
-<p>使用dict方法</p>
-<p>table &#x3D; [dict(zip(itertools.chain(string.ascii_uppercase,<br>(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2))),<br>[i for i in range(26 * 26)])),<br>dict(zip([i for i in range(26 * 26)], itertools.chain(string.ascii_uppercase,<br>(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2)))))]</p>
-<p>使用字典推导(ﾉ*･ω･)ﾉ：</p>
-<p>base &#x3D; dict(zip(itertools.chain(string.ascii_uppercase,<br>(‘’.join(pair) for pair in itertools.product(string.ascii_uppercase, repeat&#x3D;2))),<br>[i for i in range(26 * 26)]))</p>
-<p>table &#x3D; [base, {v: k for k, v in base.items()}]</p>
-<p><code>table[0]</code>表示从字母查找数字，给数字+2之后在<code>table[1]</code>从数字查找字母，调用就更简单了。我爱(ﾉ*･ω･)ﾉ。</p>
-<p>然而实际上，676个元素有点少，字典的空间换时间几乎是划不来的。而且<code>dict()</code>和<code>zip()</code>方法以及遍历字典也会花费一点时间，代码还写得很长，所以简单起见生成个列表就够了。</p>
-<h3 id="处理字母式坐标"><a href="#处理字母式坐标" class="headerlink" title="处理字母式坐标"></a>处理字母式坐标</h3><p>在解决了26进制之后，我们只需要把字母从一个合并单元格坐标中提取出来就可以了，要完成这项工作其实方法挺多的，比较简单的方法是直接用正则表达式。一搜就有。这里就不写了。</p>
-<h3 id="遍历单元格内容和样式"><a href="#遍历单元格内容和样式" class="headerlink" title="遍历单元格内容和样式"></a>遍历单元格内容和样式</h3><p>我们需要遍历每个单元格，多亏了PyCharm的Evaluate Expression功能，很容易就发现遍历单元格的方法：</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913194476.png"><img src="/images/2018091913194476.png"></a></p>
-<p>我们可以很清楚的看到，i这个变量的每一个元素都包含了这个表格的全部信息，包括内容，边框，填充，字体等等。那么获取到这些信息就很简单了，一个双循环即可：</p>
-<p>for i in ws.rows:<br>    for v in i:<br>        print(v.coordinate, v.fill, v.border, v.value)</p>
-<p><code>v.coordinate</code>表示的是单元格的字母式坐标，我们可以给上面封装好的twenty_six调用下，就能够做好新的移动之后的坐标了。</p>
-<p>那么拷贝样式吧。</p>
-<h3 id="拷贝单元格样式"><a href="#拷贝单元格样式" class="headerlink" title="拷贝单元格样式"></a>拷贝单元格样式</h3><p>在openpyxl中，给单元格写入样式非常简单，大概如下就可以了：</p>
-<p><code>ws[&#39;A1&#39;].fill=&#39;Your fill style&#39;</code></p>
-<p>我们把上面遍历过来的内容直接赋值就可以了，大概如下：</p>
-<p>for i in ws.rows:<br>    for v in i:<br>        coord &#x3D; ‘移动之后的坐标’<br>        # copy fill border and everything<br>        write_ws[coord].fill &#x3D; v.fill<br>        write_ws[coord].font &#x3D; v.border<br>        write_ws[coord].border &#x3D; v.border</p>
-<p>童鞋，你又进坑了━((*′д｀)爻(′д｀*))━!!!!</p>
-<p>尽管通过Evaluate能够看到右面的类型是左边接受的类型，但是还是报错。为什么不尝试下浅拷贝呢？嗯这是好用的。</p>
-<p><code>from copy import copy</code>把<code>v.fill</code>替换成<code>copy(v.fill)</code>就好了</p>
-<h3 id="给合并单元格应用样式"><a href="#给合并单元格应用样式" class="headerlink" title="给合并单元格应用样式"></a>给合并单元格应用样式</h3><p>这个有点特殊，<a target="_blank" rel="noopener" href="https://openpyxl.readthedocs.io/en/stable/styles.html#styling-merged-cells">openpyxl官网写好</a>了一个，咱拿过来直接用就好了。</p>
-<h3 id="拷贝单元格内容"><a href="#拷贝单元格内容" class="headerlink" title="拷贝单元格内容"></a>拷贝单元格内容</h3><p>单元格内容用<code>v.value</code>就能读到了。但是那些合并了的单元格，究竟是读取哪个坐标才能读到呢?别猜了，让我来告诉你，左上角的。其他的读取出来的都是<code>None</code></p>
-<p>所以拷贝单元格内容就太简单了，判断下就好了。</p>
-<p>if v.value:<br>    self.write_ws[coord] &#x3D; v.value</p>
-<p>啪(￣ε(#￣)打飞你。如果某个单元格的内容是0，0是布尔假值啊……那岂不是丢数据了？？</p>
-<p>小可爱，判断下，这是个特例。于是乎吭哧吭哧……</p>
-<p>elif type(v.value) &#x3D;&#x3D; int:<br>    pass</p>
-<p>啪(。&gt;︿&lt;)_θ再次打飞你。难道不知道有个东西叫<code>isinstance()</code>嘛？后面的类型可以是元组，列表或者单个类型（类啊，int啊，float啊啥的都可以）</p>
-<p>elif isinstance(v.value, float):<br>    pass</p>
-<h3 id="组装……"><a href="#组装……" class="headerlink" title="组装……"></a>组装……</h3><p>好吧，那么坑都踩的差不多了，组装组装就好了，先拷贝每个单元格，再给<code>merge_cell</code>拷贝过去，基本上就没啥了。</p>
-<p>biu biu biu于是别人给你发了一个xls格式的Excel。</p>
-<p>openpyxl不支持xls哦。</p>
-<h3 id="转换格式？"><a href="#转换格式？" class="headerlink" title="转换格式？"></a>转换格式？</h3><p>怕啥，openpyxl不支持读xls，我们就找个东西给转换成xlsx，再拿他处理。什么pandas啊，pyexcel啊都行，要不随手找个什么在线转换的支持REST API的咱用requests走起啊……</p>
-<p>你看，这个?是什么，黑乎乎的我看不清，要不你跳进去看下。</p>
-<p>不用试了，那些库把xls转换成xlsx之后，合并单元格基本丢的差不多的了。用在线转换，比如说牛逼哄哄的Google Docs？恐怕我是要请<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Legal_High">黛真知子</a>当我的辩护律师呀……啊不，我愿意，非常愿意，真的真的那就在线转换吧。小黛请你为我唱一首歌(&#x2F;≧▽≦)&#x2F;</p>
-<iframe src="//player.bilibili.com/player.html?aid=4012670&amp;cid=6469605&amp;page=1" frameborder="no" scrolling="no" allowfullscreen="allowfullscreen"></iframe>
-
-<p>哦那个对不起，其实我家小黛唱歌好好听的。爱老婆的清唱??(*￣3￣)╭</p>
-<iframe src="//player.bilibili.com/player.html?aid=2440565&amp;cid=3820356&amp;page=1" frameborder="no" scrolling="no" allowfullscreen="allowfullscreen"></iframe>
-
-<p>(づ￣ 3￣)づ</p>
-<h2 id="xlrd-xlwt-xlutils"><a href="#xlrd-xlwt-xlutils" class="headerlink" title="xlrd xlwt xlutils"></a>xlrd xlwt xlutils</h2><p>所以说到底，我们又用回来了xlrd这一系列？不过好在思路已经有了，那么就简单了。</p>
-<h3 id="读取合并单元格"><a href="#读取合并单元格" class="headerlink" title="读取合并单元格"></a>读取合并单元格</h3><p>同样的，借助PyCharm的Debug，咱很快就找到了合并单元格存于<code>read_ws.merged_cells</code>中。当然要遍历啦，每个元素都是一个包含了四个数字的元组。这四个数字都是啥啊……哎嘿嘿坐标呗，↖↘酱紫的呗，从0开始数数哦，前开后闭哦（哦对不起我高中数学就没及格过）。</p>
-<p>for (rlow, rhigh, clow, chigh) in read_ws.merged_cells:<br>    print(rlow, rhigh, clow, chigh)</p>
-<p>那怎么读取到合并单元格的值呢？当然还是左上角的坐标啦。那是什么呢，反正就4个数字，排列组合也就十几种，哎……好吧，是rlow和clow啦。读取的话就<code>read_ws.cell(1,2).value</code>就拿到了。</p>
-<h3 id="写入合并单元格"><a href="#写入合并单元格" class="headerlink" title="写入合并单元格"></a>写入合并单元格</h3><p>这个也很简单啦，<code>write_merge()</code>接受4个必选参数，也就是坐标，1个可选参数插入的值，另一个可选参数样式。</p>
-<p>所以复制合并单元格就这样子：</p>
-<p>for (rlow, rhigh, clow, chigh) in read_ws.merged_cells:<br>    # 2nd &amp; 4th parameter have to -1<br>    write_ws.write_merge(rlow, rhigh - 1, clow + size, chigh - 1 + size, read_ws.cell(rlow, clow).value)</p>
-<h3 id="读取单元格样式"><a href="#读取单元格样式" class="headerlink" title="读取单元格样式"></a>读取单元格样式</h3><p>xlrd的样式是怎么读出来的呢？找遍了<code>sh.cell()</code>的返回值也没发现有什么结构是存着样式的。</p>
-<p>猛然间发现一个<code>sh.cell_xf_index()</code>似乎可以拿到样式的索引的……还有个<code>wb.xf_list</code>，于是用索引去取，完美了。</p>
-<h3 id="应用单元格样式"><a href="#应用单元格样式" class="headerlink" title="应用单元格样式"></a>应用单元格样式</h3><p>样式已经取到了，那么赋值给关键字参数style，❌；copy一下赋值，❌……类型似乎正确啊……</p>
-<p>一把梭一把梭，拿起来就是干，我不会编程，全都是抄StackOverflow的。</p>
-<p>xlrd的样式不能应用给xlwt哦亲亲。(╯‵□′)╯︵┻━┻气得我当场就把桌子掀了。</p>
-<p>w &#x3D; XLWTWriter()<br>process(XLRDReader(wb, ‘unknown.xls’), w)<br>w.style_list</p>
-<p>从这个<code>w.style_list</code>取下标，这个值就是可以传给xlwt的关键字参数style的了✔○( ＾皿＾)っHiahiahia…</p>
-<h3 id="遍历并写入单元格内容和样式"><a href="#遍历并写入单元格内容和样式" class="headerlink" title="遍历并写入单元格内容和样式"></a>遍历并写入单元格内容和样式</h3><p>xlrd的<code>read_ws.nrows</code>和<code>read_ws.ncols</code>表示了这个表格总计的行数和列数，简单粗暴双循环，同样需要注意布尔值为假的0：</p>
-<p>for i in range(__nrows):<br>    for j in range(__ncols):<br>        # copy style and value<br>        if read_ws.cell(i, j).value:<br>            write_ws.write(i, j + size, read_ws.cell(i, j).value, style&#x3D;__generate_style(i, j))<br>        elif isinstance(read_ws.cell(i, j).value, float):<br>            write_ws.write(i, j + size, read_ws.cell(i, j).value)</p>
-<p>?<strong>是一种神奇的东西，我们每个人都见过，但是却又不知道它的本质，不知道它究竟为何。</strong></p>
-<p>?有的时候，可能某些单元格，它是有填充色的，但是内容为空哦。那你这……不就错了吗？</p>
-<p>解决方案也很简单，再来个else，继续copy style但是插入空值呗……哎？有没有人想问下openpyxl就没有这个问题啊，怎么这就出现了……(*&#x2F;ω＼*)那个你最好看下openpyxl我是在哪里应用的样式。</p>
-<p>人生在世，?总是有的，说不定哪一天走在马路上就……这样做可能会抛出ValueError的异常。</p>
-<p>这是为啥呢？其实我也不知道。try一波捕获了就好了。</p>
-<h2 id="那么封装成一个类"><a href="#那么封装成一个类" class="headerlink" title="那么封装成一个类"></a>那么封装成一个类</h2><p>这还用说嘛，简单，把openpyxl和xlrd家族的封装到类里，<code>__init__()</code>接受俩参数，也就是输入和输出文件名，该用双下划线“保护”的成员变量就写上，该静态方法就静态方法，最后保留一个<code>insert_col()</code>接受一个size参数，一个<code>save()</code>保存文件就得了，实例能访问读取和写入的workbook和worksheet就足够了。</p>
-<h3 id="为什么要有save-呢？"><a href="#为什么要有save-呢？" class="headerlink" title="为什么要有save()呢？"></a>为什么要有save()呢？</h3><p>因为灵活啊，万一人家想插了两列空白，顺便加点字呢？难不成要让人再打开一遍文件啊？当然不了，直接实例调用写入的worksheet的那个变量，想怎么来就怎么来了。</p>
-<h2 id="这个新的列的表头也得你加"><a href="#这个新的列的表头也得你加" class="headerlink" title="这个新的列的表头也得你加"></a>这个新的列的表头也得你加</h2><h3 id="自定义前景色"><a href="#自定义前景色" class="headerlink" title="自定义前景色"></a>自定义前景色</h3><p>这没啥，很简单，xlwt和openpyxl都带，自己看下文档，很容易就做出来了。</p>
-<p>不过需要注意的是，xlwt的设计有一点秀逗，这个插入的背景色的话，如果想自定义的话，是用不了十六进制的颜色值的……那么自定义颜色值大概是……</p>
-<p>pattern &#x3D; xlwt.Pattern()<br>xlwt.add_palette_colour(“custom_color”, 0x21)<br>c.write_wb.set_colour_RGB(0x21, 0, 204, 255)<br>pattern.pattern &#x3D; xlwt.Pattern.SOLID_PATTERN<br>pattern.pattern_fore_colour &#x3D; 0x21</p>
-<h3 id="这个新加的表头也要封装"><a href="#这个新加的表头也要封装" class="headerlink" title="这个新加的表头也要封装"></a>这个新加的表头也要封装</h3><p>于是咱咔咔咔的要给这个类再加个方法，再给构造方法添加个参数啥的（因为要处理两个不同的表头样式）</p>
-<p>啪ㄟ( ▔, ▔ )ㄏ手疼ヽ(*。&gt;Д&lt;)o゜</p>
-<p>难道不知道有个东西叫做继承吗？这个类已经很纯粹了，就是给Excel前面加两列，这么加个不相干的方法进去那就是老鼠屎里进了米饭……啊不是米饭里进了老鼠屎。继承下更好哟(＾Ｕ＾)ノ~ＹＯ</p>
-<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/09/2018091913194557.png"><img src="/images/2018091913194557.png"></a></p>
-<p>完美(o゜▽゜)o☆</p>
-<p>全部源代码以及示例文件可以戳下面的章鱼猫哦o(&#x3D;•ェ•&#x3D;)m [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/xls'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/xls&#39;\]开源地址\[/gt\]</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/09/19/python-excel-add-column/index/" data-id="clhp7rtid006zs2qrhodr75sd" data-title="使用Python给带合并单元格的Excel加一列" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-purpose-of-life/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/08/27/purpose-of-life/index/" class="article-date">
-  <time class="dt-published" datetime="2018-08-27T00:00:00.000Z" itemprop="datePublished">2018-08-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/08/27/purpose-of-life/index/">生活啊，究竟是为了什么呢</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>A true suicide is a paced, disciplined certainty.</p>
-<p>People pontificate “Suicide is a coward’s act”.</p>
-<p>Couldn’t be further from the truth.</p>
-<p>Suicide takes tremendous courage.</p>
-<p>真正的自杀是一场深思熟虑的谋划</p>
-<p>人们断言，自杀系懦夫之为</p>
-<p>事实却是大相径庭</p>
-<p>自杀需要极大的勇气</p>
-</blockquote>
-<h2 id="选择"><a href="#选择" class="headerlink" title="选择"></a>选择</h2><p>生活啊，究竟是为了什么呢？是为了奔向更美好的未来，还是为了生存下去？</p>
-<p>我想，对于我来说，只是单纯的为了生存下去，我只是想活下去，但是却又不敢有一丝的对未来的奢望。</p>
-<p>是我选择让生活变得更糟糕的。我自己作死，怪得了谁呢？</p>
-<p>真的是这样吗？只是因为我不想再跟父母要一分钱，只是因为我想自己努力去创造未来。</p>
-<p>生于穷人家的孩子总是在体验同龄人都在毕业游而我却要为生活而奔波的<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1011895319100051456">落差感</a>，总是在感受别人父母都已经准备好一切而我却想要拒绝些许帮助的无力感。是的，这就是生活，永远孤独一人，只能指望自己。</p>
-<p>然而无论我怎么选择，似乎还是看不见未来呢。</p>
-<p>房价高到望尘莫及，物价高到无法理喻，可收入却低到深不见底。好吧我承认我说错了，收入没那么低，物价虽说高但是也没到吃不起的份上，可是房价却是实实在在的无法理喻。</p>
-<p>可不是嘛，住不起、行不起、生不起、病不起、死不起、结不起，总之总之，什么都不起，除了吃得起让你饿不死。</p>
-<p>生活变得越来越糟糕了，越来越看不到未来的任何希望了。</p>
-<p>生活失去希望，虽生犹死。</p>
-<p><img src="/images/2018082713432951.jpeg" alt="To live without hope is to cease to life"></p>
-<h2 id="假象"><a href="#假象" class="headerlink" title="假象"></a>假象</h2><p>似乎我曾经说过，我的生活还算滋润？好像是这样啊，工作上的事情处理来得心应手，有人需要我；家庭和睦幸福，父母身体很好，还可以戳小孩子的脸；有着游戏机，吃喝不愁可能还会比较奢侈，有着足够让我无收入活过一年半载的积蓄，可以开开心心的吃顿大餐，可以孤注一掷的为喜欢的人买点什么。这好像可以算作说得过去的才毕业两个月的应届生了？在同龄人中还算是说得过去的了？</p>
-<p>看着很潇洒，很得意自由是吧。然而背后的真相就是，这些都无法改变我是小白兔的事实。</p>
-<p><a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2013/03/weekly-share-42.html#head-1">我是只可爱的小白兔啊</a>，可爱的小白兔啊，非常萌的萌到爆的那种。然后某天突然意识到自己变成了没有脚的绿油油的韭菜。</p>
-<p>小白兔活得多不容易啊，然而被狼，狐狸和王八割了个溜光。</p>
-<h2 id="伊人"><a href="#伊人" class="headerlink" title="伊人"></a>伊人</h2><p>我总是会想起<a target="_blank" rel="noopener" href="https://dmesg.app/my-lovestory.html">她</a>。尽管她也许做的不对，但是不知为何我总是回忆起那些日子里她对我的信任。</p>
-<p>她那么漂亮，却选择和矮穷挫的我在一起，甚至考虑了未来。也许那个时候我们都很幼稚吧，不知道生活有多么残酷，也许那个时候爱情都是很纯真美好的吧。也许分开对她而言是更好的选择，和我在一起会吃苦的。</p>
-<p>曾经互相凝视时看到你眼中含着的笑容，那种很温柔的充满了爱意的笑眼。即使感觉整个内心世界似乎都可以被一个拥抱填满，即使在某些时刻我觉得自己是被需要的，即使这样，也只不过是过去的美好记忆，也许是三年前的记忆，也许是三天前的记忆。</p>
-<p>要习惯被拒绝，习惯被忽视，习惯被讨厌，并且要不带任何情绪的一笑而过。希望我能够不带任何情绪的，很快的就忘记这些吧。然而我深深地知道，喜欢的人是不可能的，想要的东西是拿不到的，未来是看不见的。只剩下绝望，只剩下逃离。</p>
-<p>在看不到希望的未来里，我能够遇见你，能够与你共同玩耍，能够注视你的笑眼，能够与你牵手拥抱哪怕只有一瞬间，我觉得这也是很美妙的事情。</p>
-<p>卖火柴的小女孩最终划亮了最后一根火柴，希望也在她的眼中渐渐流逝。</p>
-<p><img src="/images/2018082713433041.png"></p>
-<p>最爱的结衣老婆，求你快来治愈我…… 你的笑容已经了我的精神支柱……</p>
-<h2 id="离去"><a href="#离去" class="headerlink" title="离去"></a>离去</h2><p>唉。</p>
-<p>看不到希望的未来，看不到未来的希望?看不到一丝一毫的生活能变得起色的样子。</p>
-<p>没有希望，没有未来。在这个看不到希望的未来里，我连你也看不到呢……</p>
-<p>即使看不到希望，也一定要努力生存下去，坚持到这一天吧……还是要努力的，为了逃离，为了Exodus……?</p>
-<p><img src="/images/2018082713433171.jpeg"></p>
-<h2 id="……"><a href="#……" class="headerlink" title="……"></a>……</h2><p>新出的电影可以去看，喜欢的游戏可以去买，想吃什么也可以吃，想喝冰酒也可以毫不犹豫的加到购物车里。看着很潇洒，很得意自由，光鲜亮丽的生活是吧。然而背后的真相就是，这些都无法改变我是小白兔的事实。其实更多的是对未来生活的无望。不知道是看不到未来的希望还是看不到希望的未来</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/08/27/purpose-of-life/index/" data-id="clhp7rti3006ts2qrckke3fbh" data-title="生活啊，究竟是为了什么呢" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1093,7 +1100,7 @@ elif len(left\_char) == 2 and len(right\_char) == 2:
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1106,23 +1113,23 @@ elif len(left\_char) == 2 and len(right\_char) == 2:
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

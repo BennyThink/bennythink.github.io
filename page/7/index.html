@@ -73,6 +73,700 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-tgbot2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/25/tgbot2/index/" class="article-date">
+  <time class="dt-published" datetime="2020-12-25T00:00:00.000Z" itemprop="datePublished">2020-12-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/25/tgbot2/index/">[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>三年前，我开始了写这一系列，没想到过了3年，竟然也没几个人去看！连个捧场的都没有</p>
+<p>这三年，Telegram也迎来了一些更新，这篇文章当然不会挨个介绍每一个新特性以及相关的用法了，我只会把自己开发过程中提到的地方记录一下。官方文档写的挺清楚了，基本上每一点都介绍的很详细😂</p>
+<p>前两篇</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot0.html">[Telegram bot 系列]0：用 Python 写一个 Telegram Bot 简单的回话 bot</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot1.html">[Telegram bot 系列]1：requests 库、Inline Keyboard、Reply Keyboard 与其他细节</a></p>
+<h2 id="回顾：如何开发一个Telegram-Bot"><a href="#回顾：如何开发一个Telegram-Bot" class="headerlink" title="回顾：如何开发一个Telegram Bot"></a>回顾：如何开发一个Telegram Bot</h2><h3 id="开发语言"><a href="#开发语言" class="headerlink" title="开发语言"></a>开发语言</h3><p>爱用啥用啥，Python、Go等都没问题的，甚至直接curl都是可以的。毕竟Restful，怎么都可以。</p>
+<h3 id="开发方式"><a href="#开发方式" class="headerlink" title="开发方式"></a>开发方式</h3><p>想要开发Telegram Bot，从途径上来说有两种方法。</p>
+<p>第一种方法是使用Bot API，REST接口，入口在荷兰，使用起来比较容易。</p>
+<p>第二种方法是使用MTProto协议，这个会比较困难，需要有一定的异步编程基础。著名的<a target="_blank" rel="noopener" href="https://github.com/LonamiWebs/Telethon">telethon</a>就是干这个的。</p>
+<p>大部分情况下使用第一种就足够满足需求了，本系列也会一直以第一种方法为主。</p>
+<h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><p>对于Bot而言，最重要的事情就是“事件”，比如说当用户发送一个纯文本的消息，那么对于Bot来说就是一种类型的事件；当用户发送了一个图片，这又是另外一种事件；用户编辑了消息，删除了消息，也同样对应不同的事件。甚至，当用户点击InlineKeyBoardButton，这也是一种特殊事件。</p>
+<p>因此，开发一个bot，也就是根据传入的事件不同来进行各种操作，然后给用户反括，比如回复消息，发送文件，整体的流程差不多就是这样的。</p>
+<p>Telegram Bot事件类型挺多的，大概一共有这些类型：</p>
+<p>&#x2F;&#x2F; Handler: func(*Message)<br>OnText &#x3D; “\atext”<br>OnPhoto &#x3D; “\aphoto”<br>OnAudio &#x3D; “\aaudio”<br>OnAnimation &#x3D; “\aanimation”<br>OnDocument &#x3D; “\adocument”<br>OnSticker &#x3D; “\asticker”<br>OnVideo &#x3D; “\avideo”<br>OnVoice &#x3D; “\avoice”<br>OnVideoNote &#x3D; “\avideo_note”<br>OnContact &#x3D; “\acontact”<br>OnLocation &#x3D; “\alocation”<br>OnVenue &#x3D; “\avenue”<br>OnEdited &#x3D; “\aedited”<br>OnPinned &#x3D; “\apinned”<br>OnChannelPost &#x3D; “\achan_post”<br>OnEditedChannelPost &#x3D; “\achan_edited_post”<br>OnDice &#x3D; “\adice”<br>OnInvoice &#x3D; “\ainvoice”<br>OnPayment &#x3D; “\apayment”</p>
+<p>&#x2F;&#x2F; Will fire when bot is added to a group.<br>OnAddedToGroup &#x3D; “\aadded_to_group”</p>
+<p>&#x2F;&#x2F; Group events:<br>OnUserJoined &#x3D; “\auser_joined”<br>OnUserLeft &#x3D; “\auser_left”<br>OnNewGroupTitle &#x3D; “\anew_chat_title”<br>OnNewGroupPhoto &#x3D; “\anew_chat_photo”<br>OnGroupPhotoDeleted &#x3D; “\achat_photo_del”</p>
+<p>&#x2F;&#x2F; Migration happens when group switches to<br>&#x2F;&#x2F; a supergroup. You might want to update<br>&#x2F;&#x2F; your internal references to this chat<br>&#x2F;&#x2F; upon switching as its ID will change.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(from, to int64)<br>OnMigration &#x3D; “\amigration”</p>
+<p>&#x2F;&#x2F; Will fire on callback requests.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Callback)<br>OnCallback &#x3D; “\acallback”</p>
+<p>&#x2F;&#x2F; Will fire on incoming inline queries.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Query)<br>OnQuery &#x3D; “\aquery”</p>
+<p>&#x2F;&#x2F; Will fire on chosen inline results.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ChosenInlineResult)<br>OnChosenInlineResult &#x3D; “\achosen_inline_result”</p>
+<p>&#x2F;&#x2F; Will fire on ShippingQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ShippingQuery)<br>OnShipping &#x3D; “\ashipping_query”</p>
+<p>&#x2F;&#x2F; Will fire on PreCheckoutQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PreCheckoutQuery)<br>OnCheckout &#x3D; “\apre_checkout_query”</p>
+<p>&#x2F;&#x2F; Will fire on Poll.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Poll)<br>OnPoll &#x3D; “\apoll”</p>
+<p>&#x2F;&#x2F; Will fire on PollAnswer.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PollAnswer)<br>OnPollAnswer &#x3D; “\apoll_answer”</p>
+<p>看到名字就知道是什么意思，就不说了。</p>
+<h3 id="运行方式"><a href="#运行方式" class="headerlink" title="运行方式"></a>运行方式</h3><p>要么使用polling方式，定期轮询API Server，要么设置webhook，发生事件时Telegram会向设置的地址发送POST请求，请求的BODY里会有对应的数据结构。</p>
+<h2 id="Media-Group"><a href="#Media-Group" class="headerlink" title="Media Group"></a>Media Group</h2><p>Telegram目前已经支持将图片、文件、视频等作为一组发送，比如说我发送了3张照片为一组，在这种情况下，Bot 所收到的事件就是三个onPhoto，然后这三个事件有一个共同的字段<code>media_group_id</code>，至于<code>caption</code>落在第几个事件里？不知道，遍历完就知道了。</p>
+<p>划重点：这三个事件几乎是同时到达的。所以有些需求，比如说提取出这组照片里的file_id和caption，最简单的办法就是共享一个全局的字典，以<code>user_id</code>和<code>media_group_id</code>作为key，那么这个时候就要考虑用锁的机制来让这三个事件变成串行的。一个例子<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet/blob/master/teletweet/bot.py#L125">可以看这里</a></p>
+<h2 id="下载媒体文件"><a href="#下载媒体文件" class="headerlink" title="下载媒体文件"></a>下载媒体文件</h2><p>对于Telegram而言，无论是文件，还是图片、视频，都有一个<code>file_id</code>用于唯一代表这个文件。当然，每个类型会有一些细微的不同，比如视频文件会包含分辨率，图片会有预览图，文件会有mime-type。</p>
+<p>想要下载文件，可以分为三步</p>
+<ol>
+<li>拿到对应的对象，比如说想要下载图片，那么就是<code>message.photo</code>，想要下载视频，那么就是<code>message.video</code></li>
+<li>拿到file_id，参考下对应的数据结构，拿到对应的<code>file_id</code>，比如说<code>message.video.file_id</code></li>
+<li>进行下载，保存到本地</li>
+</ol>
+<p>具体可以参考如下代码，用其他语言也差不多，套路都是一样的：</p>
+<p>def download_file_from_id(file_id):<br>    file_info &#x3D; bot.get_file(file_id)<br>    content &#x3D; bot.download_file(file_info.file_path)</p>
+<pre><code>temp = tempfile.NamedTemporaryFile(delete=False)
+temp.write(content)
+return temp
+</code></pre>
+<p>def get_file_id(message) -&gt; str:<br>    if message.photo:<br>        object_type &#x3D; “photo”<br>    elif message.video:<br>        object_type &#x3D; “video”<br>    elif message.document:<br>        object_type &#x3D; “document”<br>    else:<br>        object_type &#x3D; “”</p>
+<pre><code>try:
+    file\_id = getattr(message, object\_type)\[-1\].file\_id
+except Exception:
+    file\_id = getattr(message, object\_type).file\_id
+return file\_id
+</code></pre>
+<p>需要注意一点，<code>message.photo</code>的结果是一个list，第一个元素是预览图，最后一个元素是正常大小（720P）的图片</p>
+<p>另外更需要注意的一点：Telegram对于Bot可以上传、下载的文件、图片等大小有限制，具体可以查文档找找，所以如果用户发送了一个2G的文件，bot这边很有可能是无法下载的……但是Bot可以转发啊！要处理这种情况，只能用client api了，bot收到这种类型的文件，转发给一个正常用户，正常用户处理完，将结果发给bot，bot再转发给初始用户。</p>
+<p>这种曲线救国的方式，如果确保整个链条是完整的，可以<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">参考NCMBot的代码</a>。一定要引起注意的是，有些用户的隐私设置中不允许任何人查看转发信息，因此不可以依赖forwarded_message这个字段！bot一定要想办法自己记录下来某条消息（文件）的对应的初始用户是谁。</p>
+<h2 id="Next-Step"><a href="#Next-Step" class="headerlink" title="Next Step"></a>Next Step</h2><p>有些时候，我们可能需要一个wizard性质的一步一步的向导，简单的话，类似下图这种效果：</p>
+<p><img src="/images/2020122516061518.png"></p>
+<p><img src="/images/2020122516061860.png"></p>
+<p>BotFather也是这样设计的。</p>
+<p>这个时候就需要一种“Next Step”的概念，要一步一步来才可以。如果使用pytelegrambotapi的话，那么就很简单了，直接使用<code>bot.register_next_step_handler</code>就可以了。示例代码如下：</p>
+<p>@bot.message_handler(commands&#x3D;[‘sign_in’])<br>def sign_in_handler(message):<br>    bot.send_message(message.chat.id, “next step”, parse_mode&#x3D;’markdown’)<br>    bot.register_next_step_handler(message, next_step_add_auth)</p>
+<p>def next_step_add_auth(message):<br>    bot.send_chat_action(message.chat.id, ‘typing’)<br>    bot.send_message(message.chat.id, “this step”, parse_mode&#x3D;’markdown’)</p>
+<p>如果wrapper不支持next step，那就只能自己设计一个状态机了。需要设计一个临时的数据结构，至少要表明用户的下一步操作应该是什么，然后拦截对应的事件，做dispatch。</p>
+<p>具体<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/KeepMeBot/blob/93244cdae53a77a3232ece9e4e5e053418d386ac/handler.go#L63">可以看这里</a>，太长了就不贴了</p>
+<h2 id="部署维护"><a href="#部署维护" class="headerlink" title="部署维护"></a>部署维护</h2><p>之前开发的bot，每次上线都要写一个systemd service文件，然后<code>systemctl daemon-reload</code>，很麻烦，迁移到其他机器也很麻烦。后来渐渐开始用docker，就很方便了。直接把一堆bot都丢到一个<code>docker-compose.yml</code>中，一个<code>up</code>就可以了。迁移服务器时只要rsync走，重新up就可以。具体可以看<a target="_blank" rel="noopener" href="https://dmesg.app/dev-deploy-bot.html">《我是如何优雅的开发、部署并管理多个 Telegram Bot 的》</a></p>
+<h3 id="Dockerfile与docker-image"><a href="#Dockerfile与docker-image" class="headerlink" title="Dockerfile与docker image"></a>Dockerfile与docker image</h3><p>之前，不知道在哪看到的文章，说docker image的layer有限制，不能超过127层(还是多少层的)，层越少越好。因此很多人可能都有一个疯狂一行式的习惯，把所有操作全都一个RUN解决了，不停的用&amp;&amp;和\。</p>
+<p>一个非常典型的例子大概如下：</p>
+<p>FROM python:alpine</p>
+<p>RUN apk update \<br>&amp;&amp; apk add git ffmpeg flac –no-cache \<br>&amp;&amp; git clone <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ExpressBot">https://github.com/tgbot-collection/ExpressBot</a> \<br>&amp;&amp; pip3 install –no-cache-dir -r &#x2F;ExpressBot&#x2F;requirements.txt</p>
+<p>WORKDIR &#x2F;ExpressBot</p>
+<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
+<p>现在想想，这™️的是谁说的，出来让我暴打一顿，可真是害人不浅呐！</p>
+<p>现在docker engine的layer是否有层数限制我不了解，但是层越少越好，这点要怎么理解？</p>
+<p>比如说，有人看到官网文档<a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices">Best practices for writing Dockerfiles</a>里这么说的：</p>
+<blockquote>
+<p><strong>Minimize</strong> the number of layers</p>
+<p>In older versions of Docker, it was <strong>important</strong> that you minimized the number卧槽这™️什么玩意这也太长了吧看不下去了啊，能不能来个中文，啊好困。行吧，反正有一个minimize，还说 important，那直接无条件一层达人不就得了。</p>
+</blockquote>
+<p>愚以为，宫中之事 技术学习中是非常忌讳这种囫囵吞枣的阅读方式的。</p>
+<h3 id="如何正确的使用RUN"><a href="#如何正确的使用RUN" class="headerlink" title="如何正确的使用RUN"></a>如何正确的使用RUN</h3><p>为什么要存在layer，一个最直观的原因就是，大家可以共用同样的layer，这样pull起来也快很多啊。另外还有一个原因就是，如果某一个layer已经有了，那么在build image的时候，直接拿来用不就好了？毕竟安装东西很慢啊，有些可能还是要去编译的，就更慢了。</p>
+<p>写Dockerfile不要怕多创建layer，不要总是一层达人（这里使用了夸张的修辞手法，<code>FROM</code>也是要一层的，这里指的是一个<code>RUN</code>指令）</p>
+<p>怎么来了解这个事情呢？</p>
+<p>首先要知道，docker只有<code>RUN</code>、<code>COPY</code>、<code>ADD</code>这三个命令会创建新的layer。</p>
+<p>其次，以Python为例，一个Python程序的运行环境大概可以这样划分：</p>
+<ol>
+<li>基础的操作系统</li>
+<li>某版本的Python解释器及对应的一些系统级使用apt安装的库，比如gcc，git，各种lib比如说libssl</li>
+<li>对应的Python第三方库，比如说flask，requests</li>
+<li>代码</li>
+</ol>
+<p>那么具体分析一下，就可以发现，1和2是基本不会变的，3变的概率比较大，但是不会很频繁，4是经常变化的。那么我们的Dockerfile就应该同样保证1和2作为一层，3作为1层，4作为一层。</p>
+<p>其次要知道，docker在build的时候，默认会使用缓存的，但是需要注意的是，如果低层的缓存失效了，那么后面的全部都要重新跑。</p>
+<p>也就是说，在上面的例子中，如果我只改代码，那么对应的是4，那么123都会使用缓存，4重新跑一次。但是如果我修改了2，那么234都要重新跑，即使我没有修改3和4。哦对了，2020年了，没有人会傻到用文件的访问时间、修改时间来判断你有没有改这个文件。docker使用的是checksum(SHA256)啦。</p>
+<p>总结一下，应该把<strong>同样变化频率的命令放在一起作为一条RUN</strong>，然后把<strong>不常变化的放在上面，经常变化的放在下面</strong>，这样才是最优解。</p>
+<p>那么对应如上Dockerfile，就可以这样优化一下：</p>
+<p>FROM python:alpine</p>
+<h1 id="安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"><a href="#安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo" class="headerlink" title="安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"></a>安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo</h1><p>RUN apk update &amp;&amp; apk add –no-cache ffmpeg flac # 加上–no-cache</p>
+<h1 id="拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod"><a href="#拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod" class="headerlink" title="拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod"></a>拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod</h1><p>COPY requirements.txt &#x2F;tmp&#x2F;requirements.txt</p>
+<h1 id="安装-Python的库，然后删掉它，如果是go，可以用go-mod-download"><a href="#安装-Python的库，然后删掉它，如果是go，可以用go-mod-download" class="headerlink" title="安装 Python的库，然后删掉它，如果是go，可以用go mod download"></a>安装 Python的库，然后删掉它，如果是go，可以用go mod download</h1><h1 id="如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以"><a href="#如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以" class="headerlink" title="如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以"></a>如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以</h1><p>RUN pip install –no-cache-dir -r &#x2F;tmp&#x2F;requirements.txt &amp;&amp; rm &#x2F;tmp&#x2F;requirements.txt</p>
+<h1 id="把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝"><a href="#把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝" class="headerlink" title="把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝"></a>把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝</h1><p>COPY . &#x2F;ExpressBot</p>
+<p>WORKDIR &#x2F;ExpressBot</p>
+<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
+<p>这样就可以用到cache啦</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/12/2020122516243648.jpeg"><img src="/images/2020122516243648.jpeg"></a></p>
+<p>具体改进都写到了注释里了。需要注意的是，<code>.git</code>也会被拷贝，对于一个有很多commit的项目来说……还是整个<code>.dockerignore</code>吧！</p>
+<p>这样一波操作下来，确实是多了几层，但是下次我改代码，docker hub就不用全部重新跑了，一个简单的COPY就完事。</p>
+<p>呃，当然，build rule也要开启build caching哦</p>
+<p><img src="/images/2020122516062048.png"></p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers">Best practices for writing Dockerfiles</a></p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>祝大家圣诞快乐🎅希望你的圣诞老人没有在打电动</p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/xbox/status/1342213462521380864?s=21">https://twitter.com/xbox/status/1342213462521380864?s=21</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/25/tgbot2/index/" data-id="clhp7rtm5009qs2qrbn1ydxkk" data-title="[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-dev-deploy-bot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/10/30/dev-deploy-bot/index/" class="article-date">
+  <time class="dt-published" datetime="2020-10-30T00:00:00.000Z" itemprop="datePublished">2020-10-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/10/30/dev-deploy-bot/index/">我是如何优雅的开发、部署并管理多个Telegram Bot的？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><strong>并不优雅</strong></p>
+<p>大家都知道，最近我一直痴迷于开发各种并无卵用的Telegram Bot。那么这一过程，就包含了开发、部署和管理这三个过程，本文就简单的说下这段时间的经验之谈吧</p>
+<h2 id="开发-Telegram-Bot"><a href="#开发-Telegram-Bot" class="headerlink" title="开发 Telegram Bot"></a>开发 Telegram Bot</h2><blockquote>
+<p>神说：要有这个bot，于是就有了这个bot</p>
+</blockquote>
+<p>开发bot，最重要的一点就是进行技术选型。“技术选型”看起来很玄乎，其实就是为了实现这个bot，我们要选用什么语言，使用什么库等等。</p>
+<p>当然一切都要从需求出发，从我的角度而言，首选语言是Go——因为静态类型，静态编译之后很适合放到Docker Image里，并且只要凭借想象力编程就基本没问题了；如果Go无法达到我的预期，那就只好选Python了；如果连Python也做不好，那这个bot就可以丢掉了。</p>
+<p>当然，在最终选定时，需要根据需求进行一些基础的调研，拿<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet">TeleTweet</a>为例，基础阶段它的需求有这些：</p>
+<ul>
+<li>能够把Telegram消息发送到Twitter</li>
+<li>支持图片tweet</li>
+</ul>
+<p>对于Go&#x2F;Python与其生态的对比</p>
+<p>Go：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/tucnak/telebot">Telebot</a> 纯Go实现的支持Bot API的库，维护很积极，文档也比较丰富</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Arman92/go-tdlib">go-tdlib</a> Telegram官方tdlib的json bindings，文档几乎为0，同时需要先编译tdlib</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/dghubble/go-twitter">go-twitter</a> 功能尚可，文档缺失，并且不支持UploadMedia</li>
+</ul>
+<p>Python：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/eternnoir/pyTelegramBotAPI">pytelegrambotapi</a> 非常知名的Bot API wrapper，文档丰富，维护积极</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/LonamiWebs/Telethon">Telethon</a> 使用纯Python实现的MTProto，注释即文档，维护积极，支持bot和client</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/bear/python-twitter">python-twitter</a> 还能凑合用的一个Twitter API wrapper，该有的功能都有，支持UploadMedia</li>
+</ul>
+<p>那么对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet">TeleTweet</a>而言，选择Python就是更明智的选择；对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">NCMBot</a>，由于需要使用Client API，因此选用Python+Telethon也是比较优雅的选择；对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/archiver">Archiver</a>，没有太多特殊的地方，用Go就可以了。</p>
+<h2 id="部署Telegram-Bot"><a href="#部署Telegram-Bot" class="headerlink" title="部署Telegram Bot"></a>部署Telegram Bot</h2><p>开发完成之后，bot是总要部署到某台服务器上的。由于我自己有很多bot，因此根据情况不同我把他们划分成了两类：</p>
+<h3 id="Legacy-Bot"><a href="#Legacy-Bot" class="headerlink" title="Legacy Bot"></a>Legacy Bot</h3><p>一些历史遗留下来的bot，基本没有继续的开发计划，处于即将被Archive的状态，有些甚至连说明都没有，完全是拿来自用?所以就丢着呗！</p>
+<h3 id="Modern-Bot"><a href="#Modern-Bot" class="headerlink" title="Modern Bot"></a>Modern Bot</h3><p>最近一段时间开发的bot，有持续的维护计划，运行稳定，表现良好。</p>
+<p>对于第一类bot，我选择让它们留在一台新加坡的机器上，原来是怎么跑的就怎么跑，一点都不动；</p>
+<p>对于第二类bot，我把它们全部放到了一台日本的机器上。</p>
+<p>对于第二类bot，如何运行它们又成为了一个问题。</p>
+<p>好吧，现在这些bot，只要还能说话的，我都给丢到一台英国的大鸡鸡上了。</p>
+<h3 id="systemd-service"><a href="#systemd-service" class="headerlink" title="systemd service"></a>systemd service</h3><p>使用Python开发的bot，那么就是老生常谈的_virtualenv+systemd_，实际操作下来有些繁琐，尤其是配置systemd总是有一些蜜汁情况，比如说环境变量啦，比如说用户啦；使用Go开发的bot，那么也就不外乎是clone下来源代码，然后<code>go build .</code> ，然后继续配置systemd。这样的话当bot一旦多起来，甚至以后要换服务器，那么就会更麻烦，所有上述操作都要全部重新再来一遍，非常痛苦?</p>
+<h3 id="docker-docker-compose"><a href="#docker-docker-compose" class="headerlink" title="docker + docker-compose"></a>docker + docker-compose</h3><p>那么如果用docker去分发部署是不是就很方便了？毕竟第二类bot都是有<code>Dockerfile</code>的。</p>
+<p>没错的，就是这样——使用<code>Dockerfile</code>构建出docker image，直接docker run就可以了。</p>
+<p>更进一步，我可以把这堆bot都丢到<code>docker-compose</code>中，一个<code>docker-compose up -d</code>就可以了。</p>
+<p>当然，构建docker image时，是有很多技巧的，这个就以后再说了。</p>
+<h2 id="管理、维护bot"><a href="#管理、维护bot" class="headerlink" title="管理、维护bot"></a>管理、维护bot</h2><h3 id="使用Makefile"><a href="#使用Makefile" class="headerlink" title="使用Makefile"></a>使用Makefile</h3><p>开发工作总是要不断迭代的，那么如果添加了新功能，，我该如何更新服务器上bot呢？</p>
+<p>有些bot，我创建了一个<code>Makefile</code>，里面是这么写的：</p>
+<p>default:<br>    @echo “Updating codes…”<br>    git pull<br>    @echo “Restarting service…”<br>    systemctl daemon-reload<br>    systemctl restart TeleTweet<br>    @echo “You’re good to go.”<br>    systemctl status TeleTweet</p>
+<p>很简单，很黄很暴力是不是，只要ssh到服务上，跳到对应的目录，一个<code>make</code>然后就可以关窗放狗咬人走人了。</p>
+<p>对于使用Go的bot，也不过是<code>go build .</code> 之类的，比如<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/DailyGakki">DailyGakki</a>是这样写的：</p>
+<p>default:<br>    git pull<br>    @echo “Installing dependencies…”<br>    @go get -u github.com&#x2F;go-bindata&#x2F;go-bindata&#x2F;…<br>    @echo “Build static files…”<br>    make asset<br>    @echo “Build current platform executable…”<br>    go build -o DailyGakki .</p>
+<p>asset:<br>    @~&#x2F;go&#x2F;bin&#x2F;go-bindata -o assets.go images&#x2F;…</p>
+<p>反正也是本机使用，没必要用<code>CGO_ENABLED=0</code>以及额外配置<code>ldflags</code></p>
+<p>如果想要查看Bot的运行状态呢？那么只能<code>systemctl status daily-gakki</code>这样啦！</p>
+<p><img src="/images/2020102917340981.png"></p>
+<h3 id="使用docker-docker-compose"><a href="#使用docker-docker-compose" class="headerlink" title="使用docker+docker-compose"></a>使用docker+docker-compose</h3><p>如果使用docker的话，那么一切问题就简单了。push完代码之后，等待docker hub build成功之后，ssh到服务器上：</p>
+<p>docker pull xxx<br>docker restart container_name</p>
+<p>使用docker-compose也就不过pull了之后</p>
+<p>docker-compose up -d service_name</p>
+<p>查看状态？</p>
+<p>docker-compose ps</p>
+<p><img src="/images/2020102917341023.png"></p>
+<p>或者</p>
+<p>docker stats</p>
+<p><img src="/images/2020102917341268.png"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>由此可见，在整个bot瞎搞的过程中，使用docker来进行分发部署管理还是非常方便的。当数量多起来，要比传统的systemd、supervisor之类的方便得多。</p>
+<p>当然docker也有缺点，比如磁盘空间比较宝贵的盆友们，有些时候docker image就可能没那么理想，毕竟有些image只能包含rootfs。提到这点，如果是Python开发的bot，做一个通用的image，包含了这些bot所有需要使用的library也不是不可以的。</p>
+<p>另外一个难点，docker容易新手劝退，比如说volumes有时比较有趣，一个不小心就很容易写错，然后就gg啦😂</p>
+<p>不过，如果能够用Go开发，那么docker image甚至可以使用<a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/multistage-build/">multi-stage build</a>的手段。像下面这样：</p>
+<p><img src="/images/2020102917341448.png"></p>
+<p>一眼就能看出来哪些是用Go写的了吧！非常exciting。</p>
+<p>更进一步，我甚至准备了一个<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/BotsRunner">Repository</a>，专门用来存放这些bot的<code>docker-compose.yml</code>。</p>
+<p>哪怕哪天换机器了，我也只需要把这个目录拷贝走，然后一个<code>docker-compose up -d</code>就可以继续装死了。</p>
+<hr>
+<p>好的，以上就是我要说的全部内容，有关于我究竟开发了哪些bot，可以看这篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/telegram-bot-collections.html">《有趣的 Telegram Bot》</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/10/30/dev-deploy-bot/index/" data-id="clhp7rtf9001vs2qr2byb78o9" data-title="我是如何优雅的开发、部署并管理多个Telegram Bot的？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-telegram-bot-collections/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/10/25/telegram-bot-collections/index/" class="article-date">
+  <time class="dt-published" datetime="2020-10-25T00:00:00.000Z" itemprop="datePublished">2020-10-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>►<a class="article-category-link" href="/categories/program/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/10/25/telegram-bot-collections/index/">有趣的Telegram Bot</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近一段时间，我一直在痴迷与鼓捣Telegram Bot?再算上之前的几个bot，那么就来水一下吧！</p>
+<h2 id="ServerSan"><a href="#ServerSan" class="headerlink" title="ServerSan"></a>ServerSan</h2><p>这曾经是一个用来监测服务器状态的bot，可以获取OS的基础信息等等。?现在已经凉了，本王已经弃坑了。能不能用嘛？?运气好的话也许能吧……要不我这图是怎么来的？</p>
+<p><img src="/images/2020102514041886.jpeg"></p>
+<p><img src="/images/2020102514041910.jpeg"></p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ServerSan">https://github.com/tgbot-collection/ServerSan</a></p>
+<h2 id="wp-comments-tgbot"><a href="#wp-comments-tgbot" class="headerlink" title="wp-comments-tgbot"></a>wp-comments-tgbot</h2><p>这个是为了方便回复WordPress评论而搞的bot。别看很久不更新了，但是依旧能用的哦！</p>
+<p>别说，这东西我用的真很开心，已经很久不进WordPress的后台了?</p>
+<p><img src="/images/2020102514042311.jpeg"></p>
+<p><img src="/images/2020102514042485.png"></p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/wp-comments-tgbot">https://github.com/tgbot-collection/wp-comments-tgbot</a></p>
+<p>介绍： <a target="_blank" rel="noopener" href="https://dmesg.app/wp-tgbot.html">《使用 Telegram Bot 接受和回复 WordPress 评论》</a></p>
+<h2 id="KeepMeBot"><a href="#KeepMeBot" class="headerlink" title="KeepMeBot"></a>KeepMeBot</h2><p><a target="_blank" rel="noopener" href="https://t.me/KeepMeRunBot">https://t.me/KeepMeRunBot</a></p>
+<p>在Docker Hub宣布将清理不活跃镜像之后，就搞出来了这个东西。目前来说，emmm，能用！仅此而已</p>
+<p>用起来很简单，添加就是了！</p>
+<p><img src="/images/20201025140426100.png" alt="KeepMeBot 保活机器人"></p>
+<p>当然了你能够看到添加记录</p>
+<p><img src="/images/202010251404282.png" alt="KeepMeBot 保活机器人"></p>
+<p>甚至，为此我还有个域名……??‍♀️</p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/KeepMeBot">https://github.com/tgbot-collection/KeepMeBot</a></p>
+<p>介绍： <a target="_blank" rel="noopener" href="https://dmesg.app/keepmebot.html">《KeepMeBot 保活机器人》</a></p>
+<h2 id="DailyGakki"><a href="#DailyGakki" class="headerlink" title="DailyGakki"></a>DailyGakki</h2><p><a target="_blank" rel="noopener" href="https://t.me/my_gakki_bot">https://t.me/my_gakki_bot</a></p>
+<p>? 每日分享最可爱的Gakki</p>
+<p>这么可爱的老婆，难道你不想每天都看到吗？那么既然如此，不如就快来使用这个Bot吧！</p>
+<p>怎么样，喜欢今日份的老婆吗？</p>
+<p><img src="/images/2020102514043052.png"></p>
+<p>不仅可以手动呼叫你的老婆，还能够定时推送哦！</p>
+<p><img src="/images/2020102514043719.png"></p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/DailyGakki">https://github.com/tgbot-collection/DailyGakki</a></p>
+<h2 id="TeleTweet"><a href="#TeleTweet" class="headerlink" title="TeleTweet"></a>TeleTweet</h2><p><a target="_blank" rel="noopener" href="https://t.me/tele_tweetbot">https://t.me/tele_tweetbot</a></p>
+<p>某一天，我在用着电脑，突然想发这样一条推文：</p>
+<p><img src="/images/2020102514044149.png"></p>
+<p>那么该怎么办呢？打开Chrome，打开Twitter网页版，粘贴图片，输入文字，回车。</p>
+<p>如果能直接在某个应用之内一气呵成那该多少？没问题啊！</p>
+<p><img src="/images/2020102514045095.png"></p>
+<p>这不就有了嘛！</p>
+<p>当然了，目前这个机器人还非常简陋，只能简单的发个推，就算带图，也只能带一个图。Telegram的这个Photo Group的机制呀，啧啧啧?</p>
+<p>这个bot使用oauth的方式登录，需要你去推特授权一下，然后它会把oauth token以AES-128-CBC的形式加密保存。当然了，由于Python的特性，只要能拿到运行bot的机器上的代码，就能够看到AES Key，这我也暂时没啥好的办法?</p>
+<p>因为毕竟代码是开源的，即使用Go把bot这部分重写了，也是能够看到加密的逻辑的。哪怕是单独把加密这部分重写，只发布二进制，那么能够看到源代码也照样能做replay attack?所以暂时我也没啥好想法。</p>
+<p>所以，目前，只能无条件的选择相信我了?</p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet">https://github.com/tgbot-collection/TeleTweet</a></p>
+<h3 id="一点小感想"><a href="#一点小感想" class="headerlink" title="一点小感想"></a>一点小感想</h3><p>之前在Twitter上<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1318485657342312448?s=20">发起了一个投票</a>，这个bot究竟应该用什么语言来写呢？</p>
+<p>最终大家一致认为应该用Go，结果我却<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1319279572622323715?s=20">逆天行事选择了Python</a>。一个比较重要的原因是go似乎没有比较好的twitter api wrapper?</p>
+<p><img src="/images/2020102514045470.png"></p>
+<p>但是从个人的角度来说，我还是更倾向于静态类型的Go的。动态语言嘛，确实上手快，大部分情况下开发也快，但是有的时候它.不出来啊?它类型七十二变啊?‍♀️</p>
+<p>但是静态语言这点就很好了，我可以凭借着想象力就把代码写出来?而且如果做成docker image，来一波multi-stage build那就更刺激了。看，那些image很小的，就是go写的?，有些甚至直接是scratch来的，image里就是一个孤独的二进制文件?</p>
+<p><img src="/images/2020102514045587.png"></p>
+<h2 id="NCMBot"><a href="#NCMBot" class="headerlink" title="NCMBot"></a>NCMBot</h2><p><a target="_blank" rel="noopener" href="https://t.me/netease_ncm_bot">https://t.me/netease_ncm_bot</a></p>
+<p>都知道，网易云音乐很早之前就开始用一种名为NCM格式的DRM文件?一旦你会员过期了，你就听不了了。那怎么行，要转换成flac或者mp3之类的才可以嘛。</p>
+<p>不慌，问题不大！给bot发你的ncm就可以了！</p>
+<p><img src="/images/2020102514045736.png"></p>
+<p>但是有一个小问题哦，Telegram Bot仅支持下载20M、发送50M的文件，所以后续打算找方法绕过去这个限制，?使用client API啦！</p>
+<p>哦对了，以后也许会考虑增加QQ音乐的QCM（是这个？）的支持，甚至你发一个YouTube&#x2F;PornHub链接，也会把下载完成的文件发给你?</p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">https://github.com/tgbot-collection/NCMBot</a></p>
+<h2 id="ExpressBot"><a href="#ExpressBot" class="headerlink" title="ExpressBot"></a>ExpressBot</h2><p><a target="_blank" rel="noopener" href="https://t.me/bennyblog_bot">https://t.me/bennyblog_bot</a></p>
+<p>啊?这个bot就很有历史渊源了。这是我还是实习生的时候开发的用来查快递、聊天的bot，甚至还能查看美剧电影下载地址。</p>
+<p>但是后来快递接口炸了，聊天接口也炸了，也没有兴趣维护下去了?‍♀️</p>
+<p>所以就给archive了</p>
+<p><img src="/images/2020102514045879.jpeg"></p>
+<p><img src="/images/2020102514045959.jpeg"></p>
+<p>这个bot估计是没什么用了，?希望能够找到接盘侠，只要更新下快递的接口就可以了</p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ExpressBot">https://github.com/tgbot-collection/ExpressBot</a></p>
+<p>介绍：<a target="_blank" rel="noopener" href="https://dmesg.app/expressbot.html">《ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot》</a></p>
+<h2 id="YYeTs-Bot"><a href="#YYeTs-Bot" class="headerlink" title="YYeTs Bot"></a>YYeTs Bot</h2><p><a target="_blank" rel="noopener" href="https://t.me/yyets_bot">https://t.me/yyets_bot</a></p>
+<p>这个也是一个稍微有些历史的bot，近期重构了一下，选择了模拟登录+爬虫的方式，这样获取到的资源就会更加精准了</p>
+<p><img src="/images/2020102514050032.jpeg" alt="人人影视资源搜索机器人"></p>
+<p><img src="/images/2020102514050310.png"></p>
+<p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">https://github.com/tgbot-collection/YYeTsBot</a></p>
+<p>介绍：<a target="_blank" rel="noopener" href="https://dmesg.app/yyets-bot.html">《人人影视资源搜索机器人》</a></p>
+<h2 id="Wayback-Machine-Bot"><a href="#Wayback-Machine-Bot" class="headerlink" title="Wayback Machine Bot"></a>Wayback Machine Bot</h2><p><a target="_blank" rel="noopener" href="https://t.me/wayback_machine_bot">https://t.me/wayback_machine_bot</a></p>
+<p>Internet Archive是什么大家都知道吧。平时遇到什么文章，可以随时丢给机器人，机器人就会帮你去存档。反抗审查的一种手段。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/10/2020102722575411.jpeg"><img src="/images/2020102722575411.jpeg"></a></p>
+<h2 id><a href="#" class="headerlink" title="??"></a>??</h2><p>好的，那么今天就先分享这些，本王先告辞了！?</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/tgbot-collection&#39;\]开源地址\[/gt\]</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/10/25/telegram-bot-collections/index/" data-id="clhp7rtl7009gs2qr97l68sc2" data-title="有趣的Telegram Bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-why-grafana-nginx/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/09/17/why-grafana-nginx/index/" class="article-date">
+  <time class="dt-published" datetime="2020-09-17T00:00:00.000Z" itemprop="datePublished">2020-09-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/09/17/why-grafana-nginx/index/">为什么我的grafana无法用nginx反代呢？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>如果你想用nginx反代grafana，那么很有可能参考了官网文档[Run Grafana behind a reverse proxy](<a target="_blank" rel="noopener" href="https://grafana.com/tutorials/run-grafana-behind-a-proxy/">https://grafana.com/tutorials/run-grafana-behind-a-proxy/</a>“ \l “1)，看了一眼，非常简单，不就是改几个参数，加个location嘛！</p>
+<p>“小case”，你对自己说到，十分钟解决。</p>
+<p>那么在参考结束之后，你很有可能遇到这个错误。</p>
+<p><img src="/images/2020091718212349.png" alt="If you&#39;re seeing this Grafana has failed to load its application files · Issue #24841 · rancher/rancher · GitHub"></p>
+<p> </p>
+<p>随即你进行了搜索，问题还挺多，中文的英文的，然后自己不停地尝试，grafana和nginx的配置都快改花了，发现还是不行。于是两个小时过去了。这究竟是为什么呢？</p>
+<p>作为一名有灵性的工程师，当你看到如图所示的画面时，应该会想到哪些事情呢？</p>
+<ol>
+<li>这个橙色的文字，绝对不是Nginx的，看起来更像是grafana的，那么也就是说请求转发给了grafana</li>
+<li>既然如此，那么看下控制台吧！</li>
+</ol>
+<p><img src="/images/202009171821245.png"></p>
+<p>哟呵，怎么都是404呢，难道是由于一些路径的原因，导致proxy_pass的时候出错了？</p>
+<p>于是你又一顿查，<code>proxy_set_header</code>等全都加上了，路径结尾带不带<code>/</code>也都排列组合了一圈，发现还是不行！?</p>
+<p>作为一名有灵性的工程师，此时自然就要想，难道是grafana有bug？把<code>router_logging</code>打开……此时你突然看到，这个文件名好奇怪啊，这么长。难道文件真的不存在吗？</p>
+<p><img src="/images/2020091718212625.png"></p>
+<p>内心无比刺痛，什么？！另一边的你，甚至拿出来了curl</p>
+<p>~$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/app.4141596c10e564d57dfb.js">https://dmesg.app/grafana/public/build/app.4141596c10e564d57dfb.js</a></p>
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+<p>~$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/1.txt">https://dmesg.app/grafana/public/build/1.txt</a><br>hello!</p>
+<p>???</p>
+<p>那zip文件呢？</p>
+<p>$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/1.zip">https://dmesg.app/grafana/public/build/1.zip</a><br>a zip(not really)</p>
+<p>那js呢？</p>
+<p>~$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/1.js">https://dmesg.app/grafana/public/build/1.js</a></p>
+<html>
+<head><title>404 Not Found</title></head>
+<body>
+<center><h1>404 Not Found</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+~$
+
+<p>????</p>
+<p>突然，你看到了一处这样的配置：</p>
+<p>location ~ .*\.(js|css|woff)?$ {<br>    expires 30d;<br>}</p>
+<p>这段的意思是，正则匹配，结尾是js、css和woff，expire设置成30天。于是你在脑海里迅速过了一遍nginx的location匹配优先级，好像似乎是正则比路径匹配的优先级要高。</p>
+<p>于是你以迅雷不及掩耳盗铃之速把原先的配置</p>
+<p>location &#x2F;grafana&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://localhost:3000/">http://localhost:3000</a>;<br>}</p>
+<p>中的第一个<code>/</code>改成了<code>~</code>，也就是</p>
+<p>location ~&#x2F;grafana&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://localhost:3000/">http://localhost:3000</a>;<br>}</p>
+<p>然后restart或reload nginx，刷新页面，好了！此刻看看时间，天啊，三个小时过去了，快一点了……</p>
+<p>也就是说，一个<code>~</code>价值三小时，如果按照时薪来算，这一笔，很值钱啊！</p>
+<h2 id="点评"><a href="#点评" class="headerlink" title="点评"></a>点评</h2><p>其实以上就是我昨晚的完整经过，一开始的时候，大部分时间完全就是在“瞎?找死?”，当然网上提到的方案都是没用的，毕竟没有找到问题的根本原因。所以如果早点通过橙色的字体发现问题出在js 404，那么问题就应该会更快解决了。</p>
+<p>哎呀年轻人?‍♀️还是要学会通过现象看本质的，不要瞎猫碰上死耗子呀！</p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1306272740639350785?s=20">解释一下</a>：如果你的nginx开启了css、js的cache，想在sub directory下反代grafana，那么按照官网的文档去做失败的概率是非常高的。</p>
+<p>原因非常简单：js和css都404了。因为正则匹配的优先级高于path匹配，所以全被cache的location截胡了。解决方案也很简单，把grafana那段的<code>/</code>换成<code>~</code>，当然 <code>~/grafana/</code>和<code>~ grafana/</code>都是无所谓的啦，正则嘛！还不放心的话，再放到location开头。</p>
+<p>当然了，需要注意的是，不仅仅是子目录时会发生这种情况，子域名时，只要设置了这种cache规则，那么就一定会出错的。</p>
+<p>配置cache的人还不少，已经给官方发了PR，希望他们能及早修复吧。</p>
+<h2 id="完整配置和解释"><a href="#完整配置和解释" class="headerlink" title="完整配置和解释"></a>完整配置和解释</h2><h3 id="grafana"><a href="#grafana" class="headerlink" title="grafana"></a>grafana</h3><p># 只让grafana监听127，反代没必要监听0.0.0.0<br>http_addr &#x3D;127.0.0.1</p>
+<h1 id="域名，都懂"><a href="#域名，都懂" class="headerlink" title="域名，都懂"></a>域名，都懂</h1><p>domain &#x3D; dmesg.app</p>
+<h1 id="Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个"><a href="#Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个" class="headerlink" title="Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个"></a>Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个</h1><p>root_url&#x3D; https:&#x2F;&#x2F;%(domain)s&#x2F;grafana&#x2F;</p>
+<h1 id="子目录就要true"><a href="#子目录就要true" class="headerlink" title="子目录就要true"></a>子目录就要true</h1><p>serve_from_sub_path &#x3D; true</p>
+<h3 id="nginx"><a href="#nginx" class="headerlink" title="nginx"></a>nginx</h3><p># ~表示正则匹配，区分大小写<br>location ~grafana&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://localhost:3000/">http://localhost:3000</a>;<br>}</p>
+<p>location ~ .*\.(js|css|woff)?$ {<br>    expires 30d;<br>}</p>
+<p>参考资料</p>
+<p>Nginx location priority <a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/5238377/nginx-location-priority">https://stackoverflow.com/questions/5238377/nginx-location-priority</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/09/17/why-grafana-nginx/index/" data-id="clhp7rtnc00b7s2qr7qf34ow8" data-title="为什么我的grafana无法用nginx反代呢？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-keepmebot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/08/27/keepmebot/index/" class="article-date">
+  <time class="dt-published" datetime="2020-08-27T00:00:00.000Z" itemprop="datePublished">2020-08-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>►<a class="article-category-link" href="/categories/program/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/08/27/keepmebot/index/">KeepMeBot 保活机器人</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前段时间，从<a target="_blank" rel="noopener" href="https://t.me/outvivid/2342">Outvivid的频道</a>得知，docker hub宣布他们要准备开始删除长期inactive的镜像了。</p>
+<blockquote>
+<p>Docker Hub 更新 TOS 及 retention policy。</p>
+<p>&gt; If an image has not either been pulled or pushed in the amount of time specified in your subscription plan, the image will be tagged “inactive.” Any images that are tagged as “inactive” will be scheduled for deletion. &gt; Free plans will have a 6 month image retention limit</p>
+<p>[暂译] 自 2020 年 11 月 1 日起，Docker Hub 的免费用户镜像将只保留 6 个月。6 个月后，在一定时间内活跃度过低的镜像将被删除。</p>
+<p>src: <a target="_blank" rel="noopener" href="https://www.docker.com/legal/docker-terms-service">https://www.docker.com/legal/docker-terms-service</a> src: <a target="_blank" rel="noopener" href="https://www.docker.com/pricing/retentionfaq">https://www.docker.com/pricing/retentionfaq</a></p>
+</blockquote>
+<p>具体的条款<a target="_blank" rel="noopener" href="https://www.docker.com/pricing/resource-consumption-updates">可以看这里</a></p>
+<p>这可给我吓坏了?</p>
+<p><img src="/images/2020082716404989.jpeg"></p>
+<p>我可以不用，但是你不能没有——雷总听着都无奈啊</p>
+<p>本萌新变灵机一动……便注册了KeepMe.Run，然后就有了KeepMeBot，也就是让你的服务一直存活下去的服务，同样还是Telegram Bot</p>
+<p>机器人链接：</p>
+<p><a target="_blank" rel="noopener" href="https://t.me/KeepMeRunBot">https://t.me/KeepMeRunBot</a></p>
+<p>功能很简单，就是……</p>
+<p>由于资源有限，目前限制了每个用户、每个服务最高只能添加5个。可喜可贺的是，硬编码限制的哦?</p>
+<h2 id="添加服务"><a href="#添加服务" class="headerlink" title="添加服务"></a>添加服务</h2><p><img src="/images/2020082716405291.png"></p>
+<h2 id="列出已有服务"><a href="#列出已有服务" class="headerlink" title="列出已有服务"></a>列出已有服务</h2><p><img src="/images/2020082716405589.png"></p>
+<h2 id="执行历史记录"><a href="#执行历史记录" class="headerlink" title="执行历史记录"></a>执行历史记录</h2><p>还没有?</p>
+<h2 id="部署手册"><a href="#部署手册" class="headerlink" title="部署手册"></a>部署手册</h2><p>当然了，这个机器人是开源的，甚至还有一个docker image?。</p>
+<p>运行的话，建议使用docker，毕竟是要执行不知道从哪里来的命令，万一被RCE了那不就惨了</p>
+<p>所以其实只要clone这个仓库，然后配置一下，然后<code>docker-compose up -d</code>就可以了</p>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/BennyThink/KeepMeBot">https://github.com/BennyThink/KeepMeBot</a> &amp;&amp; cd KeepMeBot</p>
+<h1 id="你也可以在这里加入其他go原生支持的环境变量，比如http-proxy啥的"><a href="#你也可以在这里加入其他go原生支持的环境变量，比如http-proxy啥的" class="headerlink" title="你也可以在这里加入其他go原生支持的环境变量，比如http_proxy啥的"></a>你也可以在这里加入其他go原生支持的环境变量，比如http_proxy啥的</h1><p>echo TOKEN&#x3D;”12345:ddd”&gt; config.env</p>
+<h1 id="创建一个数据库，方便compose做映射。总不能down了之后你的数据都没了吧"><a href="#创建一个数据库，方便compose做映射。总不能down了之后你的数据都没了吧" class="headerlink" title="创建一个数据库，方便compose做映射。总不能down了之后你的数据都没了吧"></a>创建一个数据库，方便compose做映射。总不能down了之后你的数据都没了吧</h1><p>touch keep.db<br>docker-compose up -d</p>
+<p>这样就可以了，甚至连systemd之类的都不用搞?不过要记得提前装好docker和docker-compose</p>
+<p>胆子大的，直接<code>go run</code>或者<code>go build</code>，需要1.11版本之后的go，如果不是1.14+的话，要记得开启go module的支持哦?</p>
+<p>TOKEN&#x3D;123456 go run . # &lt;—这里有个点，绿色的，你看到了吗?</p>
+<h2 id="那么问题来了……"><a href="#那么问题来了……" class="headerlink" title="那么问题来了……"></a>那么问题来了……</h2><p>能用Docker Hub的人，难道还不会crontab嘛?且听我慢慢道来后续计划……</p>
+<h2 id="后续计划"><a href="#后续计划" class="headerlink" title="后续计划"></a>后续计划</h2><h3 id="网站呢？"><a href="#网站呢？" class="headerlink" title="网站呢？"></a>网站呢？</h3><p>既然有bot，也有域名，那么网站也是必然要有的?必定是很厉害的那种大佬才能够做出来的?‍♂️ @realn0vad3v</p>
+<h3 id="更多的服务"><a href="#更多的服务" class="headerlink" title="更多的服务"></a>更多的服务</h3><p>这个bot目前只支持Docker Hub，后续可能还可以添加更多的支持服务?这样就可以让大家在一个平台完成全部的保活服务?甚至还能够使用Telegram Login?</p>
+<h3 id="你这辣鸡代码"><a href="#你这辣鸡代码" class="headerlink" title="你这辣鸡代码"></a>你这辣鸡代码</h3><p>啊测试用例也没写，TravisCI也没弄?，代码很辣鸡，一堆功能都没有，还可能会被RCE?one man好难啊?</p>
+<p>谁能帮帮我啊???</p>
+<h2 id="Docker-Hub也不容易啊"><a href="#Docker-Hub也不容易啊" class="headerlink" title="Docker Hub也不容易啊"></a>Docker Hub也不容易啊</h2><p>As the world’s largest repository of container images, Docker Hub stores more than 15PB of data. Docker’s internal analytics tools have shown that of the 15PB of images stored in Docker Hub, over 10PB of these images have not been accessed for more than 6 months. Digging a little deeper, we found that over 4.5PB of these inactive images are associated with free accounts.</p>
+<h2 id="其他事请……"><a href="#其他事请……" class="headerlink" title="其他事请……"></a>其他事请……</h2><p>啊建站5周年了，今年已经写了9篇，?再接再厉啊！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/08/27/keepmebot/index/" data-id="clhp7rth1004cs2qrdxyfay5z" data-title="KeepMeBot 保活机器人" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-xbox-fail-unlock/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/08/22/xbox-fail-unlock/index/" class="article-date">
+  <time class="dt-published" datetime="2020-08-22T00:00:00.000Z" itemprop="datePublished">2020-08-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/08/22/xbox-fail-unlock/index/">2020年记一次不成功的Xbox解锁经历</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>一定有人还记得，今年5月份的时候，<a target="_blank" rel="noopener" href="http://youxiputao.com/articles/19910">PS4国行商店宣布暂停服务</a>。之后，没多久，Xbox的更新<a target="_blank" rel="noopener" href="https://ngabbs.com/read.php?tid=21886262&rand=501">封杀了之前用“后门”任意跨区服的方法</a>。</p>
+<p>之后的某一天，由于某个莫名其妙的原因我傻又不是一天两天了，我一不小心把主机的区域切换回了中国，也就是说回到了国服……</p>
+<p>那么在这次微软锁服之后，国行Xbox是否还能够有办法切换到其他国家和地区呢？</p>
+<p>特大喜讯，现在又能啦</p>
+<p>国行Xbox或成地表最强Xbox？🤔</p>
+<p>又可以再次解锁外服啦，具体操作方法如下</p>
+<p>1.将U盘格式化，需ntfs格式。</p>
+<p>2.U盘根目录下建立文件，Xbox One为$ConsoleGen8，Xbox Series X&#x2F;S为$ConsoleGen9，无扩展名。</p>
+<p>3.Xbox主机系统更新至最新版本，开机状态插U盘，提示读取到外部储存后，直接重启主机。</p>
+<p>4.进入设置-系统-语言和区域-位置看到语言中文（繁體）、语言区域中文（繁體）（台湾）、位置（阿根廷）。</p>
+<p>5.再次设定语言、语言区域和位置，选择中文（简体）、位置香港或美国，立即重启主机。</p>
+<p><a target="_blank" rel="noopener" href="https://www.yxzzd.com/25449.html">更多信息请参考这里</a></p>
+<h1 id="太长不看版"><a href="#太长不看版" class="headerlink" title="太长不看版"></a>太长不看版</h1><h2 id="怎么换到外服啊"><a href="#怎么换到外服啊" class="headerlink" title="怎么换到外服啊"></a>怎么换到外服啊</h2><p>在保修期的话，直接换个新的，又不要钱，开机插U盘还是能够抢救一下的，虽说不能变成上帝，但是一直呆在香港也不错的吧；</p>
+<p>没升级系统的，切换到非中国还是可以的；</p>
+<p>已经升级完的了、并且又切换回中国、并且还过了保修期的，那么恐怕是没救了，哪怕换硬盘、通过U盘离线安装系统也没用，因为：</p>
+<ol>
+<li>Xbox系统版本号会写到固件之中，无论你的硬盘怎么换，都没用。</li>
+<li>微软可能是和Apple学坏了，无法安装旧版本的系统</li>
+<li>Xbox的系统又不开源</li>
+</ol>
+<h2 id="那该咋办"><a href="#那该咋办" class="headerlink" title="那该咋办"></a>那该咋办</h2><p>难道花了几千元，竟然就买了一个4K高清机顶盒、爱奇艺启动器、4K蓝光播放器吗？其实想要玩到游戏还是有办法的……</p>
+<ol>
+<li>买光盘，玩完卖了回血</li>
+<li>想办法通过各种手段为自己的Microsoft账户购买游戏，然后下载了就能玩了。这些手段包括但不限于：网页端跨区购买，买Key激活，找阿根廷、土耳其有人，敲诈微软</li>
+<li>咸鱼卖了，转手买港行等水货</li>
+</ol>
+<h2 id="拆机"><a href="#拆机" class="headerlink" title="拆机"></a>拆机</h2><p>Xbox拆机换硬盘刷系统之前，我们需要做这些准备：</p>
+<ul>
+<li>T4螺丝刀，必须要有，别想着用刀片当螺丝刀</li>
+<li>2.5英寸硬盘，移动硬盘盒</li>
+<li>废弃信用卡等撬东西的工具，实在没有，拿个点外卖送的金属勺子也行</li>
+<li>Windows电脑，Boot Camp的MacBook也可以</li>
+<li>一台Xbox，过保的</li>
+<li>Xbox需要为正式版系统，insider需要退出恢复为正式版（总不能等两个月正式版本号高于预览版吧）</li>
+<li>8G以上U盘</li>
+<li>网线</li>
+</ul>
+<p>友情提示：</p>
+<p>下载游戏挺慢的，也费时间，因此建议如果有额外的移动硬盘，那么就插USB口，直接把游戏应用都移动过去就可以了。</p>
+<p><img src="/images/2020082222201182.jpeg" alt="螺丝刀套装-罐装"></p>
+<p>没有螺丝刀可以沃尔玛买一个这种，很便宜</p>
+<p>Xbox One S的拆机是非常容易的，从底盖开始撬，全部是卡扣结构：</p>
+<p><img src="/images/2020082222201227.jpeg"></p>
+<p>Hello from Seattle，请和我一起运动免得得颈椎病</p>
+<p>底盖拿掉之后，6个绿色螺丝</p>
+<p><img src="/images/2020082222201347.jpeg"></p>
+<p>然后稍微活动一下侧面，也是卡扣，就能够把上面散热孔的那面也拿下来了</p>
+<p><img src="/images/2020082222201594.jpeg"></p>
+<p>一定要注意的是，拿下来的时候，<strong>不要把光驱、开机键那一面朝下</strong>，因为这样的话你很有可能蹭到工作台&#x2F;床，产生很大的摩擦力，很有可能会把一些微动开关蹭下来！</p>
+<p>这一面的金属罩，后门有螺丝，可以拿下来</p>
+<p>无线网卡在侧面，完全没有排线连接</p>
+<p><img src="/images/202008222220178.jpeg"></p>
+<p>哦Mediatek 联发科？</p>
+<p>这个是前面的面板，包含了电源、弹出、配对三个按键的那个，也是没有排线的</p>
+<p>红框里是微动开关，下面的那个是不是觉得有点怪啊？</p>
+<p><img src="/images/2020082222201943.jpeg"></p>
+<p>BIND 也就是配对，在这里哦?知道为什么我说<strong>面板别朝下</strong>了吧。以后如果真的要配对，可能只有硬核短接了吧。</p>
+<p><img src="/images/2020082222202091.jpeg"></p>
+<p>当然了，这两个面板没必要拆。</p>
+<p>面罩拿下来之后，就能够看到硬盘的位置。然后硬盘背面继续拧螺丝，就可以把硬盘托架拿下来了，东芝的500G硬盘</p>
+<p><img src="/images/2020082222202239.jpeg"></p>
+<p>仔细看下主板内部，foxconn富士康也就是鸿海哦</p>
+<p><img src="/images/20200822222024100.jpeg"></p>
+<h2 id="换硬盘刷旧系统"><a href="#换硬盘刷旧系统" class="headerlink" title="换硬盘刷旧系统"></a>换硬盘刷旧系统</h2><p>新硬盘需要用工具进行分区处理，工具从这里找 <a target="_blank" rel="noopener" href="https://gbatemp.net/threads/xbox-one-internal-hard-drive-upgrade-or-repair-build-any-size-drive-that-works-on-any-console.496212/">https://gbatemp.net/threads/xbox-one-internal-hard-drive-upgrade-or-repair-build-any-size-drive-that-works-on-any-console.496212/</a></p>
+<p>教程参考这里 <a target="_blank" rel="noopener" href="https://github.com/JACK-THINK/Xbox-One-X-Cookbook/blob/master/Xbox_One_Internal_Hard_Drive_Repair_or_Replace_Using_Windows_(Software).md">https://github.com/JACK-THINK/Xbox-One-X-Cookbook/blob/master/Xbox_One_Internal_Hard_Drive_Repair_or_Replace_Using_Windows_(Software).md</a></p>
+<p>以防万一翻车，Xbox原装的硬盘先留着。</p>
+<p>更新操作非常简单，OSU需要比当前系统版本要新的才可以更新成功，否则疯狂报错。豆本豆已经帮你尝试了各种可能的组合，放弃治疗吧:-(</p>
+<p>我尝试了：</p>
+<ul>
+<li>3个旧版本的OSU，失败</li>
+<li>把旧版本的更新文件复制到System Update分区的A、B文件夹，失败</li>
+<li>最新的OSU，成功。</li>
+</ul>
+<p>我猜啊，Xbox 里 Settings相关的代码可能是这么写的?这你还玩个锤子嘛?</p>
+<p>currentOSVersion :&#x3D; getOSVersion()<br>    isRegionFree :&#x3D; getRegionType()<br>    if currentOSVersion &gt;&#x3D; “10.0.16299.3031” &amp;&amp; currentOSVersion &lt;&#x3D; “10.0.19041.1927” &amp;&amp; isRegionFree {<br>        var GodMode &#x3D; true<br>    } else {<br>        var GodMode &#x3D; false<br>    }</p>
+<p>你说这玩意咋办啊！写死了啊！</p>
+<p>然后开机、登录，如果游戏复制出去了，直接再插上，还是会认的。</p>
+<p>折腾了一个下午，还是没能跑出如来佛的手心。不过好歹用了1T的硬盘，也算有点成果了……可惜了以后用不了新的手柄了……</p>
+<h2 id="其他资料"><a href="#其他资料" class="headerlink" title="其他资料"></a>其他资料</h2><p>Xbox 历史系统下载：<a target="_blank" rel="noopener" href="https://digiex.net/forums/dashboard-system-updates.98/">https://digiex.net/forums/dashboard-system-updates.98/</a></p>
+<p>关于“U盘解锁”技术原理与其他指令科普：<a target="_blank" rel="noopener" href="https://bbs.a9vg.com/thread-8681625-1-1.html">https://bbs.a9vg.com/thread-8681625-1-1.html</a></p>
+<h2 id="后记：为什么家用游戏主机在中国这么难"><a href="#后记：为什么家用游戏主机在中国这么难" class="headerlink" title="后记：为什么家用游戏主机在中国这么难"></a>后记：为什么家用游戏主机在中国这么难</h2><p>政策原因嘛。 [collapse title&#x3D;””] 在中国，有一种神奇的审查制度。这个审查制度无处不在，从游戏、电影，到书籍、电视传媒，哦还有网络，简直伴你行。其实说实在的，审查制度在很多国家都是很正常的一件事情，比如说宣扬纳粹总是不行的吧，儿童色情也是不可以的吧，这些“雷区”往往都是有明确的法律条文去规定的，并且多数情况下各大公司还会维护透明度报告。</p>
+<p>我不反对审查，我反对的是不透明的、无法理的、黑箱操作并且不予解释让你去问永远无关的有关部门的审查制度。</p>
+<p>更进一步让人觉得可笑的是，在如此严厉的审查之下，竟然没有分级制度。这就像家长式威权一样……</p>
+<p>比如说，当一个成年人带着一个天真无邪的小女孩去电影院里看《战狼2》，看到被坦克压断的腿和被子弹打飞的肢体，这样真的合理吗？ [&#x2F;collapse]</p>
+<h2 id="源起"><a href="#源起" class="headerlink" title="源起"></a>源起</h2><p>你们一定都听说过关于他的魂斗罗和坦克大战的故事。有人说，……魂斗罗好玩；也有人说，……坦克大战好玩；还有人说，……只有冒险岛才是最好玩的。但我要讲的故事，你们一定没有听过我猜你们也都知道个大概。这个故事，得从一只金蝉游戏机禁令说起……</p>
+<p>2000年，国务院办公厅发布<a target="_blank" rel="noopener" href="http://www.gov.cn/gongbao/content/2000/content_60240.htm">《关于开展电子游戏经营场所专项治理意见的通知》</a>。这个禁令中最严厉的一条是：禁止面向国内的电子游戏设备及其零、附件生产、销售。也就是说，在中国大陆，从理论上来说，你是买不到游戏机的。当然了，这个禁令执行的并不算彻底也不是那么严苛，比如我小学时候很流行的小霸王学习机，齐声DVD游戏机等。</p>
+<h2 id="Xbox-One"><a href="#Xbox-One" class="headerlink" title="Xbox One"></a>Xbox One</h2><p>14年之后，也就是2014年，上海自贸区条例的下发使得游戏机得以进入大陆市场销售。Xbox One成功入华。但是由于游戏审查，所以国行Xbox的商店中包含的游戏全部都是经过了审查的游戏，自然数量也就非常少了。不过好在国行赠送了可以使用到9999年的金会员，可是没有游戏我拿什么给你联机呢？</p>
+<p>因此，买了国行Xbox的玩家自嘲为“国行勇士”、“国行烈士”，因为他们辛苦赚钱，却买了一个高清机顶盒，什么也玩不了，真就不如买点蓝光光碟，让Xbox成为4K蓝光播放器呢。</p>
+<p>毕竟你看现在，4K的蓝光播放器也不便宜嘛……</p>
+<p><img src="/images/2020082222202766.png"></p>
+<h2 id="解锁"><a href="#解锁" class="headerlink" title="解锁"></a>解锁</h2><p>之后又过了一段时间，大概是2017年的下半年，网上突然爆出来“后门”，通过在U盘中创建名为$ConsoleRegion0的空文件，国行Xbox可以任意切换区域，什么美国英国法国德国等老牌资本主义国家，墨西哥阿根廷智利等南美国家，反正就是几乎区域随便选，哦朝鲜除外。选完之后一重启，你的商店就会变成这个区域的，然后添加付款方式，基本上有个VISA就能买买买了，基本无限制。</p>
+<p>不知道这是不是微软对国行用户的一点点照顾，反正一瞬间，国行勇士终于翻身了，国行变成了地表最强的Xbox，从此，中国人民站起来了……毕竟低价区的游戏谁不喜欢嘛！</p>
+<h2 id="再次锁服"><a href="#再次锁服" class="headerlink" title="再次锁服"></a>再次锁服</h2><p>时间来到2020年6月，可能是由于某些根本原因，在加上某位微博用户举报的直接原因，PS4和Xbox One都……</p>
+<p>?️ ?️ ?️ ?️ ?️ ?️ ?️ ?️ ?️ ?️</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/08/22/xbox-fail-unlock/index/" data-id="clhp7rtnm00bms2qrb63ndew3" data-title="2020年记一次不成功的Xbox解锁经历" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-home-cam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2020/07/16/home-cam/index/" class="article-date">
@@ -757,666 +1451,6 @@
 
 
   
-    <article id="post-flying-webp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/03/01/flying-webp/index/" class="article-date">
-  <time class="dt-published" datetime="2020-03-01T00:00:00.000Z" itemprop="datePublished">2020-03-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/03/01/flying-webp/index/">个人网站无缝切换图片到webp</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>咱都知道，webp是一种非常优秀的图片格式，相比较png&#x2F;jpg，webp的图片体积要小，图像质量却基本没有什么下降。网站如果使用webp，那么自然也会减少图片文件的加载时间。</p>
-<p>大部分发行版里都应该有个工具叫做cwebp，咱可以用cwebp转换下看下具体效果</p>
-<p>~&#x2F;Downloads&#x2F;test cwebp yui.png -q 80 -o result.webp</p>
-<h1 id="省略若干提示信息"><a href="#省略若干提示信息" class="headerlink" title="省略若干提示信息"></a>省略若干提示信息</h1><p>~&#x2F;Downloads&#x2F;test ls -lh<br>total 8160<br>-rw-r–r– 1 benny staff 335K Mar 1 20:06 result.webp<br>-rw-r--r--@ 1 benny staff 3.7M May 2 2019 yui.png</p>
-<p>新文件大概是原来的8%左右，是不是很优秀！</p>
-<p>但是如果一个一个转……聪明的你可能想要写个脚本递归转换，然后还要相应的修改数据库什么的，这样可是有点麻烦呢。那么有没有什么直接的方式呢？这就好像是，开飞机没油了，只能找个机场落地加油，然后再起飞。能不能像下面这张图这样子?？</p>
-<p><img src="/images/2020030120431833.jpeg"></p>
-<p>这种技术呢，叫做空中加油。你看，咱都不用落地就能加油。On-the-fly哦</p>
-<p>那么我们的……答案当然是有的啦??那就是本文的重点，这个工具就是由<a target="_blank" rel="noopener" href="https://nova.moe/">Nova童鞋</a>、<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>、<a target="_blank" rel="noopener" href="https://blog.0xbbc.com/">cocoa</a>以及Benny小盆友一起鼓捣的webp_server_go啦！</p>
-<p>不如先看看这里吧??</p>
-<p><a target="_blank" rel="noopener" href="https://webp.sh/#/">https://webp.sh/#/</a> </p>
-<p>放心，从[caniuse](<a target="_blank" rel="noopener" href="https://caniuse.com/">https://caniuse.com/</a>“ \l “search&#x3D;webp)的统计来看，主流浏览器都支持webp了，如果遇到Safari这样的奇葩，咱直接返回了原图</p>
-<p><img src="/images/2020030120431998.png"></p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>使用方法很简单哦，<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go/releases">从这里下载binary</a>（或者自己build也行，deb和rpm也会稍后提供），创建如下json配置文件</p>
-<p>{<br>“HOST”: “127.0.0.1”,<br>“PORT”: “3333”,<br>“QUALITY”: “80”,<br>“IMG_PATH”: “&#x2F;path&#x2F;to&#x2F;pics”,<br>“ALLOWED_TYPES”: [“jpg”,”png”,”jpeg”]<br>}</p>
-<p>每一个配置项都很容易懂懂吧！如果不需要监听公网，那<code>HOST</code>就写127，藏在nginx后面。<code>ALLOWED_TYPES</code>是转换的图片类型，实际上目前最多用的也就是jpg和png了，暂时还未添加对bmp对支持。</p>
-<p>我用WordPress，那么IMG_PATH就可以写<code>/var/www/html</code>这种，不用写到<code>wp-content/uploads</code>哦。</p>
-<p>然后</p>
-<p>.&#x2F;webp-server -config &#x2F;path&#x2F;to&#x2F;config.json</p>
-<p>Ok! 你的3333端口已经被我接管了。接下来配置下nginx什么的，比如WordPress可以这么配置，在server段中哦</p>
-<p>location ^~ &#x2F;wp-content&#x2F;uploads&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3333/">http://127.0.0.1:3333</a>;<br>}</p>
-<p>然后就可以起飞啦！</p>
-<p>哦对了，不用担心，一张图片只会被转换一次，除非原图片变了，才会重新转换。</p>
-<p>[v_blue]?呃……就是个转换图片的东西……？ ?‍♀️No, it’s more than that.[&#x2F;v_blue]</p>
-<h2 id="持久运行"><a href="#持久运行" class="headerlink" title="持久运行"></a>持久运行</h2><p>都知道，session和shell是绑定的，所以总不能一直开着终端吧？那么简单的话，我们可以用screen来解决这个问题</p>
-<p>screen -S webp<br>.&#x2F;webp-server –config &#x2F;path&#x2F;to&#x2F;config.json</p>
-<p>甚至我们可以使用systemd</p>
-<p>cp init&#x2F;webps.service &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;<br>systemctl daemon-reload<br>systemctl enable webps.service<br>systemctl start webps.service</p>
-<h2 id="预缓存功能"><a href="#预缓存功能" class="headerlink" title="预缓存功能"></a>预缓存功能</h2><p>咱可能是有很多图片的，如果收到请求的时候去转换，那么其实会慢的，那怎么办！</p>
-<p><code>./webp-server --prefetch</code>，这样就会帮你预先转换图片哦！到时候请求来了直接返回，经济方便又实惠。</p>
-<p>批量转换进行中</p>
-<p><img src="/images/202003012043237.png"></p>
-<p>臣妾无法转换php文件为webp呀?️</p>
-<p>转换时，你的CPU处于被支配的痛苦中……</p>
-<p><img src="/images/2020030120432442.png"></p>
-<h2 id="使用效果图"><a href="#使用效果图" class="headerlink" title="使用效果图"></a>使用效果图</h2><p><img src="/images/2020030120432636.png"></p>
-<h2 id="benchmark"><a href="#benchmark" class="headerlink" title="benchmark"></a>benchmark</h2><h3 id="用老婆照片做benchmark"><a href="#用老婆照片做benchmark" class="headerlink" title="用老婆照片做benchmark"></a>用老婆照片做benchmark</h3><p>179张，各式各样的壁纸</p>
-<p>这个是原图</p>
-<p><img src="/images/2020030120432648.png"></p>
-<p>这个是转换之后的大小，大概只有原来的13%</p>
-<p><img src="/images/2020030120432797.png"></p>
-<h3 id="1-4M"><a href="#1-4M" class="headerlink" title="1-4M"></a>1-4M</h3><p>（感谢<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>提供的图片）</p>
-<p>压缩比为9.3%</p>
-<p><img src="/images/2020030120432897.png"></p>
-<h3 id="4-32M"><a href="#4-32M" class="headerlink" title="4-32M"></a>4-32M</h3><p>压缩比为6.7%</p>
-<p><img src="/images/2020030120433042.png"></p>
-<h3 id="500K-1M"><a href="#500K-1M" class="headerlink" title="500K-1M"></a>500K-1M</h3><p>14.68%</p>
-<p><img src="/images/2020030120433161.png"></p>
-<h3 id="500K"><a href="#500K" class="headerlink" title="500K"></a>500K</h3><p>23.3%</p>
-<p><img src="/images/2020030120433299.png"></p>
-<h3 id="手机拍摄的人像"><a href="#手机拍摄的人像" class="headerlink" title="手机拍摄的人像"></a>手机拍摄的人像</h3><p>小部分是Pixel 3拍摄的，剩下是其他手机&#x2F;相机拍摄的人像。</p>
-<p>16%</p>
-<p><img src="/images/202003012043334.png"></p>
-<p>所以基本上，大概图片大小会变为原来的20%左右。</p>
-<h2 id="嗯哼？"><a href="#嗯哼？" class="headerlink" title="嗯哼？"></a>嗯哼？</h2><p>欢迎star、fork！欢迎提出建议，功能优化等等，不过建议使用英文哦！</p>
-<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p>开源地址： <a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go">https://github.com/webp-sh/webp_server_go</a> 官方网站：<a target="_blank" rel="noopener" href="https://webp.sh/">https://webp.sh/</a></p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp/_server/_go'/]%E5%BF%AB%E6%9D%A5%E6%88%B3%E7%AB%A0%E9%B1%BC%E7%8C%AB/[/gt/]">https://github.com/webp-sh/webp\_server\_go&#39;\]快来戳章鱼猫\[/gt\]</a></p>
-<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://nova.moe/re-introduce-webp-server/">让站点图片加载速度更快——引入 WebP Server 无缝转换图片为 WebP</a> ??‍♂️</p>
-<p><a target="_blank" rel="noopener" href="https://await.moe/2020/02/webp-server-in-rust/">WebP Server in Rust、</a><a target="_blank" rel="noopener" href="https://await.moe/2020/02/note-about-encountered-memory-changes-for-no-reason-in-golang/">记 Golang 下遇到的一回「毫无由头」的内存更改</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/03/01/flying-webp/index/" data-id="clhp7rtgb002ws2qr19dt6gr9" data-title="个人网站无缝切换图片到webp" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-ballon/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/01/30/ballon/index/" class="article-date">
-  <time class="dt-published" datetime="2020-01-30T00:00:00.000Z" itemprop="datePublished">2020-01-30</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/01/30/ballon/index/">自由的气球</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<p>1945年，二战结束。根据《波茨坦协定》，德国在战败之后由英、美、法、苏四国占领。由于与苏联理念上的差异，英美法三国所占领土最终合并为一个占领区，组建新政权西德。</p>
-<p>随着冷战的加剧，1961年柏林墙修建。至此，德国人开始了十八番武艺穿越柏林墙的故事。</p>
-<p>2018年的德国电影《气球》便讲述了穿越柏林墙中的一个真实故事。</p>
-<p><img src="/images/2020013013350445.jpeg"></p>
-<p>以下内容可能涉及剧透，请谨慎阅读。</p>
-<p>影片时长125分钟，情节十分紧张，听我的， 专心看，别玩手机了。</p>
-<p>[collapse title&#x3D;”剧情概要”]</p>
-<ul>
-<li>第一次热气球</li>
-</ul>
-<p>影片刚开始，皮特一家人就升起了热气球。可惜由于没有考虑到高空温度低等问题，导致失败。</p>
-<p>坠落的热气球等被东德当局发现。</p>
-<ul>
-<li>美国人</li>
-</ul>
-<p>为了准备热气球，两家人准备了两年。意识到气球可能不行之后，皮特一家人打算去美国大使馆附近寻求美国人的帮助。一家人把写有求救信的烟盒塞到了一个女人的背包里，然而却只是徒劳，美国人以为他想要烟。无奈之下，他们只能再次选择热气球</p>
-<ul>
-<li>第二次热气球</li>
-</ul>
-<p>德国当局已经开始进行进一步的调查与抓捕，皮特和冈特两家人只能分秒必争努力打造新的热气球。最终，他们的热气球成功降在了西德。 [&#x2F;collapse]</p>
-<h2 id="小人物"><a href="#小人物" class="headerlink" title="小人物"></a>小人物</h2><p>在影片中，冈特的儿子不小心对幼儿园老师说出自己爸爸在没日没夜的缝纫。秘密警察过来调查，问到幼儿园老师大家有没有什么搞什么大件、或者说缝纫什么的打算</p>
-<p>女老师思考片刻，回答：有，大家都在努力的缝国旗，庆祝东德建国30年。</p>
-<p><img src="/images/2020013013350521.png"></p>
-<p>这个情节让我想起了韩国电影《出租车司机》里的一个类似的情节：士兵发现了德国记者的汉城车牌，他似乎明白了什么，然后放他们走了。</p>
-<p><img src="/images/2020013013350640.jpeg"></p>
-<p>1989年，东欧巨变，苏联也摇摇欲坠。柏林墙拆毁，两德统一。</p>
-<p>30年过去了，柏林墙已经不在了，另一堵墙却越来越高。共同点是，两堵“墙”都是用来阻止本国人民对自由的追求。不同点是，德国人用一系列可歌可泣的行动歌颂了有史以来最伟大的逃亡，为了追求自由而进行的前仆后继的逃离——向往自由，是人类与生俱来的本能。柏林墙最终被拆毁了。</p>
-<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>有的时候，可能我们别无选择，甚至连反抗都不敢。可是，如果敢于反抗的人都离开了，那他们就赢了。</p>
-<p>环境也许很恶劣，恶劣到连说一句不是赞美的话都会被千夫所指。也许我们不敢坚持自己的立场，不敢说出真话。但是我们至少可以选择沉默，至少要有conscious。就像两部影片中的小人物一样。</p>
-<p>想想看，你就是多买了点布，有人就要向上汇报；走在大使馆附近，看到有无数只眼睛在偷瞄着你，酒店中也有人在监视着你；说不准因为看到了什么就会被带走讯问，警察可以随意进你家搜查；对面邻居就是秘密警察，阶级斗争从娃娃抓起，甚至人们以举报为荣。即使是军人，可能也会因为没有抓到人而遭受严厉的讯问。这一切的一切，就仿佛是奥威尔的《1984》中所描述的大洋国一样。你想要这样的生活吗？想要吗？嗯？？摸着自己的良心问下，现在，此时此刻，你应该怎么做？问问自己，谎言的代价是什么？</p>
-<p><img src="/images/2020013013350735.jpeg"></p>
-<blockquote>
-<p>Freedom has many difficulties and democracy is not perfect, but we have never had to put a wall up to keep our people in, to prevent them from leaving us.</p>
-<p>自由有许多困难，民主亦非完美，然而我们从未建造一堵墙把我们的人民关在里面，不准他们离开。</p>
-<p> </p>
-<p>约翰·肯尼迪 <a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%88%91%E6%98%AF%E6%9F%8F%E6%9E%97%E4%BA%BA">《我是柏林人》</a></p>
-</blockquote>
-<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2009/07/break-through-berlin-wall.html">《学习一下德国人民的翻墙精神》</a></p>
-<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9F%8F%E6%9E%97%E5%9C%8D%E7%89%86">柏林墙 – 维基百科</a></p>
-<p><a target="_blank" rel="noopener" href="https://blog.502.li/archives/thinking-2019.html">《【旧文重写】毕业后的一些思考》</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/01/30/ballon/index/" data-id="clhp7rteh000ms2qrcanq6wjy" data-title="自由的气球" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-wp-tgbot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/01/19/wp-tgbot/index/" class="article-date">
-  <time class="dt-published" datetime="2020-01-19T00:00:00.000Z" itemprop="datePublished">2020-01-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/01/19/wp-tgbot/index/">使用Telegram Bot接受和回复WordPress评论</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<p>当你的博客收到了一条评论的时候，想要回复，应该怎么做呢？打开浏览器，打开后台，等待加载，回复……哦对了，我还有一个步骤，就是不在家的话还得<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1214369246324543488?s=20">开一个全局代理</a>。</p>
-<p>这怎么行，我都要懒死了。生气??</p>
-<p>[v_blue] 没错的，历经1958天，我的博客被DNS污染啦。</p>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1214369246324543488?s=20">https://twitter.com/BennyThinks/status/1214369246324543488?s=20</a></p>
-<p>[&#x2F;v_blue]</p>
-<p>假如能够用telegram bot完成这种回复操作就好了！那么是当然的了。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911361630.png"><img src="/images/2020011911361630.png"></a></p>
-<p> </p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/202001191136176.jpeg"><img src="/images/202001191136176.jpeg"></a></p>
-<p> </p>
-<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><h3 id="Basic-Auth"><a href="#Basic-Auth" class="headerlink" title="Basic Auth"></a>Basic Auth</h3><p>插件会为WordPress开启Basic Auth，因此要用复杂的密码，非常复杂的那种，并且https哦！</p>
-<h3 id="WordPress-Hook"><a href="#WordPress-Hook" class="headerlink" title="WordPress Hook"></a>WordPress Hook</h3><p>WordPress博客在新添加一条评论的时候，会触发N多钩子，其中有一个钩子叫comment_post，这个钩子被触发后，就会给调用并给相应的回调函数三个参数<code>$comment_ID, $comment_approved, $comment_obj</code>。<code>$comment_obj</code>就是评论者留下的信息了，大概是如下结构的数组</p>
-<p> </p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911361943.jpeg"><img src="/images/2020011911361943.jpeg"></a></p>
-<p>根据post_id comment_id等，使用WordPress自带的函数就能生成完整的评论信息。</p>
-<p>之后调用Telegram bot的REST API，就可以发送消息给用户了。</p>
-<h3 id="Telegram"><a href="#Telegram" class="headerlink" title="Telegram"></a>Telegram</h3><p>当回复机器人消息时，会直接向WordPress的REST API发起评论添加请求。当然啦，你注意到了机器人消息里的id:123,456了吗？这个就是小小的标识符哦。</p>
-<p>这个是用golang实现的机器人，轮询模式。其实我知道这个是可以用Telegram webhook完成的，直接写在插件里用PHP实现。更进一步，可以做到不开启Basic Auth，直接用WordPress的接口甚至是直接插入数据库。不过为了练习嘛……</p>
-<h2 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h2><p>基本可以如下归纳</p>
-<ol>
-<li>安装插件</li>
-<li>创建bot、获取自己的user id</li>
-<li>插件中添加相应的设置</li>
-<li>编辑配置，并运行bot后端</li>
-<li>可以了。</li>
-</ol>
-<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><h3 id="服务器在国内"><a href="#服务器在国内" class="headerlink" title="服务器在国内"></a>服务器在国内</h3><p>WordPress的服务器上，想办法开个代理（目前只支持http代理），然后插件设置里加入配置信息；</p>
-<p>Telegram的服务器上，也想办法开个代理，然后设置这样两条环境变量</p>
-<p>export http_proxy&#x3D;<a href="http://127.0.0.1:1087;export">http://127.0.0.1:1087;export</a> https_proxy&#x3D;<a target="_blank" rel="noopener" href="http://127.0.0.1:1087/">http://127.0.0.1:1087</a>;</p>
-<p>或者干脆上<a target="_blank" rel="noopener" href="https://github.com/rofl0r/proxychains-ng">proxychains</a>试试。</p>
-<p>[v_error]proxychains貌似只能代理dynamically linked 的程序，golang的二进制是statically linked的哎 [&#x2F;v_error]</p>
-<h3 id="Basic-Auth-1"><a href="#Basic-Auth-1" class="headerlink" title="Basic Auth"></a>Basic Auth</h3><p>Basic Auth就是在HTTP请求头里加上base64编码之后的认证信息。优点是简单方便，易于实现，缺点很多。</p>
-<p>但是有一点是肯定的，在www这个层面上，不走TLS的登录，都是耍流氓。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911362066.png"><img src="/images/2020011911362066.png"></a></p>
-<p>全程TLS，啥都看不到。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/01/2020011911362539.png"><img src="/images/2020011911362539.png"></a></p>
-<p>未TLS，底裤?都看光了</p>
-<h3 id="机器人配置与命令行参数"><a href="#机器人配置与命令行参数" class="headerlink" title="机器人配置与命令行参数"></a>机器人配置与命令行参数</h3><p>{<br>“username”: “admin”,<br>“password”: “admin”,<br>“url”: “<a target="_blank" rel="noopener" href="http://localhost/">http://localhost/</a>“,<br>“token”: “907J6Tw”,<br>“uid”: “23231321”,<br>“admin”: 1,<br>“tail”: “本评论由Telegram Bot回复～❤️”<br>}</p>
-<p>-c指定配置文件路径，默认使用当前目录下的config.json</p>
-<p>-f强制运行，哪怕是http的……</p>
-<p>-c file set configuration file (default “config.json”)<br>-f force to run even on http sites.<br>-h this help<br>-v show version and exit</p>
-<h2 id="适配其他博客程序"><a href="#适配其他博客程序" class="headerlink" title="适配其他博客程序"></a>适配其他博客程序</h2><p>其实没啥好适配的……因为基本上要重写的。</p>
-<p>只要能够找到相应的hook，在评论之后触发一个事件，那么就可以了。???</p>
-<h2 id="开源地址"><a href="#开源地址" class="headerlink" title="开源地址"></a>开源地址</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/wp-comments-tgbot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/wp-comments-tgbot&#39;\]开源地址\[/gt\]</a></p>
-<blockquote>
-<p>为了更好的偷懒，付出成倍的精力?</p>
-<p>————<a target="_blank" rel="noopener" href="https://www.zuiyu.xyz/">zuiyu</a></p>
-</blockquote>
-<p>然后就这么水了一波？????</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/01/19/wp-tgbot/index/" data-id="clhp7rtnl00bis2qr4q0a41zb" data-title="使用Telegram Bot接受和回复WordPress评论" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-work-life-balance/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/12/25/work-life-balance/index/" class="article-date">
-  <time class="dt-published" datetime="2019-12-25T00:00:00.000Z" itemprop="datePublished">2019-12-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/12/25/work-life-balance/index/">工作与生活</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<p>很久之前，看到一个人的博客，副标题中写到：不折腾，怎么对得起好奇害死猫的世界。</p>
-<p>现在大概已经找不到这个博客了，但是这句话倒还是记得很清楚的。因为我也很喜欢折腾。为什么这么说呢？</p>
-<p>作为以写代码为生的码农，必备的技能自然是以各种有趣的、奇怪的写码姿势完成各式各样的需求，除此之外，外带一些附加技能，跑个代码啦，导个数据库什么的。相信每一位码农，至少也是能够做这些的。</p>
-<p>只不过呢，我这个“码农”有点喜欢折腾，我比较喜欢鼓捣各种有意思没意思的东西。比如就从我的过往博文来看吧：</p>
-<p>信息安全：一个连高数都学不明白的孩子，竟然如此胆大妄为的说自己写过整整十几篇信息安全相关的文章，真是初生牛犊；</p>
-<p>建站运维：ESXi VPS 微软小冰API……；</p>
-<p>翻墙：使用trojan……</p>
-<p>树莓派、Grafana、iSCSI、TLS1.3、HTTP&#x2F;2、Radius、TimeMachine……</p>
-<p>（哦这个是macOS备份的那个，不是你想的时光机，要不我就回到6年前right the wrong了。）</p>
-<h2 id="折腾"><a href="#折腾" class="headerlink" title="折腾"></a>折腾</h2><p>所谓折腾，自然也就是说，我在这方面有些成果，尽管可能也只是一些皮毛，不至于有多高深。我写不出来RSA的公式，讲不明白它的算法，但至少我了解什么是非对称加密算法，熟悉GPG的用法。虽说不至于得个奖什么的，但至少技术水平上是有一定提升和拓宽的。</p>
-<p>也许正是因为有一个博客，可以把自己折腾的成果分享出来，至少能满足一下虚荣心。所以也是乐在其中吧。</p>
-<h2 id="可是这与标题有什么关系呢？"><a href="#可是这与标题有什么关系呢？" class="headerlink" title="可是这与标题有什么关系呢？"></a>可是这与标题有什么关系呢？</h2><p>我觉得是有的，因为这些对于我来说是生活，折腾是我的生活中的一部分。而我已经不再是无忧无虑的学生了，为了活下去，就要有工作。工作与生活之间，必然要有一定的取舍和界限。如果某一天，工作与生活之间的界限越来越不清晰，那么会怎样呢？</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2019/12/20191225153801100.jpg"><img src="/images/20191225153801100.jpg"></a></p>
-<p>俗话说，文不可以一篇无图。那么……</p>
-<h2 id="一个现象"><a href="#一个现象" class="headerlink" title="一个现象"></a>一个现象</h2><p>先从一个现象说起吧：</p>
-<p>2017年，我总计写了三四十篇博文，2018年，总计19篇。到了几年，2019年，总计16篇，一部分还都是简单的感慨，2017年的长篇大论几乎都没有了。可以预见，2020年我大概只能写十篇出头、甚至是个位数博文。希望2020年的这个时候大家能来<strong>使劲打我的脸</strong>。</p>
-<p>为啥会这样呢？本人没多少墨水，知识储备量比较少，学习新知识又比较慢，再加上又懒又笨，技术的学习总是有瓶颈期的。这是一方面原因。</p>
-<p>另一方面原因，我需要讲一个故事。</p>
-<h2 id="一个故事"><a href="#一个故事" class="headerlink" title="一个故事"></a>一个故事</h2><p>这个故事是来源于一位友人。有几次偶然和她聊天，谈到工作，谈到优化自己的基础设施，谈到博客，谈到去北京出差。（其实哪有谈到嘛，就是有一句没一句的聊着。）</p>
-<p>我：去北京出差，我要再准备一个手机，怕被查手机</p>
-<p>她：你手机有啥见不得人的秘密</p>
-<p>我：无论我手机有没有见不得人的秘密，我都拒绝行政机构在没有拿到司法机构的授权前检查我的设备。</p>
-<p>（其实这个时候我是想说下面这句话的，谢谢Edward）</p>
-<blockquote>
-<p>Arguing that you don’t care about the right to privacy because you have nothing to hide is no different than saying you don’t care about free speech because you have nothing to say.</p>
-</blockquote>
-<p>她：看来你还是太闲，有时间想这些。</p>
-<p>几个月之后。</p>
-<p>我：zsh插件……博客……</p>
-<p>她：忙得要死，没时间弄博客，睡觉都不够。</p>
-<p>故事讲完了。</p>
-<h3 id="但是关于隐私与自由，关于Nothing-to-hide，我还想再说一句："><a href="#但是关于隐私与自由，关于Nothing-to-hide，我还想再说一句：" class="headerlink" title="但是关于隐私与自由，关于Nothing to hide，我还想再说一句："></a>但是关于隐私与自由，关于Nothing to hide，我还想再说一句：</h3><blockquote>
-<p>Ultimately, saying that you don’t care about privacy because you have nothing to hide is no different from saying you don’t care about freedom of speech because you have nothing to say. Or that you don’t care about freedom of the press because you don’t like to read. Or that you don’t care about freedom of religion because you don’t believe in God. Or that you don’t care about the freedom to peaceably assemble because you’re a lazy, antisocial agoraphobe. Just because this or that freedom might not have meaning to you today doesn’t mean that that it doesn’t or won’t have meaning tomorrow, to you, or to your neighbor – or to the crowds of principled dissidents I was following on my phone who were protesting halfway across the planet, hoping to gain just a fraction of the freedom that my country was busily dismantling.</p>
-</blockquote>
-<p>针针见血，Edward Snowden <em>- Permanent Record</em></p>
-<h2 id="另一方面原因"><a href="#另一方面原因" class="headerlink" title="另一方面原因"></a>另一方面原因</h2><p>好吧，我要说，学生时代我是个比较奇怪的孩子。</p>
-<p>对于那些我认为的完全没有用、或者对自己并无太大帮助的课，我会去干点别的事情，比如看书、或者研究点什么。《鸟哥Linux》这种技术书籍，《学会提问》这种非技术书籍都有，有时偷懒也会看一些优秀博主的博文。</p>
-<p>也正是因为学生嘛，课再多能有多少，以我的智商能够应付考试就够了（?这也是我没拿奖学金的原因吧）。所以空闲时间比较多……我啊，一旦闲下来……就容易折腾，就容易因为<strong>好奇而害死猫</strong>。</p>
-<p>所以，这就是我要说的另一方面的原因：有了充足的时间可以让我瞎鼓捣。</p>
-<p>工作与生活，更准确的说，工作与折腾中技术的长进。工作，真的能够让我们的技术得到长足的发展吗？</p>
-<p>这个问题很难回答，不同的公司，不同的文化，不同的部门，甚至是不同的领导和老板，都会导致这个问题的基准的偏向。</p>
-<h2 id="愚以为"><a href="#愚以为" class="headerlink" title="愚以为"></a>愚以为</h2><p>但是，以我个人的短暂的工作经验来看，对于大部分普通人而言：</p>
-<ul>
-<li>公司规模越大，也就越倾向于分工明确，分工明确也就意味着一个萝卜一个坑，做Web开发的不可能让你去维护官网；</li>
-<li>某种工作的初期，需要学习适应新的环境，包括相应的开发框架、语言、数据存储等。在这个阶段，自然会得到一定程度的提升；</li>
-<li>之后，随着工作模式的固定，能够应付工作了，自然很容易做着重复的事情；</li>
-<li>工作很忙，甚至还要加班，导致没有时间去学习、提升；</li>
-<li>更进一步，如果忙得连睡觉都变成了难得的享受，那生活只剩下工作，连思考也会变得局限。</li>
-</ul>
-<p>如果连思考也会变为局限，那简直是太不幸了。<strong>技术可以一日千里，但是思维能力却不能</strong>。思维能力需要长时间的锻炼，需要长时间的阅读、理解、思考、输出。</p>
-<p>工作是工作，生活是生活。人们都说下班后的三个小时会决定你的余生的高度，能不能决定余生的高度这我倒不知道，有人拿来看剧，有人拿来学习。但是有一点我很确定：如果连下班后的三个小时都不是自己的，那还有什么生活，还能有什么长进，拿什么来折腾，拿什么来思考。梦里吗。Guido还不是<a target="_blank" rel="noopener" href="https://www.python.org/doc/essays/foreword/">闲得打发时间</a>才发明了Python。</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>很早以前，在<a target="_blank" rel="noopener" href="https://dmesg.app/silence-is-harmful.html">《沉默是最大的伤害》</a>中就提到了思维能力与技术的观点：</p>
-<p>作为IT 从业者应该不只是有技术能力，还应该有更强的<strong>自由思想、独立思考、批判性思维能力</strong>——只有这样才能跳出围墙。</p>
-<p>在这堵围墙之内，你的思想只不过是党允许的；在这堵围墙之内，党拥有定义2+2&#x3D;5的权力；在这堵围墙之内，你并不具有任何实质性的自由意志；在这堵围墙之内，你只不过是傻傻被割的韭菜。</p>
-<p>这也是3年前，我灌水的一篇<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">《除了技术，你还应该会什么》</a>曾经提到过三点非常重要的能力：</p>
-<p><strong>自由思想、独立思考、批判性思维</strong>。</p>
-<p>人人都知道，越是多样性的生态系统，越是稳定，越是不容易遭到破坏；即使遭到破坏，也较容易恢复过来。</p>
-<p>我想，作为程序员，怎么说也是个有点门槛的工作，英文阅读能力更强，更能有机会使用Google，更能有机会了解到外面的世界，更能有机会了解一些除了技术之外的事情吧，更能够<strong>摆脱洗脑教育并形成多元化的自由思想</strong>。看来真的是我想多了。哎。</p>
-<p>希望，读到这篇文章的读者们，能够渐渐理解这三点吧。那么我也就没白费口水，我的下班后的三个小时四个小时也就没有白费。</p>
-<hr>
-<p> </p>
-<p>这篇应该是本博客2019年的最后一篇了，希望各位读者们2019年完美收尾，2020年生活工作双加好更加顺利。俺也会再接再厉，争取2020年多写点，打破前面自己的预言:-)</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/12/25/work-life-balance/index/" data-id="clhp7rtne00bes2qr36l44db7" data-title="工作与生活" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-akira/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/12/15/akira/index/" class="article-date">
-  <time class="dt-published" datetime="2019-12-15T00:00:00.000Z" itemprop="datePublished">2019-12-15</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/12/15/akira/index/">深海晶好难啊</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>有一句话一定要小点声说?，新垣结衣是我老婆。</p>
-<p>一年前，我刚刚参加工作，正好碰到ガッキー老婆主役的《无法成为野兽的我们》，于是便去追了。</p>
-<p>直到剧终，我都没怎么理解这部剧究竟在讲什么。阿晶怎么就和京谷分手了，恒星怎么就身败名裂了，我老婆怎么就跟了松田龙平。野木阿姨是不是有点玩脱了。</p>
-<p>好吧，我要承认，可能是当初看剧不认真，总是一边玩手机一边看，哎。老婆对不起你，我下次再也不敢玩手机了。</p>
-<hr>
-<p>一年后的今天，在一个非常阳光明媚的、难得的风平浪静的闲暇的周末下午，我从移动硬盘里找到了这部剧，重新看了起来。</p>
-<p>深海晶真的好难啊。生活真的好难啊。阿晶如果能再强势一点就好了。强势一点，把朱里撵走；强势一点，怕他什么99老娘就是要辞职。</p>
-<p>阿晶工作能力这么强，公关、接待、写PPT、演示业务，一个人干三四个人的活，带薪假还要被人吵醒工作，不明不白的做了很多本来应该工作职责以外的事情。社长像精神病一样大吼大叫，分不清工作任务。此时应该呼叫一下程序员津崎平匡：指示非常明确。</p>
-<p>竟然还要为人擦屁股而土下座，甚至在之后还要被职务骚扰。我的刀已经拔出来了。</p>
-<p><img src="/images/2019121513315242.png" alt="《我们无法成为野兽》这部剧火到爆"></p>
-<p>周一零点，哦不是周二，地铁站的末班电车，被人撞翻的手机，如果跳下去了一切就都解决了吧。四杯啤酒都无法排遣的艰难。</p>
-<p>一切都是生活所迫啊，另一边的根元恒星也被人抓着把柄。恒星说阿晶的笑容恶心，是假笑。是恒星的冷嘲热讽使得深海晶脱下了只会逃避、不会拒绝、只会忍让、总是以虚假的笑容面对一切的面具。</p>
-<p>也许，只有到了一定年纪，有了一定的经历，才能体会到吧。</p>
-<hr>
-<p>日本人这一两年就是不想上班呢……</p>
-<p>从《无法成为野兽里的》到《凪的新生活》中就是不想上班的黑木华；</p>
-<p>《我要准时下班》里准时下班的东山结衣（吉高由里子）；</p>
-<p>《我的事说来话长》家里蹲，话多喜欢和秘书姐姐对着干的生田斗真；</p>
-<p>就算上班，《这个不可以报销》里的多部未华子也会让你的报销很痛苦的哦；</p>
-<p>那还是不上班了，但是《坡道上的家》带孩子也是很困难的哦！</p>
-<hr>
-<p>你看，就是要这样贴近生活嘛。</p>
-<p>工作一年半之后，再次看这部剧，莫名的觉得感同身受，真的好难啊。我也好难啊。什么时候能够像野兽一样自由自在就好了。????</p>
-<p>哦对了，这位冈持三郎，有没有觉得有些好似戏外的我们呢？</p>
-<p><img src="/images/2019121513320032.jpeg" alt="https://pic.pimg.tw/ricgrady/1540040590-2364988629_l.jpg"></p>
-<p><img src="/images/2019121513320775.jpeg" alt="https://pic.pimg.tw/ricgrady/1540040592-1740601626_l.jpg"></p>
-<hr>
-<p>不说了，我爱老婆。老婆爱我。</p>
-<blockquote>
-<p>在这一点上我不接受一切异议和反驳。</p>
-</blockquote>
-<p><img src="/images/2019121513321127.jpeg" alt="https://2.bp.blogspot.com/-HAbvKir5GTY/WGXhP-Q62zI/AAAAAAAABig/DtBLL9pkEUgAPEsDKs2xEdzZpbj7kgaiACLcB/s1600/snapshot20161230122157.jpg"></p>
-<p>我要去赚钱养老婆啦。じゃあね。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/12/15/akira/index/" data-id="clhp7rtds0003s2qr484jemdg" data-title="深海晶好难啊" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-esxi-tutorial/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/11/16/esxi-tutorial/index/" class="article-date">
-  <time class="dt-published" datetime="2019-11-16T00:00:00.000Z" itemprop="datePublished">2019-11-16</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/11/16/esxi-tutorial/index/">ESXi入门指南</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="什么是ESXi"><a href="#什么是ESXi" class="headerlink" title="什么是ESXi"></a>什么是ESXi</h2><blockquote>
-<p>VMware ESXi是由VMware开发的用于部署和服务虚拟计算机的企业级1类管理程序。作为Type-1虚拟机管理程序，ESXi不是操作系统上安装的软件应用程序；相反，它包括并集成了重要的OS组件，例如内核。在4.1版之后，VMware将ESX重命名为ESXi。</p>
-</blockquote>
-<p>摘自维基百科英文版翻译</p>
-<p>简单的说，ESXi就是一个虚拟机。但是与VMware Workstation、VirtualBox等工具却又有些不同。更具体的说，VMware Workstation等工具是运行在操作系统之上的一个软件，如果没有对应的操作系统（Windows、macOS、Linux）等，它自身是无法运行的，操作系统不让它做的事情它也做不了，这种虚拟机我们一般叫“Type 2”虚拟机。</p>
-<p>既然有Type 2，那也是有Type 1的，所谓Type 1虚拟机，就是它本身就是一个操作系统，直接运行在裸机上。ESXi就属于这种。</p>
-<p> </p>
-<p>“人傻钱多戴，美帝良心想”</p>
-<p>提到戴尔，我相信绝大部分人的印象都是这家伙不是卖笔记本、卖显示器，还卖服务器的吗？</p>
-<p>哦好吧，其实<strong>VMware是DELL的子公司</strong>。是这样的，VMware被EMC收购了，DELL又把EMC收购了。</p>
-<h2 id="ESXi硬件要求"><a href="#ESXi硬件要求" class="headerlink" title="ESXi硬件要求"></a>ESXi硬件要求</h2><p>ESXi的硬件要求很低，总结来说大概如下：</p>
-<ul>
-<li>至少双核CPU</li>
-<li>至少4G内存</li>
-<li>以太网控制器</li>
-</ul>
-<p>除此之外，最好再支持硬件虚拟化Intel VT-x 或 AMD RVI</p>
-<p>具体详细硬件配置可以查看官网的文档 <a target="_blank" rel="noopener" href="https://docs.vmware.com/cn/VMware-vSphere/6.5/com.vmware.vsphere.install.doc/GUID-DEB8086A-306B-4239-BF76-E354679202FC.html">ESXi硬件要求</a></p>
-<p>相信大家的配置绝对足够跑ESXi了，不过有几点需要注意的地方</p>
-<ul>
-<li>ESXi本身不支持无线网卡，但是我们可以把无线网卡直通给虚拟机</li>
-<li>“不支持”Realtek 螃蟹?️网卡，VMware因为商业化原因移除了对Realtek的支持，但是可以找办法添加回去的</li>
-</ul>
-<h2 id="使用什么设备运行ESXi"><a href="#使用什么设备运行ESXi" class="headerlink" title="使用什么设备运行ESXi"></a>使用什么设备运行ESXi</h2><p>很简单，用旧的笔记本，各种服务器……好吧，对于个人使用来说，服务器还是算了，那个耗电和噪音受不了的。</p>
-<p>对于个人使用来说， 淘汰的笔记本（配置足够的话）、各种迷你主机是比较好的选择。</p>
-<p>比如说<a target="_blank" rel="noopener" href="https://www.intel.cn/content/www/cn/zh/products/boards-kits/nuc.html">Intel NUC</a>就是很不错的选择，但是NUC价格又有些贵；所以最终我选择的是占美主机，便宜省电呀……如下图所示</p>
-<p><img src="/images/2019111607252622.jpeg" alt="https://gd2.alicdn.com/imgextra/i2/186209729/O1CN01MJP69n2LjvsAbH8Re_!!186209729.jpg"></p>
-<p>只不过这个无线网卡，被我拆了卖咸鱼了。</p>
-<p>由于NUC这类都是不带内存硬盘的，所以咱要自己买。推荐的话，既然都跑虚拟机了，起步16G为佳。存储的话，自然是M2 NVME或者mSATA的固态了。SATA接口建议还是别插固态，SATA接口留给普通的机械硬盘，做备份存储之类的用途。土豪直接上1T的固态那就不算啦！</p>
-<p><img src="/images/2019111607252949.png"></p>
-<p>这个功耗很低吧，一个月下来也就是三四块钱的电费</p>
-<h2 id="ESXi安装镜像调整（打补丁）"><a href="#ESXi安装镜像调整（打补丁）" class="headerlink" title="ESXi安装镜像调整（打补丁）"></a>ESXi安装镜像调整（打补丁）</h2><h3 id="判断网卡类型"><a href="#判断网卡类型" class="headerlink" title="判断网卡类型"></a>判断网卡类型</h3><p>前面说过，ESXi不支持?️网卡（有好些网卡都是不支持的，所以可以参考上面的硬件要求链接），所以这里需要先判断下自己的机器上什么网卡？如果是螃蟹卡的话，那么需要对安装镜像进行调整。具体判断方法，拆开看芯片，看产品介绍，Live CD下lspci什么的都可以</p>
-<h3 id="下载ESXi镜像"><a href="#下载ESXi镜像" class="headerlink" title="下载ESXi镜像"></a>下载ESXi镜像</h3><p>ESXi介绍页面</p>
-<p><a target="_blank" rel="noopener" href="https://www.vmware.com/products/vsphere.html">https://www.VMware.com/products/vsphere.html</a></p>
-<p>ESXi下载</p>
-<p><a target="_blank" rel="noopener" href="https://my.vmware.com/en/web/vmware/info/slug/datacenter_cloud_infrastructure/vmware_vsphere/6_7">https://my.VMware.com/en/web/VMware/info/slug/datacenter_cloud_infrastructure&#x2F;VMware_vsphere&#x2F;6_7</a></p>
-<p>我们就点击页面上的 VMware vSphere Hypervisor (ESXi) 6.7U3 下载就可以了。</p>
-<p>镜像有两种类型</p>
-<p><img src="/images/2019111607252958.png"></p>
-<p>第一种的ISO，直接能启动；第二种下载回来说一个zip包，我们可以用它来打补丁。如果你是?️卡，那就选第二种吧</p>
-<h3 id="ESXi打补丁"><a href="#ESXi打补丁" class="headerlink" title="ESXi打补丁"></a>ESXi打补丁</h3><p>这个网上文章真的是太多了，基本上就是用ESXi-customer-PS之类的把网卡驱动添加进去</p>
-<p>ESXi-customer-ps官网</p>
-<p><a target="_blank" rel="noopener" href="https://www.v-front.de/p/esxi-customizer-ps.html">https://www.v-front.de/p/ESXi-customizer-ps.html</a></p>
-<p>需要先安装powercli，下载页面</p>
-<p><a target="_blank" rel="noopener" href="https://code.vmware.com/web/tool/11.2.0/vmware-powercli">https://code.VMware.com/web/tool/11.2.0/VMware-powercli</a></p>
-<p>网卡补丁，根据自己的型号下载offline-bundle，避免网络问题</p>
-<p><a target="_blank" rel="noopener" href="https://vibsdepot.v-front.de/wiki/index.php/List_of_currently_available_ESXi_packages">https://vibsdepot.v-front.de/wiki/index.php/List_of_currently_available_ESXi_packages</a></p>
-<p>如何打补丁可以自己搜索下，我这里贴上来两篇</p>
-<p><a target="_blank" rel="noopener" href="https://www.smbinn.com/vmnetwork.html">https://www.smbinn.com/vmnetwork.html</a></p>
-<p><a target="_blank" rel="noopener" href="https://rexzhang.com/post/cf06a796-44d5-11e4-9bb5-f23c9150b910">https://rexzhang.com/post/cf06a796-44d5-11e4-9bb5-f23c9150b910</a></p>
-<p>简单描述是这样的，打开powershell，切换到对应的目录</p>
-<p># 取消可能的系统限制<br>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned<br>Set-ExecutionPolicy Unrestricted</p>
-<h1 id="离线打补丁-official-zip是ESXi的offline-bundle，drivers目录包含了vib文件的目录"><a href="#离线打补丁-official-zip是ESXi的offline-bundle，drivers目录包含了vib文件的目录" class="headerlink" title="离线打补丁  official.zip是ESXi的offline bundle，drivers目录包含了vib文件的目录"></a>离线打补丁  official.zip是ESXi的offline bundle，drivers目录包含了vib文件的目录</h1><p>.\ESXi-Customizer-PS-v2.6.0.ps1 -izip .\official.zip -pkgDir C:\Users\abc\Dropbox\ESXi\drivers</p>
-<h1 id="在线打补丁，依赖比较好的网络环境"><a href="#在线打补丁，依赖比较好的网络环境" class="headerlink" title="在线打补丁，依赖比较好的网络环境"></a>在线打补丁，依赖比较好的网络环境</h1><p>.\ESXi-Customizer-PS-v2.6.0.ps1 -v67 -vft -load net55-r8168</p>
-<h3 id="支持Realtek-8168-x2F-8111-x2F-8411-x2F-8118的成品"><a href="#支持Realtek-8168-x2F-8111-x2F-8411-x2F-8118的成品" class="headerlink" title="支持Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的成品"></a>支持Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的成品</h3><p>如果你的网卡也是Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的话，并且信任我，可以考虑用我的现成的，<a target="_blank" rel="noopener" href="https://www.dropbox.com/s/aly7y4nrhjdpdmr/ESXi-6.7.0-20190802001-standard-customized.iso?dl=0">戳这里去dropbox</a></p>
-<h2 id="ESXi安装"><a href="#ESXi安装" class="headerlink" title="ESXi安装"></a>ESXi安装</h2><p>把iso写到U盘中，比如说使用rufus这种，然后启动插U盘启动电脑，哦对了还要有个显示器和HDMI……</p>
-<p>安装过程很简单，接受，输入密码，下一步，下一步……</p>
-<p> </p>
-<p>小提示：没有显示器怎么办？</p>
-<p>靠着虚拟机、网卡指示灯、硬盘灯摸索着来吧。</p>
-<p>哦当然了，ESXi要插网线直接连到网络设备（如路由器）的，要不玩什么呀！</p>
-<h2 id="ESXi管理"><a href="#ESXi管理" class="headerlink" title="ESXi管理"></a>ESXi管理</h2><p>ESXi安装完成之后，想办法获取到它的IP地址，直接浏览器访问就可以了。</p>
-<h3 id="使用ESXi网页端管理虚拟机"><a href="#使用ESXi网页端管理虚拟机" class="headerlink" title="使用ESXi网页端管理虚拟机"></a>使用ESXi网页端管理虚拟机</h3><p>界面很简洁，看着就会用</p>
-<p><img src="/images/2019111607253217.png"></p>
-<h3 id="使用VMware-Workstation管理虚拟机"><a href="#使用VMware-Workstation管理虚拟机" class="headerlink" title="使用VMware Workstation管理虚拟机"></a>使用VMware Workstation管理虚拟机</h3><p>如果你的电脑上装有VMware Workstation的话，文件-连接到服务器，输入IP用户名（root）、密码也是可以进行简单的管理的</p>
-<h3 id="进一步的管理：Vcenter"><a href="#进一步的管理：Vcenter" class="headerlink" title="进一步的管理：Vcenter"></a>进一步的管理：Vcenter</h3><p>ESXi本身的管理功能比较基础，甚至连克隆、迁移等功能都没有。为了做到这点，可以开个虚拟机安装vcenter。</p>
-<p>什么是注册虚拟机</p>
-<h2 id="ESXi创建虚拟机方法"><a href="#ESXi创建虚拟机方法" class="headerlink" title="ESXi创建虚拟机方法"></a>ESXi创建虚拟机方法</h2><p>ESXi的使用非常简单，只要是用过虚拟机的人应该就是十分清楚的，傻瓜化操作</p>
-<h3 id="直接创建虚拟机"><a href="#直接创建虚拟机" class="headerlink" title="直接创建虚拟机"></a>直接创建虚拟机</h3><p><img src="/images/2019111607253436.png"></p>
-<h3 id="从ovf部署虚拟机"><a href="#从ovf部署虚拟机" class="headerlink" title="从ovf部署虚拟机"></a>从ovf部署虚拟机</h3><p>从VMware Workstation和virtualbox导出的文件都可以导入进来的</p>
-<p><img src="/images/2019111607253765.png"></p>
-<h3 id="注册虚拟机"><a href="#注册虚拟机" class="headerlink" title="注册虚拟机"></a>注册虚拟机</h3><p>假如已经有了虚拟机的vmdk文件，并且这个文件在datastore中，那么我们可以直接注册虚拟机的。方法太简单了，不说了。</p>
-<h3 id="使用cloud-image"><a href="#使用cloud-image" class="headerlink" title="使用cloud image"></a>使用cloud image</h3><p>作为非常爱惜硬盘的我，如果从Ubuntu Server安装一个服务器版Ubuntu的话，不仅浪费时间，需要手工干预安装，而且还很占用硬盘。所以ubuntu官方维护了一个云镜像，其中包含各种环境使用的镜像，可以直接导入。</p>
-<p>下面这个链接是每日构建的，点进去选一个日期，下载对应的ovf&#x2F;ova文件就可以了</p>
-<p><a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/bionic/">https://cloud-images.ubuntu.com/bionic/</a></p>
-<p>这个链接是发布版的，同样下载ovf&#x2F;ova文件</p>
-<p><a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/releases/">https://cloud-images.ubuntu.com/releases/</a></p>
-<p><img src="/images/201911160725385.png"></p>
-<p>下载回来直接导入就可以了</p>
-<p>但是这个cloud image的root密码是什么呀！别怕，随机密码。开机按shift进grub，选择recovery mode破个密码就好了。然后再parted或者fdisk弄下分区，完美。Cloud image安装完占用硬盘不到1G哦～</p>
-<h2 id="ESXi-虚拟机设置"><a href="#ESXi-虚拟机设置" class="headerlink" title="ESXi 虚拟机设置"></a>ESXi 虚拟机设置</h2><h3 id="CPU资源限制"><a href="#CPU资源限制" class="headerlink" title="CPU资源限制"></a>CPU资源限制</h3><p>如下图所示，我们可以为此虚拟机预留一定的CPU资源、限制CPU资源（虚拟机不会使用超过这个频率的CPU）、份额，以及常见的硬件虚拟化、性能计数器等。</p>
-<p><img src="/images/2019111607253924.png"></p>
-<p>份额这个概念比较特殊，详细解释如下：</p>
-<blockquote>
-<p>份额指定虚拟机（或资源池）的相对重要性。如果某个虚拟机的资源份额是另一个虚拟机的两倍，则在这两个虚拟机争用资源时，第一个虚拟机有权消耗两倍于第二个虚拟机的资源。</p>
-<p>份额通常指定为高、正常或低，这些值将分别按 4:2:1 的比例指定份额值。还可以选择自定义为各虚拟机分配特定的份额值（表示比例权重）。</p>
-</blockquote>
-<p>举个例子，</p>
-<blockquote>
-<p>一台聚合 CPU 容量为 8 GHz 的主机上运行着两个受 CPU 约束的虚拟机。它们的 CPU 份额设置为正常，因此各得 4GHz。</p>
-<p>现在打开了第三个受 CPU 约束的虚拟机的电源。它的 CPU 份额设置为高，这意味着它拥有的份额值应该是设置为正常的虚拟机的两倍。新的虚拟机获得 4GHz，其他两个虚拟机各自仅获得 2GHz。如果用户为第三个虚拟机指定的自定义份额值为 2000，也会出现相同的结果。</p>
-</blockquote>
-<h3 id="内存资源限制"><a href="#内存资源限制" class="headerlink" title="内存资源限制"></a>内存资源限制</h3><p>与CPU资源限制类似，内存也是可以进行限制的，道理类似</p>
-<p><img src="/images/2019111607254012.png"></p>
-<h3 id="硬盘资源限制"><a href="#硬盘资源限制" class="headerlink" title="硬盘资源限制"></a>硬盘资源限制</h3><p>同理，可以限制硬盘写入，所以知道怎么做<strong>石头盘</strong>了吧！</p>
-<p><img src="/images/2019111607254134.png"></p>
-<h3 id="添加其他设备"><a href="#添加其他设备" class="headerlink" title="添加其他设备"></a>添加其他设备</h3><p>前面提过，ESXi不支持无线网卡，但是我们可以把无线网卡直接分配给虚拟机，那么就要用到网卡直通。具体方法就是编辑虚拟机设置，添加其他设备-PCI设备&#x2F;USB设备</p>
-<p><img src="/images/2019111607254256.png"></p>
-<h3 id="虚拟机引导选项"><a href="#虚拟机引导选项" class="headerlink" title="虚拟机引导选项"></a>虚拟机引导选项</h3><p>和VMware Workstation的设置基本差不多，一看就懂</p>
-<p><img src="/images/2019111607254455.png"></p>
-<h2 id="ESXi-控制台连接"><a href="#ESXi-控制台连接" class="headerlink" title="ESXi 控制台连接"></a>ESXi 控制台连接</h2><p>我们可以直接通过网页端访问控制台端口，也可以通过下载VMware Remote Console，或是VMware Workstation访问。</p>
-<h2 id="数据存储管理"><a href="#数据存储管理" class="headerlink" title="数据存储管理"></a>数据存储管理</h2><p>要装虚拟机，自然就要用ISO镜像，那ISO镜像自然就要上传到ESXi中……具体就是使用数据存储功能。</p>
-<p>左侧导航栏直接点进去存储</p>
-<p><img src="/images/2019111607254569.png"></p>
-<h3 id="数据存储管理器"><a href="#数据存储管理器" class="headerlink" title="数据存储管理器"></a>数据存储管理器</h3><p>点击数据存储管理器，太简明易懂了……上传就是了。</p>
-<p><img src="/images/2019111607254683.png"></p>
-<h3 id="添加存储"><a href="#添加存储" class="headerlink" title="添加存储"></a>添加存储</h3><p>ESXi默认会识别接驳的硬盘等设备，但是我们也可以添加网络存储，比如NFS，点击新建数据存储，选择NFS</p>
-<p><img src="/images/201911160725471.png"></p>
-<p>相应的添加就好了</p>
-<h2 id="ESXi网络设置之物理网卡"><a href="#ESXi网络设置之物理网卡" class="headerlink" title="ESXi网络设置之物理网卡"></a>ESXi网络设置之物理网卡</h2><p>熟悉VMware Workstation可能知道，VMware Workstation的网络可以分为桥接、NAT、host only等，那么ESXi呢……对不起，ESXi天生桥接。</p>
-<p>在ESXi的网络设置中……</p>
-<p>物理网卡的概念很好理解，就是真实接线的网卡，ESXi本身是支持多网卡的，利用多网卡可以玩出很多花样，比如软路由……</p>
-<p><img src="/images/2019111607254984.png"></p>
-<h2 id="ESXi网络设置之虚拟交换机"><a href="#ESXi网络设置之虚拟交换机" class="headerlink" title="ESXi网络设置之虚拟交换机"></a>ESXi网络设置之虚拟交换机</h2><p>交换机这个概念，对于不是搞网络的人来说，可能很生疏。路由器、交换机、集线器这三者究竟有啥区别啊？这不是本文讨论的重点。</p>
-<p>ESXi中的虚拟机交换机的概念很简单，简单的说就是连到虚拟机的那个“设备”，由ESXi的内核提供，只有二层桥接的功能，不像真实的交换机，又能配ACL又能配这配那的。比如我们看下下面的这个图</p>
-<p><img src="/images/2019111607255041.png"></p>
-<p>这么多台虚拟机都“连接”到了这一虚拟交换机上，然后这个虚拟交换机用两条真实的网线连接到了我的路由器上。</p>
-<p>虚拟交换机有啥意义呢？比如我有两块物理网卡，一块是192.168.1.0&#x2F;24，另一块是192.168.2.0&#x2F;24，那么我们就可以通过添加两个vSwitch，然后不同的虚拟机就可以属于不同的网段啦。</p>
-<h3 id="添加vSwitch"><a href="#添加vSwitch" class="headerlink" title="添加vSwitch"></a>添加vSwitch</h3><p>虚拟交换机这东西，由于是内核虚拟的，自然也可以自己添加。方法也很简单，直接点击添加，起个名字，选择绑定到哪块物理网卡，确定就可以了。如下图所示</p>
-<p><img src="/images/2019111607255231.png"></p>
-<p>当然了需要注意的是，一块网卡一旦属于某个虚拟交换机，那它就不能属于其他的虚拟交换机了。</p>
-<h3 id="虚拟交换机、添加上行链路"><a href="#虚拟交换机、添加上行链路" class="headerlink" title="虚拟交换机、添加上行链路"></a>虚拟交换机、添加上行链路</h3><p>俗话说，狡兔三窟。一个虚拟交换机，如果增加网线作为备份线路，那也是有备无患的。</p>
-<p>所以编辑vSwitch，添加另外一条上行链路作为冗余。这样当你拔掉一条网线，虚拟机们还能无缝切换（真的是无缝，可能连TCP丢包都没有），一点不受影响。</p>
-<p>添加方法很简单，直接编辑，添加另一条物理链路就好了</p>
-<p>另外，假如你的ESXi不接网线，那么属于同一个vSwitch之间的虚拟机还是能通信的，而且是万兆网卡哦！只是流量不能往外走，要不怎么叫上行链路呢。</p>
-<h2 id="虚拟交换机-网卡绑定"><a href="#虚拟交换机-网卡绑定" class="headerlink" title="虚拟交换机 网卡绑定"></a>虚拟交换机 网卡绑定</h2><p>所谓网卡绑定，就是当你为一个虚拟交换机添加多条上行链路的时候，想让ESXi怎么调度啊？类似链路聚合，你是想round-robin，还是active backup，还是load balance呢？网卡绑定就是干这个事情的。</p>
-<p><img src="/images/2019111607255418.png"></p>
-<p>ESXi的这四种模式，对应的意义如下：</p>
-<ul>
-<li>基于源端口 ID 的路由（默认）：则根据流量进入虚拟交换机的虚拟端口选择上行链接。</li>
-</ul>
-<p>基于 IP 哈希的路由：根据每个数据包的源和目标 IP 地址的 Hash 选择上行链接。对于非 IP 数据包，会使用位于这些偏移上的任何内容计算 Hash。</p>
-<ul>
-<li>基于源 MAC 哈希的路由：根据源以太网的 Hash 选择上行链接。</li>
-<li>使用明确故障切换顺序：始终使用“活动适配器”列表中位于最前列的符合故障切换检测标准的上行链路。（本图就是vmnic0）</li>
-</ul>
-<h3 id="虚拟交换机-流量调整"><a href="#虚拟交换机-流量调整" class="headerlink" title="虚拟交换机 流量调整"></a>虚拟交换机 流量调整</h3><p>买VPS的时候……你这个口不是独享的！好吧，ESXi也能针对虚拟交换机进行流量限制，如下图所示</p>
-<p><img src="/images/2019111607255593.png"></p>
-<h2 id="ESXi-网络设置-端口组"><a href="#ESXi-网络设置-端口组" class="headerlink" title="ESXi 网络设置 端口组"></a>ESXi 网络设置 端口组</h2><p>实际上呢，虚拟机并不是直接连到vSwitch的。虚拟机上直接连接到端口组上的。不同的虚拟机可以属于不同的端口组。</p>
-<p>端口组与虚拟机网络设置</p>
-<p><img src="/images/201911160725566.png"></p>
-<p>添加端口组</p>
-<p><img src="/images/2019111607255657.png"></p>
-<h2 id="ESXi-VMkernel网卡"><a href="#ESXi-VMkernel网卡" class="headerlink" title="ESXi VMkernel网卡"></a>ESXi VMkernel网卡</h2><p>ESXi本身是通过网络管理的，那么自然也要有一个对应的“网卡”，这里就是vmk网卡。可以把它理解成一个特殊的端口组，主要就是提供管理相关的访问。</p>
-<p><img src="/images/2019111607255838.png"></p>
-<p>有的时候，我们可能希望，所有虚拟机使用某一段的IP，但是管理使用另一段IP，这里就可以通过添加VMKernel网卡做到。</p>
-<p><img src="/images/2019111607255920.png"></p>
-<p>比如我们希望ESXi的管理IP能够有多个，做个备份，那么添加vmkernel也能做到</p>
-<p>添加之后的结果</p>
-<p><img src="/images/2019111607260117.png"></p>
-<p>此时Vmkernel的拓扑</p>
-<p><img src="/images/2019111607260113.png"></p>
-<h2 id="我的ESXi玩法"><a href="#我的ESXi玩法" class="headerlink" title="我的ESXi玩法"></a>我的ESXi玩法</h2><ul>
-<li>kali，还有一个XP，用途你懂的；</li>
-<li>Windows 7，用于下载电影电视剧什么的；</li>
-<li>Ubuntu Desktop，装了点GUI应用，开了samba服务，默认启动到multi-user。上面的Windows 7下载的文件直接存到了这里，然后电视iPad等直接就能看了；</li>
-<li>csr1000v，模拟Cisco IOS网络设备，其实并无卵用，放着吃灰的。</li>
-<li>TimeMachine，从Cloud Image导入的，用于macOS的时间机器备份，做了LVM，啥都不怕。</li>
-<li>Ubuntu Minimal，从Cloud Image导入的，我也不知道干啥的</li>
-<li>Tiny Core，不知道干啥的，玩的吧。</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ESXi真是太强大了，开虚拟机随便玩，部分硬件可以直通到虚拟机中；甚至可以给ESXi主机开ssh，然后可以执行一些ssh命令，甚至可以运行Python，吼。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/11/16/esxi-tutorial/index/" data-id="clhp7rths005vs2qrc9339pvl" data-title="ESXi入门指南" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1461,7 +1495,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1474,23 +1508,23 @@
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

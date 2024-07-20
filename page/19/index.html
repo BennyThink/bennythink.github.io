@@ -73,6 +73,552 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-timeline-subtitles/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/12/timeline-subtitles/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-12T00:00:00.000Z" itemprop="datePublished">2016-03-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/12/timeline-subtitles/index/">[新手向]如何制作时间轴、字幕和压制影片</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>作为一名字幕组的小小翻译，其实我老早就想写写制作字幕的方法了，结果一直拖到今天。</p>
+<p>今天就以最简单的方式来教教大家如何制作双语字幕，还有卡轴、压制等~</p>
+<p> </p>
+<h2 id="一-扫个盲，编码格式、封装格式"><a href="#一-扫个盲，编码格式、封装格式" class="headerlink" title="一.扫个盲，编码格式、封装格式"></a>一.扫个盲，编码格式、封装格式</h2><p>先来搞清楚一个概念，视频&#x2F;音频编码格式、封装格式。我不是这个领域的绝对专家，但是解释下概念还是可以做到的。</p>
+<h3 id="视频编码格式"><a href="#视频编码格式" class="headerlink" title="视频编码格式"></a>视频编码格式</h3><p>就是一种编码视频的标准（这不是废话吗），目前最流行的莫过于AVC（通常我们叫它H.264）了，还有DivX等等。</p>
+<h3 id="音频编码格式"><a href="#音频编码格式" class="headerlink" title="音频编码格式"></a>音频编码格式</h3><p>就是编码音频的标准，又是一句废话，目前很流行的有AC3，DTS，AAC——很不幸的是前两者是杜比公司的专利，所以很多软件为了避免版权问题，都不会【直接提供】这两者的解码器，所以就会造成”只有图像没有声音”的假象，在iOS上这个现象会更明显。</p>
+<h3 id="封装格式"><a href="#封装格式" class="headerlink" title="封装格式"></a>封装格式</h3><p>我们常见的mp4、mkv、avi等结尾的视频，其实这个”mp4”是封装格式。封装格式是什么意思呢？我们知道一部视频里最起码要有视频流、音频流，可能还会有字幕等其他的”流”。如果把所有的”流”比作水，那么封装格式就是装水的杯子——有的”杯子”设计的很好，就可以装很多种不同的”水”并且利于饮用；而有些杯子设计的不好，可能会像滴管一样，很糟心的。</p>
+<p>现在除非专业人士，否则大部分人都是不太懂这三个”格式”的区别的，但是时刻铭记在心，一个视频文件的扩展名并不代表他的编码格式，AVC可以封装到mkv里，DivX也可以。当然，绝大部分有良心的制作者们都喜欢mkv搭配AVC这种。</p>
+<p>播放器能否流畅完整的播放一个视频也是由这三者共同制约的。</p>
+<p><img src="/images/031216_0537_1.png"></p>
+<p>可以看到这个视频的封装格式是MPEG-4，也就是扩展名是mp4，视频和音频编码分别是AVC、AAC</p>
+<p>其实这个扫盲根本就是废话，不喜欢看就略过嘛……</p>
+<p> </p>
+<h2 id="二-制作字幕的简介"><a href="#二-制作字幕的简介" class="headerlink" title="二.制作字幕的简介"></a>二.制作字幕的简介</h2><p>以我的经历来说，通常会有轴组的人先处理时间轴使字幕和说话配上，然后由翻译进行翻译，然后校对、特效、压制。自己的话只能一人包揽，说着很难但其实很简单。</p>
+<p>先祭上我们组都在使用的字幕处理工具：<strong>TimeMachine</strong>，此工具是使用了Windows Media Player作为播放界面的，所以只要WMP能播放的视频都可以的。加上外挂字幕插件之后会直接在播放窗口上显示字幕，就不用来回切换播放器了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/201603120605578.jpg"><img src="/images/201603120605578-1024x552.jpg" alt="主界面"></a></p>
+<p>界面还是很简洁实用的！</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z'/]TimeM%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z&#39;\]TimeM下载地址\[/dl\]</a></p>
+<p>PS，此工具是由VS2008编译而来，所以在最新的Windows 10上可能不是那么好用，而且有时会抽风不显示字幕，此时需要重装VodSub……</p>
+<p>为此，我将此工具的代码上传到GitHub以GPLv2开源，希望有能力的人能够继续开发此工具（不用试了，我从05试到了15全都编译出错），希望组织不会找到我哈哈哈</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/TimeM'/]%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/TimeM&#39;\]开源项目地址\[/gt\]</a></p>
+<p> </p>
+<h2 id="三-卡轴"><a href="#三-卡轴" class="headerlink" title="三.卡轴"></a>三.卡轴</h2><p>做时间轴是一个比较苦的活。我假设你的TM已经能够播放视频了，这是最起码的条件！</p>
+<p>我们用TM打开一个范例视频，好像没什么反应哎！对，你只能看到一个准备就绪。</p>
+<p><img src="/images/031216_0537_3.png"></p>
+<p>此时在左侧选择新字幕，我们就插入个50行吧！</p>
+<p><img src="/images/031216_0537_4.png"></p>
+<p>之后要注意保存的文件名，假如视频文件叫做1.mp4，字幕就要叫1.srt，这样播放器就会默认加载字幕。因为srt结构比较简单，方便查错校正什么的嘛。</p>
+<p><img src="/images/031216_0537_5.png"></p>
+<p>下面的编辑窗口就出现了50个空行。</p>
+<p>记住两个快捷键，F8和F9。F8对应轴开始的时间，F9对应轴结束的时间。</p>
+<p><img src="/images/031216_0537_6.png"></p>
+<p>现在开始播放视频，并且使字幕定位在第一行，类似下图这样。</p>
+<p><img src="/images/031216_0537_7.png"></p>
+<p>人物开始说话，就按F8，觉得这一行差不多够字数了，就按F9，然后什么都不用管，人物再说，就F8记录下一个轴的开始，F9记录结束。TM会自动往下选择下一个空轴的。</p>
+<p><img src="/images/031216_0537_8.png"></p>
+<p>粉色的圈起来的是每次按F9都会往下跳。</p>
+<p>可能有的人反应比较慢，导致开始说话过了0.x秒字幕才出现，那怎么办呢？很简单，设计个延迟就可以啦！</p>
+<p>设置-软件选项-字幕选项。根据自身情况设置吧！</p>
+<p><img src="/images/031216_0537_9.png"></p>
+<p>这样一直卡轴，直到最后，就算做完了时间轴的工作</p>
+<p>[v_blue]Tips： 通常来说，美剧&#x2F;电影等都是提供CC字幕的，也就是说英文字幕绝大部分都不是听译出来的。当然CC字幕的格式惨不忍睹，是需要进行大量修改的。[&#x2F;v_blue]</p>
+<p> </p>
+<h2 id="四-翻译"><a href="#四-翻译" class="headerlink" title="四.翻译"></a>四.翻译</h2><p>翻译这一步嘛，不只是翻译那么简单。翻译的信达雅是一方面，格式的统一也是一方面。</p>
+<p>上面提到了对CC的处理，这点基本各大字幕组的处理都差不多：</p>
+<p>删掉冗余字幕、标点符号初步统一、语气词感叹词等。</p>
+<p>字幕格式，不同组的要求就不同了。大致说下我们组的规则以便参考：</p>
+<blockquote>
+<p>**1.**不论何时， 严禁出现中文标点！ **2.**中文行断句无需标点句号逗号等，只需两段话之间空两格即可。 **3.**中文行出现书籍、杂志、影视作品名称等。 必须加书名号《》 **4.**特殊引用加英文引号””，比如说讽刺啊反语等。 **5.**外国人名之间加· **6.**对话格式如果一个时间轴里面有两个人的对话，字幕中对话一般没有对话的标记，所以，翻译需要自行加符号-来区分，英文对话之间-后面需要空一格，中文对话的-后面则不用空格， 如： 00:01:25,241 –&gt; 00:01:27,527 -你摸什么呢 -动脉 - What are you looking for? - A pulse. 一个时间轴里面有两个人对话前面要使用横断线-号分开，以区别是两人说的话，并且两人对白中间要用空格隔开。中文空两格，英文空一格。 **7.**大小写，这个嘛就是英语功底的事情了…… **8.**字幕长度，我们推荐的是英文不超过65字幕，中文不超过18字符，免得字幕变成两行影响效果。如果太长，那么就要根据意群进行分割。 **9.**硬字幕，一些说明头衔、学校等字幕，需要再翻一下方便观众理解，插入新轴用{\an8}置顶内容即可。插入按钮在倒数第四个。</p>
+</blockquote>
+<p>拆分字幕方法：</p>
+<p>在要拆分的字母上右键，自定义拆分</p>
+<p><img src="/images/031216_0537_10.png"></p>
+<p>选择好分割的位置，然后点击确定，之后点击新增，把中文的也分割了，确定就好。</p>
+<p><img src="/images/031216_0537_11.png"></p>
+<p>需要注意的是分割之后这两个轴可能会对不上，所以建议重新看看。</p>
+<p> </p>
+<h2 id="五-后期"><a href="#五-后期" class="headerlink" title="五.后期"></a>五.后期</h2><p>我呐，不是做后期的，但是一点特效都没有的字幕我是忍受不了的！简单的设置下字幕的字体、字形，我一般都使用SrtEdit，aegisub这种东西太高级用不来……</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z'/]SrtEdit%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z&#39;\]SrtEdit下载地址\[/dl\]</a></p>
+<p>由于srt对字幕特效的支持有限，所以我通常先将其转换为ass格式，用SrtEdit打开字幕，另存为，选择ass即可。</p>
+<p>之后Ctrl+A全选字幕，格式-文本特效编辑</p>
+<p><img src="/images/031216_0537_12.png"></p>
+<p>大家伙就看着办吧！其他特效也看着办吧</p>
+<p><img src="/images/031216_0537_13.png"></p>
+<p>要注意，如果你使用的字体文件在别的电脑上不存在，那么就会变成默认的字体——这也是为什么我们要压制的原因。</p>
+<p>这是我选择的英文字体Ubuntu Mono，中文字体幼圆。</p>
+<p><img src="/images/031216_0537_14.png"></p>
+<p>要注意的是，KMPlayer需要选项-字幕处理-多重字幕&#x2F;其他，选择“高级”选项卡，第一栏里选中开启、实时渲染、保持三项才可以显示字幕的字体。</p>
+<p> </p>
+<h2 id="六-压制"><a href="#六-压制" class="headerlink" title="六.压制"></a>六.压制</h2><p>前面预备知识里提过，一个封装格式里面可以带有很多信息，其中也自然而然的包括字幕。个人比较喜欢mkv这种封装格式。</p>
+<p>有一个工具叫做mkvtoolnix，可以看到一个mkv文件里有哪些东西。双击mmg.exe，将视频文件拖入，可以看到这个视频有两个流。</p>
+<p><img src="/images/031216_0537_15.png"></p>
+<p>有些电影是”国英粤”三个音频轨，如果只想要英语，就取消对应的勾选，然后开始混流即可。</p>
+<p>所以在这里，压制就有了两种办法：</p>
+<p>一种是简单的把字幕放到这个”容器”里，仍旧<strong>无法避免</strong>在没有对应字体的电脑上无法显示特效；</p>
+<p>另一种则是重新编码，把字幕作为视频流的一部分，这样字体特效无论放到哪都不会丢了。那些喜欢纯净的不要字幕的就会挑剔了。</p>
+<h3 id="第一种办法"><a href="#第一种办法" class="headerlink" title="第一种办法"></a>第一种办法</h3><p>直接用mkvtoolnix混流就可以了，把字幕添加进去，混流，基本上几分钟就可以完成；</p>
+<h3 id="第二种办法"><a href="#第二种办法" class="headerlink" title="第二种办法"></a>第二种办法</h3><p>就要用到俺组开发的傻瓜压制工具，通常来说会花费很长时间——当初我压制《阿凡达》花费了差不多三四个小时。</p>
+<p>首先需要安装AviSynthPlus-r1576和VC，在setup里有。</p>
+<p>然后打开压制工具，左上角选择新建任务，选择对应的视频和字幕，确定。</p>
+<p><img src="/images/031216_0537_16.png"></p>
+<p>右上角选择压制之后的分辨率即可。至于码率什么的，都是不用管的！</p>
+<p>64位操作系统选择x64会更好~</p>
+<p>PS，如果某位喜欢1080P的压制，可是这里又没有1080P的，那怎么办呢？</p>
+<p>其实很简单，打开encode文件夹，会发现有很多批处理文件。我已经为你们准备好了压制1080P的批处理了。</p>
+<p>该怎么办还用说吗~~修改完直接把视频拖上去就可以了。</p>
+<p>[v_error]警告 视频文件名最好不要带空格哦，毕竟windows这家伙不会拿\转义嘛……[&#x2F;v_error]</p>
+<p><img src="/images/031216_0537_17.png"></p>
+<p>压制过程是非常耗费CPU的，那个喜欢浮点运算的GPU呢？</p>
+<p><img src="/images/031216_0537_18.png"></p>
+<p>真的是1080P</p>
+<p><img src="/images/031216_0537_19.png"></p>
+<p>mmg分析表示，字幕已经成了视频的一部分。</p>
+<p>如果想要裁剪视频，简单的可以拿格式工厂来做到……另外，格式工厂转换格式的时候加字幕貌似有些bug…… [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z'/]mkvtoolnix/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z&#39;\]mkvtoolnix\[/dl\]</a></p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176%27%5C%5D%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176&#39;\]压片工具\[/dl\]</a></p>
+<h3 id="第三种方法：高手必备的ffmpeg"><a href="#第三种方法：高手必备的ffmpeg" class="headerlink" title="第三种方法：高手必备的ffmpeg"></a>第三种方法：高手必备的ffmpeg</h3><p>好吧，<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/2">看这里就好了</a>。</p>
+<h2 id="七-后话"><a href="#七-后话" class="headerlink" title="七.后话"></a>七.后话</h2><p>本文提到的所有工具打包下载，多贴心啊！ [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506%27%5C%5D%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E6%89%93%E5%8C%85%E4%B8%8B%E8%BD%BD%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506&#39;\]字幕处理工具打包下载\[/dl\]</a></p>
+<p>附：特别喜欢的一段演讲，尽管是游戏里的而且我还没玩过……Assassins Creed 2 - Ezio’s Speech </p>
+<p>[v_act]There are those who will take that freedom from us, and too many of you gladly give it. But it is our ability to choose whatever you think is true that makes us human. Choose your own way![&#x2F;v_act]</p>
+<p> </p>
+<h2 id="八-晒壁纸"><a href="#八-晒壁纸" class="headerlink" title="八.晒壁纸"></a>八.晒壁纸</h2><p>又到了晒壁纸的时候……</p>
+<p>然而并没有壁纸可以，哈哈哈。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/12/timeline-subtitles/index/" data-id="clhp7rtma00a0s2qr55nv4j1f" data-title="[新手向]如何制作时间轴、字幕和压制影片" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-prevent-from-network-audit/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/03/prevent-from-network-audit/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-03T00:00:00.000Z" itemprop="datePublished">2016-03-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/03/prevent-from-network-audit/index/">如何防范网络审计</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>咳咳，怎么会写起这个话题呢？起因是某个小伙伴发给了我<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/40543633/answer/88747638?from=singlemessage&isappinstalled=0&code=021ec89ac291c875d6f701e974c275b2&state=1a394b6ce165363accb5a08f16b0bbbd">知乎的链接</a>让我提提神。</p>
+<p>本来是想给写到总结里，结果一口气就写了2000来字，已经不适合在总结里出现啦，所以就单独拎出来好了！</p>
+<p>事先声明，俺呀，<strong>不是</strong>什么大牛，也不是安全圈的业内人士，更不是密码学专家。我只是来科普下科普下……当然了是原创的科普。</p>
+<p>另外，本篇文章是应对”审计”的哟……社会工程学等等不在此列。</p>
+<p> </p>
+<h1 id="一。网络审计是什么？"><a href="#一。网络审计是什么？" class="headerlink" title="一。网络审计是什么？"></a>一。网络审计是什么？</h1><p>这里我指的是”<strong>上网行为管理审计</strong>“。在某些企业、学校里，会在网关部署一个设备（当然也有可能是旁路），所有进出网关的东西都会被记录下来。简而言之就是，理论上你看了什么网页，听了什么歌，下了什么电影都是可以在审计工具里看到的。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030305595622.jpg"><img src="/images/2016030305595622.jpg" alt="QQ截图20160303135839"></a></p>
+<p>当然审计的程度是不同的，有的可能不会部署这类工具，有的可能会对某些端口进行屏蔽（比如屏蔽BT端口来禁止下载），有的可能会特殊关照某些端口（比如HTTP的80）。</p>
+<p>防范之心不可无。</p>
+<p>当然你可以说，我们处在运营商这一个大的”公司”之中，无论怎么防范都是没用的。对待这种言论，我只想说，滚犊子！人活着早晚得死，那就现在死了呗。防范是有针对性的，你在公司里主要的防范对象是公司领导，关电信CEO什么事？况且，互联网的存在使得匿名真正成为了可能。</p>
+<p>有人可能会问，有这么坏的公司&#x2F;学校吗？就引用鲁迅老人家的那句话：我向来不惮以最坏的恶意揣测中国人。</p>
+<h1 id="二。如何防范网络审计"><a href="#二。如何防范网络审计" class="headerlink" title="二。如何防范网络审计"></a>二。如何防范网络审计</h1><p>想要避开网络审计工具，那就要从多个方面来避免，这还是要借鉴编程随想的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2013/06/privacy-protection-0.html">《如何保护隐私》</a>系列和<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2010/04/howto-cover-your-tracks-0.html">《如何隐藏你的踪迹，避免跨省追捕</a>》系列。此两系类博文堪称经典，隐匿&#x2F;匿名必看！看了他那两个系类博文，就可以直接×了我这个了。</p>
+<p>拿着和国家机器隐匿的办法来对付区区一个公司显然大材小用。尽管不同人对匿名有不同的需求，但是这种意识应该得到提高、加强。</p>
+<p>对待网络审计工具，首先是无法避免要通过网关了，所以只能在通信手段上进行保护。相信现代密码学，相信科学。</p>
+<p>[v_error]编程随想的博客搭建于Blogspot，被墙——因为Blogspot是Google的[&#x2F;v_error]</p>
+<h2 id="1-网络层面的防范："><a href="#1-网络层面的防范：" class="headerlink" title="1.网络层面的防范："></a>1.网络层面的防范：</h2><p>毫无疑问你的所有数据都得有一个网关一样的设备转发出去，这是无法避免的。也就是说，所有明文传输的东西都会被记录下来。想当然的那么就不明文传输，直接密文传输就好了。</p>
+<p>那么应对措施就来了：</p>
+<h3 id="1-VPN工具"><a href="#1-VPN工具" class="headerlink" title="(1).VPN工具"></a>(1).VPN工具</h3><p>我们可以使用VPN协议来创建加密隧道，所有的数据都会在这个隧道里传播，网关<strong>只能知道</strong>你的VPN服务器的IP和你在使用VPN，却<strong>比较难</strong>解密你的VPN通信。当然，推荐使用OpenVPN这种可以防止中间人攻击的证书体系VPN，当然L2TP+IPSec也可以做到一定程度的防护，PPTP还是免了吧。</p>
+<h3 id="2-加密代理"><a href="#2-加密代理" class="headerlink" title="(2).加密代理"></a>(2).加密代理</h3><p>除了VPN这种加密隧道之外，还可以使用代理工具，比如非常著名的加密socks5代理Shadowsocks。当然要注意选择一个<strong>比较健壮的加密算法，</strong>比如说aes256cfb而不是RC4——尽管我们有理由怀疑，一个公司的网络审计有那么多时间和计算能力来破解RC4吗？</p>
+<h3 id="3-加密的通信协议"><a href="#3-加密的通信协议" class="headerlink" title="(3).加密的通信协议"></a>(3).加密的通信协议</h3><p>加密的通信协议，而且是公认的加密协议。时刻记住，尽可能使用加密连接，而且是使用了强大的加密算法和健壮的安全体系的<strong>强加密</strong>。越是公开的加密算法，它的健壮性也就越强，封闭的算法反而越弱，这是密码学的违反常识的理论之一。常见的安全的加密协议有，VPN中的OpenVPN,L2TP+IPSec, Shadowsocks，HTTPS，POP3S,IMAPS,SMTPS等，SSH和基于SSH的SFTP ,SCP等。</p>
+<p>最常见的莫过于HTTPS了，你看这篇博文的时候， 右上角是不是绿色的小锁头？你打开淘宝的时候，是不是也是小锁头？甚至某些还会显示Certificate Transparency</p>
+<p><img src="/images/030316_0533_1.png"></p>
+<p>我可没钱……不过需要注意的是，即使访问了https网站，审计工具也依旧能够知道你访问了某个网站，因为在DNS查询，密钥协商交换证书的时候是一定会泄漏域名的；但是网络审计工具无法得知你具体看了某个文章以及其内容。想要避免此种泄漏，那么最好的方式是使用shadowsocks，或者VPN+远程DNS解析（DNSCrypt也行），这样审计工具就只能看到你和代理服务器的加密通信了。</p>
+<p>此网络层面的防范乃是比较全能的办法。可是也<strong>别天真的以为</strong>，用了VPN就不会泄露你的IP，开了全局模式就不会泄露IP——有一种东西叫Flash和WebRTC的，这就是隐匿的内容了。</p>
+<h2 id="2-软件层面的防范"><a href="#2-软件层面的防范" class="headerlink" title="2.软件层面的防范"></a>2.软件层面的防范</h2><p>编程随想把这部分分成了”操作系统的防范”、”个人软件的防范”、”通讯工具的防范”，我觉得在应对公司的审计工具有点大材小用。</p>
+<h3 id="1-IM软件："><a href="#1-IM软件：" class="headerlink" title="(1).IM软件："></a>(1).IM软件：</h3><p>即时通信工具，比如说QQ，飞信等这是存在国家级监控的，小小公司应该管不到。但是QQ客户端是否加密传输聊天记录、加密程度、是否可以防范中间人至今还是未知数。</p>
+<p>我们可以使用Skype、Google环聊等工具。请注意是国际版Skype哟，绝对的加密安全和保障。</p>
+<h3 id="2-CA证书："><a href="#2-CA证书：" class="headerlink" title="(2).CA证书："></a>(2).CA证书：</h3><p>CA证书对于整个HTTPS的安全体系有多么重要，不了解的人可能完全无法理解。为此，我大家伙可以同样去看看编程随想的系列博文：<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/11/https-ssl-tls-0.html">《扫盲 HTTPS 和 SSL&#x2F;TLS 协议》</a></p>
+<p>如果公司在各位预装的系统上植入了自签名的CA证书，那么毫无疑问所有HTTPS都存在被劫持的风险。</p>
+<p>如图，被签发了伪证书的GitHub</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030306085390.jpg"><img src="/images/2016030306085390.jpg" alt="t011407dbd01decd039"></a></p>
+<p>说到CA，就得提到臭名昭著的CNNIC Root和12306的SRCA根证书。那么大的铁道部买不起一个证书？我只能再次引用并改编鲁迅老人家的那句话：我向来不惮以最坏的恶意揣测党国。</p>
+<h3 id="3-邮件的防范"><a href="#3-邮件的防范" class="headerlink" title="(3).邮件的防范"></a>(3).邮件的防范</h3><p>目前QQ邮箱是默认开启https的，如果在QQ面板直接打开邮箱，是https的web页面，这样审计工具只能知道你访问了QQ邮箱，却没办法知道你的邮件内容。</p>
+<p>如果使用邮件客户端，那么可以设置相应的SSL连接。</p>
+<p>比如QQ邮箱的帮助里是这样的：</p>
+<p><img src="/images/030316_0533_2.png"></p>
+<h3 id="4-客户端监控软件："><a href="#4-客户端监控软件：" class="headerlink" title="(4).客户端监控软件："></a>(4).客户端监控软件：</h3><p>有些变态公司可能会在员工的电脑中安装监控工具，好似当初绿坝，有些甚至可能是驱动级监控工具。最简单的办法就是重装系统——怕啥BIOS密码，大部分电脑都可以在启动的时候按F8、ESC之类按键选择启动设备。哪怕不能选择，你都看这篇文章了，难道不会拆机箱抠电池么~顺手重建MBR来防范MBR病毒吧……好像现在都是GPT了耶。</p>
+<p>可能重装系统会被发现或者引起怀疑，那么也有一个替代的办法，使用一些Linux发行版的LiveCD，制作成启动U盘，随插随用。当然这就有点技术门槛了，大部分人还是不太能适应各种Linux发行版吧！</p>
+<p>对待不截屏的监控软件，也可以使用虚拟机隔离之。</p>
+<h3 id="5-浏览器的防范："><a href="#5-浏览器的防范：" class="headerlink" title="(5.)浏览器的防范："></a>(5.)浏览器的防范：</h3><p>大概不会有公司会无聊到给员工的电脑装上自己开发的“监控浏览器”吧，但是依旧要注意一点，电脑被收走了，浏览器的历史记录不也就”公之于众”了吗？</p>
+<p>Chrome有隐身模式。</p>
+<h2 id="3-硬件层面的防范："><a href="#3-硬件层面的防范：" class="headerlink" title="3.硬件层面的防范："></a>3.硬件层面的防范：</h2><p>电脑又被收走了，那平时下的小黄片不就被发现了吗？</p>
+<p>没关系，只要我们做好了预防措施，那么就可以让监管人员欲哭无泪。</p>
+<p>我们可以用BitLocker（Windows 7就自带了哦）、GnuPG、VeraCrypt（或许大家还记得TrueCrypt）这类工具加密文件、乃至于整个分区，而且保证是让NSA都欲哭无泪的加密。</p>
+<p>GPG和VC的简要使用方法可以参考<a target="_blank" rel="noopener" href="https://dmesg.app/encrypt-tech-gnupg-veracrypt-turial.html">《加密技术的科普以及GnuPG和VeraCrypt教程》</a></p>
+<p>或许有人要抬杠了，领导说不给他密码，就给我开除让我喝西北风，我没办法啊就给了密码。这再次印证了一个安全圈的俗话：越是安全的系统，最大的弱点往往就越在于人。</p>
+<p>对待这种胁迫，我们可以使用VeraCrypt的隐藏卷，或者干脆死无对证——销毁数据。千万<strong>别天真的以为</strong>清空回收站、任何格式化（低级格式化、快速格式化、完全格式化）可以保护你的数据不被恢复，请使用粉碎工具或者完全物理销毁掉你的存储设备。</p>
+<p>关于TrueCrypt更多更牛逼的介绍以及使用技巧等方法，我就不瞎说了，参考随想的牛逼哄哄的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2011/05/recommend-truecrypt">《TrueCrypt——文件加密的法宝》</a></p>
+<p>以及<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2015/10/VeraCrypt.html">《扫盲 VeraCrypt——跨平台的 TrueCrypt 替代品》</a></p>
+<p> </p>
+<h2 id="4-物理层面的防范："><a href="#4-物理层面的防范：" class="headerlink" title="4.物理层面的防范："></a>4.物理层面的防范：</h2><p>老板就在你身后呢，你就别看小黄片了；身后就亮着一个摄像头呢，就悠着点……这种物理层面的防范，只能靠各位自己了……</p>
+<p> </p>
+<h1 id="三。话外："><a href="#三。话外：" class="headerlink" title="三。话外："></a>三。话外：</h1><p> </p>
+<h2 id="密码学"><a href="#密码学" class="headerlink" title="密码学"></a>密码学</h2><p>要不是密码学的发展，哪能给一个普通人和国家机器、哪怕是全世界的人斗争的可能？</p>
+<p>在信息时代之前，就几乎已经注定了个人几乎无法匹敌政府，个人往往在任何一个方面都是非常渺小的……</p>
+<p>举个例子，一个人能造什么武器？顶多是把枪，而政府却能制造出飞机坦克甚至是核武器。</p>
+<p>不光是”武器”，其它领域（比如交通工具）也差不多。在信息时代之前，个人吖那个渺小。</p>
+<p>信息时代之后，其实大部分领域也并没有什么变化。你现在能造出来坦克？能玩的出来高铁？别逗了。</p>
+<p>但是密码学是个例外。</p>
+<p>多亏了当初PGP创始人Philip Zimmermann的抗争，他抵着被无数爱国者们骂成卖国贼的心理压力、抵着被FBI抓走坐牢的压力，义无反顾的发布了PGP——当然，靠着宪法修正案第一条他出口了一本书，书里的内容就是PGP的源代码。（二战以来，密码学一直被大部分国家认作军事机密，所以是禁止出口的。大家晓得图灵不）</p>
+<p>如今，随意一个人都可以在网上下载到一些非常优秀的加密工具，稍微学习几分钟，就可以进行<strong>高高高高高强度加密</strong>。而政府方面即使用上超级计算机，也只好干瞪眼。</p>
+<p>当然了这无法解密是说，在有意义的时间内无法解密，比如说一百年一千年。</p>
+<p>在密码学上，俺们屁民，是和政府们平起平坐的。</p>
+<p>再说一句，别以为保密的加密算法就是牛逼的……反而是越开放的加密算法越健壮。</p>
+<h2 id="隐私权"><a href="#隐私权" class="headerlink" title="隐私权"></a>隐私权</h2><p>有没有这种意识，隐私权就是基本人权，是不可以被侵犯的。如果隐私是非法的，那也就非法之徒才能够有隐私。</p>
+<p> </p>
+<h1 id="四。抽风"><a href="#四。抽风" class="headerlink" title="四。抽风"></a>四。抽风</h1><p>最后，我的新规则是，编辑结束发表之前，贴上当前的壁纸，耶。</p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016030306244250.jpg"><img src="/images/2016030306244250-1024x576.jpg" alt="Battlefield (53)"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/03/prevent-from-network-audit/index/" data-id="clhp7rti2006ps2qrgqgx2l51" data-title="如何防范网络审计" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-swiffy-flash2html5/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/28/swiffy-flash2html5/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-28T00:00:00.000Z" itemprop="datePublished">2016-02-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/28/swiffy-flash2html5/index/">swiffy的本地化：在线Flash转HTML5</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]swiffy下线了[&#x2F;v_error] [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://o2klrn0xq.qnssl.com/hamster.swf'/]%E6%9C%AC%E6%96%87%E7%A4%BA%E4%BE%8Bswf%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD/[/dl/]">https://o2klrn0xq.qnssl.com/hamster.swf&#39;\]本文示例swf文件下载\[/dl\]</a></p>
+<p>[v_error]Flash已死，请大家转向HTML5……[&#x2F;v_error]</p>
+<p>本博客也将追寻乔帮主的步伐，开启去Flash化——其实本身也没啥Flash元素啊。</p>
+<p>有的时候看到个比较好玩的Flash动画，想要挂到网站上，但是移动端却很难支持Flash。那就只有想办法将Flash转换成人见人爱花见花开的HTML5了。搜索良久，发现一些所谓的”转换工具”其实就是让你玩那个Flash，然后录制成视频，简直是滑天下之大稽<img src="/images/022816_0347_swiffyF1.png"></p>
+<p>终于在Google找到了一个工具swiffy，也是老大爷Google开发的，可以用来转换Flash到HTML5.可喜可贺的是这个工具不仅仅提供了Adobe Flash CC的扩展，还提供了一个在线转换工具。悲伤的是这个在线转换工具只支持1M以下的swf文件。</p>
+<p>当然了即使网页版够用，想要稳稳的在国内使用这个Flash也是略有难度的，那就让我来一步一步的说教吧！</p>
+<p>事先打个小广告，哪位好心人<a target="_blank" rel="noopener" href="https://dmesg.app/it">帮我喂喂小仓鼠吧！</a></p>
+<hr>
+<p> </p>
+<p>首先需要翻墙（如何翻墙，请参考<a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html">《[2016-01-22]全平台科学上网[翻墙]工具集合》</a>）</p>
+<p>打开<a target="_blank" rel="noopener" href="https://developers.google.com/swiffy/">Google开发者中心</a></p>
+<p>简单粗暴的界面，点convert，上传本地的swf文件。文件限制1M以下，当然了，Adobe Flash扩展应该没啥限制。有兴趣可以自己去Adobe官网下载安装Flash试用版玩玩。友情提示，是扩展不是插件哦，需要Adobe Extension Manager，不是丢进某个目录就可以的。</p>
+<p><img src="/images/022816_0347_swiffyF2.png"></p>
+<p>这还用说么…简单的不得了。</p>
+<p><img src="/images/022816_0347_swiffyF3.png"></p>
+<p>Upload上传。</p>
+<p>之后在view conversion上右键，选择<strong>链接另存为</strong>。</p>
+<p><img src="/images/022816_0347_swiffyF4.png"></p>
+<p>[v_blue]不知道为啥我的Chrome总是蹦不出来保存窗口，于是我换成了小狐狸Firefox。[&#x2F;v_blue] 可以看到有一些警告，也<strong>并不是</strong>所有swf都能完美的转换成h5的。</p>
+<p>直接双击保存的html文件就能看到动画了</p>
+<p><img src="/images/022816_0347_swiffyF5.png"></p>
+<p>但是天真的你以为这就结束了吗？<strong>并没有</strong></p>
+<p>假如你给没翻墙的人看的话，很大的可能就会一片空白。如果安装了Switchy Omega还会看到有一个资源没加载。</p>
+<p><img src="/images/022816_0347_swiffyF6.png"></p>
+<p>Chrome检查工具同样告诉我们这个文件超时了</p>
+<p><img src="/images/022816_0347_swiffyF7.png"></p>
+<p>gstatic是Google的……so拜祖国伟大的墙所赐呵呵呵 :smile:  :smile:</p>
+<p><img src="/images/022816_0347_swiffyF8.png"></p>
+<p>几乎是完全屏蔽。</p>
+<p>没关系，我们手动的对这个HTML文件进行改造。</p>
+<p>Chrome检查工具已经告诉我们了那个js没有加载成功，那就用任意文本编辑器打开这个HTML文件</p>
+<p><img src="/images/022816_0347_swiffyF9.png"></p>
+<p>把这个链接复制下来，然后粘贴到浏览器中，很自然的就打开了吧（前提是翻墙了）</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016022804234694.png"><img src="/images/2016022804234694-1024x662.png" alt="2"></a></p>
+<p> </p>
+<p>还想啥啊，快把这个runtime.js另存为了吖。</p>
+<p>然后找个支持外链的地方，比如自己的博客，七牛云，阿里百川，这里就拿<strong>七牛云</strong>做例子了。当然了如果是HTTPS的博客网站的话，为了避免Mix Content而JavaScript的Mix Content是一定会被浏览器拦截的，还是去七牛充个十块钱或者拿自己网站吧……</p>
+<p>这里拿七牛做例子……</p>
+<p>打开<a target="_blank" rel="noopener" href="http://www.qiniu.com/">http://www.qiniu.com/</a>，选择一个https默认域名的空间，上传刚刚的那个js文件，然后取得文件的外链，这里的例子是<a target="_blank" rel="noopener" href="https://o13hhk496.qnssl.com/runtime.js">https://o13hhk496.qnssl.com/runtime.js</a></p>
+<p>[v_tips]如果你懒直接用这个也未尝不可，反正我流量也是用不完的用……（什么？免费用户就10G难道你充钱呢？不，<a target="_blank" rel="noopener" href="http://hd.qiniu.com/qingcong/pack">青葱创业计划</a>）[&#x2F;v_tips]</p>
+<p>还用我说嘛…用这个外链替换html文件里的那个js。</p>
+<p>嗯就是酱</p>
+<p><img src="/images/022816_0347_swiffyF11.png"></p>
+<p>打开隐身模式看下，游戏<strong>尚未结束</strong>……说不定这个js又加载了哪些js是吧……</p>
+<p>真是人品好，秒开有木有！当然了，如果这个js又加载了其他被墙的js，那就得顺藤摸瓜用检查工具一个调试了……<a target="_blank" rel="noopener" href="https://dmesg.app/baidu-shares-support-https.html">百度分享</a>不就是这么解决的么</p>
+<p><img src="/images/022816_0347_swiffyF12.png"></p>
+<p>到这这个转换就算彻底做完了。</p>
+<p>有博客的小伙伴可能会想把这个467KB的HTML文件的全部内容粘贴到博客侧边栏的文本框中，大概就是这样：</p>
+<p><img src="/images/022816_0347_swiffyF13.png"></p>
+<p>实际上我并<strong>不推荐</strong>这样做，保存下你就会发现一卡一卡的……而且拜伟大的墙所赐，这么大（467KB很大了，真的）的文件加载还是有点慢的……那怎么办呢？</p>
+<p>好办，不是有七牛吗，继续把这个HTML文件存到七牛，取得外链，然后文本框这么写就可以了，src自行替换，宽度和高度自己看着摸索吧。</p>
+<p>如图所示</p>
+<p><img src="/images/022816_0347_swiffyF14.png"></p>
+<p><embed> 标签是 HTML 5 中的新标签哦。</p>
+<p>这才算结束……还不快跟我一起大吼，H5大法好！</p>
+<p>当然了，一些嵌入了比较大HTML源码的页面（比如说<a target="_blank" rel="noopener" href="https://dmesg.app/hamster">这个</a>），我也直接用了embed…</p>
+<p>PS，有些主题的404界面插了个Flash游戏，主题对应的404.php可能会对应如下代码</p>
+<p>甭想了，替换成类似这样的</p>
+<p>当然前面可能有必要来几个<br>（换行）</p>
+<p>效果图，我还是很满足的。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016022804264364.jpg"><img src="/images/2016022804264364-1024x494.jpg" alt="QQ截图20160228122615"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/28/swiffy-flash2html5/index/" data-id="clhp7rtkj009as2qraw732rui" data-title="swiffy的本地化：在线Flash转HTML5" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-psg1208-noads/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/26/psg1208-noads/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-26T00:00:00.000Z" itemprop="datePublished">2016-02-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/26/psg1208-noads/index/">斐讯PSG1208刷第三方固件、去广告备忘</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天入了个路由器，斐讯PSG1208，免单的贼船哈哈哈，很爱玩的给刷成第三方的固件来玩玩。</p>
+<p>由于本人在刷路由器上没啥经验可言，就直接看这两篇文章吧。</p>
+<p><a target="_blank" rel="noopener" href="http://post.smzdm.com/p/415240/">http://post.smzdm.com/p/415240/</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.right.com.cn/forum/thread-161324-1-1.html">http://www.right.com.cn/forum/thread-161324-1-1.html</a></p>
+<p>个人整理下留个备忘</p>
+<p>建议用网线连接到路由器，因为刷写bootloader之后重启会关掉无线的。</p>
+<h2 id="登陆路由器"><a href="#登陆路由器" class="headerlink" title="登陆路由器"></a>登陆路由器</h2><p>浏览器地址栏输入</p>
+<p><a target="_blank" rel="noopener" href="http://192.168.2.1/goform/Diagnosis?pingAddr=192.168.2.100%7Cecho%22%22%7Ctelnetd">http://192.168.2.1/goform/Diagnosis?pingAddr=192.168.2.100|echo&quot;&quot;|telnetd</a></p>
+<p>(pingAddr&#x3D;后面是本机ip,如果你的电脑ip不是192.168.2.100,请改成你电脑的ip)</p>
+<p>成功后浏览器出现系统诊断界面。</p>
+<p>最小化。</p>
+<p>需要telent，Windows默认没安装需要手动安装下。</p>
+<p>或者用putty之类的工具</p>
+<p>telnet 192.168.2.1</p>
+<p>输入路由器管理的账号密码</p>
+<p>cd &#x2F;tmp<br>wget <a target="_blank" rel="noopener" href="http://breed.hackpascal.net/breed-mt7620-reset1.bin">http://breed.hackpascal.net/breed-mt7620-reset1.bin</a><br>mtd_write write breed-mt7620-reset1.bin Bootloader</p>
+<p>提示Unlocking bootloader…</p>
+<p>Writing from…..即成功。</p>
+<p>输入reboot重启。同时按住机身后面复位键不放。等到前边LED闪烁4次，代表进入breed。</p>
+<p>浏览器地址栏输入192.168.2.1，当然此时是没有无线的，用网线吧……</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016022612273276.jpg"><img src="/images/2016022612273276.jpg" alt="0"></a></p>
+<p>这吖的配置，其实拿树莓派做路由器也是可以的啊哈哈。 推荐备个份吧！</p>
+<p>进入breed选择固件备份。之后勾上EEPROM，选择备份保存到本地即可。</p>
+<p>返回主界面。选择固件升级，选中固件。该怎么做都知道了吧……</p>
+<p>之后选择上传，确认信息之后刷入……还用说怎么做吗</p>
+<p>pandora box和Padavan ASUS默认管理地址都是192.168.1.1，用户名密码均为admin，Wi-Fi密码1234567890。</p>
+<p> </p>
+<p>刷完顺便到系统管理-服务，开启SSH……对我就是密钥登录的那个，嫌弃密码登陆。</p>
+<p>去广告设置</p>
+<p><img src="/images/022616_1208_PSG12082.png"></p>
+<p>开机之后等待几十秒Adbyby就会自动启动并加载规则。</p>
+<p><img src="/images/022616_1208_PSG12083.png"></p>
+<p> </p>
+<p>吐槽一句，这DHCP简直是随机分配啊。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016022612261528.jpg"><img src="/images/2016022612261528.jpg" alt="QQ截图20160226201254"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/26/psg1208-noads/index/" data-id="clhp7rti3006rs2qrfyxg7ngz" data-title="斐讯PSG1208刷第三方固件、去广告备忘" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-return-enter-linwin/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/18/return-enter-linwin/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-18T00:00:00.000Z" itemprop="datePublished">2016-02-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/18/return-enter-linwin/index/">Win和Linux换行回车的问题：can&#39;t cd to home</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近在学shell，但是却发现一件很蹊跷的事情。</p>
+<p>提示无法切换到&#x2F;home</p>
+<p><img src="/images/021516_0517_WinLinux1.png"></p>
+<p>源代码如下：</p>
+<p><img src="/images/021516_0517_WinLinux2.png"></p>
+<p>简直简单的不能再简单。</p>
+<p>百思不得其解。后来查查资料，想起来了，Windows下的回车是\n\r，而Linux只有\n。一个直接后果是，Linux系统下的文件在Windows里打开的话，所有文字会变成一行；而Windows里的文件在Linux下打开的话，在每行的结尾可能会多出一个^M符号。再算上BOM的问题嘿嘿嘿…</p>
+<p>解决办法呢，以后直接在Linux环境下工作、或者终端里使用nano、vi，或者转换。</p>
+<p>有个软件叫 dos2unix可以删掉行尾的^M</p>
+<p>先安装</p>
+<p>sudo apt-get install dos2unix<br>dos2unix test.sh</p>
+<p>用vi替换掉行尾的^M也可以</p>
+<p>或者干脆在NotePad++里选择编辑-档案格式转换-转换为UNIX格式。</p>
+<p><img src="/images/021516_0517_WinLinux3.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/18/return-enter-linwin/index/" data-id="clhp7rtij007ls2qr5o8b2wt8" data-title="Win和Linux换行回车的问题：can&#39;t cd to home" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-nethogs-bug-v0-8-0/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/17/nethogs-bug-v0-8-0/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-17T00:00:00.000Z" itemprop="datePublished">2016-02-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/17/nethogs-bug-v0-8-0/index/">nethogs - creating socket failed are you root?</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>话说前几天更新了服务器之后，再用nethogs就会出现这种问题</p>
+<p>Creating socket failed while establishing local IP - are you root?</p>
+<p><img src="/images/021516_0516_nethogscrea1.png"></p>
+<p>分明是root权限的好嘛！</p>
+<p>其实这是nethogs version 0.8.0的一个bug，只要更新到0.8.1即可。可是Ubuntu软件源里并没有更新到0.8.1，那么只好拿来传统大法，手动下载源码包编译安装了。</p>
+<p>首先要确保安装了gcc、make这类工具。如果没有就先安装下。</p>
+<p>sudo apt-get install build-essential<br>sudo apt-get install libncurses5-dev libpcap-dev<br>wget -c <a target="_blank" rel="noopener" href="https://github.com/raboof/nethogs/archive/v0.8.1.tar.gz">https://github.com/raboof/nethogs/archive/v0.8.1.tar.gz</a><br>tar xf v0.8.1.tar.gz<br>cd .&#x2F;nethogs-0.8.1&#x2F;<br>make &amp;&amp; sudo make install</p>
+<p>之后退出或者重启当前终端</p>
+<p>sudo nethogs</p>
+<p>即可发现变成了0.8.1.</p>
+<p><img src="/images/021516_0516_nethogscrea2.png"></p>
+<p>问题完美解决。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/17/nethogs-bug-v0-8-0/index/" data-id="clhp7rtho005fs2qrgxwl955k" data-title="nethogs - creating socket failed are you root?" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ssh-welcome-funny-command/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/02/16/ssh-welcome-funny-command/index/" class="article-date">
@@ -471,700 +1017,6 @@
 
 
   
-    <article id="post-softether-443-conflicts-with-web-server/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/02/softether-443-conflicts-with-web-server/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-02T00:00:00.000Z" itemprop="datePublished">2016-02-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/02/softether-443-conflicts-with-web-server/index/">SoftEther 443端口与web服务器冲突解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>先前写了一篇利用SoftEther VPN Server搭建PPTP、L2TP、OpenVPN的文章（<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">https://dmesg.app/softether-vpnserver.html</a></p>
-<p>），原谅我那时候不会用代码高亮。后来发现，在开启了https的web服务器上是无法进行管理的。在设置密码的那一步报错退出了。如下图：</p>
-<p><img src="/images/020216_0812_SoftEther441.png"></p>
-<p>为什么呢？因为<strong>命令行模式下</strong>SoftEther默认使用443端口与连接到管理端，而443已经被我的web服务器占用了，所以自然会fail了。那怎么办呢……有三种办法：</p>
-<h2 id="第一种办法"><a href="#第一种办法" class="headerlink" title="第一种办法"></a>第一种办法</h2><p>暂时停掉web server，在命令行里设置密码，然后客户端管理工具连接，再ServerPasswordSet设置个服务器管理密码。然后更改端口，重开web server。比较繁琐。</p>
-<h2 id="第二种办法"><a href="#第二种办法" class="headerlink" title="第二种办法"></a>第二种办法</h2><p>Hostname of IP Address of destination时直接输入</p>
-<p>localhost:5555</p>
-<p>之后回车就可以成功了，然后就一样了。</p>
-<h2 id="第三种办法"><a href="#第三种办法" class="headerlink" title="第三种办法"></a>第三种办法</h2><p>更简单，而且同样很管用！</p>
-<p>.&#x2F;vpnserver start</p>
-<p>启动VPN服务，之后在工具里直接留空密码连接：</p>
-<p><img src="/images/020216_0812_SoftEther442.png"></p>
-<p>之后连接会要求输入密码。</p>
-<p>你们看连接上了。这一步如果连接失败请尝试992、1194、5555端口。</p>
-<p>之后服务器里会看到443端口错误。修改成其他端口或者不用理会都可以。</p>
-<p><img src="/images/020216_0812_SoftEther444.png"></p>
-<p>之后就和前文一样了。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/02/softether-443-conflicts-with-web-server/index/" data-id="clhp7rtk0008ss2qrbcjq9341" data-title="SoftEther 443端口与web服务器冲突解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/31/newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-31T00:00:00.000Z" itemprop="datePublished">2016-01-31</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/31/newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi/index/">[新手向]无需重装，Windows 7 由BIOS改成UEFI启动</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<p>前几天介绍了在UEFI下安装Windows 10，顺带提了一下，Windows 7也是<strong>支持</strong>UEFI的，不过条件要比Windows 8&#x2F;8.1&#x2F;10<strong>苛刻</strong>一些，只有64位Win 7才可以，应该还需要CSM支持。</p>
-<p>UEFI就像是一个微型的操作系统，UEFI会去读取硬盘上标记为EFI的分区，如果该分区下有EFI文件夹，那么就去执行EFI文件夹下的efi文件。就像我们双击打开QQ一样。如果第一个ESP里没有有效的EFI文件，那么就去找第二个ESP分区。找不到就没办法启动了。</p>
-<p>相比较于MBR的区区512字节（其实真正用于引导的只有446字节），ESP要方便的多。ESP中可以有很多个EFI文件，也可以存在多个分区多个引导。</p>
-<p>这都是一些题外话了。来说说怎么办BIOS启动的Windows 7改成UEFI启动的吧。</p>
-<p>推荐的组合项是BIOS+MBR，UEFI+GPT……..</p>
-<p>关于EFI和UEFI，</p>
-<blockquote>
-<p>可延伸韌體介面（EFI）最初是由英特尔开发，于2002年12月英特尔释出其订定的版本-1.1版，之后英特尔不再有其他关于EFI的规范格式发布。有关EFI的规范，英特尔已于2005年将此规范格式交由<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/UEFI%E8%AE%BA%E5%9D%9B" title="UEFI论坛">UEFI论坛</a>来推广与发展，后来并更改名称为Unified EFI（UEFI）。</p>
-</blockquote>
-<h1 id="准备工具："><a href="#准备工具：" class="headerlink" title="准备工具："></a><strong>准备工具：</strong></h1><p>还是PE</p>
-<h1 id="适用条件："><a href="#适用条件：" class="headerlink" title="适用条件："></a><strong>适用条件：</strong></h1><p>以<strong>Legacy BIOS</strong>模式安装的<strong>Windows 7 64 bit</strong>，其实8&#x2F;8.1&#x2F;10也同样适用。</p>
-<p>如果对自己没什么信心，还是建议先<strong>备份重要数据</strong>。毕竟这不像前两篇的重装。</p>
-<h2 id="步骤零。备份文件"><a href="#步骤零。备份文件" class="headerlink" title="步骤零。备份文件"></a><strong>步骤零。备份文件</strong></h2><p>如果对自己没信心那就备份重要文件吧。否则请略过。</p>
-<h2 id="步骤一。进入PE"><a href="#步骤一。进入PE" class="headerlink" title="步骤一。进入PE"></a><strong>步骤一。进入PE</strong></h2><p>只要有一个带DiskGenius的PE就够了。网上可以搜索到很多。推荐大家用”小马PE”，虽说功能比较少，但是比较纯净！或者手动去下功能比较多的老毛桃的自己去捆绑也可以…</p>
-<h2 id="步骤二。转换分区表为GPT格式"><a href="#步骤二。转换分区表为GPT格式" class="headerlink" title="步骤二。转换分区表为GPT格式"></a><strong>步骤二。转换分区表为GPT格式</strong></h2><p>选择当前的硬盘，菜单依次选择硬盘-转换分区表类型为GUID格式。</p>
-<p><img src="/images/013116_1112_Windo2.png"></p>
-<p>通常来说都会很快转换完的。</p>
-<h2 id="步骤三。准备ESP"><a href="#步骤三。准备ESP" class="headerlink" title="步骤三。准备ESP"></a><strong>步骤三。准备ESP</strong></h2><p>要用UEFI就要准备好ESP。我们选择在硬盘的最前面调整出200M的ESP。先调整下C。</p>
-<p>右键C盘，选择调整分区。拖动或者输入使”分区前的空间”为200M</p>
-<p><img src="/images/013116_1112_Windo3.png"></p>
-<p>确定开始。</p>
-<h2 id="步骤四。建立ESP并分配盘符"><a href="#步骤四。建立ESP并分配盘符" class="headerlink" title="步骤四。建立ESP并分配盘符"></a><strong>步骤四。建立ESP并分配盘符</strong></h2><p>空闲的空间右键，选择建立新分区。选择EFI system partition。把刚刚划分的<strong>空闲空间</strong>分配给它。</p>
-<p><img src="/images/013116_1112_Windo4.png"></p>
-<p>创建完分区之后，需要分配个盘符来让我们修复引导。</p>
-<p>指派新的盘符就可以了。</p>
-<p><img src="/images/013116_1112_Windo5.png"></p>
-<p>这是在资源管理器里看到的指派盘符之后的ESP。</p>
-<p><img src="/images/013116_1112_Windo6.png"></p>
-<h2 id="步骤五。修复引导"><a href="#步骤五。修复引导" class="headerlink" title="步骤五。修复引导"></a><strong>步骤五。修复引导</strong></h2><p>开始-运行，cmd，打开命令行。</p>
-<p>输入如下命令：</p>
-<p>bcdboot C:\windows &#x2F;l zh-cn &#x2F;s e: &#x2F;f UEFI</p>
-<p>注：C是原来的系统盘，E是挂载分配的ESP，如果使用基于2003、XP的PE，可以尝试着切换到C:\Windows\System32</p>
-<p>这些参数没啥好解释的，中文说的很明白嘛….</p>
-<p>之后会提示已成功创建启动文件。</p>
-<p><img src="/images/013116_1112_Windo7.png"></p>
-<p>[v_tips]Tips：不想打命令怎么办？ 你可以尝试搜索下载EFI引导修复工具。[&#x2F;v_tips]</p>
-<h2 id="步骤六。更改固件"><a href="#步骤六。更改固件" class="headerlink" title="步骤六。更改固件"></a><strong>步骤六。更改固件</strong></h2><p>重启电脑，然后按F2之类的按键进入固件设置。将Legacy First之类的改成UEFI Only。</p>
-<p>PS： 如果同时存在CSM 那就将其Enable，如果依旧无法启动，那就关闭Secure Boot。</p>
-<p>实测通过</p>
-<p><img src="/images/013116_1112_Windo8.png"></p>
-<p>丢图跑~~~</p>
-<p>改天再来个Ubuntu从BIOS改成UEFI吧！</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/31/newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi/index/" data-id="clhp7rthq005ns2qr1sep2pbg" data-title="[新手向]无需重装，Windows 7 由BIOS改成UEFI启动" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-newbee-uefi-windows10-ubuntu/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/30/newbee-uefi-windows10-ubuntu/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-30T00:00:00.000Z" itemprop="datePublished">2016-01-30</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/30/newbee-uefi-windows10-ubuntu/index/">[新手向][图文并茂] UEFI下Windows 10、Ubuntu双系统安装</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>昨天”新手向”的说了下UEFI+GPT下安装Windows 10，今天就趁热打铁，继续”新手向”的安装<strong>双系统</strong>吧！</p>
-<p>此教程同样也适用于安装Debian、Mint、CentOS等发行版。基本原理都是一样的，学会变通就可以。</p>
-<p>[v_notice]Tips：Ubuntu是啥？ Ubuntu是GNU&#x2F;Linux的众多发行版之一。Linux是遵循GPL协议发布的开源操作系统内核，而Ubuntu是以Linux做内核的基于Debian的桌面操作系统（当然Ubuntu也有服务器版）。Android同样也是基于ARM Linux的移动操作系统。不要把UI（User Interface 用户接口）和系统混为一谈，也不要把发行版、内核混为一谈。[&#x2F;v_notice]</p>
-<h1 id="适用条件："><a href="#适用条件：" class="headerlink" title="适用条件："></a>适用条件：</h1><p><strong>UEFI+GPT</strong>已安装Windows、准备双系统安装Ubuntu的童鞋</p>
-<p> </p>
-<h1 id="准备工具："><a href="#准备工具：" class="headerlink" title="准备工具："></a>准备工具：</h1><p>4G以上U盘一个</p>
-<p>Ubuntu 14.04 64bit镜像</p>
-<p>[lhb href&#x3D;”<a target="_blank" rel="noopener" href="http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso%22/]%E7%BD%91%E6%98%93%E5%BC%80%E6%BA%90%E7%AB%99/[/lhb/]">http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso&quot;\]网易开源站\[/lhb\]</a></p>
-<p>[lhb href&#x3D;”<a target="_blank" rel="noopener" href="http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso.torrent%22/]%E7%A7%8D%E5%AD%90%E6%96%87%E4%BB%B6/[/lhb/]">http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso.torrent&quot;\]种子文件\[/lhb\]</a></p>
-<p>UNetBootin [lhb href&#x3D;”<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/unetbootin-windows-613.exe?t=1454146201878%22%5C%5D%E6%9C%AC%E5%9C%B0%E4%B8%8B%E8%BD%BD%5C%5B/lhb%5C%5D">http://bennydownload.file.alimmdn.com/unetbootin-windows-613.exe?t=1454146201878&quot;\]本地下载\[/lhb\]</a> 那些<strong>两个硬盘</strong>的孩子们，就省省心吧。<strong>一个硬盘一个引导</strong>得了。你们永远也体会不到MBR改引导有多么好玩~~</p>
-<h1 id="阅读之前"><a href="#阅读之前" class="headerlink" title="阅读之前"></a>阅读之前</h1><p>安装Ubuntu过程中<strong>建议断网</strong>，你总不想从美国下载更新安装吧！</p>
-<p>先进Windows 10来证明下我真的是UEFI+GPT的哦</p>
-<p><img src="/images/013016_1111_UEF1.png"></p>
-<p> </p>
-<h2 id="步骤零。准备Ubuntu-“分区”"><a href="#步骤零。准备Ubuntu-“分区”" class="headerlink" title="步骤零。准备Ubuntu “分区”"></a><strong>步骤零。准备Ubuntu “分区”</strong></h2><p>需要将Ubuntu安装到一个空闲分区中，但是假如没有空的分区呢？总不能为这个移动文件、格式化分区吧？</p>
-<p>其实不必这样，用DiskGenius可以做到<strong>无损</strong>分区的。</p>
-<p>假设在D盘前面腾出空闲空间给Ubuntu用，大致方法如下图所示。</p>
-<p>右键D盘，选择拆分分区。</p>
-<p><img src="/images/013016_1111_UEF2.png"></p>
-<p>把前面拖出来空闲空间，或者手动输入设置下。点击开始，然后慢慢等待吧~</p>
-<p><img src="/images/013016_1111_UEF3.png"></p>
-<p>之后再右键、新建分区就可以了。</p>
-<p>[v_tips]Tips：关于硬盘组织结构 在DG里，硬盘是以圆柱形从左到右显示的，是<strong>连续的</strong>。所以，如果分区里有很多文件，要想在分区前面腾出空间，那就要历经一个漫长的移动文件的过程。同理，如果觉得C太小了想把F的空间分给C点，那就要先把F前面空出来，分给E，E前面空出来分给D，D前面空出来分给C….[&#x2F;v_tips]</p>
-<p>[v_error]Tips：哪个分区性能最好？ 如果是机械硬盘的话……机械硬盘是个圆盘，<strong>角速度</strong>都是一样的，相比之下<strong>外圈的线速度要比较大</strong>。凑巧0磁道在外圈………C盘是紧挨着MBR的（0,0,1）[&#x2F;v_error]</p>
-<p> </p>
-<h2 id="步骤一。制作Ubuntu启动盘"><a href="#步骤一。制作Ubuntu启动盘" class="headerlink" title="步骤一。制作Ubuntu启动盘"></a><strong>步骤一。制作Ubuntu启动盘</strong></h2><p>插入U盘，打开UNetBootin，第二项里选择下载好的iso镜像，选择对应U盘的盘符。点确定开始展开文件。</p>
-<p><img src="/images/013016_1111_UEF4.png"></p>
-<p> </p>
-<h2 id="步骤二。进入Ubuntu-Live-CD"><a href="#步骤二。进入Ubuntu-Live-CD" class="headerlink" title="步骤二。进入Ubuntu Live CD"></a><strong>步骤二。进入Ubuntu Live CD</strong></h2><p>[v_tips]Live在这里应该是<strong>形容词</strong>，所以应该读作laɪv而不是where did you live的lɪv[&#x2F;v_tips]</p>
-<p>重启电脑，选择U盘启动。看过前文的童鞋应该知道，基本上就是按ESC、Enter这类的按键。</p>
-<p>之后直接回车就可以进入Ubuntu live CD</p>
-<p>如果无法启动请多试试，再不行就重回步骤一，将U盘格式化成FAT32或者干脆使用UltraISO</p>
-<p> </p>
-<h2 id="步骤三。设置Ubuntu分区"><a href="#步骤三。设置Ubuntu分区" class="headerlink" title="步骤三。设置Ubuntu分区"></a><strong>步骤三。设置Ubuntu分区</strong></h2><p>双击桌面上的 Install Ubuntu</p>
-<p>左侧拉倒最下面选择简体中文。</p>
-<p><img src="/images/013016_1111_UEF5.png"></p>
-<p>然后继续</p>
-<p>在”安装类型”这一步的时候要选择<strong>其他选项</strong>，也就是Something Else</p>
-<p><img src="/images/013016_1111_UEF6.png"></p>
-<p>之后安装程序会自动检测磁盘，下图是磁盘分区的说明。</p>
-<p>[v_blue]Tips：分区？ 在Linux下没有”分区”这个概念。所谓”一切皆文件”的哲学思想。sd代表硬盘，a就代表第一块硬盘，sda1就是第一块硬盘的第一个分区，以此类推，sdb3就是第二块硬盘的第三个分区。[&#x2F;v_blue]</p>
-<h3 id="1-创建EFI分区（此步骤可以跨过）"><a href="#1-创建EFI分区（此步骤可以跨过）" class="headerlink" title="1.创建EFI分区（此步骤可以跨过）"></a><strong>1.创建EFI分区（此步骤可以跨过）</strong></h3><p>[v_error]</p>
-<h3 id="2016年1月31日更新"><a href="#2016年1月31日更新" class="headerlink" title="2016年1月31日更新"></a>2016年1月31日更新</h3><p>请注意，EFI分区并不是必须要创建的。在“安装启动引导的设备”中选择Windows的EFI分区sda1即可。实测由于双系统，Ubuntu会探测到已经存在的EFI分区，所以新建的EFI之后删除也不会影响启动。[&#x2F;v_error]</p>
-<p>Ubuntu社区强烈建议每块硬盘<strong>只有一个</strong>EFI分区。（<a target="_blank" rel="noopener" href="https://help.ubuntu.com/community/UEFI">https://help.ubuntu.com/community/UEFI</a>）</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/01/2016013112031376.png"><img src="/images/2016013112031376.png" alt="5146"></a></p>
-<p>我们选择D盘，也就是sda4，然后点击左下角的change，新建一个<strong>EFI分区</strong>。大小200M、100M都可以。</p>
-<p><img src="/images/013016_1111_UEF8.png"></p>
-<p>然后确定。</p>
-<h3 id="2-创建交换空间（此步骤自行决定是否进行）"><a href="#2-创建交换空间（此步骤自行决定是否进行）" class="headerlink" title="2.创建交换空间（此步骤自行决定是否进行）"></a><strong>2.创建交换空间（此步骤自行决定是否进行）</strong></h3><p>如法炮制，继续新建Swap分区。大小保持和内存一样或者二倍就可以。如果你的内存足够大（千万别说4G就算足够大），直接跨过这一步<strong>也不是不可以</strong>。</p>
-<p><img src="/images/013016_1111_UEF9.png"></p>
-<p>[v_blue]Tips：Swap交换空间是什么？ 大家还记得Windows下一个大概和你内存大小差不多的pagefile.sys吗？Linux下的Swap就是Windows下的虚拟内存。[&#x2F;v_blue]</p>
-<h3 id="3-创建根"><a href="#3-创建根" class="headerlink" title="3.创建根"></a><strong>3.创建根</strong></h3><p>继续，把剩余的空间都分给&#x2F;，选择个挂载点就可以。</p>
-<p><img src="/images/013016_1111_UEF10.png"></p>
-<p>[v_blue]Tips：Ubuntu支持NTFS吗？ Ubuntu支持很多种文件系统，包括微软家的NTFS和存不了4G文件的FAT32等等。这一步选择Ext3也可以，脑残了选择NTFS也可以，但是何苦呢？[&#x2F;v_blue]</p>
-<p>[v_warn]Tips：Linux支持NTFS吗？ Linux内核可<strong>并不支持</strong>NTFS哦，要不怎么有一个叫”ntfs3g”的开源项目。[&#x2F;v_warn]</p>
-<p>[v_tips]Tips：把home单独分出去，也可以哦。这样以后万一格式化重新安装也不怕丢~的文件[&#x2F;v_tips]</p>
-<h3 id="4-选择引导分区"><a href="#4-选择引导分区" class="headerlink" title="4.选择引导分区"></a><strong>4.选择引导分区</strong></h3><p>这一步，选择新建的EFI分区（sda4）或者原来Windows的EFI（sda1）<strong>都可以</strong>。因为实测表明直接选择Windows的EFI分区并不会有什么问题。所以你们自己看着办！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/01/2016013112150865.png"><img src="/images/2016013112150865.png" alt="QQ截图20160131201439"></a></p>
-<p>然后点击现在安装。</p>
-<p>[v_blue]Tips：这个启动引导器是个啥子嘛… 你看，你双击桌面的QQ，Windows的外壳程序explorer.exe帮你打开了QQ.exe（或者QQProtect.exe），但是你有没有想过explorer.exe是哪个程序启动的呢？最开始的程序是什么启动的呢？操作系统本质上也是个特殊的软件，那是啥东西启动它的呢？似乎陷入了先有鸡先有蛋的死循环。 在BIOS中，BIOS在自检结束之后会去找硬盘的MBR，MBR在0柱面、0磁头、扇区 BIOS模式下去找MBR UEFI模式下，就要去找EFI分区了。 [&#x2F;v_blue]</p>
-<p> </p>
-<h2 id="步骤四。设置账号密码"><a href="#步骤四。设置账号密码" class="headerlink" title="步骤四。设置账号密码"></a><strong>步骤四。设置账号密码</strong></h2><p>之后默认点继续就可以了。</p>
-<p>在这一步，要设置一个用户名和密码，这个密码<strong>一定要记住</strong>了哦。自动登录和加密home可以根据个人情况选择。</p>
-<p><img src="/images/013016_1111_UEF12.png"></p>
-<p>漫长的等待…….等待</p>
-<p>根据提示重启就行了。</p>
-<p>到这里安装就完成了….有兴趣可以继续往下看。</p>
-<p>[v_blue]Tips：何为root用户？ Linux下包含一个<strong>最高权限</strong>的用户：root，<strong>root用户无所不能</strong>，甚至都可以用来<strong>删除操作系统本身</strong>。对，就是<strong>正在运行</strong>着的操作系统就可以给删掉。Android下的root就是这个概念。[&#x2F;v_blue]</p>
-<p>[v_tips]Tips：电脑是我的，我还没有最高权限吗？ 我们设置的用户名本身<strong>不具有root权限</strong>。但是我们用户名在sudoers中，所以可以通过sudo来暂时<strong>提权</strong>到root权限。root也同样有密码，在Ubuntu中这个密码是<strong>随机的</strong>无人可知的，Debian中是<strong>安装时设置</strong>的。[&#x2F;v_tips]</p>
-<p>[v_error]Tips：别的用户也可以用sudo吗 如果要编辑sudoers文件，<strong>可别</strong>chmod（改变文件权限）之后在用vi等编辑。这种情况下除非知道root密码可以直接su切换到root，否则就再也无法使用sudo了，因为sudoers要求440权限。还是老老实实用<strong>visudo</strong>吧！[&#x2F;v_error]</p>
-<h2 id="步骤五。交代点事…"><a href="#步骤五。交代点事…" class="headerlink" title="步骤五。交代点事…"></a><strong>步骤五。交代点事…</strong></h2><p>（暴露了我是虚拟机…其实真实也就是这个情况）</p>
-<h3 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h3><p>启动前按ESC，可以看到<strong>Ubuntu的EFI引导在Windows Boot Manager上面</strong>，所以默认情况下就会进入Ubuntu的启动引导程序。至于引导程序引导啥操作系统，那就不是UEFI说了算的。</p>
-<p><img src="/images/013016_1111_UEF13.png"></p>
-<p> </p>
-<h3 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h3><p>这里来到了Ubuntu的启动引导程序，grub2</p>
-<p><img src="/images/013016_1111_UEF14.png"></p>
-<p>可以看到Ubuntu非常”大度”的识别出来了Windows的引导程序。</p>
-<p>事实上也是真正可以引导的。</p>
-<p> </p>
-<h2 id="步骤六。设置grub2"><a href="#步骤六。设置grub2" class="headerlink" title="步骤六。设置grub2"></a><strong>步骤六。设置grub2</strong></h2><p>默认是启动Ubuntu，我有点不适应还想先用一会Windows；十秒钟超时太长了，设置短一点可以吗？</p>
-<p>我想说这都不是事！</p>
-<p>进入Ubuntu，搜索打开<strong>终端</strong></p>
-<p><img src="/images/013016_1111_UEF15.png"></p>
-<p>输入如下命令：</p>
-<p>sudo gedit &#x2F;etc&#x2F;default&#x2F;grub</p>
-<p><img src="/images/013016_1111_UEF16.png"></p>
-<p>输入安装时设置的账号密码。没有反应就是正常的，<strong>没有回显</strong>，照样打密码就对了。</p>
-<p>然后会打开这样的一个配置文件。</p>
-<p><img src="/images/013016_1111_UEF17.png"></p>
-<p>GRUB_DEFAULT是设置默认的启动项，<strong>从0开始计数</strong>。<strong>这种情况下</strong>如果要Windows默认启动，那就设置成2即可。</p>
-<p>GRUB_TIMEOUT是默认超时时间，单位秒。</p>
-<p>之后保存，终端输入如下内容：</p>
-<p>sudo update-grub</p>
-<p>回车即可。</p>
-<p><img src="/images/013016_1111_UEF18.png"></p>
-<p> </p>
-<p>TIPS：grub默认的紫色启动界面太难看了，我想换怎么办？</p>
-<p>sudo nautilus</p>
-<p>将自定义图片复制到&#x2F;boot&#x2F;grub下 再</p>
-<p>sudo update-grub</p>
-<p>如果壁纸严重”变形”，那就修改&#x2F;etc&#x2F;default&#x2F;grub，将</p>
-<p>#GRUB_GFXMODE&#x3D;640x480</p>
-<p>改成</p>
-<p>GRUB_GFXMODE&#x3D;640x480</p>
-<p>此处640x480应该是你电脑的<strong>最佳分辨率</strong>。</p>
-<p>然后</p>
-<p>sudo update-grub</p>
-<p> </p>
-<h2 id="步骤七。没了，安装完了。"><a href="#步骤七。没了，安装完了。" class="headerlink" title="步骤七。没了，安装完了。"></a><strong>步骤七。没了，安装完了。</strong></h2><p>推荐一套非常棒的Ubuntu入门书籍，《Linux入门很简单》，各大电商均有销售。</p>
-<p>这个名字可能不太熟悉，但是《笨兔兔的故事》可能就比较知名了。</p>
-<p>此文写于2008年，后来根据10年Ubuntu10.04重新更新了下，但仍旧不失为非常优秀、幽默的Ubuntu入门文档。尤其适合女孩子读。</p>
-<p>当然了，《Linux入门很简单》内容要略丰富些。</p>
-<p>同样收录于“推荐书籍栏目中”</p>
-<p>原帖地址：<a target="_blank" rel="noopener" href="http://forum.ubuntu.org.cn/viewtopic.php?t=162040">http://forum.ubuntu.org.cn/viewtopic.php?t=162040</a></p>
-<p>打包下载地址： [dltable file&#x3D;”笨兔兔的故事.7z” size&#x3D;”8.90M”]<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/%E7%AC%A8%E5%85%94%E5%85%94%E7%9A%84%E6%95%85%E4%BA%8B.7z?t=1454151283700">本地下载</a>[&#x2F;dltable]</p>
-<p>今天的教程就到这里~~</p>
-<p><img src="/images/013016_1111_UEF19.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/30/newbee-uefi-windows10-ubuntu/index/" data-id="clhp7rthp005ls2qrhk9kg49y" data-title="[新手向][图文并茂] UEFI下Windows 10、Ubuntu双系统安装" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-newbee-uefi-gpt-win10/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/29/newbee-uefi-gpt-win10/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-29T00:00:00.000Z" itemprop="datePublished">2016-01-29</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/29/newbee-uefi-gpt-win10/index/">[新手向]全新UEFI+GPT安装Windows 10</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<p>UEFI+GPT相比BIOS+MBR的一大优势之一是开机快，另一大优势是支持2T以上硬盘。很多人的电脑太乱，迫切的需要重装系统，但是各种”Ghost版”、”正版”鱼目混杂。那么今天就让博主俺来【新手向】的教大家用UEFI+GPT方式<strong>纯净</strong>的安装Windows。</p>
-<p>[v_blue]顺便提一句，Win 7也支持UEFI的，谁说不支持就揍屁屁哦！[&#x2F;v_blue]</p>
-<p>本文适用对象：任何想要重装系统的童鞋，包括想装Windows 8、8.1甚至是Win7的童鞋</p>
-<p>适用条件：说了是UEFI+GPT，所以支持UEFI电脑一台~。基本上2013年之后电脑都是UEFI的了</p>
-<p> </p>
-<h1 id="准备条件："><a href="#准备条件：" class="headerlink" title="准备条件："></a><strong>准备条件：</strong></h1><p>大于4G的U盘一个，可用的互联网。</p>
-<p>下载如下工具：</p>
-<p>WinNTSetup3（有的PE没有，所以备着吧） [bb href&#x3D;”<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/WinNTSetup3.7z?t=1454066775734%22%5C%5D%E7%82%B9%E6%88%91%E4%B8%8B%E8%BD%BD%5C%5B/bb%5C%5D">http://bennydownload.file.alimmdn.com/WinNTSetup3.7z?t=1454066775734&quot;\]点我下载\[/bb\]</a></p>
-<p>Windows 10 x64 Threshold2镜像 [yb href&#x3D;”ed2k:&#x2F;&#x2F;|file|cn_windows_10_multiple_editions_version_1511_x64_dvd_7223622.iso|4187224064|FE3F221D193FEF02627F7F8CF0041BB3|&#x2F;“]点我下载[&#x2F;yb]</p>
-<p>一个可用的PE ：我也不知道什么好用，自己找找吧。</p>
-<p>睿派克装机助手 <a target="_blank" rel="noopener" href="https://www.repaik.com/thread-81386-1-1.html">https://www.repaik.com/thread-81386-1-1.html</a></p>
-<p>（文末附了很多版本的Windows）</p>
-<h2 id="步骤一。准备PE工具"><a href="#步骤一。准备PE工具" class="headerlink" title="步骤一。准备PE工具"></a><strong>步骤一。准备PE工具</strong></h2><p>安装小马PE或者是什么其他的PE，然后打开，插入U盘</p>
-<p><img src="/images/012916_1147_UEFIGPT1.png"></p>
-<p>选择好自己的U盘，其他选项默认，然后点击安装，制作PE。</p>
-<h2 id="步骤二。启动到PE"><a href="#步骤二。启动到PE" class="headerlink" title="步骤二。启动到PE"></a><strong>步骤二。启动到PE</strong></h2><p>如果是BIOS模式的那就简单啦！</p>
-<p>插上U盘，开机。华硕系列笔记本按ESC，索尼系列是有个Assist按键，戴尔F12，联系部分F12（部分配合Fn）就可以临时选择启动设备；</p>
-<p><img src="/images/012916_1147_UEFIGPT2.jpg"></p>
-<p>选择类似USB Mass Storage…的设备就可以了。</p>
-<p>如果是UEFI的也没事，大部分笔记本还是可以在出现logo的时候按ESC、F12、F2、Enter等按键进入固件或者临时选择启动设备的。</p>
-<p>再不行咱进固件里改成Legacy启动总可以吧~</p>
-<p>用U盘启动之后尽快选择进入PE。</p>
-<p>[v_blue]TIPS: UEFI启动的表现：在品牌logo的时候有个小圈一直在转转转。[&#x2F;v_blue]</p>
-<h2 id="步骤三。设置分区表"><a href="#步骤三。设置分区表" class="headerlink" title="步骤三。设置分区表"></a><strong>步骤三。设置分区表</strong></h2><p>进入PE之后打开DiskGenius。首先要做的事情是把硬盘从MBR转换成GPT，此过程是无损的。</p>
-<p><img src="/images/012916_1147_UEFIGPT3.jpg"></p>
-<p>之后瞅准了<strong>原来的系统盘</strong>C（注意PE下盘符有可能是错乱的，所以建议通过分区大小仔细核对！），右键，删除当前分区。</p>
-<p>之后在删除了的空白的分区上右键，<strong>建立新分区</strong></p>
-<p><img src="/images/012916_1147_UEFIGPT4.png"></p>
-<p>出现如下图所示界面：</p>
-<p>把<strong>ESP分区</strong>勾选上，100，200M都是可以的。</p>
-<p><img src="/images/012916_1147_UEFIGPT5.png"></p>
-<p>确定即可。之后会弹出来另一个建立分区的界面，是主分区，直接确定。</p>
-<p><img src="/images/012916_1147_UEFIGPT6.png"></p>
-<p>然后左上角的保存更改、选择是，顺路给格式化了。</p>
-<p>如果没出来刚刚的建立ESP、MSR分区，直接是上图建立新分区的界面，那怎么办呢？</p>
-<p>那就手动创建呗。如图所示。</p>
-<p>先建立NTFS的主分区。</p>
-<p><img src="/images/012916_1147_UEFIGPT7.png"></p>
-<p>别都填满了啊，给ESP和MSR留点。留个零头就够了</p>
-<p>在右侧的白色空闲分区上右键，继续选择新建分区。</p>
-<p><img src="/images/012916_1147_UEFIGPT8.png"></p>
-<p><img src="/images/012916_1147_UEFIGPT9.png"></p>
-<p>建立<strong>EFI分区</strong>，100M就够了，当然了，为了以后考虑，分个200、300也完全不是问题。</p>
-<p>同理，再新建MSR分区。</p>
-<p><img src="/images/012916_1147_UEFIGPT10.png"></p>
-<p>[v_tips]注：先新建MSR、EFI也行，顺序无所谓。[&#x2F;v_tips]</p>
-<p>[v_blue]TIPS： EFI分区：在UEFI用于启动、引导的分区就叫做EFI。以前传统BIOS往往是系统盘。 MSR分区：微软保留分区。转换动态磁盘的时候会用到。似乎并没有什么乱用~[&#x2F;v_blue]</p>
-<h2 id="步骤四。展开镜像文件"><a href="#步骤四。展开镜像文件" class="headerlink" title="步骤四。展开镜像文件"></a><strong>步骤四。展开镜像文件</strong></h2><p>先分配EFI盘符，右键EFI分区，选择”<strong>指派新的驱动器号</strong>“。咱就选个Z好了。</p>
-<p>右键下载好的Windows 10的ISO文件，选择装载。</p>
-<p>之后就会当当当！</p>
-<p><img src="/images/012916_1147_UEFIGPT11.png"></p>
-<p>打开WinNTSetup_x64.exe，如下图设置</p>
-<p><img src="/images/012916_1147_UEFIGPT12.png"></p>
-<p><strong>安装文件夹</strong>选择刚刚挂载的驱动器盘符下sources里的install.wim</p>
-<p><strong>引导驱动器</strong>选择EFI分区，也就是Z，此时你会看到右侧的EFI PART从红色变到了绿色。</p>
-<p><strong>安装磁盘</strong>的位置就选择C（注意PE下盘符有可能是乱的哦）</p>
-<p>版本看自己心情啦。<strong>模式</strong>里，那个可以不勾选；如果想以时间换空间，那就选择一个绿灯的模式就可以，优化调整随个人心情。之后点击开始安装…..喝茶喝茶警察叔叔请我来喝茶。</p>
-<p>镜像部署完成之后重启电脑。记得拔U盘哦。</p>
-<p>此时要注意，如果<strong>原来是BIOS模式</strong>的童鞋，一定要在此时迅速进入BIOS，改成UEFI Only或者UEFI First，总之是改成UEFI模式启动。否则就直接挂了哦。</p>
-<p>不同的电脑可能会有所不同。戴尔Inspiration 15R如下：</p>
-<p>切换到Exit下save and exit（保存退出），或者直接F10~</p>
-<h2 id="步骤五。正式安装阶段"><a href="#步骤五。正式安装阶段" class="headerlink" title="步骤五。正式安装阶段"></a><strong>步骤五。正式安装阶段</strong></h2><p>之后就开始正式安装了….设置时区，账号，更新…基本上就是下一步，下一步(⊙v⊙)</p>
-<p>输入密钥的时候可以跳过。</p>
-<p>默默的等待重启几次，然后就完事了</p>
-<p> </p>
-<p><strong>一些说明：</strong></p>
-<p>安装的重点是<strong>设置EFI分区</strong>、并给<strong>EFI分区分配盘符</strong>。如果想用光盘安装，或者直接双击setup.exe，那么选择引导分区的时候直接选择对应的EFI。</p>
-<p>Win 7同样可以用UEFi+GPT模式飞起。如果非得要BIOS+MBR模式，那就把硬盘分区表转换为<strong>MBR</strong>，WinNTSetup的<strong>引导驱动器、安装磁盘位置</strong>都选C就可以了。</p>
-<p> </p>
-<p>Windows安装镜像下载……额……要不你试试msdn我告诉你？</p>
-<p> </p>
-<p> </p>
-<p>附：激活器下载（支持Office 2016、Windows 10哟） [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/HEU/_KMS/_Activator/_CH/_v11.2.0.7z?t=1479525479890%27%5C%5D%E5%93%9F%E5%93%9F%E5%93%9F%5C%5B/dl%5C%5D">http://bennydownload.file.alimmdn.com/HEU\_KMS\_Activator\_CH\_v11.2.0.7z?t=1479525479890&#39;\]哟哟哟\[/dl\]</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/29/newbee-uefi-gpt-win10/index/" data-id="clhp7rthp005js2qrbtk18wpx" data-title="[新手向]全新UEFI+GPT安装Windows 10" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-cross-the-wall/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/22/cross-the-wall/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-22T00:00:00.000Z" itemprop="datePublished">2016-01-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/22/cross-the-wall/index/">[2020-01-01]全平台科学上网[翻墙]工具集合，Resilio Sync分流</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>本文包含的平台支持有Windows、Linux、Android、iOS以及macOS。</p>
-<p>[v_notice]Resilio Sync密钥B2TNI4Y5OWUBYXINZUSOQKBHMYK6ACHLH，<a target="_blank" rel="noopener" href="https://link.resilio.com/#f=GFWTools&sz=52E7&t=1&s=JY2HUMWWNUF5SQ5TC476FK4EH7MQ5FQW&i=CJWOX6WUFWIT3ZVUB7PIWV6BID3YWDS74&v=2.6&a=2">点此加入</a>。以后会以此为主[&#x2F;v_notice]</p>
-<p>本文所有文件，如有密码，均为<strong>bennythink.com。</strong> 注意：测速只测了一次，大家的网络环境也不一样，所以<strong>仅供参考</strong>。</p>
-<p>[v_notice]<strong>欢迎使用俺的链接来<a target="_blank" rel="noopener" href="https://www.vultr.com/?ref=7771693-4F">注册vultr购买vps</a>（新用户注册即送$50），还有<a target="_blank" rel="noopener" href="https://www.linode.com/?r=c2f16f9ad7b8b9fe0bb5c70de03bca0bbde134ca">Linode</a>和<a target="_blank" rel="noopener" href="https://www.conoha.jp/referral/?token=Nh5x7kwok3f_SfRrMU_aKTBbEPyEct9HafjZ7oIBnZ0AbkOHhwg-PHA">Conoha</a>，感激不尽！</strong></p>
-<p>[&#x2F;v_notice]</p>
-<p>本文的使用方法：第一页是<strong>下载安装就能使用</strong>的工具软件；<a target="_blank" rel="noopener" href="https://dmesg.app/cross-the-wall.html/2">第二页</a>是需要进行<strong>一定程度的配置</strong>，甚至需要购买服务器才能使用的工具软件；<a target="_blank" rel="noopener" href="https://dmesg.app/cross-the-wall.html/3">第三页</a>为一些曾经使用过的国外VPN，可能随时失效；<a target="_blank" rel="noopener" href="https://dmesg.app/cross-the-wall.html4">第四页</a>为<strong>全部工具的合集</strong>。建议使用ResilioSync同步。</p>
-<hr>
-<h2 id="Lantern（蓝灯）"><a href="#Lantern（蓝灯）" class="headerlink" title="Lantern（蓝灯）"></a>Lantern（蓝灯）</h2><p>Windows、Linux、macOS、Android</p>
-<p>监听端口：SOCKS5 - 49177; HTTP(S) - 49176</p>
-<p>主页 - <a target="_blank" rel="noopener" href="https://getlantern.org/">https://getlantern.org/</a></p>
-<p>使用方法：安装即可。如果设置系统代理失败就手动给Chrome用SwitchyOmega设置个代理</p>
-<p>测速（怎么设置全局都没办法用speedtest，只好用YouTube了）</p>
-<p><img src="/images/012216_0928_201601221.png"></p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/getlantern/lantern'/]%E8%93%9D%E7%81%AFGitHub%E4%B8%BB%E9%A1%B5%E4%B8%8B%E8%BD%BD/[/dl/]">https://github.com/getlantern/lantern&#39;\]蓝灯GitHub主页下载\[/dl\]</a></p>
-<hr>
-<h2 id="XX-Net-3-13-1测试版"><a href="#XX-Net-3-13-1测试版" class="headerlink" title="XX-Net 3.13.1测试版"></a>XX-Net 3.13.1测试版</h2><p>Windows、Linux、macOS 原理：大量GAE服务器及Google未被封锁IP</p>
-<p>网站：GitHub - <a target="_blank" rel="noopener" href="https://github.com/XX-net/XX-Net">https://github.com/XX-net/XX-Net</a></p>
-<p>监听端口：8087</p>
-<p>使用方法：解压缩后双击start.bat（Linux是start.sh），托盘区设置PAC</p>
-<p>测速：</p>
-<p><img src="/images/012216_0928_201601222.png"></p>
-<p>备注：建议部署自己的APP ID [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/XX-net/XX-Net/blob/master/code/default/download.md'/]XX-Net">https://github.com/XX-net/XX-Net/blob/master/code/default/download.md&#39;\]XX-Net</a> GitHub主页[&#x2F;dl]</p>
-<hr>
-<h2 id="VPNGate-2019-02-07"><a href="#VPNGate-2019-02-07" class="headerlink" title="VPNGate 2019.02.07"></a>VPNGate 2019.02.07</h2><p>Windows，Linux和macOS的请<a target="_blank" rel="noopener" href="http://www.softether-download.com/cn.aspx?product=softether">参考这里</a> 原理：众多网友提供的分布式VPN服务器</p>
-<p>监听端口：无（VPN为全局模式）</p>
-<p>网站：<a target="_blank" rel="noopener" href="http://www.vpngate.net/cn/">http://www.vpngate.net/cn/</a></p>
-<p>使用方法：参考<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2013/04/gfw-vpngate.html">https://program-think.blogspot.com/2013/04/gfw-vpngate.html</a></p>
-<p><img src="/images/012216_0928_201601223.png"></p>
-<p>[dl href&#x3D;”<a target="_blank" rel="noopener" href="https://1drv.ms/u/s!ApHcGoTmKVITiBo4ld5B7lRGZl-i%22/]OneDrive/[/dl/]">https://1drv.ms/u/s!ApHcGoTmKVITiBo4ld5B7lRGZl-i&quot;\]OneDrive\[/dl\]</a> [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://mega.nz/#!wCR1Ua7C!2VbxiBm5nFSOJQGHpTAycM2Ck\_KqCSY9d61MqH1Ru-0'\]Mega\[/dl\]">https://mega.nz/#!wCR1Ua7C!2VbxiBm5nFSOJQGHpTAycM2Ck\_KqCSY9d61MqH1Ru-0&#39;\]Mega\[/dl\]</a></p>
-<hr>
-<h2 id="Psiphon3-赛风3"><a href="#Psiphon3-赛风3" class="headerlink" title="Psiphon3 赛风3"></a>Psiphon3 赛风3</h2><p>Windows、Android、<a target="_blank" rel="noopener" href="https://itunes.apple.com/us/app/psiphon-browser/id1193362444?ls=1&mt=8">iOS</a> 原理：VPN, SSH和HTTP代理</p>
-<p>网站：<a target="_blank" rel="noopener" href="https://psiphon3.com/zh/index.html">https://psiphon3.com/zh/index.html</a></p>
-<p>监听端口：我记不清了</p>
-<p>使用方法：双击运行即可。</p>
-<p>测速：</p>
-<p><img src="/images/012216_0928_201601224.png"></p>
-<p>备注：无 [dl href&#x3D;”<a target="_blank" rel="noopener" href="https://1drv.ms/u/s!ApHcGoTmKVITiBeVIQmgo338ESlj%22/]Psiphon3">https://1drv.ms/u/s!ApHcGoTmKVITiBeVIQmgo338ESlj&quot;\]Psiphon3</a> Windows &amp; Android OneDrive[&#x2F;dl] [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://mega.nz/#!QPAlgC7K!XzkQ1RmcDm8l4ElzuKFpx6rgz0KUUlvRIEbOMZ\_P\_ao'\]Psiphon3">https://mega.nz/#!QPAlgC7K!XzkQ1RmcDm8l4ElzuKFpx6rgz0KUUlvRIEbOMZ\_P\_ao&#39;\]Psiphon3</a> Windows &amp; Android - Mega[&#x2F;dl]</p>
-<hr>
-<h2 id="Tor-Browser-8-0-5"><a href="#Tor-Browser-8-0-5" class="headerlink" title="Tor Browser  8.0.5"></a>Tor Browser  8.0.5</h2><p>Windows、Linux、macOS 原理：”洋葱路由”</p>
-<p>网站：<a target="_blank" rel="noopener" href="https://www.torproject.org/">https://www.torproject.org/</a></p>
-<p>监听端口：9150</p>
-<p>使用方法：<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/10/gfw-tor-meek.html">https://program-think.blogspot.com/2014/10/gfw-tor-meek.html</a></p>
-<p>测速（Amazon meek）：这是隐匿工具，翻墙只是作用之一。</p>
-<p><img src="/images/012216_0928_201601225.png"></p>
-<p>备注：匿名工具，此压缩包里有Windows, Linux, macOS三大平台的。 [dl href&#x3D;”<a target="_blank" rel="noopener" href="https://1drv.ms/u/s!ApHcGoTmKVITiBvA25u3QyXkrcxI%22/]OneDrive/[/dl/]">https://1drv.ms/u/s!ApHcGoTmKVITiBvA25u3QyXkrcxI&quot;\]OneDrive\[/dl\]</a> [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://mega.nz/#!cKARyaST!KeYz\_jk7dyndvZ14DVTyWTAAxZaOmryBovOb7V\_TLSI'\]Mega\[/dl\]">https://mega.nz/#!cKARyaST!KeYz\_jk7dyndvZ14DVTyWTAAxZaOmryBovOb7V\_TLSI&#39;\]Mega\[/dl\]</a></p>
-<hr>
-<h2 id="I2p-0-9-38"><a href="#I2p-0-9-38" class="headerlink" title="I2p 0.9.38"></a>I2p 0.9.38</h2><p>Windows、Linux、<a target="_blank" rel="noopener" href="https://f-droid.org/app/net.i2p.android.router">Android</a>、macOS 原理：去中心化、KAD</p>
-<p>网站 <a target="_blank" rel="noopener" href="https://geti2p.net/zh/">https://geti2p.net/zh/</a></p>
-<p>监听端口：4444 对应 http 代理，4445 对应 https</p>
-<p>使用方法：<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2012/06/gfw-i2p.html">https://program-think.blogspot.com/2012/06/gfw-i2p.html</a></p>
-<p>备注：匿名工具，需要JRE，三平台。 [dl href&#x3D;”<a target="_blank" rel="noopener" href="https://1drv.ms/u/s!ApHcGoTmKVITiBl-8z/_CLV5wvqOH%22/]OneDrive/[/dl/]">https://1drv.ms/u/s!ApHcGoTmKVITiBl-8z\_CLV5wvqOH&quot;\]OneDrive\[/dl\]</a> [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://mega.nz/#!geJjlKgL!BePU-HjjcWwjnMaM2FUQZOoHWQLjPw0J7DEzK9wAnvY'\]Mega\[/dl\]">https://mega.nz/#!geJjlKgL!BePU-HjjcWwjnMaM2FUQZOoHWQLjPw0J7DEzK9wAnvY&#39;\]Mega\[/dl\]</a></p>
-<hr>
-<h2 id="firefly-萤火虫-0-4-8"><a href="#firefly-萤火虫-0-4-8" class="headerlink" title="firefly 萤火虫 0.4.8"></a>firefly 萤火虫 0.4.8</h2><p>原理：利用 Tor 的meek插件 Windows、Linux、macOS、Android、iOS 监听端口：socks - 38250</p>
-<p>网站： GitHub - <a target="_blank" rel="noopener" href="https://github.com/yinghuocho/firefly-proxy">https://github.com/yinghuocho/firefly-proxy</a></p>
-<p>使用方法：双击即可</p>
-<p>测速：<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/01/2016081105301162.jpg"><img src="/images/2016081105301162.jpg" alt="QQ截图20160811132930"></a></p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/yinghuocho/firefly-proxy'/]GitHub%E4%B8%BB%E9%A1%B5%E4%B8%8B%E8%BD%BD/[/dl/]">https://github.com/yinghuocho/firefly-proxy&#39;\]GitHub主页下载\[/dl\]</a></p>
-<hr>
-<p>[v_notice]第二页：需要进行一些配置的[&#x2F;v_notice]</p>
-<h2 id="Shadowsocks-影梭（qt5和-Net-Framework4）-配置难度☆☆☆☆"><a href="#Shadowsocks-影梭（qt5和-Net-Framework4）-配置难度☆☆☆☆" class="headerlink" title="Shadowsocks 影梭（qt5和.Net Framework4） 配置难度☆☆☆☆"></a>Shadowsocks 影梭（qt5和.Net Framework4） 配置难度☆☆☆☆</h2><p>Windows、Linux、Android、iOS、macOS，其中iOS需要购买Surge、Shadowrocket等。 原理：中心化服务器、安全的加密socks5代理</p>
-<p>网站：官网 - <a target="_blank" rel="noopener" href="https://shadowsocks.org/en/index.html">https://shadowsocks.org/en/index.html</a></p>
-<p>GitHub项目 <a target="_blank" rel="noopener" href="https://github.com/shadowsocks/shadowsocks/tree/master">https://github.com/shadowsocks/shadowsocks/tree/master</a></p>
-<p>监听端口：1080</p>
-<p>使用方法：需要自行购买VPS搭建。参考此篇博文，<a target="_blank" rel="noopener" href="https://dmesg.app/shadowsocks-displays-set-up-and-use-a-simple-tutorial.html">戳我戳我</a></p>
-<blockquote>
-<p>便宜实惠科学上网专用VPS： <a target="_blank" rel="noopener" href="https://www.vultr.com/?ref=7771693-4F">Vultr</a> <a target="_blank" rel="noopener" href="https://bandwagonhost.com/aff.php?aff=6482">Bandwagon</a> sentris（<a target="_blank" rel="noopener" href="https://dmesg.app/super-cheap-3-5-three-years-united-states-vps-science-internet-special.html">三块五三年最新博文</a>，好像涨价了） <a target="_blank" rel="noopener" href="https://m.do.co/t/e2ace0fe8c08">DigitalOcean</a> <a target="_blank" rel="noopener" href="https://www.conoha.jp/referral/?token=fd8kBQj4pQg1Q45iRNVut.KeUCFjGzcCr7o01qdU401t4Mg2QwI-FTM">ConoHa</a> AWS（需要信用卡验证，免费额度一年） HostUS BudgetVM</p>
-</blockquote>
-<p>测速（三块五的服务器）：</p>
-<p><img src="/images/012216_0928_201601226.png"></p>
-<p>已经到本地带宽的极限。</p>
-<p>备注：服务端主要有Python、Go、libev、node.js这几个版本。其中Python、Go支持多用户，libev内存占用低。Node.js不清楚。如遇到QoS请<strong>经常更换端口和密码</strong>，如果遇到黑心ISP可以使用常见端口来避免QoS，据TJM称989、990有意外惊喜。另外，貌似最近shadowosocks已经能被检测到了。 [dl href&#x3D;”<a target="_blank" rel="noopener" href="https://1drv.ms/u/s!ApHcGoTmKVITiBir6j7YOO-7kWfV%22/]Shadowsocks">https://1drv.ms/u/s!ApHcGoTmKVITiBir6j7YOO-7kWfV&quot;\]Shadowsocks</a> for Windows（qt5和Net4，旧版和新版以及Android- OneDrive[&#x2F;dl] [dl href&#x3D;”<a target="_blank" rel="noopener" href="https://mega.nz/#!keQl0QqA!78IbcT8W6hA0d\_GtK7Jiz8BtO01PN3GZxqCMH6CeP1Y%22\]Shadowsocks">https://mega.nz/#!keQl0QqA!78IbcT8W6hA0d\_GtK7Jiz8BtO01PN3GZxqCMH6CeP1Y&quot;\]Shadowsocks</a> for Windows（qt5和Net4，旧版和新版）以及Android- Mega[&#x2F;dl]</p>
-<hr>
-<h2 id="V2Ray-3-2-9-配置难度☆☆☆☆"><a href="#V2Ray-3-2-9-配置难度☆☆☆☆" class="headerlink" title="V2Ray 3.2.9 配置难度☆☆☆☆"></a>V2Ray 3.2.9 配置难度☆☆☆☆</h2><p>Windows、macOS、iOS、Android、Linux 原理：通过私有加密协议，支持Socks、HTTP、Shadowsocks、VMess协议，每个协议可单独设置传输载体，比如 TCP、mKCP、WebSocket 等。</p>
-<p>监听端口：可以自定义，默认1080</p>
-<p>网站：官网 - <a target="_blank" rel="noopener" href="https://www.v2ray.com/zh_cn">https://www.v2ray.com/</a></p>
-<p>GitHub - <a target="_blank" rel="noopener" href="https://github.com/v2ray/v2ray-core">https://github.com/v2ray/v2ray-core</a></p>
-<p>使用方法：需要搭建并修改本地配置文件。详见<a target="_blank" rel="noopener" href="http://luluseu.moe/?p=365">http://luluseu.moe/?p=365</a>、<a target="_blank" rel="noopener" href="http://www.gonewto.com/?post/gweuy4">http://www.gonewto.com/?post/gweuy4</a>和官网。</p>
-<p>测速：暂无，嗯是我懒得测速而已……</p>
-<p>备注：如果ss失效，可以尝试测试下。感觉似乎这个才是明日之星…… [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/v2ray/v2ray-core/releases'/]GitHub/[/dl/]">https://github.com/v2ray/v2ray-core/releases&#39;\]GitHub\[/dl\]</a></p>
-<p>Brook</p>
-<p>Windows、macOS、iOs、Android Linux</p>
-<p>监听端口：1080</p>
-<p>网站： GitHub - <a target="_blank" rel="noopener" href="https://github.com/txthinking/brook">https://github.com/txthinking/brook</a></p>
-<p>使用方法：参考项目readme</p>
-<p>测速：突然感觉很悲惨。<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/01/2017110708312988.jpg"><img src="/images/2017110708312988.jpg"></a></p>
-<p> </p>
-<h2 id="OpenVPN"><a href="#OpenVPN" class="headerlink" title="OpenVPN"></a>OpenVPN</h2><p>搭建方法：<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">https://dmesg.app/softether-vpnserver.html</a></p>
-<h2 id="Anyconnect"><a href="#Anyconnect" class="headerlink" title="Anyconnect"></a>Anyconnect</h2><p>搭建方法：<a target="_blank" rel="noopener" href="https://nova.moe/deploy-openconnect-ocserv-with-letsencrypt/">https://nova.moe/deploy-openconnect-ocserv-with-letsencrypt/</a></p>
-<h2 id="WireGuard"><a href="#WireGuard" class="headerlink" title="WireGuard"></a>WireGuard</h2><p>暂无……</p>
-<h2 id="Trojan"><a href="#Trojan" class="headerlink" title="Trojan"></a>Trojan</h2><p>可以参考这篇，还不错 <a target="_blank" rel="noopener" href="https://dmesg.app/trojan.html">https://dmesg.app/trojan.html</a></p>
-<p> </p>
-<hr>
-<p>[v_notice]第三页：VPN推荐[&#x2F;v_notice]</p>
-<h2 id="VyprVPN"><a href="#VyprVPN" class="headerlink" title="VyprVPN"></a><a target="_blank" rel="noopener" href="https://www.vypr-accelerator.net/zh/vyprvpn/special/chinese-new-year?offer_id=80&aff_id=4277&url_id=171">VyprVPN</a></h2><p>Windows、mac OS、Linux、Android、iOS、openWRT以及所有支持OpenVPN的设备</p>
-<p>2019年2月28日更新：我们很高兴地报告，我们已经为所有应用程序（Android，iOS，Windows和MacOS）恢复了VyprVPN。 VyprVPN用户现在可以使用Windows，Mac和Android上的变色龙协议成功连接到中国的服务。</p>
-<p> </p>
-<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
-<li>推出于2009年，拥有自己的网络和硬件而不是租用第三方服务器</li>
-<li>多平台、多协议支持，允许多设备同时使用，允许P2P，不限制流量</li>
-<li>高级套餐所特有的Chameleon（变色龙协议），是Golden Frog开发的一个独立协议，可以对VPN流量进行伪装，更容易穿墙</li>
-<li>官网和电脑、手机客户端都有中文版本，可以用中文或英文与客服沟通交流</li>
-<li>支持支付宝，PayPal和信用卡</li>
-<li>提供3天免费试用期，<strong>注册Android和iOS平台的VyprVPN还可以得到1GB的免费流量</strong></li>
-<li>服务器分布广泛数量比较多，速度稳定</li>
-</ul>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
-<li>价格稍贵，Premium高级套餐（同时5用户）年付$80，普通套餐（同时3用户）年付$60。不过<a target="_blank" rel="noopener" href="https://www.joinvy.com/zh/vyprvpn/special/vpn-premium-promo?offer_id=221&aff_id=4277&url_id=191"><strong>通过我的链接注册的话打6折</strong></a>，也就是Premium 高级套餐年付 $48（$4每月），普通套餐年付 $36（$3每月）</li>
-</ul>
-<p>测速： <img src="/images/201802230836549.png"> 备注： <a target="_blank" rel="noopener" href="https://dmesg.app/padavan-vypr.html">路由器配置参考</a>，由于路由器可能存在性能瓶颈，所以还是玩玩吧……</p>
-<p> </p>
-<h3 id="两年高级套餐"><a href="#两年高级套餐" class="headerlink" title="两年高级套餐"></a><a target="_blank" rel="noopener" href="https://www.vyprofficial.net/?offer_id=221&aff_id=4277&url_id=205">两年高级套餐</a></h3><p>$100 每24个月，也就是$4.17每月，包含Chameleon。<a target="_blank" rel="noopener" href="https://www.vyprofficial.net/?offer_id=221&aff_id=4277&url_id=205">注册购买链接</a></p>
-<h3 id="新年特惠套餐"><a href="#新年特惠套餐" class="headerlink" title="新年特惠套餐"></a><a target="_blank" rel="noopener" href="https://www.linkvy.com/zh/vyprvpn/special/chinese-new-year?offer_id=80&aff_id=4277&url_id=171">新年特惠套餐</a></h3><p>75折普通套餐（$3.75每月）和高级套餐（$5每月）。<a target="_blank" rel="noopener" href="https://www.linkvy.com/zh/vyprvpn/special/chinese-new-year?offer_id=80&aff_id=4277&url_id=171">注册购买链接</a></p>
-<h3 id="世界杯特惠套餐"><a href="#世界杯特惠套餐" class="headerlink" title="世界杯特惠套餐"></a><a target="_blank" rel="noopener" href="https://www.goldenfrog.com/vyprvpn/world-cup-special?offer_id=235&aff_id=4277&random_url=1">世界杯特惠套餐</a></h3><p>新用户年度套餐6折，高级套餐$4.00 每月，普通套餐$3.00每月。目前来说，是这个套餐最划算的。<a target="_blank" rel="noopener" href="https://www.goldenfrog.com/vyprvpn/world-cup-special?offer_id=235&aff_id=4277&random_url=1">注册购买链接</a></p>
-<p> </p>
-<p>[v_notice]第三页：全部合集打包[&#x2F;v_notice]</p>
-<h1 id="全部工具打包长期更新下载（更新日期：2018年07月11日）"><a href="#全部工具打包长期更新下载（更新日期：2018年07月11日）" class="headerlink" title="全部工具打包长期更新下载（更新日期：2018年07月11日）"></a>全部工具打包长期更新下载（更新日期：2018年07月11日）</h1><p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="https://mega.nz/#!dfJBjajK!neyo3gQsQnLS2ugT7cnOsjDGf45nvG14uQ8NcBMgl\_A'\]MEGA\[/dl\]">https://mega.nz/#!dfJBjajK!neyo3gQsQnLS2ugT7cnOsjDGf45nvG14uQ8NcBMgl\_A&#39;\]MEGA\[/dl\]</a> 欢迎大家提供更多的下载分流……PS，利用联通、电信的缓存服务器是个好的套路啊。</p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="https://1drv.ms/u/s!ApHcGoTmKVITiBwl7D0FdafT2ny4'/]OneDrive/[/dl/]">https://1drv.ms/u/s!ApHcGoTmKVITiBwl7D0FdafT2ny4&#39;\]OneDrive\[/dl\]</a></p>
-<h2 id="Resilio-Sync密钥"><a href="#Resilio-Sync密钥" class="headerlink" title="Resilio Sync密钥"></a>Resilio Sync密钥</h2><p>B2TNI4Y5OWUBYXINZUSOQKBHMYK6ACHLH</p>
-<p>点击如下链接加入</p>
-<p><a target="_blank" rel="noopener" href="https://link.resilio.com/#f=GFWTools&sz=52E7&t=1&s=JY2HUMWWNUF5SQ5TC476FK4EH7MQ5FQW&i=CJWOX6WUFWIT3ZVUB7PIWV6BID3YWDS74&v=2.6&a=2">https://link.resilio.com/#f=GFWTools&amp;sz=52E7&amp;t=1&amp;s=JY2HUMWWNUF5SQ5TC476FK4EH7MQ5FQW&amp;i=CJWOX6WUFWIT3ZVUB7PIWV6BID3YWDS74&amp;v=2.6&amp;a=2</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/22/cross-the-wall/index/" data-id="clhp7rtf9001ts2qr6phobiqd" data-title="[2020-01-01]全平台科学上网[翻墙]工具集合，Resilio Sync分流" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-super-cheap-3-5-three-years-united-states-vps-science-internet-special/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-20T00:00:00.000Z" itemprop="datePublished">2016-01-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/">3.5美元三年的超便宜美国VPS，科学上网专用</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天在Google+上发现了有人分享了Sentris Network LLC超便宜的VPS，于是小小的折腾一下，就又剁手了下（如果3.5美元也算剁手的话）</p>
-<p>3.5刀三年付，折合每年约人民币7.5元</p>
-<p>配置：OpenVZ&#x2F;1vCPU&#x2F;64M内存 (16M SWAP) &#x2F;1G硬盘&#x2F; 250G&#x2F;月&#x2F;1 IPv4</p>
-<p>这配置基本上也就是搭建个shadowsocks，剩下估计啥也干不了。</p>
-<p>关于shadowsocks的使用方法，看这篇博文<a target="_blank" rel="noopener" href="https://dmesg.app/shadowsocks-displays-set-up-and-use-a-simple-tutorial.html">https://dmesg.app/shadowsocks-displays-set-up-and-use-a-simple-tutorial.html</a></p>
-<p>这是我搭建好ss之后的速度，感觉还可以的，我挺满足的。</p>
-<p><img src="/images/012016_1134_35VP1.png"></p>
-<p>购买地址：支持PayPal、信用卡、比特币支付，不能退款。</p>
-<p><a target="_blank" rel="noopener" href="https://www.sentris.net/billing/cart.php?a=confproduct&i=0">https://www.sentris.net/billing/cart.php?a=confproduct&i=0</a></p>
-<p>如果不是超低价的，请点击这个 <strong><a target="_blank" rel="noopener" href="http://t.cn/RbHpSj7">http://t.cn/RbHpSj7</a></strong></p>
-<p>注意：默认流量为500G每月，请手动改为<strong>250G每月</strong>才能享受最低价格，选择三年期可以用5折优惠券<strong>ISCVJZ0365</strong></p>
-<p>超低价主机商说不定要超售多少，也说不定啥时候就跑路了，建议谨慎购买。不过也就是3.5美元，23元谁心疼呢是不是，万一主机商良心了开了好几年呢。</p>
-<p>测试IP：63.216.14.61</p>
-<p>附：</p>
-<p>Top（本人心狠手辣卸载了httpd，sendmail等等，命令为yum remove httpd）</p>
-<p><img src="/images/012016_1134_35VP2.png"></p>
-<p>服务器网速测试，还不错哎！</p>
-<p><img src="/images/012016_1134_35VP3.png"></p>
-<p>内存这么小，就老老实实的安装32位的操作系统吧，我选择的是CentOS 6 x86</p>
-<p>Libev版本的shadowsocks比较省内存，如果只是自己用的话，那么用这个就可以了；否则可以考虑用Go或者Python版的。</p>
-<hr>
-<h2 id="三个版本的重启、停止等命令："><a href="#三个版本的重启、停止等命令：" class="headerlink" title="三个版本的重启、停止等命令："></a>三个版本的重启、停止等命令：</h2><p>启动：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks start</p>
-<p>停止：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks stop</p>
-<p>重启：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks restart</p>
-<p>查看状态：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks status</p>
-<h2 id="Shadowsocks-libev一键安装脚本（CentOS-6-x2F-7不支持多用户）"><a href="#Shadowsocks-libev一键安装脚本（CentOS-6-x2F-7不支持多用户）" class="headerlink" title="Shadowsocks-libev一键安装脚本（CentOS 6&#x2F;7不支持多用户）"></a>Shadowsocks-libev一键安装脚本（CentOS 6&#x2F;7不支持多用户）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks-libev.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks-libev.sh</a><br>chmod +x shadowsocks-libev.sh<br>.&#x2F;shadowsocks-libev.sh 2&gt;&amp;1 | tee shadowsocks-libev.log</p>
-<p>配置文件路径：</p>
-<p> <strong>&#x2F;etc&#x2F;shadowsocks-libev&#x2F;config.json</strong></p>
-<hr>
-<p> </p>
-<h2 id="Python版本（支持多用户CentOS-6-x2F-7，Debian，Ubuntu）"><a href="#Python版本（支持多用户CentOS-6-x2F-7，Debian，Ubuntu）" class="headerlink" title="Python版本（支持多用户CentOS 6&#x2F;7，Debian，Ubuntu）"></a>Python版本（支持多用户CentOS 6&#x2F;7，Debian，Ubuntu）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks.sh</a><br>chmod +x shadowsocks.sh<br>.&#x2F;shadowsocks.sh 2&gt;&amp;1 | tee shadowsocks.log</p>
-<p>多用户多端口配置文件 Sample</p>
-<p>配置文件路径：</p>
-<p><strong>&#x2F;etc&#x2F;shadowsocks.json</strong></p>
-<p>{</p>
-<p>“server”:”0.0.0.0”,</p>
-<p>“local_address”:”127.0.0.1”,</p>
-<p>“local_port”:1080,</p>
-<p>“port_password”:{</p>
-<p>“8989”:”password0”,</p>
-<p>“9001”:”password1”,</p>
-<p>“9002”:”password2”,</p>
-<p>“9003”:”password3”,</p>
-<p>“9004”:”password4”</p>
-<p>},</p>
-<p>“timeout”:300,</p>
-<p>“method”:”aes-256-cfb”,</p>
-<p>“fast_open”: false</p>
-<p>}</p>
-<p> </p>
-<hr>
-<h2 id="Go版（支持多用户，CentOS-6-x2F-7，Debian，Ubuntu）"><a href="#Go版（支持多用户，CentOS-6-x2F-7，Debian，Ubuntu）" class="headerlink" title="Go版（支持多用户，CentOS 6&#x2F;7，Debian，Ubuntu）"></a>Go版（支持多用户，CentOS 6&#x2F;7，Debian，Ubuntu）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks-go.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks-go.sh</a><br>chmod +x shadowsocks-go.sh<br>.&#x2F;shadowsocks-go.sh 2&gt;&amp;1 | tee shadowsocks-go.log</p>
-<p> </p>
-<p>多用户多端口配置文件 sample</p>
-<p>配置文件路径：</p>
-<p><strong>&#x2F;etc&#x2F;shadowsocks&#x2F;config.json</strong></p>
-<p>{</p>
-<p>“port_password”:{</p>
-<p>“8989”:”password0”,</p>
-<p>“9001”:”password1”,</p>
-<p>“9002”:”password2”,</p>
-<p>“9003”:”password3”,</p>
-<p>“9004”:”password4”</p>
-<p>},</p>
-<p>“method”:”aes-256-cfb”,</p>
-<p>“timeout”:600</p>
-<p>}</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/" data-id="clhp7rtki0098s2qr884yh28m" data-title="3.5美元三年的超便宜美国VPS，科学上网专用" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1209,7 +1061,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1222,23 +1074,23 @@
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

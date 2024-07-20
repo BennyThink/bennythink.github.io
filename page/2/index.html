@@ -73,6 +73,461 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-es-ee-se-unicode/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/11/09/es-ee-se-unicode/index/" class="article-date">
+  <time class="dt-published" datetime="2023-11-09T00:00:00.000Z" itemprop="datePublished">2023-11-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>如果你打开 Python console，输入如下代码</p>
+<p>“🇸🇪” in “🇪🇸🇪🇪”</p>
+<p>你会惊人的发现，结果是 <code>True</code>，同样的事情也发生在 JavaScript 中。</p>
+<p><img src="/images/2023110902065099.png" alt="pasted-movie.png"></p>
+<p>什么？</p>
+<p>其实这一切都是Unicode的锅。</p>
+<h2 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h2><p>Unicode是一种编码标准，它的目的是电脑能以通用划一的字符集来处理和显示文字，不但减轻在不同编码系统间切换和转换的困扰，更提供了一种跨平台的乱码问题解决方案。</p>
+<p>简单的说，Unicode就是给世界上所有的文字符号都用一个唯一的编号替代。大家都用这一个编号，那么就能够显示一样的东西而不会错乱了。这个编号，被称作码位(code points)</p>
+<h2 id="码位与字位"><a href="#码位与字位" class="headerlink" title="码位与字位"></a>码位与字位</h2><p>码位是什么上面已经解释了，字位（grapheme） 指的是最小的有意义的书写单位。比如 <code>😄</code> <code>卡</code> <code>ö</code> 这种都算一个字位，换句话说，人类认为是单个字符的东西，就是字位。</p>
+<p>Unicode神奇的地方在于，字位可以由一个或者多个码位组成。</p>
+<p>有的时候你能看到有些人的ID很长飘满整个屏幕，或者这种 ҈热҈得҈字҈都҈出҈汗҈了҈ 都是因为Unicode允许多个码位组成一个字位！</p>
+<p>比如：</p>
+<ul>
+<li>💩的码位是 <code>U+1F4A9</code>，只有这一个</li>
+<li>🇪🇸的码位是两个区域指示符，E和S <code>U+1F1EA</code> <code>U+1F1F8</code></li>
+<li>🇪🇪的码位也是两个区指示符，E 和E <code>U+1F1EA</code> <code>U+1F1EA</code></li>
+<li>🇸🇪也同理，S和E，U+1F1F8 U+1F1EA</li>
+<li>👨‍👩‍👧‍👦 这个就恐怖了，它是这样的 👨ZWSP👩ZWSP👧ZWSP👦 男女男孩女孩+三个 零宽空格组成</li>
+</ul>
+<p>那么 <code>U+1F1EA U+1F1F8 U+1F1EA U+1F1EA</code> 是否包含<code>U+1F1F8 U+1F1EA</code> ？当然了！恰巧在中间呀。美国和厄瓜多尔也包含了瑞典。</p>
+<h2 id="字符串的长度"><a href="#字符串的长度" class="headerlink" title="字符串的长度"></a>字符串的长度</h2><p>很多情况下我们需要判断字符串的长度，以确保他们不超过指定的范围。那么这个长度是怎么判定的？比如说对于这个恐怖字符 👨‍👩‍👧‍👦是算有多少个 code point，还是占用多少个字节，还是字位？</p>
+<p>如果是多少个 code point，那么应该是4+3&#x3D;7；如果是多少字节，以UTF8为例，那么emoji 4字节，零宽3字节，4*4 + 3*3 &#x3D; 16 + 9 &#x3D;25字节</p>
+<h3 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h3><p>&gt;&gt; len(“👨‍👩‍👧‍👦”)</p>
+<blockquote>
+<blockquote>
+<p>7</p>
+</blockquote>
+</blockquote>
+<h3 id="Go"><a href="#Go" class="headerlink" title="Go"></a>Go</h3><p>s :&#x3D; “👨‍👩‍👧‍👦”</p>
+<p>fmt.Println(len(s))<br>fmt.Println(utf8.RuneCountInString(s))</p>
+<p>输出分别为25 和 7</p>
+<h3 id="JavaScript"><a href="#JavaScript" class="headerlink" title="JavaScript"></a>JavaScript</h3><p>“👨‍👩‍👧‍👦”.length<br>11</p>
+<p>没错，JavaScript总是这样独树一帜。因为JavaScript是用UTF-16编码的啦。表情符号是2字节，零宽字符是1，4*2+3*1&#x3D;11</p>
+<p>所以当你在计算最长多少个字符的时候，可要想好了对面是怎么算的。要不然很容易算错哦。</p>
+<h2 id="循环字符串"><a href="#循环字符串" class="headerlink" title="循环字符串"></a>循环字符串</h2><p>所以循环字符串也要小心了……要不然就很容易会把emoji这种东西凭空劈开。比如说 Python里可以这样处理</p>
+<p>import grapheme</p>
+<p>s &#x3D; “👨‍👩‍👧‍👦🇸🇪🇨🇳”<br>for i in grapheme.graphemes(s):<br>    print(i)</p>
+<p>这样就会依次打印三个emoji</p>
+<p>或者使用语言对应的ICU，比如 PyICU等。</p>
+<p>还有很多痛苦的事情等待你去发现😂</p>
+<hr>
+<p>所以，懂了如上道理的你，一定知道为什么 <strong>摩纳哥和荷兰包含了中国</strong> 了吧？不如打开小红书……</p>
+<p><img src="/images/2023110902065097.png" alt="pasted-movie.png"></p>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://blog.xinshijiededa.men/unicode/">https://blog.xinshijiededa.men/unicode/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/11/09/es-ee-se-unicode/index/" data-id="clqxhsvee0001w1qra4wkat0b" data-title="Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-lede-shadowtls/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/05/25/lede-shadowtls/index/" class="article-date">
+  <time class="dt-published" datetime="2023-05-25T00:00:00.000Z" itemprop="datePublished">2023-05-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/gfw/">gfw</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天我的Trojan连续被墙了两次。尽管Trojan装作自己是正常且普通的https流量，但还是中枪了。可能是因为最近日子比较难过，或者热门机房不明大量流量引起了怀疑</p>
+<p>有一个比较类似的东西，叫ShadowTLS，也是用来伪装流量的，体验了一下感觉也不错。</p>
+<p>ShadowTLS本身并不提供加密代理，所以我们往往还要配合一个Shadowsocks、vmess或者trojan之类的东西。也就是说，服务端要跑 ShadowTLS Server和Shadowsocks Server，客户端要跑ShadowTLS Client和Shadowsocks Client。当然，艺高人胆大的你也可以把shadowsocks替换成<code>nc</code>，なんでもないよ！</p>
+<h2 id="服务端配置"><a href="#服务端配置" class="headerlink" title="服务端配置"></a>服务端配置</h2><p>以docker为例，直接参考<a target="_blank" rel="noopener" href="https://github.com/ihciah/shadow-tls/wiki/Run-with-Docker-Compose">官方wiki</a>改改就行了，需要注意的是这里必须要用host网络模式，因为要配置<code>ss-server</code>绑定到 ShadowTLS的地址（通常我们是监听到<code>0.0.0.0</code>），因此host模式最简单</p>
+<p>version: ‘2.4’<br>services:<br>  shadowsocks:<br>    image: shadowsocks&#x2F;shadowsocks-libev<br>    restart: always<br>    network_mode: “host”<br>    environment:<br>      - SERVER_PORT&#x3D;24000<br>      - SERVER_ADDR&#x3D;127.0.0.1<br>      - METHOD&#x3D;aes-256-gcm<br>      - PASSWORD&#x3D;test-ss-password</p>
+<p>  shadow-tls:<br>    image: ghcr.io&#x2F;ihciah&#x2F;shadow-tls:latest<br>    restart: always<br>    network_mode: “host”<br>    environment:<br>      - MODE&#x3D;server<br>      - LISTEN&#x3D;0.0.0.0:443<br>      - SERVER&#x3D;127.0.0.1:24000<br>      - TLS&#x3D;<a target="_blank" rel="noopener" href="http://www.microsoft.com:443/">www.microsoft.com:443</a><br>      - PASSWORD&#x3D;test-shadow-tls-password</p>
+<ul>
+<li><code>test-ss-password</code> ss客户端使用的密码，客户端使用ShadowTLS的监听端口443来连接</li>
+<li><code>test-shadow-tls-password</code> ShadowTLS客户端使用的密码</li>
+</ul>
+<h2 id="Shadowrocket客户端配置"><a href="#Shadowrocket客户端配置" class="headerlink" title="Shadowrocket客户端配置"></a>Shadowrocket客户端配置</h2><p>如果你使用shadowrocket，那么就很简单了，正常配置，端口写ShadowTLS的443，插件-ShadowTLS，版本2，填入密码和host（本例<code>www.microsoft.com</code> ）</p>
+<p><img src="/images/2023052503080949.jpeg" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h2 id="手动配置客户端"><a href="#手动配置客户端" class="headerlink" title="手动配置客户端"></a>手动配置客户端</h2><p>shadow-tls-aarch64-apple-darwin client –server IP:443 –sni <a target="_blank" rel="noopener" href="http://www.microsoft.com/">www.microsoft.com</a> –password test-shadow-tls-password –listen 127.0.0.1:3443</p>
+<p>sslocal -s localhost:3443 -m aes-256-gcm -k test-ss-password -b 127.0.0.1:17765</p>
+<p>这样一波操作之后，你的 17765就是socks5了，ProxySwitchyOmega之类的配置一下就可以用了。</p>
+<h2 id="docker-compose配置客户端"><a href="#docker-compose配置客户端" class="headerlink" title="docker-compose配置客户端"></a>docker-compose配置客户端</h2><p>这里没有必要host网络，<code>ss-local</code>连接到ShadowTLS的监听端口就可以，由于都在一个网络里，所以直接指定容器名tls就可以了。</p>
+<p>version: ‘2.4’<br>services:<br>  shadow-tls:<br>    image: ghcr.io&#x2F;ihciah&#x2F;shadow-tls:latest<br>    restart: always<br>    environment:<br>      - MODE&#x3D;client<br>      - LISTEN&#x3D;0.0.0.0:3443<br>      - SERVER&#x3D;64.176.34.43:443<br>      - TLS&#x3D;<a target="_blank" rel="noopener" href="http://www.microsoft.com/">www.microsoft.com</a><br>      - PASSWORD&#x3D;test-shadow-tls-password</p>
+<p>  shadowsocks:<br>    image: shadowsocks&#x2F;shadowsocks-libev<br>    restart: always<br>    command: ss-local -s shadow-tls -p 3443 -l 17765 -b 0.0.0.0 -k test-ss-password -m aes-256-gcm<br>    ports:<br>      - “127.0.0.1:17765:17765”</p>
+<h2 id="LEDE-x2F-OpenWRT配置"><a href="#LEDE-x2F-OpenWRT配置" class="headerlink" title="LEDE&#x2F;OpenWRT配置"></a>LEDE&#x2F;OpenWRT配置</h2><p>基本和上面一样，也许已经有人做过插件了？反正也要先运行ShadowTLS</p>
+<p><img src="/images/2023052503080929.png" alt="图形用户界面, 文本, 聊天或短信 描述已自动生成"></p>
+<p>然后去LUCI中添加配置，ss服务器地址写<code>127.0.0.1</code>，端口写<code>3443</code>（ShadowTLS的端口）启动服务。这里有一个需要注意的点，如果你的运行模式是GFWlist，那么没问题；如果是全局或者chnroute（绕过大陆IP），那么就会打环。我一般喜欢用chnroute，两边的好处都占🙃️</p>
+<p><img src="/images/2023052503081094.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>此时要做的事情是添加一个例外，在我的这个插件里，是访问控制- WAN IP访问控制 -不走代理的WAN IP</p>
+<p><img src="/images/2023052503081193.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<p>其他的插件，比如passwall，也应该有类似的设置🫠</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/05/25/lede-shadowtls/index/" data-id="cli8jlcy00000g9qr9go2b3xa" data-title="在LEDE/OpenWRT上使用ShadowTLS" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-zero-trust-private-dns/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/05/01/zero-trust-private-dns/index/" class="article-date">
+  <time class="dt-published" datetime="2023-05-01T00:00:00.000Z" itemprop="datePublished">2023-05-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>很多公司，尤其是跨国大公司，会要求员工连接VPN（或者到办公室）来进入到一个10段的大内网。在这个内网内方能访问各种公司内部的资源，比如GitLab、Confluence、Jira之类的。</p>
+<p>这种情况下就是做了私有DNS解析，这个解析记录并不会发布到公网上，就像你家路由器对于主机名为home这台设备的解析一样，只有进入了你家的网络才有。</p>
+<p>在使用Cloudflare Zero Trust的情况下，我们也可以做到私有DNS解析，并且完全免费！使用Cloudflare Zero Trust，零成本的创建你的工作网络环境，如此简单！</p>
+<h2 id="设置DNS服务器"><a href="#设置DNS服务器" class="headerlink" title="设置DNS服务器"></a>设置DNS服务器</h2><p>既然要设置私有DNS解析，那么毫无疑问需要设置一个由我们掌控的DNS服务器。简单起见，这里我直接在路由器上设置解析。如果你使用的也是LEDE&#x2F;OpenWRT，那么在 网络-DHCP&#x2F;DNS，最下面 「自定义域名挟持」中填入你的域名和解析到的IP地址。当然这个IPv4地址也可以写到公网IP，只不过这样有些搞笑🥸</p>
+<p><img src="/images/2023042200381642.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>添加保存之后，刷新一下本地的DNS缓存，就应该发现已经能ping通了</p>
+<p><img src="/images/2023042200381753.png" alt="文本 描述已自动生成"></p>
+<h2 id="注册WARP"><a href="#注册WARP" class="headerlink" title="注册WARP"></a>注册WARP</h2><p>具体可以参考这篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/cf-zero-trust.html">《使用Cloudflare Zero Trust创建大内网》</a>，简单的说就是配置Cloudflared Tunnel、创建WARP设备注册权限、创建WARP Profile、选择Split Tunnel的模式，然后下载WARP认证连接。这里WARP就相当于公司给你安装的VPN了。</p>
+<p>再提一下include和exclude这两种Split Tunnel的区别：</p>
+<ul>
+<li>Include：类似于WireGuard的<code>allowIP=192.168.7.0/24</code>, 其他非指定网段的流量会直接从你的网络出去，不走Cloudflare，可以理解成非全局VPN。此时你需要去include的规则中添加你的 <code>192.168.7.0/24</code></li>
+<li>Exclude：所有流量都要走Cloudflare，类似全局VPN。此时你需要去exclude的规则中删除你的<code>192.168.7.0/24</code></li>
+</ul>
+<p>无论你是选择include还是exclude，确保连接WARP后，能够ping通内网的IP就可以进行下一步了。</p>
+<h2 id="配置DNS-fallback"><a href="#配置DNS-fallback" class="headerlink" title="配置DNS fallback"></a>配置DNS fallback</h2><p>在Zero Trust网页上，进入到Profile配置页面，下拉能找到 Local Domain Fallback</p>
+<p><img src="/images/2023042200381896.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<p>点击Manage，左侧添加域名、DNS服务器和备注。这个DNS服务器就是上面配置好的那个。</p>
+<p><img src="/images/2023042200381969.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><h3 id="内网测试"><a href="#内网测试" class="headerlink" title="内网测试"></a>内网测试</h3><p>我现在连到了家里的网络，因此肯定能解析 <code>samba.dmesg.app</code> 这个域名的，此处没有任何问题</p>
+<h3 id="外网测试"><a href="#外网测试" class="headerlink" title="外网测试"></a>外网测试</h3><p>手机开个热点，电脑连接上</p>
+<p><img src="/images/2023042200382056.png" alt="文本 描述已自动生成"></p>
+<p>连接WARP！</p>
+<p><img src="/images/2023042200382134.png"></p>
+<p>私有解析完成！</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>感谢Cloudflare为我们提供了这么好用的网络服务。小公司可以直接用Cloudflare Zero Trust 组建自己的内网了，然后用Firewall Policies进行适当的权限控制。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/05/01/zero-trust-private-dns/index/" data-id="clhp7rto100c4s2qrgntdhgy2" data-title="Cloudflare Zero Trust 添加私有解析DNS" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-cloudflare-access-gfwed-server/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/29/cloudflare-access-gfwed-server/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-29T00:00:00.000Z" itemprop="datePublished">2023-04-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>我有些服务器被墙了，除了通过跳板机连接，还有什么好的办法吗？当然有了，使用Cloudflare Zero Trust即可。我们不仅可以使用ssh客户端，甚至还可以通过浏览器访问。除了SSH协议之外，RDP、SMB甚至任何奇奇怪怪的协议都可以。</p>
+<h2 id="安装并连接cloudflared"><a href="#安装并连接cloudflared" class="headerlink" title="安装并连接cloudflared"></a>安装并连接cloudflared</h2><p>首先还是要想办法连接到被墙的机器，下载cloudflared</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/cloudflare/cloudflared/releases">https://github.com/cloudflare/cloudflared/releases</a></p>
+<p>在网页上Access – Tunnels中创建一个 Tunnel，然后按照提示安装。</p>
+<hr>
+<h1 id="连接到服务器"><a href="#连接到服务器" class="headerlink" title="连接到服务器"></a>连接到服务器</h1><p>Cloudflare提供了三种通过tunnel连接到服务器的方式，第一种是通过客户端安装WARP，第二种是通过客户端安装<code>cloudflared</code>，第三种是直接通过浏览器访问。</p>
+<h2 id="通过WARP连接服务器"><a href="#通过WARP连接服务器" class="headerlink" title="通过WARP连接服务器"></a>通过WARP连接服务器</h2><p>这种办法其实和<a target="_blank" rel="noopener" href="https://dmesg.app/cf-zero-trust.html">《使用Cloudflare Zero Trust创建大内网》</a>一样，区别只是创建大内网时，我们内网的设备写的是局域网IP，而这里则可能会写公网IP。但是本质上没有区别哒！</p>
+<p>在网页上Tunnel中，配置<strong>Private Network</strong>，填入服务器的IP。如果类似GCP那种分配的内网IP，直接写内网IP对应的段也可以；否则直接写公网IP也可以。</p>
+<p>老生常谈，创建Profile，表达式写比如说 <a href="mailto:ssh@dmesg.app">ssh@dmesg.app</a></p>
+<p><img src="/images/2023042202404060.png" alt="图形用户界面 描述已自动生成"></p>
+<p>Split Tunnel选择include，然后添加服务器的IP。</p>
+<p><img src="/images/2023042202404112.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>使用WARP连接，输入邮箱进行验证</p>
+<p>WARP连接成功之后，就会发现能SSH啦，再也不怕GFW了</p>
+<p><img src="/images/2023042202404290.png" alt="图形用户界面, 文本, 聊天或短信 描述已自动生成"></p>
+<h2 id="通过cloudflared-access连接"><a href="#通过cloudflared-access连接" class="headerlink" title="通过cloudflared access连接"></a>通过cloudflared access连接</h2><p>在网页上，配置<strong>Public Hostname</strong>，下面Service Type选择SSH，URL写<code>127.0.0.1:22</code>，如果你想通过这个跳到其他服务器，那么就写<code>IP:22</code></p>
+<p><img src="/images/2023042202404214.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>客户端需要安装cloudflared，先登录 <code>cloudflared login</code></p>
+<p>然后修改SSH配置文件 <code>~/.ssh/config</code></p>
+<p>Host ssh.dmesg.app</p>
+<h1 id="记得修改cloudflared路径"><a href="#记得修改cloudflared路径" class="headerlink" title="记得修改cloudflared路径"></a>记得修改cloudflared路径</h1><p>ProxyCommand &#x2F;opt&#x2F;homebrew&#x2F;bin&#x2F;cloudflared access ssh –hostname %h</p>
+<p>然后再<code>ssh username@ssh.dmesg.app</code> 就可以啦</p>
+<p>当然如果不想改config那么也可以</p>
+<p>cloudflared access ssh –hostname ssh.dmesg.app –url 127.0.0.1:10022</p>
+<p>然后另外一个窗口</p>
+<p>ssh <a href="mailto:&#x72;&#x6f;&#111;&#116;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#x2e;&#x30;&#x2e;&#49;">&#x72;&#x6f;&#111;&#116;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#x2e;&#x30;&#x2e;&#49;</a> -p 10022</p>
+<p>效果是一样的！</p>
+<p>只要你的脑洞足够大，甚至可以通过<code>cloudflared access</code> 去连接任意TCP协议，甚至连UNIX套接字都可以哦</p>
+<h2 id="使用浏览器连接"><a href="#使用浏览器连接" class="headerlink" title="使用浏览器连接"></a>使用浏览器连接</h2><p>同上，<strong>Public Hostname</strong>创建一个SSH服务，比如说域名叫 <code>browser.dmesg.app</code></p>
+<p>然后 Application – Add Application – Self-hosted，application sub domain 同样写 <code>browser.dmesg.app</code></p>
+<p>然后创建policies，和以前的方法一样，如果只是测试用甚至可以Everyone</p>
+<p>下一步Additional Settings中，选择SSH</p>
+<p><img src="/images/2023042202404319.png" alt="图形用户界面, 文本 描述已自动生成"></p>
+<p><img src="/images/2023042202404461.png" alt="图形用户界面 低可信度描述已自动生成"></p>
+<p>浏览器打开链接就可以了，注意这里的用户名是服务器的用户名，比如<code>root</code>，并不是进行邮箱验证的 <code>xxx@dmesg.app</code></p>
+<p><img src="/images/2023042202404579.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<p>下一步输入认证信息即可登录。根据服务器sshd配置不同，选择密码或者key登录即可。</p>
+<p><img src="/images/2023042202404680.png" alt="文本 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/29/cloudflare-access-gfwed-server/index/" data-id="clhp7rtet000xs2qr2kqcfyc5" data-title="使用Cloudflare Zero Trust连接被墙的服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-zero-trust-login-method/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/22/zero-trust-login-method/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-22T00:00:00.000Z" itemprop="datePublished">2023-04-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是App-Launcher"><a href="#什么是App-Launcher" class="headerlink" title="什么是App Launcher"></a>什么是App Launcher</h2><p>所谓App launcher，就是当用户登录之后，会显示一些应用，可以直接点击跳转过去。再也不用单独收藏每一个链接啦，只要收藏这个 App Launcher即可。长这样</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003361458.png"><img src="/images/2023042003361458.png"></a></p>
+<h2 id="添加新登录验证方式"><a href="#添加新登录验证方式" class="headerlink" title="添加新登录验证方式"></a>添加新登录验证方式</h2><p>通常来讲，我们是通过邮件的方式来进行验证的。非常简单，但是有时邮件可能会发送失败，比如说被Gmail拦截。那么有没有办法添加新的验证方式呢？答案当然是有的啦。Cloudflare继承了非常多的登录方式，如下图所示，甚至有一个通用的SAML：</p>
+<p><img src="/images/2023042003351149.png" alt="表格 描述已自动生成"></p>
+<p>下面就以配置GitHub登录来说，Google等同理基本没太大差别。</p>
+<h2 id="创建GitHub-App"><a href="#创建GitHub-App" class="headerlink" title="创建GitHub App"></a>创建GitHub App</h2><p>打开GitHub，进入Settings – Developer Settings – OAuth Apps，新建一个app</p>
+<ul>
+<li>Application name：随便写，自己记得就可以</li>
+<li>Homepage URL： 你的team url，比如说 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a></li>
+<li>Callback：同上，<a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback">https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback</a></li>
+</ul>
+<p>创建之后，复制 Client ID，然后点击Generate a new client secret 复制secret的值</p>
+<h2 id="创建GitHub-Organization"><a href="#创建GitHub-Organization" class="headerlink" title="创建GitHub Organization"></a>创建GitHub Organization</h2><p>创建一个GitHub Organization，后续做验证的时候要用这个。</p>
+<h2 id="配置Zero-Trust"><a href="#配置Zero-Trust" class="headerlink" title="配置Zero Trust"></a>配置Zero Trust</h2><p>回到Cloudflare Zero Trust，选择Settings – Authentication – Login Methods，右侧有一个Add new，然后选择GitHub</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003372621.png"><img src="/images/2023042003372621.png"></a></p>
+<p>填入刚刚复制的ID和secret，点击保存</p>
+<p> </p>
+<p>下面会弹出一个小的框框</p>
+<p><img src="/images/2023042003351386.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>点击finish setup或者复制链接到新窗口打开，在org中给我们新创建的org授权，点击Grant，然后authorize</p>
+<p><img src="/images/2023042003351323.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>此时回到Login Methods 就可以看到已经添加成功啦，点击 Test按钮可以看下Cloudflare从GitHub的API拿到的数据</p>
+<p><img src="/images/2023042003351481.png" alt="背景图案 描述已自动生成"></p>
+<h2 id="配置验证"><a href="#配置验证" class="headerlink" title="配置验证"></a>配置验证</h2><p>此时如果你打开 team url，比如 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a> 在Login就已经能看到GitHub了。</p>
+<p><img src="/images/202304200335155.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>当然这还没完，不能所有人都能通过GitHub OAuth进入App Launcher呀！因此我们还需要进一步配置</p>
+<p>点开Zero Trust – Settings – App Launcher – Manage</p>
+<p>首先确认一下Authentication页面已经选中了GitHub，默认应该是所有认证方式都可以，当然你也可以自定义</p>
+<p><img src="/images/2023042003351550.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>然后在Rules中，新建或者编辑已有规则，我们会发现有三种可以选择的模式： include、require和exclude</p>
+<p><img src="/images/2023042003351695.png" alt="图形用户界面 描述已自动生成"></p>
+<ul>
+<li>include：类似逻辑OR操作符，用户只要满足条件之一就可以</li>
+<li>require：类似逻辑AND操作符，用户要满足所有的条件</li>
+<li>exclude：类似逻辑NOT，排除条件</li>
+</ul>
+<p>[v_error] 添加require规则的时候要注意，是要满足所有条件才可以授权。比如我的require规则添加了两条，分别是County&#x3D;China &amp; Country&#x3D;US，那么没人可以通过，因为IP只能在一个国家而不是两个国家。 [&#x2F;v_error]</p>
+<p>这里我们的需求是，用户要么通过 dmesg.app 的邮箱验证，要么在新创建的那个Organization里，所以新添加一个include，Selector选择GitHub Organization，organization name写创建的name</p>
+<p><img src="/images/2023042003351779.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>如果我们的需求是，用户在org里，并且邮箱为 <a href="mailto:xxx@xxx.com">xxx@xxx.com</a>，那么就要一个include 邮箱规则，一个require GitHub organization规则。</p>
+<p>返回 team url就可以登录了。</p>
+<p>注意：配置 App Launcher的权限，并不等于拥有应用的权限，<strong>应用的权限是独立的</strong>。</p>
+<p>举个例子，我之前创建的redis，只能邮箱进行验证，并且放到了launcher之中，那么在App Launcher这里我通过GitHub OAuth后，并看不到那个redis。想要看到对应的应用，那只能去编辑对应应用的规则。</p>
+<h2 id="Access-Group"><a href="#Access-Group" class="headerlink" title="Access Group"></a>Access Group</h2><p>把一样的规则配置多次就显得很蠢，这个时候就要用Access Group。</p>
+<p>Access – Access Group，设置名称和配置和前面一样</p>
+<p><img src="/images/2023042003351846.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>在其他地方，添加策略的时候选择这个Group就可以了。甚至在WARP的Device enrollment permissions中也可以这样搞！</p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/policies/access/">https://developers.cloudflare.com/cloudflare-one/policies/access/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/22/zero-trust-login-method/index/" data-id="clhp7rtnz00c2s2qrbtpb4apw" data-title="Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-zero-trust-access-web/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/20/zero-trust-access-web/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-20T00:00:00.000Z" itemprop="datePublished">2023-04-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>有些时候我们跑一些web应用，想把他们放在公网上，但是又不能每个人都可以访问。如果这个程序不支持通过身份验证，那么之前的做法大概会前面套上一个nginx之类的反向代理，在反向代理中配置身份认证。</p>
+<p>这样……也不是不行，但是配置nginx就让人感觉很繁琐！在有了Cloudflare Zero Trust之后，我们可以利用Cloudflare做到这种身份认证的事情。</p>
+<p>我这刚好有一个redis insight，接下来就可以说一下这个东西怎么跑</p>
+<h2 id="Redis-Insight"><a href="#Redis-Insight" class="headerlink" title="Redis Insight"></a>Redis Insight</h2><p>Redis官方出的一个用户管理redis的工具，可以增删改查啦什么的。跑起来很容易，用docker跑是这样的：才不用那个electron套壳呢</p>
+<p>docker run -d –restart&#x3D;unless-stopped –name&#x3D;redisinsight \<br>    -v redisinsight:&#x2F;db -p 127.0.0.1:8001:8001 \<br>    -e RITRUSTEDORIGINS&#x3D;<a target="_blank" rel="noopener" href="https://redis.dmesg.app/">https://redis.dmesg.app</a> \<br>    redislabs&#x2F;redisinsight</p>
+<p>由于 Redis Insight有 CORS检查，因此这里要设置环境变量来控制，要记住不可以带 <code>/</code>哦</p>
+<p>然后把容器连接到网络，因为我的redis通过docker-compose跑了两个，因此要把容器和网络连接起来：</p>
+<p>docker network connect botsrunner_default redisinsight<br>docker network connect yyetsbot_default redisinsight</p>
+<h2 id="创建Argo-tunnel，添加Public-Hostname"><a href="#创建Argo-tunnel，添加Public-Hostname" class="headerlink" title="创建Argo tunnel，添加Public Hostname"></a>创建Argo tunnel，添加Public Hostname</h2><p>如下图所示。此时<code>redis.dmesg.app</code>应该可以访问了</p>
+<p><img src="/images/2023042003301977.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="开启access"><a href="#开启access" class="headerlink" title="开启access"></a>开启access</h2><p>Zero Trust – Access – Applications – Add Application – Self-hosted</p>
+<p>选择对应的会话有效期，对应的子域名</p>
+<p><img src="/images/2023042003302065.png" alt="图形用户界面 描述已自动生成"></p>
+<p>下一页configure rules选择最简单的email方式即可</p>
+<p><img src="/images/2023042003302199.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>此时打开对应的网站，就会发现已经进入了验证页面</p>
+<p><img src="/images/2023042003302235.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>输入邮箱验证之后就可以正常访问了。</p>
+<p>在Redis Insight中，添加连接的时候，用<code>redis.yyetsbot_default</code> 来表示<code>yyetsbot_default</code>这个网络的<code>redis</code> service。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003342554.png"><img src="/images/2023042003342554.png"></a></p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="收不到验证码"><a href="#收不到验证码" class="headerlink" title="收不到验证码"></a>收不到验证码</h3><p>别怕，可能是被拦截了，比如说Gmail……</p>
+<p><img src="/images/2023042003302348.png" alt="图形用户界面, 文本 中度可信度描述已自动生成"></p>
+<h3 id="Redis-Insight页面无法显示"><a href="#Redis-Insight页面无法显示" class="headerlink" title="Redis Insight页面无法显示"></a>Redis Insight页面无法显示</h3><p>应该是cache的问题，开development mode暂时绕过，验证通过之后再关掉好了</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/20/zero-trust-access-web/index/" data-id="clhp7rtny00c0s2qr0qjzc0ow" data-title="使用Cloudflare Zero Trust保护你的Web应用" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-cf-zero-trust/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/04/01/cf-zero-trust/index/" class="article-date">
@@ -505,576 +960,6 @@
 
 
   
-    <article id="post-yyets-hack/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/03/12/yyets-hack/index/" class="article-date">
-  <time class="dt-published" datetime="2023-03-12T00:00:00.000Z" itemprop="datePublished">2023-03-12</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/03/12/yyets-hack/index/">这是人人影视分享站被黑的最惨的一次</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近这段时间，我的<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/home">人人影视分享站</a>不怎么太平，不是被恶意爬虫就是被CC攻击。不知道是遭遇了竞争对手还是怎么的。</p>
-<p>3月7日中午，收到cloudflare邮件说服务器无法连接</p>
-<p><img src="/images/2023031204182854.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
-<p>SSH看一下日志，果然，有很多莫名其妙的搜索，</p>
-<p><img src="/images/2023031204182942.jpeg" alt="背景图案 描述已自动生成"></p>
-<p>这些请求主要有如下特点：</p>
-<p>40秒内200多个请求，分布在60个不同的IP地址上，还全都是中国民用家宽的IP。</p>
-<ol>
-<li>使用中国各个地区、各个运营商的民用家宽IP，比如上图40秒内200多请求，分布在60个不同的IP地址上</li>
-<li>同一个IP的UA还会变，一会是Chrome一会是Firefox，这看起来很不正常</li>
-<li>即使到了下半夜也还在大量请求，正常人都是要睡觉的</li>
-<li>搜索内容大致为某些综艺的名字+集数或演员名字，没有referer，正常搜索浏览器是一定会带referer的，因此应该是机器人直接发出的请求</li>
-<li>他直接请求的！要是跑的selenium我也就认啦，就当给我点广告了</li>
-</ol>
-<p>我尝试了如下解决方案：</p>
-<ol>
-<li>根据IP去cloudflare上拉黑，结果发现IP太多，根本拉不过来</li>
-<li>用Cloudflare的 rate limit去限制请求频率，结果因为他们IP实在是太多了，全都分散开了，没用</li>
-<li>开cloudflare的DDoS 防护规则也没用，因为IP太多了，在cf 看来基本就是正常请求，至少免费版来看是这样的</li>
-</ol>
-<p>发现以上办法似乎都没有什么用，于是开了三秒墙，所有用户在打开网站的时候都会有浏览器检查，大概这样</p>
-<p><img src="/images/2023031204183031.png" alt="文本 描述已自动生成"></p>
-<p>机器人自然无法完成JS challenge，于是这一波下来稳了。</p>
-<p>我的<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/database"><strong>数据库是公开的</strong></a>，这么爬很不地道，动了这么多IP也一定没少破费。何必呢？我也不是什么竞争对手，我只不过是开了一个很普通的个人站，全靠网友贡献。挺累的。</p>
-<hr>
-<p>几天之后星期五，我发现网站竟然又挂了！开着三秒墙也能被打挂？看了一眼日志……</p>
-<p><img src="/images/2023031204183524.png" alt="电脑屏幕的照片 中度可信度描述已自动生成"></p>
-<p>Vultr的美国机，竟然用这种随机无意义的字符串来搜索，竟然还绕过了三秒墙，也绕过了rate limit。🤣于是MongoDB炸了，nginx也基本要炸了。</p>
-<p>去cloudflare上添加了黑名单，并没有效果。哦豁？难道是cloudflare又bug了……想了一下，不对，是我的源站IP被找到了，怪不得三秒墙和rate limit都没效果😓</p>
-<p>这种情况下只能去机器上添加防火墙，或者机器的供应商那里添加安全组之类的了。不幸的事情来了：</p>
-<ol>
-<li>没有安全组可用</li>
-<li>我的nginx是docker启动的，这也就意味着一般的在<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">INPUT链拉黑IP的办法不管用</a></li>
-<li>在尝试调解docker和nginx的过程中，一不小心写错了iptables规则。出门没带钥匙嘛。</li>
-<li>我不知道SSH的密码是什么，应该是16位的hex，去grub改init然后修改密码很麻烦毕竟是VNC</li>
-</ol>
-<p><img src="/images/2023031204184330.png" alt="卡通人物 中度可信度描述已自动生成"></p>
-<p>不幸之外还有一些好消息：</p>
-<ol>
-<li>我没有持久化iptables规则，意味着只要去控制面板重启一下，我刚刚写错的规则就会消失了！</li>
-<li>我可以换IP，至少能够暂时化解这种情况</li>
-</ol>
-<hr>
-<p>于是问题就这么解决了。这是我做这个小破站被黑的最惨的一次。在这次经历中，我学习到了如下经验教训：</p>
-<ol>
-<li>爬虫死全家，尤其是45.32.227.75 😄</li>
-<li><a target="_blank" rel="noopener" href="https://twitter.com/baobao1270/status/1634619642630246401?s=20">docker会破坏基于iptables为后端的防火墙</a>。Docker跑的应用，如果绑定了端口，那么会给iptables打洞，意味着常规堵INPUT链的办法不管用，要PRE ROUTTING、改DOCKER-USER或者<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">让docker和ufw一起工作</a>，巨麻烦，心智负担非常大。</li>
-<li>网站躲在cloudflare后也可能被抓到源站IP，比如说censys，全网扫IP+443然后找证书，或者IP+80比对特征</li>
-<li>应该拒绝全部非cloudflare IP对80和443的请求，甚至直接通过argo tunnel之类的来解决，连nginx都用不上</li>
-<li>保护好自己的IP，毕竟只要IP被抓到了，14亿中国人一人一个ping你也受不了🇨🇳</li>
-<li>在MongoDB中使用正则模糊查询，如&#x2F;.*keyword.*&#x2F;是非常慢的，全文检索的话，我记得是Atlas专有，而且一旦涉及到CJK，也有可能完犊子</li>
-<li>容器如果一直不停地yyetsbot_web_1 exited with code 137，记得检查下是不是有什么<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1634342211319128064?s=20">奇奇怪怪的保活监测脚本</a></li>
-<li>配置路由表、iptables规则时务必小心，务必给自己留后门。我之前留的后门是只能通过console登录的root权限用户，密码不是很复杂，通过VNC之类的东西输入还是可以的</li>
-<li>MongoDB的aggregation很强大，可以做到跨集合查询，自定义查询字段名称等等</li>
-<li>遇到问题不要慌，记得先撸猫再解决问题</li>
-</ol>
-<p><img src="/images/2023031204184447.jpeg" alt="猫躺在沙发上 描述已自动生成"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/03/12/yyets-hack/index/" data-id="clhp7rtnw00bys2qr57r91p67" data-title="这是人人影视分享站被黑的最惨的一次" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-container-smtp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/02/07/container-smtp/index/" class="article-date">
-  <time class="dt-published" datetime="2023-02-07T00:00:00.000Z" itemprop="datePublished">2023-02-07</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/02/07/container-smtp/index/">为什么我的容器连不上riseup的邮件服务器了？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>几天前，我开放了<a target="_blank" rel="noopener" href="https://yyets.dmesg.app/home">人人影视下载站</a>的用户注册功能，并且新用户在注册后需要验证邮箱才能发表评论。开放注册可能会提高用户的活跃度，但是又总有用户发一些不合适的东西，因此有必要提高一点注册门槛。</p>
-<p>后端的接口大概在半年前就写好了，我最近才学了一点点 React做好了邮件验证的功能。</p>
-<h2 id="如何用发邮件"><a href="#如何用发邮件" class="headerlink" title="如何用发邮件"></a>如何用发邮件</h2><p>我用的是riseup来发，基本如下几步：</p>
-<ol>
-<li>去域名注册商那边添加一个email forward，因为后需要验证</li>
-<li>去riseup添加一个alias</li>
-<li>去DNS那边添加一个SPF 记录<code>v=spf1 include:riseup.net +all</code>，如果同时还想用email forward，那就添加 include就好了，比如说我的是这样的<code>v=spf1 include:_spf.mx.cloudflare.net include:riseup.net +all</code></li>
-<li>用SMTP协议，可以先用mailhog做测试，确定没问题来之后切到riseup，代码大概这样</li>
-</ol>
-<p>import smtplib<br>from email.header import Header<br>from email.mime.text import MIMEText<br>from email.utils import formataddr, parseaddr</p>
-<p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
-<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; “username”<br>    password &#x3D; “password”<br>    host &#x3D; “mail.riseup.net”<br>    port &#x3D; 465<br>    from_addr &#x3D; “<a href="mailto:&#121;&#121;&#x65;&#116;&#115;&#x40;&#100;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#112;&#112;">&#121;&#121;&#x65;&#116;&#115;&#x40;&#100;&#x6d;&#x65;&#x73;&#103;&#x2e;&#x61;&#112;&#112;</a>“</p>
-<pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
-msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
-msg\[&#39;To&#39;\] = \_format\_addr(to)
-msg\[&#39;Subject&#39;\] = Header(subject, &#39;utf-8&#39;).encode()
-
-if port == &quot;1025&quot;:
-    server = smtplib.SMTP(host, int(port))
-else:
-
-    server = smtplib.SMTP\_SSL(host, int(port))
-server.login(user, password)
-server.sendmail(from\_addr, \[to\], msg.as\_string())
-server.quit()
-</code></pre>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#x65;&#110;&#110;&#121;&#x2e;&#116;&#104;&#105;&#110;&#x6b;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;">&#98;&#x65;&#110;&#110;&#121;&#x2e;&#116;&#104;&#105;&#110;&#x6b;&#x40;&#x67;&#109;&#97;&#x69;&#x6c;&#x2e;&#99;&#111;&#x6d;</a>“, “test subject”, “test body”)</p>
-<p>收到的邮件也比较理想，一般来说不会进spam</p>
-<p><img src="/images/2023020703173685.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>前几天做测试的时候一切顺利，上线的时候本来以为没什么大问题，结果今天却收到了一个用户的反馈，说收不到邮件，试了各种邮箱，检查了垃圾箱，也没有收到。</p>
-<h2 id="排查问题"><a href="#排查问题" class="headerlink" title="排查问题"></a>排查问题</h2><p>加了几条log之后发现在容器中 smtplib.SMTP_SSL 会直接卡住，如果按ctrl + c会收到这样的报错</p>
-<p>Traceback(most recent call last):<br>  File “”, line 1, in<br>  File “&#x2F;YYeTsBot&#x2F;yyetsweb&#x2F;utils.py”, line 51, in send_mail<br>    server &#x3D; smtplib.SMTP_SSL(host, int(port))<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 1050, in __init__<br>    SMTP.__init__(self, host, port, local_hostname, timeout,<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 255, in __init__<br>    (code, msg)&#x3D;self.connect(host, port)<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 341, in connect<br>    self.sock&#x3D;self._get_socket(host, port, self.timeout)<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;smtplib.py”, line 1057, in _get_socket<br>    new_socket&#x3D;self.context.wrap_socket(new_socket,<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 513, in wrap_socket<br>    return self.sslsocket_class._create(<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 1071, in _create<br>    self.do_handshake()<br>  File “&#x2F;usr&#x2F;local&#x2F;lib&#x2F;python3.10&#x2F;ssl.py”, line 1342, in do_handshake<br>    self._sslobj.do_handshake()<br>ssl.SSLZeroReturnError: TLS&#x2F;SSL connection has been closed(EOF)(_ssl.c: 997)</p>
-<p>奇怪哦，那就排除法做几个测试，首先在容器内nc一下看看</p>
-<p>&#x2F; # nc -v mail.riseup.net 465<br>mail.riseup.net (198.252.153.21:465) open</p>
-<p>通的耶！那容器内连试试？</p>
-<p>[root:~]# docker run –rm -it python:alpine sh<br>&#x2F; # python<br>Python 3.11.1 (main, Feb 4 2023, 01:59:37) [GCC 12.2.1 20220924] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>果不其然，卡住了。去宿主机试试看呢？</p>
-<p>[root:~]# python<br>Python 3.8.10 (default, Nov 14 2022, 12:59:47)<br>[GCC 9.4.0] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)<br>&lt;smtplib.SMTP_SSL object at 0xffffa1148610&gt;</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>没问题哎。看着上面有TLS&#x2F;SSL connection has been closed(EOF)，难道是OpenSSL的问题，试试 <code>python</code>而不是<code>python:alpine</code> 呢？</p>
-<p>也不行。</p>
-<p>是因为arm64有bug吗？但是我的电脑没问题啊🤔找了一台x86_64的试了一下也没问题。</p>
-<p>这么排除下来，问题就是容器的网络了。默认来说docker的默认网络上bridge模式。Bridge是通过iptables去做转发的，之前在<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">《我的ufw怎么又不好用了？使用docker时如何拒绝非cloudflare访问》</a>中提到过。</p>
-<p>切换到host模式试试看？</p>
-<p>[root:~]# docker run –rm –network host -it python:alpine sh<br>&#x2F; # python<br>Python 3.11.1 (main, Feb 4 2023, 01:59:37) [GCC 12.2.1 20220924] on linux<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>import smtplib<br>smtplib.SMTP_SSL(“mail.riseup.net”,465)<br>&lt;smtplib.SMTP_SSL object at 0xffff96122ed0&gt;</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>果然，那为什么bridge模式不行host就可以呢？</p>
-<p>看了一眼iptables，突然看到这么一条</p>
-<p>Chain PREROUTING (policy ACCEPT)<br>target prot opt source destination</p>
-<p>REDIRECT tcp – anywhere anywhere tcp dpts:telnet:finger redir ports 16698<br>REDIRECT tcp – anywhere anywhere tcp dpts:81:442 redir ports 16698<br>REDIRECT tcp – anywhere anywhere tcp dpts:snpp:1000 redir ports 16698<br>DOCKER all – anywhere anywhere ADDRTYPE match dst-type LOCAL</p>
-<p>这不是之前为了方便梯子使用，把23-1000中除了80和443的端口都给转发到本地的16698了吗？😓</p>
-<p>删掉这条规则就好了。</p>
-<h2 id="其他的发邮件的办法"><a href="#其他的发邮件的办法" class="headerlink" title="其他的发邮件的办法"></a>其他的发邮件的办法</h2><p>比如说自建，mailgun，sendgrid之类的，我个人觉得sendgrid比较不错，免费用户每天可以发100封。另外一个mailersend一个月可以发12000。同样都可以用SMTP协议手搓邮件。</p>
-<h2 id="人人影视分享站运行状况分享"><a href="#人人影视分享站运行状况分享" class="headerlink" title="人人影视分享站运行状况分享"></a>人人影视分享站运行状况分享</h2><p>人人影视分享站大概2021年2月初开始上线，6月的时候在 <a target="_blank" rel="noopener" href="https://github.com/wyx1818">zuiyu</a>的帮助下用React重做了前端，已经跑了整整两年啦。</p>
-<h3 id="两年里的收获"><a href="#两年里的收获" class="headerlink" title="两年里的收获"></a>两年里的收获</h3><ul>
-<li>总计21000条评论，有很多热心网友都会把新出的剧集网盘分享贴到评论区，非常优秀！</li>
-<li>37000个用户😂虽然可能大部分用户都不活跃</li>
-<li>每日大概有几千个访问</li>
-<li><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">YYeTsBot项目</a>收获了12.4K的star和1.7k的fork，写在简历上很有趣😂</li>
-<li><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsFE">前端YYeTsFE</a> 收获了182个star和49个fork</li>
-<li><a target="_blank" rel="noopener" href="https://afdian.net/a/BennyThink">爱发电</a>得到了一些热心网友的帮助，足够域名和服务器的费用了，也不枉费我N多个小时的努力</li>
-<li>加了Adsense，如果可以的话希望各位能关掉广告屏蔽器。<strong>以后我的猫猫们就是广大网友们养的了！</strong></li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/02/2023020703250152.jpg"><img src="/images/2023020703250152.jpg" alt="猫"></a></p>
-<h3 id="未来一段时间想要做的事情"><a href="#未来一段时间想要做的事情" class="headerlink" title="未来一段时间想要做的事情"></a>未来一段时间想要做的事情</h3><ul>
-<li>把网站继续开下去，尽量活下去</li>
-<li>优化前端，提升易用性</li>
-<li>提升访问量，这很刑！</li>
-<li>希望能找到人和我一起维护，这样你也是某个10K+ star的项目都维护者了 🤩，要不我这开源有什么意思嘛</li>
-</ul>
-<p> </p>
-<p>欢迎给个star或者点个广告～</p>
-<p><a target="_blank" rel="noopener" href="https://yyets.dmesg.app/">https://yyets.dmesg.app/</a></p>
-<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot">https://github.com/tgbot-collection/YYeTsBot</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/02/07/container-smtp/index/" data-id="clhp7rtfp001ys2qr1go0h41t" data-title="为什么我的容器连不上riseup的邮件服务器了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-stripe-telegram/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/01/07/stripe-telegram/index/" class="article-date">
-  <time class="dt-published" datetime="2023-01-07T00:00:00.000Z" itemprop="datePublished">2023-01-07</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/01/07/stripe-telegram/index/">初探Stripe与Telegram Bot Payments API</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>4个月了，朕又出现了！刁民没能害得了武功高强的朕</p>
-<p>Stripe是一个用于全球收钱的在线服务，支持很多种货币，哪怕你人在美国，收人民币也行，Stripe会自动帮你转成账户对应的货币。Stripe支持的支付方式包括银行卡，Apple Pay，Google Pay甚至是国内非常流行的支付宝和微信。</p>
-<p>当你有了Stripe账户之后，无代码的情况下可以弄一个收款链接或者二维码，用户通过他们的本地支付方式就可以给你塞钱了。比如说下图这里，用户就可以用支付宝来给我打钱。</p>
-<p><img src="/images/2023010721475179.png" alt="手机屏幕截图 描述已自动生成"></p>
-<h2 id="集成Stripe"><a href="#集成Stripe" class="headerlink" title="集成Stripe"></a>集成Stripe</h2><p>无代码的方式显然是不够的。很多情况下我们出售服务，或者说是软件授权，都需要自动化进行的。此时我们就可以利用Stripe的API了。想要利用这个API，主要就是两步：</p>
-<ol>
-<li>创建<code>PaymentIntent</code>，主要就是定义了支持什么支付方式，想要收多少钱，想要什么币种</li>
-<li>用户付款之后处理回调，比如说给用户发KEY啦之类的</li>
-</ol>
-<p>我们以做一个用户任意捐款的页面为例（当然这个可以用Stripe的无代码，只是以此来作为例子），页面大概是这样子的</p>
-<p><img src="/images/2023010721475495.png" alt="图示, 文本 描述已自动生成"></p>
-<h3 id="创建PaymentIntent"><a href="#创建PaymentIntent" class="headerlink" title="创建PaymentIntent"></a>创建PaymentIntent</h3><p>很丑有没有。用户输入一个金额，提交表单之后，后端需要请求创建Payment Indent，大概是这样的：</p>
-<p> </p>
-<p>import stripe</p>
-<p>stripe.api_key &#x3D;xxx</p>
-<p>@app.route(‘&#x2F;checkout’, methods&#x3D;[‘POST’])<br>def checkout():<br>    method &#x3D; request.form[‘method’]<br>    # unit is 分<br>    amount &#x3D; int(float(request.form[‘amount’]) * 100)<br>    # create payment intent<br>    logging.info(“method: %s, amount: %s”, method, amount)<br>    intent &#x3D; stripe.PaymentIntent.create(payment_method_types&#x3D;[method], amount&#x3D;amount, currency&#x3D;”cny”)<br>    secret &#x3D; intent.client_secret<br>    return render_template(‘checkout.html’, pk&#x3D;pk, secret&#x3D;secret, method&#x3D;method)</p>
-<p>有几点需要注意的：</p>
-<ol>
-<li>method是付款方式，具体会受到国家地区和货币的限制</li>
-<li>amount是收多少钱，也就是用户在输入框里输入的，需要注意是会变成最小货币单位。对于人民币来说，最小的货币单位是分，也就是说收人民币12.34元，这个amount应该是1234；对于日元这种最小单位就是元的货币（[零位十进制货币](<a target="_blank" rel="noopener" href="https://stripe.com/docs/currencies">https://stripe.com/docs/currencies</a>“ \l “zero-decimal)），收500日元那么就写500即可。</li>
-<li>pk是Stripe的API的public key，其实是可以公开的。写在前端的代码里是没问题的</li>
-<li>client_secret 对于每一个付款请求都是唯一的</li>
-</ol>
-<h3 id="发起请求"><a href="#发起请求" class="headerlink" title="发起请求"></a>发起请求</h3><p>前端可以这么写，很简单，总之就是要让用户进入付款页面</p>
-<p>const stripe &#x3D; Stripe(pk);<br>error &#x3D; stripe.confirmAlipayPayment(clientSecret, {<br>    &#x2F;&#x2F; Return URL where the customer should be redirected after the authorization<br>    return_url: `${window.location.origin}&#x2F;callback`,<br>});</p>
-<p>测试模式下，用户会进入这样的页面</p>
-<p><img src="/images/2023010721475750.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>真实模式下是这样的</p>
-<p><img src="/images/2023010721475979.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<h3 id="处理回调"><a href="#处理回调" class="headerlink" title="处理回调"></a>处理回调</h3><p>用户付款，成功或者失败之后，会返回return url，我们通过URL就可以知道付款是否成功，当然通过API或者webhook也是可以的。</p>
-<p><img src="/images/2023010721480049.png" alt="表格 描述已自动生成"></p>
-<p>此时在Stripe的网页上就应该可以看到付款成功了</p>
-<p><img src="/images/2023010721480110.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
-<p>基本上简单来说就是这样的😂微信也差不多，只不过微信模式下<code>stripe.js</code> 会直接嵌入一个微信的二维码，然后需要用webhook或者API去验证用户是否已经付款，不能依赖callback url啦。完整代码可以看最后gist</p>
-<h3 id="Stripe-费率"><a href="#Stripe-费率" class="headerlink" title="Stripe 费率"></a>Stripe 费率</h3><p>在上面的那个Stripe的页面，能发现Stripe抽了不少钱，具体费率每个国家、每种支付方式都不一样。比如如果是加拿大，用支付宝支付，那么费率是2.9% + C$0.30，如果需要货币转换，有些国家也还要收钱的。具体信息可以看这里 <a target="_blank" rel="noopener" href="https://stripe.com/zh-cn-ca/pricing/local-payment-methods">https://stripe.com/zh-cn-ca/pricing/local-payment-methods</a>，把ca（加拿大）替换成你的国家代码就有啦。</p>
-<h2 id="Telegram-Bot-Payment"><a href="#Telegram-Bot-Payment" class="headerlink" title="Telegram Bot Payment"></a>Telegram Bot Payment</h2><p>Telegram很早之前也给bot提供了骗钱的功能，支持的收款服务商包括Stripe之类的。想要用Payment API，先要去和Bot Father申请，选择 Bot Settings-Payments，然后选择对应的付款提供商，比如Stripe，之后会被重定向到对应的bot，然后选择测试还是生产模式，做一下oauth就可以拿到一个token了</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/01/2023010721561074.jpeg"><img src="/images/2023010721561074.jpeg"></a></p>
-<p>测试付款的时候可以用stripe的测试模式，有很多卡号可以模拟各种情况，成功失败都有，比如4242 4242 4242 4242就是可以用的测试卡，完整列表[可以看这里](<a target="_blank" rel="noopener" href="https://stripe.com/docs/testing">https://stripe.com/docs/testing</a>“ \l “cards)。</p>
-<p>一些Bot API wrapper，比如pytelegrambotapi已经有了很<a target="_blank" rel="noopener" href="https://github.com/eternnoir/pyTelegramBotAPI/blob/master/examples/payments_example.py">简单易懂的例子</a>。这里我用的pyrogram（1.x）来做例子说明怎么生成、验证付款。</p>
-<h2 id="生成invoice"><a href="#生成invoice" class="headerlink" title="生成invoice"></a>生成invoice</h2><p>需要使用<code>raw_types</code></p>
-<p>from pyrogram.raw import types as raw_types<br>raw_types.invoice.Invoice(currency&#x3D;”USD”, prices&#x3D;[raw_types.LabeledPrice(label&#x3D;”price”, amount&#x3D;amount)])</p>
-<p>其中prices接受的参数是一个list，意味着这里可以有多项，比如说商品价格，税费，折扣，等等。amount同样遵循上面的最小货币单位原则，要收11.3美元，那么就要写1130</p>
-<p>这里Invoice支持很多额外参数，比如<code>email_requested</code>，<code>name_requested</code>，<code>suggested_tip_amounts</code>等等，自行发挥吧</p>
-<h2 id="生成InputMediaInvoice"><a href="#生成InputMediaInvoice" class="headerlink" title="生成InputMediaInvoice"></a>生成InputMediaInvoice</h2><p>raw_types.input_media_invoice.InputMediaInvoice(<br>    invoice&#x3D;(<br>        raw_types.invoice.Invoice(currency&#x3D;”USD”, prices&#x3D;[raw_types.LabeledPrice(label&#x3D;”price”, amount&#x3D;amount)])),<br>    title&#x3D;title,<br>    description&#x3D;description,<br>    provider&#x3D;PROVIDER_TOKEN,<br>    provider_data&#x3D;raw_types.DataJSON(data&#x3D;”{}”),<br>    payload&#x3D;payload,<br>)</p>
-<ul>
-<li><code>PROVIDER_TOKEN</code>是在Bot Father中申请的那个token，不是bot token。</li>
-<li><code>provider_data</code> 是收款商需要要求的信息，比如<a target="_blank" rel="noopener" href="https://stripe.com/docs/india-accept-international-payments">印度Stripe强制要求姓名地址</a>，那么就应该写在这里，否则Stripe会拒付。我这边没有要求，所以直接空json字符串就好</li>
-<li>Payload是我们自定义的信息，内部使用，比如用于区分是什么的付款</li>
-</ul>
-<p>如果要inline模式，那么就要用<code>InputBotInlineMessageMediaInvoice</code></p>
-<h2 id="选择Forwarding-Behavior"><a href="#选择Forwarding-Behavior" class="headerlink" title="选择Forwarding Behavior"></a>选择Forwarding Behavior</h2><p>当invoice被转发了之后，我们可以选择有什么样的行为，一种是会可以继续付款，另外一种是通过deep linking跳转到机器人。由<code>InputMediaInvoice</code>的参数<code>start_param</code>控制的。直接忽略这个参数，意味着转发的消息也可以付款，并且付款后按钮不会变成receipt</p>
-<p><img src="/images/2023010721480686.png" alt="图形用户界面, 文本, 应用程序, 聊天或短信 描述已自动生成"></p>
-<h2 id="发送invoice"><a href="#发送invoice" class="headerlink" title="发送invoice"></a>发送invoice</h2><p>用<code>SendMedia</code>就可以了</p>
-<p>peer &#x3D; raw_types.InputPeerUser(user_id&#x3D;chat_id, access_hash&#x3D;0)</p>
-<p>app.send(<br>    functions.messages.SendMedia(<br>        peer&#x3D;peer,<br>        media&#x3D;inputinvoice,<br>        random_id&#x3D;app.rnd_id(),<br>        message&#x3D;”pay for it!”,<br>    )<br>)</p>
-<h2 id="Pre-Checkout"><a href="#Pre-Checkout" class="headerlink" title="Pre-Checkout"></a>Pre-Checkout</h2><p>用户在付款之后，Telegram这边会给bot发一个<code>pre_checkout_query</code>的更新，要求bot做一个precheckout的检查，比如说检查是否还有货啦这种。Bot需要在10秒之内用<code>answerPreCheckoutQuery</code>应答，否则就会出错。</p>
-<p>Pyrogram这边我没找到合适的事件监听，可能是版本太老了，所以只能这样了：</p>
-<p>@app.on_raw_update()<br>def raw_update(client: “Client”, update, users, chats):<br>    if update.QUALNAME &#x3D;&#x3D; ‘types.UpdateBotPrecheckoutQuery’:<br>        client.send(<br>            functions.messages.SetBotPrecheckoutResults(<br>            query_id&#x3D;update.query_id,<br>            success&#x3D;True<br>            )<br>        )</p>
-<ul>
-<li>success表示pre checkout状态，如果是false，需要提供一个error</li>
-</ul>
-<h2 id="checkout"><a href="#checkout" class="headerlink" title="checkout"></a>checkout</h2><p>Bot确认之后，Telegram就会请求Stripe完成付款请求。之后telegram会发一个<code>successful_payment</code>的service message，bot看到之后确认就可以了。</p>
-<p>我们可以通过raw update的 <code>types.MessageActionPaymentSentMe</code> 来确认</p>
-<p>打开你的Stripe，切换到测试模式，可以看到已经有“进账”啦，甚至还可以提现到银行卡😂</p>
-<p><img src="/images/2023010721480796.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<h2 id="值得思考的问题"><a href="#值得思考的问题" class="headerlink" title="值得思考的问题"></a>值得思考的问题</h2><p>既然Stripe能支持支付宝微信付款，并且可以提现到银行卡，那么相比较银行汇款，哪个更划算呢？</p>
-<p>已知条件如下：</p>
-<ol>
-<li>招商银行通信费150元&#x2F;笔，手续费为汇款金额的0.1%，最低100最高1000，不考虑境外银行的收费</li>
-<li>Stripe手续费 2.9%，无提现、货币转换费</li>
-<li>均不考虑不同平台银行的汇率差异</li>
-</ol>
-<h2 id="欢迎大家给我打钱！"><a href="#欢迎大家给我打钱！" class="headerlink" title="欢迎大家给我打钱！"></a>欢迎大家给我打钱！</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/donate">参考这里</a>或者直接Stripe吧！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/01/2023010623451377.png"><img src="/images/2023010623451377-250x300.png"></a></p>
-<p> </p>
-<p> </p>
-<p> </p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://core.telegram.org/bots/payments#step-by-step-process">https://core.telegram.org/bots/payments#step-by-step-process</a></p>
-<p><a target="_blank" rel="noopener" href="https://stripe.com/docs/payments/alipay/accept-a-payment?locale=zh-CN">https://stripe.com/docs/payments/alipay/accept-a-payment?locale=zh-CN</a></p>
-<p><a target="_blank" rel="noopener" href="https://stripe.com/docs/payments/wechat-pay/accept-a-payment">https://stripe.com/docs/payments/wechat-pay/accept-a-payment</a></p>
-<p><a target="_blank" rel="noopener" href="https://stripe.com/zh-cn-ca/pricing/local-payment-methods">https://stripe.com/zh-cn-ca/pricing/local-payment-methods</a></p>
-<p><a target="_blank" rel="noopener" href="https://gist.github.com/BennyThink/d3a0de89d21ccb955636e0ffba0f9ea1">https://gist.github.com/BennyThink/d3a0de89d21ccb955636e0ffba0f9ea1</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/01/07/stripe-telegram/index/" data-id="clhp7rtke0096s2qrgma31es9" data-title="初探Stripe与Telegram Bot Payments API" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-wg0000/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/09/20/wg0000/index/" class="article-date">
-  <time class="dt-published" datetime="2022-09-20T00:00:00.000Z" itemprop="datePublished">2022-09-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>►<a class="article-category-link" href="/categories/what/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/09/20/wg0000/index/">为什么我的WireGuard 配置 AllowedIPs=0.0.0.0/0 之后客户端断网了？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>一直以来我都是使用WireGuard组建<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">安全大内网的</a>，几乎没有拿它来当作代理工具使用。</p>
-<p>今天突然要测试一下腾讯云的IP，那还不简单嘛，直接 <code>AllowedIPs=0.0.0.0/0</code>，让所有流量都走WG就好了！只是简单的测一下，并不想搭个shadowsocks或者OpenVPN什么的。（小心被警告写保证书哦）</p>
-<p>结果我一波配置完，却断网了</p>
-<p><img src="/images/2022092019575915.png"></p>
-<p>以为是DNS的问题，配置上 DNS&#x3D;223.5.5.5，还断网，当然peer的IP能ping通，路由器还能通。</p>
-<p>思考了很多可能的因素，包括腾讯云的网络是fullcone NAT，macOS的Darwin内核，本地的IPv6网络，腾讯云的wg配置。尝试了换vultr做peer，开一个新的虚拟机，换手机，换surfshark的配置文件</p>
-<p><code>net.ipv4.ip_forward</code> 和<code>net.ipv4.conf.all.proxy_arp</code> 也都开了，peer也没有防火墙……</p>
-<p>最后发现是因为没有添加iptables规则</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/09/2022092020071682.jpeg"><img src="/images/2022092020071682.jpeg"></a></p>
-<p>在腾讯云配置文件中添加两行规则</p>
-<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE;<br>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE;</p>
-<p>如果还要支持IPv6的话</p>
-<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o en s -j MASQUERADE</p>
-<p>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o ens5 -j MASQUERADE</p>
-<p>重新载入一下配置文件就好了。macOS和iOS这边的Interface再加上一个DNS配置就好了</p>
-<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><h3 id="腾讯云"><a href="#腾讯云" class="headerlink" title="腾讯云"></a>腾讯云</h3><p>[Interface]<br>Address &#x3D; 192.168.2.1&#x2F;24<br>SaveConfig &#x3D; false<br>ListenPort &#x3D; 443<br>PrivateKey &#x3D; </p>
-<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE;<br>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE;</p>
-<p>[Peer]<br>PublicKey &#x3D;<br>AllowedIPs &#x3D; 192.168.2.64&#x2F;32</p>
-<h3 id="Peer"><a href="#Peer" class="headerlink" title="Peer"></a>Peer</h3><p>[Interface]<br>PrivateKey &#x3D;<br>Address &#x3D; 192.168.2.64&#x2F;32<br>DNS &#x3D; 223.5.5.5</p>
-<p>[Peer]<br>PublicKey &#x3D; 4<br>AllowedIPs &#x3D; 0.0.0.0&#x2F;0, ::&#x2F;0<br>Endpoint &#x3D; xxxxxx.xxx:443<br>PersistentKeepalive &#x3D; 30</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://y2k38.github.io/posts/how-to-setup-wireguard-vpn-server/">https://y2k38.github.io/posts/how-to-setup-wireguard-vpn-server/</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/09/20/wg0000/index/" data-id="clhp7rtn600b3s2qr592ndvny" data-title="为什么我的WireGuard 配置 AllowedIPs=0.0.0.0/0 之后客户端断网了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-linux-lipo/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/09/13/linux-lipo/index/" class="article-date">
-  <time class="dt-published" datetime="2022-09-13T00:00:00.000Z" itemprop="datePublished">2022-09-13</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/09/13/linux-lipo/index/">在Linux下使用lipo创建 universal macOS binary</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>macOS的应用程序可以同时包含多种架构，最常见的是包含arm64和amd64这两种。操作系统会自动选择执行最合适的架构，避免使用rosetta 2.</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/09/2022091220433923.png"><img src="/images/2022091220433923.png"></a></p>
-<h2 id="创建universal-binary"><a href="#创建universal-binary" class="headerlink" title="创建universal binary"></a>创建universal binary</h2><p>在macOS中，自带一个工具 <code>lipo</code>，可以用来合并、提取、显示这种universal binary的信息。</p>
-<p>比如我想创建一个universal binary，可以这样做</p>
-<p># lipo -create -output universal amd64 arm64</p>
-<h1 id="file-universal"><a href="#file-universal" class="headerlink" title="file universal"></a>file universal</h1><p>universal: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64Mach-O 64-bit executable x86_64] [arm64]<br>universal (for architecture x86_64): Mach-O 64-bit executable x86_64<br>universal (for architecture arm64): Mach-O 64-bit executable arm64</p>
-<p>可以把某个架构的binary提取出来，<code>-extract</code></p>
-<p># lipo -extract x86_64 -output amd universal</p>
-<h1 id="file-amd"><a href="#file-amd" class="headerlink" title="file amd"></a>file amd</h1><p>amd: Mach-O universal binary with 1 architecture: [x86_64:Mach-O 64-bit executable x86_64Mach-O 64-bit executable x86_64]<br>amd (for architecture x86_64): Mach-O 64-bit executable x86_64</p>
-<p>也可以用来显示binary的一些信息</p>
-<p>&gt; $ lipo -detailed_info universal<br>Fat header in: universal<br>fat_magic 0xcafebabe<br>nfat_arch 2<br>architecture x86_64<br>    cputype CPU_TYPE_X86_64<br>    cpusubtype CPU_SUBTYPE_X86_64_ALL<br>    capabilities 0x0<br>    offset 4096<br>    size 1181264<br>    align 2^12 (4096)<br>architecture arm64<br>    cputype CPU_TYPE_ARM64<br>    cpusubtype CPU_SUBTYPE_ARM64_ALL<br>    capabilities 0x0<br>    offset 1196032<br>    size 1190706<br>    align 2^14 (16384)</p>
-<h2 id="Linux下创建universal-binary替代品"><a href="#Linux下创建universal-binary替代品" class="headerlink" title="Linux下创建universal binary替代品"></a>Linux下创建universal binary替代品</h2><p>可惜Linux上竟然没有对应的lipo。对于那些用Go写的应用程序，天生就支持交叉编译，那为了在release发布一个universal binary，还得自己合并，或者GitHub Actions跑一个macOS？也不是不行，就是太麻烦啦！</p>
-<p>但是不怕，universal binary的技术细节是公开的，并且Apple开源了lipo对应的代码，可以看<a target="_blank" rel="noopener" href="https://github.com/apple-oss-distributions/cctools">cctools</a>. 非常幸运的是还有一个人给port到了Linux，<a target="_blank" rel="noopener" href="https://github.com/tpoechtrager/cctools-port">https://github.com/tpoechtrager/cctools-port</a></p>
-<p>那么为了在Linux下创建这样的universal binary，要么就去读技术细节，参考官方的C语言实践，自己用其他语言写一个；要么就直接用现成的cctools-port，编译一个lipo，直接用即可。</p>
-<h2 id="Linux-lipo"><a href="#Linux-lipo" class="headerlink" title="Linux-lipo"></a>Linux-lipo</h2><p>我比较菜，大概读不懂那些难度很高的文档，还得看十六进制，因此我选择直接用官方的代码。</p>
-<p>于是我就做了一个docker image，只要传递过来参数，就可以创建universal binary</p>
-<p>比如我写了这样的简单的Go代码，打印出运行时的架构</p>
-<p>package main</p>
-<p>import “runtime”</p>
-<p>func main() {<br>    &#x2F;&#x2F; print architecture info<br>    println(“Architecture:”, runtime.GOARCH)<br>}</p>
-<p>然后编译两个不同架构的binary</p>
-<p>GOOS&#x3D;darwin GOARCH&#x3D;amd64 go build -o amd64 .<br>GOOS&#x3D;darwin GOARCH&#x3D;arm64 go build -o arm64 .</p>
-<blockquote>
-<p>$ file amd64 arm64<br>amd64: Mach-O 64-bit executable x86_64<br>arm64: Mach-O 64-bit executable arm64</p>
-</blockquote>
-<p>然后就可以这样创建出来universal binary</p>
-<p>docker run –rm -v $(pwd):&#x2F;app&#x2F; bennythink&#x2F;lipo-linux -create -output universal amd64 arm64</p>
-<p>或者extract啊什么的都行的。只要你想，甚至可以把这个docker image里的lipo提取出来用，问题不大。</p>
-<p> </p>
-<h2 id="也许可以……"><a href="#也许可以……" class="headerlink" title="也许可以……"></a>也许可以……</h2><p>如果你的Mac的存储空间严重不足，也许可以考虑把那些fat binary给瘦身一下。毕竟两个架构，体积翻倍。framework之类的也可以瘦身，就看能不能找到。比如说word的话……可以考虑瘦身一下这个文件，80M变40M🤣</p>
-<p>Microsoft Word.app&#x2F;Contents&#x2F;MacOS&#x2F;Microsoft Word</p>
-<p>效果还是有的，70%左右吧😂 <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/09/2022091623192693.png"><img src="/images/2022091623192693.png"></a></p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>A deep dive on macOS universal binaries</p>
-<p><a target="_blank" rel="noopener" href="https://www.jviotti.com/2021/07/23/a-deep-dive-on-macos-universal-binaries.html">https://www.jviotti.com/2021/07/23/a-deep-dive-on-macos-universal-binaries.html</a></p>
-<p>Building a Universal macOS Binary</p>
-<p><a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/apple-silicon/building-a-universal-macos-binary">https://developer.apple.com/documentation/apple-silicon/building-a-universal-macos-binary</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/09/13/linux-lipo/index/" data-id="clhp7rthe004os2qra61g0589" data-title="在Linux下使用lipo创建 universal macOS binary" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-m1-aom/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/08/26/m1-aom/index/" class="article-date">
-  <time class="dt-published" datetime="2022-08-26T00:00:00.000Z" itemprop="datePublished">2022-08-26</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/08/26/m1-aom/index/">在M1 Mac下开发WebP Server Go</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近换了M1的Mac，成为了ARM芯片的受害者。在尝试用Go运行WebP Server Go的时候出错了</p>
-<p><img src="/images/2022082608305257.jpeg" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>看起来是没有安装aom，但是<code>brew install</code>了一下还是有的啊。另一边的Intel Mac就没这个问题。</p>
-<p>╰─$ ls &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;aom<br>aom.h aom_external_partition.h aomcx.h<br>aom_codec.h aom_frame_buffer.h aomdx.h<br>aom_decoder.h aom_image.h<br>aom_encoder.h aom_integer.h</p>
-<p>头文件明明是有的！</p>
-<p>想了一下， 原因可能是因为M1的homebrew会把相关的依赖安装到 <code>/opt/homebrew</code>下，而不像Intel的版本会丢在<code>/usr/local/</code>下，而<code>/usr/local/</code>大概率是gcc默认的搜索路径。所以gcc compiler找不到对应的头文件了。</p>
-<p>创建了一个简单的<code>test.c</code> 验证一下</p>
-<p>#include<br>#include<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>int main() {<br>   &#x2F;&#x2F; printf() displays the string inside quotation<br>   printf(“Hello, World!”);<br>   return 0;<br>}</p>
-<p>╰─$ gcc test.c test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found #include &lt;aom&#x2F;aom_encoder.h&gt; ^~~~~~~~~~~~~~~~~~~ 1 error generated.</p>
-<p>果真如此，那么就export一下CFLAGS吧</p>
-<p>╰─$ export CFLAGS&#x3D;I&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F; 1 ↵<br>╭─benny@MBP ~&#x2F;Downloads<br>╰─$ gcc test.c<br>test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>^~~~~~~~~~~~~~~~~~~<br>1 error generated.</p>
-<p>依旧报错。为什么CFLAGS不生效呢？</p>
-<p>试试把aom符号连接到 <code>/usr/local/include</code>？ 这个目录应该是默认搜索的。</p>
-<p>❯ ln -s &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;aom &#x2F;usr&#x2F;local&#x2F;include<br>~&#x2F;Downloads<br>❯ gcc test.c</p>
-<p>没有报错，证明我的推断是正确的。</p>
-<p>突然想到，macOS的这个gcc，其实是clang啊，那么是不是和正常的gcc用的环境变量不同？搜了一下还真是，clang应该用<code>CPATH</code>，<code>C_INCLUDE_PATH</code> 和<code>CPLUS_PATH</code>之类的，具体可以参考这里 <a target="_blank" rel="noopener" href="https://clang.llvm.org/docs/CommandGuide/clang.html">https://clang.llvm.org/docs/CommandGuide/clang.html</a></p>
-<p>把符号连接删掉，再试试看！</p>
-<p>└&gt; gcc test.c<br>test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>^~~~~~~~~~~~~~~~~~~<br>1 error generated.<br>┌[kiwish-4.2]-(<del>&#x2F;Downloads)-<br>└&gt; export CPATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;<br>┌[kiwish-4.2]-(</del>&#x2F;Downloads)-<br>└&gt; gcc test.c</p>
-<p>果真如此！于是Goland加一个环境变量，再次编译</p>
-<p>&#x2F;opt&#x2F;homebrew&#x2F;Cellar&#x2F;go&#x2F;1.19&#x2F;libexec&#x2F;pkg&#x2F;tool&#x2F;darwin_arm64&#x2F;link: running clang failed: exit status 1<br>ld: library not found for -laom<br>clang: error: linker command failed with exit code 1 (use -v to see invocation)</p>
-<p>看起来是LDFLAGS的问题，猜测clang还是用的奇奇怪怪的环境变量。先link一下看看</p>
-<p>ln -s &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;* &#x2F;usr&#x2F;local&#x2F;lib&#x2F;</p>
-<p>再运行，果真好了。那么如何用环境变量解决问题呢？我不太喜欢在系统目录里link来link去的。</p>
-<p>搜了一圈，正确的环境变量的名字叫<code>LIBRARY_PATH</code></p>
-<p>LIBRARY_PATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Clang真坑</p>
-<p>设置两个环境变量就好了</p>
-<p>CPATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;;LIBRARY_PATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;</p>
-<p><img src="/images/2022082608305373.png" alt="文本 中度可信度描述已自动生成"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/08/26/m1-aom/index/" data-id="clhp7rthi004ss2qr85fk9fvn" data-title="在M1 Mac下开发WebP Server Go" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1119,7 +1004,7 @@ server.quit()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1132,23 +1017,23 @@ server.quit()
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

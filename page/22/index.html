@@ -73,6 +73,491 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-static-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/11/03/static-router/index/" class="article-date">
+  <time class="dt-published" datetime="2015-11-03T00:00:00.000Z" itemprop="datePublished">2015-11-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/11/03/static-router/index/">[系列]2.Packet Tracer6静态路由的分析</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>先提下路由器是干嘛的。非常粗略的说，或许不是很精确，路由器收到数据包，要根据自己的<strong>路由表</strong>将数据包<strong>发给下一个设备</strong>（下一个设备可以是另外一个路由器、也可以是终端设备，终端设备就叫直接”交付”），这个下一个设备就叫<strong>下一跳，</strong>下一条会按照同样的规则转发，直到送到目的主机。</p>
+<p>静态路由：</p>
+<p>目的地址：指的是目标网络的网络号，比如说目标主机的IP为192.168.1.2，那么此处的目的地址即为192.168.1.0</p>
+<p>子网掩码：暂填当前网段的默认子网掩码</p>
+<p>下一跳：对于当前路由器来说，需要送到的下一个路由器的IP的地址</p>
+<p><img src="/images/110315_1002_1.png"></p>
+<p>以这个图为例，最左侧的路由器4连接了两个设备，左侧为主机PC0，手动分配了IP地址192.168.1.2</p>
+<p>右侧和另外一个路由器连接，分配自己端口的IP为192.168.2.1，对方路由器的IP为192.168.2.2</p>
+<p>对于路由器4来说，数据包如果要发给右侧的主机（192.168.7.2），那么目的地址必须指明为192.168.7.0，子网掩码为默认的255.255.255.0，下一跳为将要送往的下一个设备的IP，在这里也就是192.168.2.2</p>
+<p><img src="/images/110315_1002_2.png"></p>
+<p>对于这个路由器来说，它只需要设置一个静态路由，因为回程的数据包直接可以有路由器交付。但是对于他右侧的路由器，却需要有两条哦不三条静态路由。</p>
+<p>因为Router4是和主机直接相连的路由器，所以它只需要设置一条静态路由即可。同理，右侧的和主机直接相连的Router0也只需要一条静态路由。</p>
+<p>可是只有一条怎么够呢！看看三条静态路由的！、</p>
+<p>要知道ping的ICMP是双程的。先分析下Router5的去程。</p>
+<p>ICMP报文需要从PC0（192.168.1.2）送到PC1（192.168.7.2），</p>
+<p>那么去程的目的地址即为192.168.7.0，子网掩码为255.255.255.0</p>
+<p><img src="/images/110315_1002_3.png"></p>
+<p>分析下这个图，左侧路由的”出口”有两个，router6或者router7，就是说报文有两条路径可以走。第一条右侧直行，第二条从上面”绕道”。</p>
+<p>对于右侧，下一跳应该为与之相连的路由器IP，即192.168.3.2；</p>
+<p>对于上面，同理，下一跳应该为192.168.8.2</p>
+<p>去程分析完了，回程分析下。</p>
+<p><img src="/images/110315_1002_4.png"></p>
+<p>回程杜宇Router05来说，ICMP报文要到达192.168.1.2，所以目的地址为192.168.1.0</p>
+<p>而R5该怎么送呢？下一跳应该是与之相连的Router4，也就是192.168.2.1</p>
+<p>而Router4知道该怎么送报文，就连在了自己身上当然知道该怎么送啦。</p>
+<p>所以综上所述，Router5的静态路由为三条：</p>
+<p><img src="/images/110315_1002_5.png"></p>
+<p>其他路由器的静态路由表以此类推。</p>
+<p>其实像这样的设计是不科学、不合理的。</p>
+<p>R5有两条送去程报文的路，可是R5并不知道该怎么送。它选择的路径只是从路由表里看，先拿出来的复合规则的路由表，就按照这个路由表走。</p>
+<p>假如切断了R5和R6之间的连接，两个主机之间还可以连同，但是会发生超时。毕竟你设置了静态路由，路由器哪怕知道和自己连接的路由器挂了也得跟着规则来送报文。（静态路由的优先级要高于动态路由，就好比要先看hosts再去找ISPDNS一样）</p>
+<p>所以接下来要玩下动态路由。动态路由可以避免上面的这个傻乎乎的问题。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/11/03/static-router/index/" data-id="clhp7rtkd0094s2qr75cm1u5i" data-title="[系列]2.Packet Tracer6静态路由的分析" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-packet-tracer-static-dynamic-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/11/02/packet-tracer-static-dynamic-router/index/" class="article-date">
+  <time class="dt-published" datetime="2015-11-02T00:00:00.000Z" itemprop="datePublished">2015-11-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/11/02/packet-tracer-static-dynamic-router/index/">[系列]1.Packet tracer6静态路由、动态路由的搭建</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>写这系列文章的并没有什么缘由，只是导员做任务，然后顺手写了个报告，发到这里。。</p>
+<p>然后就顺手发到博客上。</p>
+<p>才疏学浅，若有错误之处还望指出。</p>
+<p> </p>
+<blockquote>
+<p>PS，突然发现，Word可以直接共享到wordpress，真是省的复制粘贴改格式了！</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/QQ%E6%88%AA%E5%9B%BE20151102221306.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151102221306-1024x503.png" alt="QQ截图20151102221306"></a></p>
+<p> </p>
+<p>真是机智如我啊！</p>
+</blockquote>
+<p> </p>
+<p> </p>
+<p> </p>
+<h2 id="本系列的要解决的问题，如图："><a href="#本系列的要解决的问题，如图：" class="headerlink" title="本系列的要解决的问题，如图："></a><strong>本系列的要解决的问题，如图：</strong></h2><p> </p>
+<p> </p>
+<p> <a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/%E5%8F%82%E8%80%83-%E9%BB%91%E6%9D%BF%E5%9B%BE%E7%89%87.jpg"><img src="/images/%E5%8F%82%E8%80%83-%E9%BB%91%E6%9D%BF%E5%9B%BE%E7%89%87-300x225.jpg" alt="参考-黑板图片"></a></p>
+<p> </p>
+<p>看不清就看这个</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/QQ%E6%88%AA%E5%9B%BE20151102221912.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151102221912-1024x353.png" alt="QQ截图20151102221912"></a></p>
+<p><strong>左侧主机和右侧主机可以互相ping通、即为本实验的目的。</strong></p>
+<p> </p>
+<p>废话少说，来看下本系列的目录：</p>
+<p>1.如何做出来这样的拓扑图</p>
+<p>2.静态路由表的分析设置</p>
+<p>3.动态路由表的分析设置</p>
+<p> </p>
+<p>参考文章：<a target="_blank" rel="noopener" href="http://blog.sina.com.cn/s/blog_684f326b0100nmh3.html">http://blog.sina.com.cn/s/blog_684f326b0100nmh3.html</a></p>
+<p>如果看懂了这篇文章、并且了解动态路由表、静态路由表的概念，那么做出来这么个东西还是不太复杂的！</p>
+<p>路由表的设置在说明2、3里，这里只说下怎么连接这些设备。</p>
+<p>首先，拖动出来这些东西！选择2811路由器就可以了。</p>
+<p><img src="/images/110215_1406_Packettrace1.png"></p>
+<p>鼠标 点击路由器</p>
+<p><img src="/images/110215_1406_Packettrace2.png"></p>
+<p>3.打开电源。</p>
+<p>剩下八个同理添加。但是要注意，这个模块只有两个接口，而且是用来连接路由和路由器的，所以R1、R2、R5要带两个这个模块！</p>
+<p>分配IP是个痛苦的过程。先把IP都写下来，然后再分配。<img src="/images/110215_1406_Packettrace3.png">用它哦</p>
+<p><img src="/images/110215_1406_Packettrace4.png"></p>
+<p>我是这样分配的。</p>
+<p>分配的原则大致如下：从左侧给主机一个192.168.1.2的IP，然后和它相连的路由器接口IP为192.168.1.1，另一个接口IP为192.168.2.1，之后下一个路由器用192.168.2.2和上一个相连。下一个再来两个1结尾作为”网关”给下一个路由器，下一个路由器的”入口”均为该网段的一个IP（直接最后一位加1就行，加2加3加到254都行。）</p>
+<p>左侧为入口的.2IP，右侧为出口的.1IP，记得提高网段（倒数第二段数字）</p>
+<p>IP都写完了，方便后续工作。</p>
+<p>因为端口太多了，先连线再分配端口可能会乱，所以一边连一边分配IP</p>
+<p>PC0这样，左下角闪电，选择交叉线，点击PC0和Router0，端口都选择FastEthernet0（只要自己记住这个端口就好。）</p>
+<p>分配PC0的IP如下：</p>
+<p><img src="/images/110215_1406_Packettrace5.png"></p>
+<p>点击Router0，找到刚才的FastEthernet0，开启并设置如下：</p>
+<p><img src="/images/110215_1406_Packettrace6.png"></p>
+<p>闪电选择DCE串口，勇敢的把Router0和Router1连起来，端口都选择serial0&#x2F;3&#x2F;0（其实只要自己记得别弄错了就可以）</p>
+<p><img src="/images/110215_1406_Packettrace7.png"></p>
+<p>点开Router0，看着下图和标注的IP设置对应端口的IP（一定不要设置错啦）</p>
+<p><img src="/images/110215_1406_Packettrace8.png"></p>
+<p>时钟要设置成64000，端口要开启（并不知道为什么是64000，先按着来吧）</p>
+<p>Router1找到刚才插进去的那个接口，继续设置……</p>
+<p><img src="/images/110215_1406_Packettrace9.png"></p>
+<p>就设置吧…道理是类似的！…路由器之间用DCE串口，路由器和PC之间用交叉线</p>
+<p>端口对应的IP别设置错了…………</p>
+<p>我速速滚去设置……</p>
+<p><img src="/images/110215_1406_Packettrace10.png"></p>
+<p>连接点都是绿色的，看样子是互相通了，但其实他们没有，还需要再设置路由表才能够实现通信。</p>
+<p>提一下右面的PC，要用交叉线，网关也要记得设置</p>
+<p>右侧PC类似如下：</p>
+<p><img src="/images/110215_1406_Packettrace11.png"></p>
+<p>喵了个咪累死</p>
+<p>请看下集分解…… <img src="/images/110215_1406_Packettrace12.gif"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/11/02/packet-tracer-static-dynamic-router/index/" data-id="clhp7rthz006ds2qrgw8chn7v" data-title="[系列]1.Packet tracer6静态路由、动态路由的搭建" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ibm-mainframe-keys/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/11/01/ibm-mainframe-keys/index/" class="article-date">
+  <time class="dt-published" datetime="2015-11-01T00:00:00.000Z" itemprop="datePublished">2015-11-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/11/01/ibm-mainframe-keys/index/">IBM大型机 Homework参考答案、cobol课件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="免责声明："><a href="#免责声明：" class="headerlink" title="免责声明："></a>免责声明：</h1><p>请您阅读此文之前仔细阅读本免责声明。</p>
+<p>本参考答案是由本人编写、运行、测试并发布，但是本人<strong>对其正确性进行不任何形式的保证</strong>。</p>
+<p>此参考答案的内容可能是正确的，也可能是<strong>错误的</strong>、甚至存在一些已知的问题或者缺陷错误。</p>
+<p>本人对由于<strong>本文档的错误</strong>等<strong>直接或间接</strong>而给您造成的损失，<strong>概不负责</strong>。</p>
+<p>并且本人拒绝提供任何“阅后服务”。</p>
+<p>如果您继续翻页阅读此文，即表示您<strong>同意此免责声明</strong>并决定承担一切可能因此带来的后果。</p>
+<p>如果您拒绝接受此声明，请<strong>立即关掉本页面</strong>，以免发生不必要的争执。</p>
+<p>谢谢您的阅读。</p>
+<p>[dltable file&#x3D;”cobol课件” size&#x3D;”6.38MB”]<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/cobol.7z?t=1451980356945">阿里百川下载</a>[&#x2F;dltable]</p>
+<blockquote>
+<p>本文图很多，流量党慎入。</p>
+</blockquote>
+<p> </p>
+<p> </p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<p>=</p>
+<hr>
+<p> </p>
+<p> </p>
+<p><strong>先说下连接方法</strong></p>
+<p> </p>
+<p>工具： 需要下载并安装IBM Personal Communication或者TN3270</p>
+<p>IBM Personal Communication<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/pcomm.7z">下载点我</a>（68.9MB） TN3270<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/vista127_2014-11-12.exe">下载点我</a>（1.87MB） Win8及以上用户<strong>可能无法安装</strong>IBM Personal Communication，请尝试 安装TN3270 简要介绍下连接服务器的方法：</p>
+<h2 id="TN3270"><a href="#TN3270" class="headerlink" title="TN3270"></a><strong>TN3270</strong></h2><p>File-New Session Ask;</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/vista-1.png"><img src="/images/vista-1.png" alt="vista-1"></a></p>
+<p> </p>
+<p> </p>
+<p>Host IP Name or Alias里输入</p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/vista-tn-1.png"><img src="/images/vista-tn-1.png" alt="vista-tn-1"></a> 222.201.130.136，后面的IP Port写623，点击Connect，之后就会连 接成功。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/vista-tn-2.png"><img src="/images/vista-tn-2-1024x717.png" alt="vista-tn-2"></a></p>
+<p> </p>
+<h2 id="IBM-Personal-Communication："><a href="#IBM-Personal-Communication：" class="headerlink" title="IBM Personal Communication："></a>IBM Personal Communication：</h2><p> </p>
+<p>找到启动或配置会话这个选项，单击 打开。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/1.png"><img src="/images/1.png" alt="1"></a></p>
+<p>右侧点新建会话。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/2.png"><img src="/images/2.png" alt="2"></a> 之后在“定制通信”窗口中点击“链路参数”，</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/3.png"><img src="/images/3.png" alt="3"></a></p>
+<p>IP和端口号和上面一 样填写就可以了。之后一路确定即可。</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/11/4.png"><img src="/images/4.png" alt="4"></a></p>
+<p>提示：可以保存会话文件， 不用每次都重新设置。</p>
+<p>郑重提示：<br>您阅读至此即表示您已阅读并同意本文最开始的“免责声明”，<br>There is no guarantee and services for this document.</p>
+<p> </p>
+<p> </p>
+<hr>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<hr>
+<h4 id="图片略大，请耐心等待加载或者下载该PDF"><a href="#图片略大，请耐心等待加载或者下载该PDF" class="headerlink" title="图片略大，请耐心等待加载或者下载该PDF"></a><strong>图片略大，请耐心等待加载或者<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/IBM_mainframe_homework.pdf">下载该PDF</a></strong></h4><hr>
+<p>按3.4进入到Data Set List Utility</p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/done.jpg"><img src="/images/done.jpg" alt="done"></a></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>图片效果如果不好，请点几次出现下载PDF文件：<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/IBM_mainframe_homework.pdf">点击此处</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/11/01/ibm-mainframe-keys/index/" data-id="clhp7rtgr0040s2qreurxbm31" data-title="IBM大型机 Homework参考答案、cobol课件" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-download-youtube-video/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/10/27/download-youtube-video/index/" class="article-date">
+  <time class="dt-published" datetime="2015-10-27T00:00:00.000Z" itemprop="datePublished">2015-10-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/10/27/download-youtube-video/index/">YouTube视频的下载方法</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/YouTube_logo_2013.svg_.png"><img src="/images/YouTube_logo_2013.svg_-300x125.png" alt="YouTube_logo_2013.svg"></a></p>
+<p> </p>
+<p> </p>
+<p>YouTube上的视频质量可以说是上乘中的上乘。国际标准的720P、1080P甚至是2K、4K，哪像国内的网站动不动就所谓的“高清”、“超清”，说不定原来码率压缩的有多大。而且YouTube的部分视频还带有字幕哦。</p>
+<p>既然视频质量怎么好，怎么可以不收藏呢！</p>
+<p>下面简要介绍几个下载YouTube视频的方法</p>
+<p>需要准备的工具有：百度云账号、科学上网的梯子（如果没有梯子，<a target="_blank" rel="noopener" href="http://dmesg.app/scientific-internet-tools-recommended.html">请看此博文</a>）。</p>
+<p> </p>
+<p> </p>
+<h2 id="方案一．在线解析下载："><a href="#方案一．在线解析下载：" class="headerlink" title="方案一．在线解析下载："></a>方案一．在线解析下载：</h2><p>以clipconverter为例。</p>
+<p>首先，你要去油管找你想要下载的视频，然后复制它的链接。我随意找了个视频，链接如下<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=sFCJx9N61kE">https://www.youtube.com/watch?v=sFCJx9N61kE</a></p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/QQ%E6%88%AA%E5%9B%BE20151027122716.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151027122716-300x107.png" alt="QQ截图20151027122716"></a></p>
+<p>之后打开<a target="_blank" rel="noopener" href="http://www.clipconverter.cc/">http://www.clipconverter.cc/</a>，粘贴视频网址，点击continue</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/QQ%E6%88%AA%E5%9B%BE20151027122833.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151027122833.png" alt="QQ截图20151027122833"></a></p>
+<p>选择解析度，然后点击下面的start，</p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/QQ%E6%88%AA%E5%9B%BE20151027123021.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151027123021-300x139.png" alt="QQ截图20151027123021"></a></p>
+<p>然后果断的点download吧！</p>
+<p>别急，这么慢的速度怎么受得了呢？使用Chrome的用户可以按Ctrl+J打开下载管理，然后选择“复制链接地址”</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/222.png"><img src="/images/222-300x181.png" alt="222"></a></p>
+<p>打开百度云，离线下载，粘贴进地址，开始下载，等着中转完成吧！</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/QQ%E6%88%AA%E5%9B%BE20151027123328.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151027123328-300x211.png" alt="QQ截图20151027123328"></a></p>
+<p>同样的道理，有兴趣的小伙伴也可以试试用迅雷离线等。</p>
+<p>另外，如果有自己的VPS，wget 下载链接，做中转也是一个不错的选择。日韩的VPS可以尝试下。</p>
+<p>如果此方法不奏效，请从头到尾再来一次！</p>
+<p>另外推荐个在线解析YouTube视频的网站，</p>
+<p><a target="_blank" rel="noopener" href="http://www.findyoutube.com/">http://www.findyoutube.com/</a></p>
+<p> </p>
+<h2 id="方案二．专用下载器"><a href="#方案二．专用下载器" class="headerlink" title="方案二．专用下载器"></a>方案二．专用下载器</h2><p><a target="_blank" rel="noopener" href="http://www.flvcd.com/">硕鼠YouTube视频下载器</a></p>
+<p>使用方法也很简单，设置代理，新建任务，粘贴地址，确定即可。如果使用的工具是<strong>SOCKS5</strong>代理（比如说Tor，Shadowsocks，请记得勾选<strong>SOCKS5</strong>选项）</p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/10/QQ%E6%88%AA%E5%9B%BE20151027124500.png"><img src="/images/QQ%E6%88%AA%E5%9B%BE20151027124500-300x133.png" alt="QQ截图20151027124500"></a></p>
+<p> </p>
+<p>其他类似工具：Clipgrab</p>
+<p> </p>
+<h2 id="方案三．各种Linux发行版、Mac-OS"><a href="#方案三．各种Linux发行版、Mac-OS" class="headerlink" title="方案三．各种Linux发行版、Mac OS"></a>方案三．各种Linux发行版、Mac OS</h2><p>下载个视频都来敲终端，那感觉是该有多好！</p>
+<p>2016年4月20日更新 此工具也可以下载国内视频网站的视频了！</p>
+<p>很幸运的是Ubuntu下有一个叫youtube-dl的基于python的小工具</p>
+<p>基本使用方法是先安装</p>
+<p>sudo apt-get install youtube-dl</p>
+<p>之后再</p>
+<p>youtube-dl VIDEO_URL</p>
+<p>VIDEO_URL为视频的地址。</p>
+<p> </p>
+<p>可是我想下1080P的！没关系，先用F参数看下这个视频都有啥分辨率的啊</p>
+<p>youtube-dl -F <a target="_blank" rel="noopener" href="http://www.youtube.com/watch?v=BlXaGWbFVKY">http://www.youtube.com/watch?v=BlXaGWbFVKY</a></p>
+<p>分辨率前面有一个标号，那么我们就指定这个！</p>
+<p>youtube-dl -f 17 <a target="_blank" rel="noopener" href="http://www.youtube.com/watch?v=BlXaGWbFVKY">http://www.youtube.com/watch?v=BlXaGWbFVKY</a></p>
+<p>更详细的教程看此处：<a target="_blank" rel="noopener" href="https://linux.cn/article-6473-1.html">https://linux.cn/article-6473-1.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/10/27/download-youtube-video/index/" data-id="clhp7rtfq0020s2qra2rub97i" data-title="YouTube视频的下载方法" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-share-with-the-big-guy-a-funny-thing/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/10/17/share-with-the-big-guy-a-funny-thing/index/" class="article-date">
+  <time class="dt-published" datetime="2015-10-17T00:00:00.000Z" itemprop="datePublished">2015-10-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/10/17/share-with-the-big-guy-a-funny-thing/index/">跟大家伙分享一件很可笑的事</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>跟大家伙分享一件很可笑的事： 本人某高校学生，最近参加了IBM主机大赛。这东西挺困难的，分为Part1、2，2分成了16个部分，每个部分都很难。于是呢，可爱滴我就努力钻研，终于吧Part2做到了15，其中的艰辛要比做开发还痛苦，还得翻墙才能去bluemix。但是成功之后的兴奋是无法形容的。然后呢，“惊喜”来了，今早老师公布了参考资料。参考资料是啥意思呢，就是你只要看， 几乎是手把手的告诉你答案，甚至都不告诉你答案是怎么来的。就是说，告诉你了What的答案，却没告诉你该怎么达到what，更别说how、why了。 或许这一件事还不足以代表什么，但是我已经深深地感受到了那种从底子里缺失的能力。原本我以为的讨论，分析，总算有点搞科学的样子了，结果却人人伸手党了？这和教育体制真是分不开啊，这就是，直接给你提供建材，甚至是把一栋现成的房子拿给你，而不是教会你“如何用建材来构造墙壁和柱子””，以及“如何用墙壁和柱子来构造建筑物”。 一些学生、一名老师、一个学校，或许还不足以代表整个中国的教育氛围，更不足以代表整个中国、甚至连这个学校都代表不了。但是我就总是阴谋论般的怀疑，或许皆如此。有什么不怀疑的理由呢？ 我以前经常说， 一个连Google学术都看不了的国家，有啥资格谈学术。恐怕现在我得改口了，不是我们上不了Google学术，是我们根本没有思考的what, how, why的念想！还大国复兴，还中国梦，赶紧从黄粱美梦里醒来还差不多。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/10/17/share-with-the-big-guy-a-funny-thing/index/" data-id="clhp7rtju008ks2qr51ou0vob" data-title="跟大家伙分享一件很可笑的事" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-the-defence-of-japanese-and-amway-game/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/09/02/the-defence-of-japanese-and-amway-game/index/" class="article-date">
+  <time class="dt-published" datetime="2015-09-02T00:00:00.000Z" itemprop="datePublished">2015-09-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/09/02/the-defence-of-japanese-and-amway-game/index/">辩“日货”及安利一款游戏</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天上高级英语，第二课的标题是Hiroshima（广岛），很自然的遇到了讨论如何看待中日关系的议题。我就静静地听着，听着。听到了两点比较感兴趣的论题，“不买日货”和“战争”。我的口水已经准备好了。</p>
+<p>◆“不买日货”，不知道是哪个爱国愤青提出来的这个观点，不管是“不买”还是“抵制”，愚以为，都是含有极大歧义的。且听我一一道来。</p>
+<p>◆首先，“日货”这二字是具有歧义的，日货是指的贴有SONY, SHARP, Panasonic等日系品牌商标的商品，还是指的日系零件比如说你手机里的SONY镜头、轻轨上的TOSHIBA电机？换个角度也同样存在歧义，日货指的是日本制造的原滋原味的日本进口的商品，还是日企在中国的工厂制造的、甚至是ODM的商品？</p>
+<p>“日货”这二字看似简单，可是提出这观点的人有没有想过他的propaganda是指的哪种释义？</p>
+<p>◆下面来讨论单纯的“不买”的含义。“不买”这个行动是什么？对待即将购买的人进行劝说？还是已经购买的人进行打压？“不买”或许歧义的感觉还不那么强烈，如果换成“抵制”，那么就很明了了。已经购入日系商品的是怎么“抵制”，拆了电机砸了电视？未购入的还在商场里的（本质来说，商场也是购买者）怎么“抵制”，围成一圈打砸抢？跑题下，说到打砸抢，那次砸日系车砸日本店，这是只有脑残们才能做出来的行为。我只听说过要么没人敢欺负我，要么你欺负我我欺负你，要么你欺负我我找我兄弟来欺负你，最不济的也是你欺负我我欺负你兄弟，哪有你欺负我我欺负我兄弟这种模式的啊！仇日是病，要不能停啊。</p>
+<p>◆So, how are you feeling？只是从字面上分析下这个propaganda的不合理性，还没有从经济学上来分析呢。（人啊，不能装太多，没修读过啥经济学）连一个充满歧义的propaganda都要奉为准则，那可真是怪悲哀的。</p>
+<p>◆请注意，这不叫咬文嚼字，这是对观点的逻辑分析。生活中总是充斥着满是歧义的文字，对于很少进行逻辑思维训练、学过逻辑学的国人来说，很容易就被忽悠了。顺便多说一句，“国家”是什么意思？用英文来说，what’s the difference between country, state, nation?</p>
+<p>◆“战争”，其实这一点没有什么可以说的。我爱好和平，厌恶战争，尽管我并没有经历过任何战争。我玩了很多战争游戏，看过很多战争电影，无一例外的是，制作者们无一不表达着反战的思想主题。在现代战争中，你会像狗一样死去。在此特别推荐一部游戏，This War of Mine，这是我的战争。推荐大家都去玩一下，游戏不大，却制作精良——你需要扮演的角色不是战争中的士兵，而是被包围的城市下的难民。恰如游戏所述，fuck the war，我永远也忘不了第一次在超市杀掉无辜拾荒者的感受，我的手是发抖的….什么是人性…The dome has tested our limits, forcing each of us to confront our own personal demons…</p>
+<p> </p>
+<p>◆最后，无数次的说过，希望大家能够让理性思维成为一种习惯，希望每个人都能学会批判性思维。永远不要自宫，永远不要institutionalize。希望你会成为你想要的你，而不是其他人其他物想要的你。</p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/09/This-War-of-Mine-2015-09-03-15-45-40-58.png"><img src="/images/This-War-of-Mine-2015-09-03-15-45-40-58-1024x577.png" alt="This War of Mine 2015-09-03 15-45-40-58"></a></p>
+<p> </p>
+<p>Fuck the war. This War of Mine.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/09/02/the-defence-of-japanese-and-amway-game/index/" data-id="clhp7rtm9009ws2qr6nj3dxb0" data-title="辩“日货”及安利一款游戏" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-build-a-website-one-host/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2015/08/23/build-a-website-one-host/index/" class="article-date">
@@ -407,7 +892,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -420,23 +905,23 @@
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

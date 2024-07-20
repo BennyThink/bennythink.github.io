@@ -73,6 +73,476 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-azure-waf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/07/17/azure-waf/index/" class="article-date">
+  <time class="dt-published" datetime="2024-07-17T00:00:00.000Z" itemprop="datePublished">2024-07-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近在用 Front Door加速网站访问，想添加一个这样的规则：只允许 <code>/v1</code>下的路径和特定国家的IP，其他全部禁止。</p>
+<p>这其实很简单的！只要创建两条 WAF规则，一个禁止全部优先级低，一个允许特定路径，优先级高。</p>
+<h2 id="100优先级的允许规则"><a href="#100优先级的允许规则" class="headerlink" title="100优先级的允许规则"></a>100优先级的允许规则</h2><p><img src="/images/2024071623480019.png"></p>
+<p>看起来一点问题都没有吧，非常简单容易理解</p>
+<h2 id="500-优先级阻止规则"><a href="#500-优先级阻止规则" class="headerlink" title="500 优先级阻止规则"></a>500 优先级阻止规则</h2><p><img src="/images/2024071623480112.png"></p>
+<p>也很好理解，阻止全部</p>
+<h2 id="没用！"><a href="#没用！" class="headerlink" title="没用！"></a>没用！</h2><p>配置下来就是不生效，所有的请求都被阻止了。给阻止规则停用，就全部能访问。</p>
+<p>从<code>azure-cli</code>里看下WAF的配置，避免他们前端有bug</p>
+<p>{<br>    “rules”: [<br>        {<br>            “action”: “Allow”,<br>            “enabledState”: “Enabled”,<br>            “groupBy”: [],<br>            “matchConditions”: [<br>                {<br>                    “matchValue”: [<br>                        “&#x2F;v1”<br>                    ],<br>                    “matchVariable”: “RequestUri”,<br>                    “negateCondition”: false,<br>                    “operator”: “BeginsWith”,<br>                    “transforms”: []<br>                },<br>                {<br>                    “matchValue”: [<br>                        “CN”<br>                    ],<br>                    “matchVariable”: “SocketAddr”,<br>                    “negateCondition”: false,<br>                    “operator”: “GeoMatch”,<br>                    “transforms”: []<br>                }<br>            ],<br>            “name”: “Allow”,<br>            “priority”: 100,<br>            “rateLimitDurationInMinutes”: 1,<br>            “rateLimitThreshold”: 100,<br>            “ruleType”: “MatchRule”<br>        },<br>        {<br>            “action”: “Block”,<br>            “enabledState”: “Enabled”,<br>            “groupBy”: [],<br>            “matchConditions”: [<br>                {<br>                    “matchValue”: [],<br>                    “matchVariable”: “RequestUri”,<br>                    “negateCondition”: false,<br>                    “operator”: “Any”,<br>                    “transforms”: []<br>                }<br>            ],<br>            “name”: “Deny”,<br>            “priority”: 500,<br>            “rateLimitDurationInMinutes”: 1,<br>            “rateLimitThreshold”: 100,<br>            “ruleType”: “MatchRule”<br>        }<br>    ]<br>}</p>
+<p>从结果来看，完全没问题。给规则从 begins with 改成 contains又可以，但是那也意味着<code>https://cn-test.burn.hair/login?id=v1</code>也会允许，而这不太行</p>
+<p><img src="/images/2024071623480151.png"></p>
+<h2 id="看看-log"><a href="#看看-log" class="headerlink" title="看看 log"></a>看看 log</h2><p>没办法了，开 log 试试看吧，不行就联系 Azure Support</p>
+<p>先要去 Log Analytics workspaces 里开一个记录日志的奇怪的东西</p>
+<p><img src="/images/202407162348023.png"></p>
+<p>然后去 Diagnostic settings 里 把这个东西和 Front Door、Workspaces关联起来</p>
+<p><img src="/images/2024071623480237.png"></p>
+<p>然后去log页面运行这样的一个查询，绝了连看日志都得学习查询语法😓</p>
+<p>AzureDiagnostics<br>| where ResourceProvider &#x3D;&#x3D; “MICROSOFT.NETWORK” and Category &#x3D;&#x3D; “FrontdoorWebApplicationFirewallLog”</p>
+<p>然后就能看到 WAF的日志了</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/07/2024071623525456.png"><img src="/images/2024071623525456.png"></a></p>
+<h2 id="什么？？"><a href="#什么？？" class="headerlink" title="什么？？"></a>什么？？</h2><p>WTF？谁家 <code>requestUri</code>这么写啊 还带端口的，怪不得我配置的 begins with &#x2F;v1 不好用，但是contains就行……</p>
+<p><img src="/images/202407162348049.png" alt="图片包含 徽标 描述已自动生成"></p>
+<p>火速去 WAF 里，改一下规则，给matches value改成完整的路径就好了</p>
+<p><a target="_blank" rel="noopener" href="https://cn-test.burn.hair/v1">https://cn-test.burn.hair:443/v1</a></p>
+<p><img src="/images/2024071623480516.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>😢 问题解决了，开的各种东西可以去 Resource Group 里删除了</p>
+<hr>
+<p>「不愧是 Azure，从定价，到文档，到使用，没一个符合直觉」</p>
+<p>—— Nova Kowk</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/07/17/azure-waf/index/" data-id="clyujt8ar00015yjf53hmhquz" data-title="救命！我的 Azure Front Door WAF 规则不生效怎么办！" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-azure-fd/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/07/16/azure-fd/index/" class="article-date">
+  <time class="dt-published" datetime="2024-07-16T00:00:00.000Z" itemprop="datePublished">2024-07-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>一般来说，做个网站，并开放给全世界，有以下几种方式：</p>
+<ol>
+<li>直接使用公网IP+端口号</li>
+<li>买个域名，做解析，使用域名访问</li>
+<li>套上 Cloudflare，让 Cloudflare去反向代理源站</li>
+<li>用 Cloudflare Argo Tunnel，服务器有没有公网IP都无所谓了</li>
+<li>其他CDN方案</li>
+</ol>
+<p>最近在用 Azure，一直想利用一下他们的Front Door。简单的摸索了一下如何把Front Door、Load Balancer 和 vm三者结合起来使用。</p>
+<h2 id="创建一台-vm"><a href="#创建一台-vm" class="headerlink" title="创建一台 vm"></a>创建一台 vm</h2><p>不分配公网 IP 没关系，简单起见这里先只创建一个了</p>
+<h2 id="创建-LB"><a href="#创建-LB" class="headerlink" title="创建 LB"></a>创建 LB</h2><p><img src="/images/2024071603033180.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>给 LB的类型设置为 Public，创建一个IP，可以选Microsoft网络也可以选公网，具体区别可以看 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/azure/virtual-network/ip-services/routing-preference-overview">https://learn.microsoft.com/zh-cn/azure/virtual-network/ip-services/routing-preference-overview</a></p>
+<p><img src="/images/2024071603033238.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>添加 NIC，选择虚拟机的那个网卡</p>
+<p><img src="/images/2024071603033362.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>此负载均衡器会有一个公网IP地址，并且连接到了我们的vnet，只是我们还没有定义 NAT出入规则，所以还需要继续配置</p>
+<p>打开LB的Inbound NAT rules，由于我们的backend其实只有一台vm，因此类型选择 azure 虚拟机就可以了</p>
+<p><img src="/images/2024071603033459.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>这个时候 ssh 就会发现能够连到vm啦，但是vm还上不了网</p>
+<p><img src="/images/2024071603033588.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>要添加出网规则机器才能上网，outbound rules中添加一个</p>
+<p><img src="/images/2024071603033620.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>Port allocation 选择 default就行</p>
+<p>这个时候机器就可以上网了，体验了一把自己配置 SNAT的快感🤡</p>
+<p>那就先跑个nginx 方便我们后续测试 http</p>
+<p>sudo docker run -d -p 80:80 nginx:alpine<br>curl localhost</p>
+<p>之后时候你在这台机器外面 <code>curl</code> 还是不行的，因为还得继续加一条 inbound 80 规则和上面一样，这时在外面就可以访问啦！</p>
+<h2 id="创建-Front-Door"><a href="#创建-Front-Door" class="headerlink" title="创建 Front Door"></a>创建 Front Door</h2><p>Front door有三种，Classic、Standard、Premium</p>
+<p>Classic即将在2027年3月退役</p>
+<p>Classic 按照流量和路由规则、WAF等计费，Standard、Premium则是月费、流量和请求数量计费。</p>
+<p>按照提示来就行，之后 Front Door会让我们配置</p>
+<h3 id="Domain"><a href="#Domain" class="headerlink" title="Domain"></a>Domain</h3><p>Domain 那里就选创建 Front Door的时候的那个域名</p>
+<p><img src="/images/2024071603033773.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<h3 id="Backend-pools"><a href="#Backend-pools" class="headerlink" title="Backend pools"></a>Backend pools</h3><p>需要注意这里 https port也要写80</p>
+<p>因为在我们的vm上只跑了80端口，所以只能都80。如果我们的应用是跑在其他端口的话，也要跟着更改</p>
+<p><img src="/images/2024071603033839.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="routing-rules"><a href="#routing-rules" class="headerlink" title="routing rules"></a>routing rules</h3><p>要注意 forwarding protocol 选择 http only，原因同上</p>
+<p><img src="/images/2024071603033860.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>然后部署，等几分钟，就有啦</p>
+<p><img src="/images/2024071603033997.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>Azure Front Door Premium 可以用 Private Link 连接到内部负载均衡器。但是 Premium 月费要330美元，我可能确实用不起……</li>
+<li>如果单机性能足够，那么给vm分配个公网IP，然后配置 Front Door写这个IP就行</li>
+<li>如果单机性能不够，那么可以再加多台vm，然后用LB做负载均衡；也可以直接 Front Door 加 backend pool</li>
+<li>走微软全球网络路由的性能应该不错</li>
+</ol>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/azure/frontdoor/front-door-faq">https://learn.microsoft.com/en-us/azure/frontdoor/front-door-faq</a></li>
+<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/azure/frontdoor/standard-premium/how-to-enable-private-link-internal-load-balancer">https://learn.microsoft.com/zh-cn/azure/frontdoor/standard-premium/how-to-enable-private-link-internal-load-balancer</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/07/16/azure-fd/index/" data-id="clyujt89y00005yjf7dlbdiq6" data-title="使用Azure Front Door 和 Load Balancer" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-usdt-trc20-scam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/04/30/usdt-trc20-scam/index/" class="article-date">
+  <time class="dt-published" datetime="2024-04-30T00:00:00.000Z" itemprop="datePublished">2024-04-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近看到一种很有趣的数字货币诈骗方法，有人有意无意在群里、论坛或者其他公开的地方，泄漏自己的助记词，往往是Tron这个链，然后这个钱包里有大概几十到几百USDT，比如下图这样</p>
+<p><img src="/images/202404300152573.png" alt="A screenshot of a phone Description automatically generated"></p>
+<p>一般来说这种钱包TRX会比较少，多一点的也有，其实没关系的。</p>
+<p>众所周知，进行 USDT 转账是需要 TRX做燃料的。有些人可能就想到了……</p>
+<ol>
+<li>既然有助记词，那么就可以导入到自己的钱包里</li>
+<li>从别的地方转进来几十 TRX做gas</li>
+<li>然后把这几百USDT转走，白嫖成功</li>
+</ol>
+<p>事情哪有那么简单！</p>
+<h2 id="偷取燃料费"><a href="#偷取燃料费" class="headerlink" title="偷取燃料费"></a>偷取燃料费</h2><p>当你把 TRX 转进来之后，还没等这笔钱热乎，就会被瞬间转走！</p>
+<p>比如在上图中我们看到的这个例子，他的地址是 TAvwgoX6zbExfotsgP351QxxCoHGH8mmyb ，通过查询 tronscan我们可以查询一个地址的所有交易记录，我这里用不同颜色的做了标记：</p>
+<p><img src="/images/2024043001525863.png" alt="A screenshot of a computer Description automatically generated"></p>
+<p>我们可以很清楚地看到，受害者向 mmyb的地址转账，慢则5分钟，快则几十秒，这笔TRX就会被转到 Mh4J 的地址。截止到目前为止，这个地址已经骗了$90了。</p>
+<p>我还有另外一个例子，也是一样的手段</p>
+<p><img src="/images/2024043001525832.png" alt="A screenshot of a computer Description automatically generated"></p>
+<h2 id="拼手速？"><a href="#拼手速？" class="headerlink" title="拼手速？"></a>拼手速？</h2><p>假如你也会写点代码，你可能在想，哎不就是拼手速嘛！转点TRX进去，然后瞬间再转走 USDT，全程代码操作延迟1秒，那不就白嫖成功了嘛！</p>
+<p>有这种想法不得不说非常聪明，然而骗子也早就想到了这一点，骗子也不想偷鸡不成蚀把米。如果你注意看 tronscan地址下的提示信息：</p>
+<p><img src="/images/2024043001525929.png" alt="A close-up of a computer screen Description automatically generated"></p>
+<blockquote>
+<p>The current account’s “Owner Permission” is authorized to:TDtwL9uggJ1qBhWW83z6q7ssNdhi12356L</p>
+<p>The current account’s “Active Permission” is authorized to:TDtwL9uggJ1qBhWW83z6q7ssNdhi12356LView Account Permission</p>
+</blockquote>
+<p>Tron的一个特性之一是，可以把自己地址的权限转移给另一个地址。权限本身是独立的、唯一归属的，要么归你要么归我。</p>
+<p>通常来说我们使用这个地址对应的私钥签名的，但是把权限转移给另外一个地址之后，就可以用那个地址的私钥签名了。</p>
+<p>在这个例子中，这个蜜罐地址 mmyb 的全部权限都被转移给了另外一个 356L的地址，mmyb的私钥因为缺失权限，是无法签名交易的。 [v_blue]更进一步，Tron还可以设置mult-sig（多重签名），需要多个私钥+权重计算才可以完成某个操作，有点像大家开会表决。 [&#x2F;v_blue] 😂所以，即使你手速够快，也会发现自己没权限动这个资金。</p>
+<p>当然了，如果你发现一个地址的权限没有被更改过，那可能确实是天上掉馅饼了。</p>
+<h2 id="我被骗了吗"><a href="#我被骗了吗" class="headerlink" title="我被骗了吗"></a>我被骗了吗</h2><p>哈！😏😏😏</p>
+<p><img src="/images/2024043001530159.png" alt="A screenshot of a video game Description automatically generated"></p>
+<p>哈，你终于领悟了成为传奇的诀窍……拿上你的家伙，咱们走。</p>
+<hr>
+<p>我可是传奇，想要骗我可没那么容易😉😉😉</p>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://www.exodus.com/support/en/articles/8598817-what-crypto-scams-should-i-watch-out-for#honeypot">https://www.exodus.com/support/en/articles/8598817-what-crypto-scams-should-i-watch-out-for#honeypot</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/04/30/usdt-trc20-scam/index/" data-id="clyujt8bi00075yjff1921dwp" data-title="警惕USDT-TRC20 数字货币诈骗" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-telegram-login-widget-verify-data/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/04/21/telegram-login-widget-verify-data/index/" class="article-date">
+  <time class="dt-published" datetime="2024-04-21T00:00:00.000Z" itemprop="datePublished">2024-04-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>使用<a target="_blank" rel="noopener" href="https://core.telegram.org/widgets/login">Telegram 做OAuth</a>是一件很容易的事情，毕竟整个 Telegram API 都相当开放。</p>
+<p>需要注意的一件事情就是，我们需要验证用户的数据确实是来自于 Telegram而不是第三方伪造的。无论是在回调函数还是回调URL中，Telegram都会提供如下参数： id, first_name, last_name, username, photo_url, auth_date, hash 根据官方文档的说法，验证数据分如下几步：</p>
+<ol>
+<li> 把这些字段按照字母顺序排序，组成一个字符串，每一个键值对之间用换行符隔开，如 <code>&#39;auth_date=&lt;auth_date&gt;\nfirst_name=&lt;first_name&gt;\nid=&lt;id&gt;\nusername=&lt;username&gt;&#39;</code></li>
+<li>计算 bot token 的 sha256</li>
+<li>计算 HMAC_SHA256，明文是上面的这个字符串，密码是bot token 的sha256，然后计算这个结果的hex，比对与他提供的 hash是否相等</li>
+</ol>
+<p>看起来很简单是不是，随便丢给 ChatGPT就能出结果。甚至官方还给了个<a target="_blank" rel="noopener" href="https://gist.github.com/anonymous/6516521b1fb3b464534fbc30ea3573c2">PHP的代码</a></p>
+<p>但是很抱歉的是，这样并不能给保证100%验证成功，甚至可能会完全无法验证。以下是我踩的两个坑</p>
+<h2 id="hash字段要排除"><a href="#hash字段要排除" class="headerlink" title="hash字段要排除"></a>hash字段要排除</h2><p>在组装字符串的时候，记得排除hash字段，要不然是不可能计算出正确的结果的。</p>
+<h2 id="值是空的字段要排除"><a href="#值是空的字段要排除" class="headerlink" title="值是空的字段要排除"></a>值是空的字段要排除</h2><p>在 Telegram 中，username、photo_url 等字段不是必须的。在计算时，这种类型的字段<strong>如果为空，那么不需要考虑</strong>。</p>
+<p>可怕的是，无论是官方文档，还是PHP示例代码，都没有提到值是空的字段不参与计算的事情。😢</p>
+<h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><h3 id="Go-的示例代码"><a href="#Go-的示例代码" class="headerlink" title="Go 的示例代码"></a>Go 的示例代码</h3><p>type TelegramAuthData struct {<br>    Id        int    `json:”id”`<br>    FirstName string `json:”first_name”`<br>    LastName  string `json:”last_name”`<br>    Username  string `json:”username”`<br>    PhotoUrl  string `json:”photo_url”`<br>    AuthDate  int    `json:”auth_date”`<br>    Hash      string `json:”hash”`<br>}</p>
+<p>func verifyTelegramAuthData(data TelegramAuthData) bool {<br>    &#x2F;&#x2F; Extracting fields and preparing for sorting.<br>    fields :&#x3D; map[string]string{<br>        “auth_date”:  strconv.Itoa(data.AuthDate),<br>        “first_name”: data.FirstName,<br>        “last_name”:  data.LastName,<br>        “id”:         strconv.Itoa(data.Id),<br>        “photo_url”:  data.PhotoUrl,<br>        “username”:   data.Username,<br>    }</p>
+<pre><code>// Sorting the fields to create the data-check-string.
+var keys \[\]string
+for key := range fields &#123;
+    keys = append(keys, key)
+&#125;
+sort.Strings(keys)
+
+var dataCheckString string
+for \_, key := range keys &#123;
+    if fields\[key\] != &quot;&quot; &#123;
+        dataCheckString += fmt.Sprintf(&quot;%s=%s\\n&quot;, key, fields\[key\])
+    &#125;
+&#125;
+dataCheckString = dataCheckString\[:len(dataCheckString)-1\] // Remove the last newline character
+
+// Calculate the SHA256 hash of the bot&#39;s token.
+hasher := sha256.New()
+hasher.Write(\[\]byte(botToken))
+secretKey := hasher.Sum(nil)
+
+// Compute the HMAC-SHA-256 signature.
+hmacHasher := hmac.New(sha256.New, secretKey)
+hmacHasher.Write(\[\]byte(dataCheckString))
+computedHash := hex.EncodeToString(hmacHasher.Sum(nil))
+
+// Compare the computed HMAC with the received hash.
+return computedHash == data.Hash
+</code></pre>
+<p>}</p>
+<h3 id="Python-版本"><a href="#Python-版本" class="headerlink" title="Python 版本"></a>Python 版本</h3><p>def verify_telegram_authdata(data: dict) -&gt; bool:<br>    # Extracting fields and preparing for sorting<br>    fields &#x3D; {<br>        “auth_date”: data.get(“auth_date”),<br>        “first_name”: data.get(“first_name”),<br>        “last_name”: data.get(“last_name”),<br>        “id”: data.get(“id”),<br>        “photo_url”: data.get(“photo_url”),<br>        “username”: data.get(“username”),<br>    }</p>
+<pre><code># Sorting the fields to create the data-check-string
+keys = sorted(fields)
+data\_check\_string = &quot;\\n&quot;.join(f&quot;&#123;key&#125;=&#123;fields\[key\]&#125;&quot; for key in keys if fields\[key\])
+
+# Calculate the SHA256 hash of the bot&#39;s token
+hasher = hashlib.sha256()
+# bot token token
+hasher.update(&quot;token&quot;.encode(&quot;utf-8&quot;))
+secret\_key = hasher.digest()
+
+# Compute the HMAC-SHA-256 signature
+hmac\_hasher = hmac.new(secret\_key, data\_check\_string.encode(&quot;utf-8&quot;), hashlib.sha256)
+computed\_hash = hmac\_hasher.hexdigest()
+
+# Compare the computed HMAC with the received hash
+return computed\_hash == data.get(&quot;hash&quot;)
+</code></pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/04/21/telegram-login-widget-verify-data/index/" data-id="clyujt8bh00055yjf43e151d5" data-title="Telegram Login Widget 如何验证用户数据" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-physical-esim/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/03/23/physical-esim/index/" class="article-date">
+  <time class="dt-published" datetime="2024-03-23T00:00:00.000Z" itemprop="datePublished">2024-03-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>众所周知，国行 iPhone 是不支持 eSIM的。那么有没有办法让国行 iPhone也能过试用 eSIM运营商呢？答案当然是有的啦。</p>
+<p>国内有几个厂商在做这个，比如 ESTK.me， 5ber 国外还有一个 eSIM.me。使用起来不复杂，买他们的SIM卡，然后通过软件，通常是Android手机把eSIM Profile写到这张卡里，然后把这个卡插到手机里就可以了。</p>
+<p>问题来了，我又没有 Android 手机，而且这些厂商往往都会通过软件手段限制写入。比如 5ber这里，按照下载次数收费的</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/03/2024032304270581.png"><img src="/images/2024032304270581.png"></a></p>
+<p> </p>
+<p>有没有别的办法呢？当然有的啦，读卡器</p>
+<p> </p>
+<h2 id="智能卡读卡器"><a href="#智能卡读卡器" class="headerlink" title="智能卡读卡器"></a>智能卡读卡器</h2><p>去神奇的淘宝可以买到这种设备，价格不贵，大概20-30人民币</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/03/2024032304291564.jpg"><img src="/images/2024032304291564.jpg"></a></p>
+<p> </p>
+<h2 id="eSIM-card"><a href="#eSIM-card" class="headerlink" title="eSIM card"></a>eSIM card</h2><p>可以去上面提到的那些厂商买，也有一些其他的厂商，可以自行搜索。</p>
+<p>如果购买5ber的话，他们的官网在这里 <a target="_blank" rel="noopener" href="https://esim.5ber.com/?language=en-US">https://esim.5ber.com/?language=en-US</a></p>
+<p>使用邀请码 <strong>E6ARJX</strong> 可能会有优惠。另外，联想有一款 ThinkPad Thales eSIM card 亲测可用</p>
+<p>写卡</p>
+<p>我直接用了 EasyLPAC，图形界面方便操作。把卡片插进去，软件就应该能读到。500KB大概够写十几个了</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/03/2024032304411623.png"><img src="/images/2024032304411623.png"></a></p>
+<p> </p>
+<p>切换到 Profile选项卡，点Download 输入运营商给的信息，然后Enable，拔卡插手机即可</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/03/2024032304422821.png"><img src="/images/2024032304422821.png"></a></p>
+<p> </p>
+<p>写卡次数限制？不存在的，想写多少写多少，别超了就行。🤷</p>
+<p>当然了每次要换卡也比较麻烦就是了……这个没办法，早日换支持 eSIM的设备就好了</p>
+<p> </p>
+<h2 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://sparktour.me/2022/11/20/configure-esim-me-card-with-pc-sc-reader/">通过PC&#x2F;SC智能卡读卡器配置esim.me的SIM卡</a> </li>
+<li><a target="_blank" rel="noopener" href="https://iecho.cc/2023/10/20/Convert-eSIM-to-physical-SIM/">eSIM 转 SIM 实体卡</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/03/23/physical-esim/index/" data-id="clyujt8bf00035yjffif8ho0y" data-title="物理化 eSIM" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-immersion/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/02/03/immersion/index/" class="article-date">
+  <time class="dt-published" datetime="2024-02-03T00:00:00.000Z" itemprop="datePublished">2024-02-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/02/03/immersion/index/">沉浸感</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>我很喜欢玩赛博朋克2077，在往日之影发布之前很久已经清完了所有的支线和委托。往日之影发布之后，我熬了两个晚上，玩完了全部四个分支。</p>
+<p>随后我就出去旅游了。往日之影的结局是在是太让我感到无力了，那个时候我就坐在酒店的阳台上发呆。为什么会这样啊，我很难过。与其这样生活，真的不如再活半年，或者把身体留给强尼，至少这样不会失去朋友啊。</p>
+<p>人们总是很容易把艺术作品中的情形代入到自己的生活中，或者反之。</p>
+<p>那个时候我在日记里写道</p>
+<blockquote>
+<p>这也像极了现在的我。我在一点点失去我的朋友，我找不到生活的目标，这样的生活，远远不如以前开心。可生活不是游戏，没办法轻松重新选择故事走向。每次重新选择，都要承担巨大的代价和后果。</p>
+</blockquote>
+<hr>
+<p>在赛博朋克之后，我再也没有精力去如此品玩任何其他的游戏。可能是怕试错成本太高，很难找到符合我的喜好的游戏。Game Pass Ultimate过期之后也没有再续费，因为感觉自己完全找不到能玩的游戏。</p>
+<p>在影视作品中，我有些时候也会有这种感觉。</p>
+<p>最近白嫖了 Apple TV+，然后熬了三四个晚上看完了灵异女仆。 电视剧的节奏挺慢的，至少说在惊悚悬疑题材里这个节奏很慢，还好我没有追剧。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/01/2024013122284421-scaled.jpg"><img src="/images/2024013122284421-scaled.jpg"></a></p>
+<p>我很喜欢女主Leanne的人设和演员的演绎，Leanne只不过是童年破碎的受害者，她把自己对亲生母亲的期望全部投射到Dorothy身上。 男主一家人里如果有一个人能稍微正常点，那么结局会不会好一点？ 只有厨师小弟对 Leanne 很好，没有理由也没有利益的羁绊，只是可惜那场约会永远也不会到来……</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/02/2024020605495956-scaled.jpg"><img src="/images/2024020605495956-scaled.jpg"></a></p>
+<hr>
+<p>哎所以我总是很怕这样。一方面是怕自己陷得太深，另一方面是怕自己以后很难发现更好的文艺作品。</p>
+<p>我毫不犹豫的熬夜，只是想把自己沉浸在这些作品所营造的背景和氛围之内，这样我就可以暂时忘记发生在现实生活中的种种烦恼与问题，这样我就可以忽略问题，像鸵鸟一样把头埋在沙子里。 然而一旦看完这部电影，玩通那个游戏，这样的沙子也就不复存在，也就只能面对现实和无奈。🤷</p>
+<p>有时候可能看看爽剧，玩一玩那些无脑爽游戏（比如最近几年的使命召唤），只是娱乐放松而没有沉浸，这样可能会对我的心理状态有更好的帮助。沉浸感太强，有的时候可能也不是一件好事🫠</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/02/03/immersion/index/" data-id="clyujt8au00025yjfb1atdv1w" data-title="沉浸感" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-2023-end/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/12/31/2023-end/index/" class="article-date">
@@ -590,461 +1060,6 @@ def verify\_payment(self):
 
 
   
-    <article id="post-es-ee-se-unicode/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/11/09/es-ee-se-unicode/index/" class="article-date">
-  <time class="dt-published" datetime="2023-11-09T00:00:00.000Z" itemprop="datePublished">2023-11-09</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>如果你打开 Python console，输入如下代码</p>
-<p>“🇸🇪” in “🇪🇸🇪🇪”</p>
-<p>你会惊人的发现，结果是 <code>True</code>，同样的事情也发生在 JavaScript 中。</p>
-<p><img src="/images/2023110902065099.png" alt="pasted-movie.png"></p>
-<p>什么？</p>
-<p>其实这一切都是Unicode的锅。</p>
-<h2 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h2><p>Unicode是一种编码标准，它的目的是电脑能以通用划一的字符集来处理和显示文字，不但减轻在不同编码系统间切换和转换的困扰，更提供了一种跨平台的乱码问题解决方案。</p>
-<p>简单的说，Unicode就是给世界上所有的文字符号都用一个唯一的编号替代。大家都用这一个编号，那么就能够显示一样的东西而不会错乱了。这个编号，被称作码位(code points)</p>
-<h2 id="码位与字位"><a href="#码位与字位" class="headerlink" title="码位与字位"></a>码位与字位</h2><p>码位是什么上面已经解释了，字位（grapheme） 指的是最小的有意义的书写单位。比如 <code>😄</code> <code>卡</code> <code>ö</code> 这种都算一个字位，换句话说，人类认为是单个字符的东西，就是字位。</p>
-<p>Unicode神奇的地方在于，字位可以由一个或者多个码位组成。</p>
-<p>有的时候你能看到有些人的ID很长飘满整个屏幕，或者这种 ҈热҈得҈字҈都҈出҈汗҈了҈ 都是因为Unicode允许多个码位组成一个字位！</p>
-<p>比如：</p>
-<ul>
-<li>💩的码位是 <code>U+1F4A9</code>，只有这一个</li>
-<li>🇪🇸的码位是两个区域指示符，E和S <code>U+1F1EA</code> <code>U+1F1F8</code></li>
-<li>🇪🇪的码位也是两个区指示符，E 和E <code>U+1F1EA</code> <code>U+1F1EA</code></li>
-<li>🇸🇪也同理，S和E，U+1F1F8 U+1F1EA</li>
-<li>👨‍👩‍👧‍👦 这个就恐怖了，它是这样的 👨ZWSP👩ZWSP👧ZWSP👦 男女男孩女孩+三个 零宽空格组成</li>
-</ul>
-<p>那么 <code>U+1F1EA U+1F1F8 U+1F1EA U+1F1EA</code> 是否包含<code>U+1F1F8 U+1F1EA</code> ？当然了！恰巧在中间呀。美国和厄瓜多尔也包含了瑞典。</p>
-<h2 id="字符串的长度"><a href="#字符串的长度" class="headerlink" title="字符串的长度"></a>字符串的长度</h2><p>很多情况下我们需要判断字符串的长度，以确保他们不超过指定的范围。那么这个长度是怎么判定的？比如说对于这个恐怖字符 👨‍👩‍👧‍👦是算有多少个 code point，还是占用多少个字节，还是字位？</p>
-<p>如果是多少个 code point，那么应该是4+3&#x3D;7；如果是多少字节，以UTF8为例，那么emoji 4字节，零宽3字节，4*4 + 3*3 &#x3D; 16 + 9 &#x3D;25字节</p>
-<h3 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h3><p>&gt;&gt; len(“👨‍👩‍👧‍👦”)</p>
-<blockquote>
-<blockquote>
-<p>7</p>
-</blockquote>
-</blockquote>
-<h3 id="Go"><a href="#Go" class="headerlink" title="Go"></a>Go</h3><p>s :&#x3D; “👨‍👩‍👧‍👦”</p>
-<p>fmt.Println(len(s))<br>fmt.Println(utf8.RuneCountInString(s))</p>
-<p>输出分别为25 和 7</p>
-<h3 id="JavaScript"><a href="#JavaScript" class="headerlink" title="JavaScript"></a>JavaScript</h3><p>“👨‍👩‍👧‍👦”.length<br>11</p>
-<p>没错，JavaScript总是这样独树一帜。因为JavaScript是用UTF-16编码的啦。表情符号是2字节，零宽字符是1，4*2+3*1&#x3D;11</p>
-<p>所以当你在计算最长多少个字符的时候，可要想好了对面是怎么算的。要不然很容易算错哦。</p>
-<h2 id="循环字符串"><a href="#循环字符串" class="headerlink" title="循环字符串"></a>循环字符串</h2><p>所以循环字符串也要小心了……要不然就很容易会把emoji这种东西凭空劈开。比如说 Python里可以这样处理</p>
-<p>import grapheme</p>
-<p>s &#x3D; “👨‍👩‍👧‍👦🇸🇪🇨🇳”<br>for i in grapheme.graphemes(s):<br>    print(i)</p>
-<p>这样就会依次打印三个emoji</p>
-<p>或者使用语言对应的ICU，比如 PyICU等。</p>
-<p>还有很多痛苦的事情等待你去发现😂</p>
-<hr>
-<p>所以，懂了如上道理的你，一定知道为什么 <strong>摩纳哥和荷兰包含了中国</strong> 了吧？不如打开小红书……</p>
-<p><img src="/images/2023110902065097.png" alt="pasted-movie.png"></p>
-<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://blog.xinshijiededa.men/unicode/">https://blog.xinshijiededa.men/unicode/</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/11/09/es-ee-se-unicode/index/" data-id="clqxhsvee0001w1qra4wkat0b" data-title="Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-lede-shadowtls/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/05/25/lede-shadowtls/index/" class="article-date">
-  <time class="dt-published" datetime="2023-05-25T00:00:00.000Z" itemprop="datePublished">2023-05-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前几天我的Trojan连续被墙了两次。尽管Trojan装作自己是正常且普通的https流量，但还是中枪了。可能是因为最近日子比较难过，或者热门机房不明大量流量引起了怀疑</p>
-<p>有一个比较类似的东西，叫ShadowTLS，也是用来伪装流量的，体验了一下感觉也不错。</p>
-<p>ShadowTLS本身并不提供加密代理，所以我们往往还要配合一个Shadowsocks、vmess或者trojan之类的东西。也就是说，服务端要跑 ShadowTLS Server和Shadowsocks Server，客户端要跑ShadowTLS Client和Shadowsocks Client。当然，艺高人胆大的你也可以把shadowsocks替换成<code>nc</code>，なんでもないよ！</p>
-<h2 id="服务端配置"><a href="#服务端配置" class="headerlink" title="服务端配置"></a>服务端配置</h2><p>以docker为例，直接参考<a target="_blank" rel="noopener" href="https://github.com/ihciah/shadow-tls/wiki/Run-with-Docker-Compose">官方wiki</a>改改就行了，需要注意的是这里必须要用host网络模式，因为要配置<code>ss-server</code>绑定到 ShadowTLS的地址（通常我们是监听到<code>0.0.0.0</code>），因此host模式最简单</p>
-<p>version: ‘2.4’<br>services:<br>  shadowsocks:<br>    image: shadowsocks&#x2F;shadowsocks-libev<br>    restart: always<br>    network_mode: “host”<br>    environment:<br>      - SERVER_PORT&#x3D;24000<br>      - SERVER_ADDR&#x3D;127.0.0.1<br>      - METHOD&#x3D;aes-256-gcm<br>      - PASSWORD&#x3D;test-ss-password</p>
-<p>  shadow-tls:<br>    image: ghcr.io&#x2F;ihciah&#x2F;shadow-tls:latest<br>    restart: always<br>    network_mode: “host”<br>    environment:<br>      - MODE&#x3D;server<br>      - LISTEN&#x3D;0.0.0.0:443<br>      - SERVER&#x3D;127.0.0.1:24000<br>      - TLS&#x3D;<a target="_blank" rel="noopener" href="http://www.microsoft.com:443/">www.microsoft.com:443</a><br>      - PASSWORD&#x3D;test-shadow-tls-password</p>
-<ul>
-<li><code>test-ss-password</code> ss客户端使用的密码，客户端使用ShadowTLS的监听端口443来连接</li>
-<li><code>test-shadow-tls-password</code> ShadowTLS客户端使用的密码</li>
-</ul>
-<h2 id="Shadowrocket客户端配置"><a href="#Shadowrocket客户端配置" class="headerlink" title="Shadowrocket客户端配置"></a>Shadowrocket客户端配置</h2><p>如果你使用shadowrocket，那么就很简单了，正常配置，端口写ShadowTLS的443，插件-ShadowTLS，版本2，填入密码和host（本例<code>www.microsoft.com</code> ）</p>
-<p><img src="/images/2023052503080949.jpeg" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
-<h2 id="手动配置客户端"><a href="#手动配置客户端" class="headerlink" title="手动配置客户端"></a>手动配置客户端</h2><p>shadow-tls-aarch64-apple-darwin client –server IP:443 –sni <a target="_blank" rel="noopener" href="http://www.microsoft.com/">www.microsoft.com</a> –password test-shadow-tls-password –listen 127.0.0.1:3443</p>
-<p>sslocal -s localhost:3443 -m aes-256-gcm -k test-ss-password -b 127.0.0.1:17765</p>
-<p>这样一波操作之后，你的 17765就是socks5了，ProxySwitchyOmega之类的配置一下就可以用了。</p>
-<h2 id="docker-compose配置客户端"><a href="#docker-compose配置客户端" class="headerlink" title="docker-compose配置客户端"></a>docker-compose配置客户端</h2><p>这里没有必要host网络，<code>ss-local</code>连接到ShadowTLS的监听端口就可以，由于都在一个网络里，所以直接指定容器名tls就可以了。</p>
-<p>version: ‘2.4’<br>services:<br>  shadow-tls:<br>    image: ghcr.io&#x2F;ihciah&#x2F;shadow-tls:latest<br>    restart: always<br>    environment:<br>      - MODE&#x3D;client<br>      - LISTEN&#x3D;0.0.0.0:3443<br>      - SERVER&#x3D;64.176.34.43:443<br>      - TLS&#x3D;<a target="_blank" rel="noopener" href="http://www.microsoft.com/">www.microsoft.com</a><br>      - PASSWORD&#x3D;test-shadow-tls-password</p>
-<p>  shadowsocks:<br>    image: shadowsocks&#x2F;shadowsocks-libev<br>    restart: always<br>    command: ss-local -s shadow-tls -p 3443 -l 17765 -b 0.0.0.0 -k test-ss-password -m aes-256-gcm<br>    ports:<br>      - “127.0.0.1:17765:17765”</p>
-<h2 id="LEDE-x2F-OpenWRT配置"><a href="#LEDE-x2F-OpenWRT配置" class="headerlink" title="LEDE&#x2F;OpenWRT配置"></a>LEDE&#x2F;OpenWRT配置</h2><p>基本和上面一样，也许已经有人做过插件了？反正也要先运行ShadowTLS</p>
-<p><img src="/images/2023052503080929.png" alt="图形用户界面, 文本, 聊天或短信 描述已自动生成"></p>
-<p>然后去LUCI中添加配置，ss服务器地址写<code>127.0.0.1</code>，端口写<code>3443</code>（ShadowTLS的端口）启动服务。这里有一个需要注意的点，如果你的运行模式是GFWlist，那么没问题；如果是全局或者chnroute（绕过大陆IP），那么就会打环。我一般喜欢用chnroute，两边的好处都占🙃️</p>
-<p><img src="/images/2023052503081094.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>此时要做的事情是添加一个例外，在我的这个插件里，是访问控制- WAN IP访问控制 -不走代理的WAN IP</p>
-<p><img src="/images/2023052503081193.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
-<p>其他的插件，比如passwall，也应该有类似的设置🫠</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/05/25/lede-shadowtls/index/" data-id="cli8jlcy00000g9qr9go2b3xa" data-title="在LEDE/OpenWRT上使用ShadowTLS" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-zero-trust-private-dns/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/05/01/zero-trust-private-dns/index/" class="article-date">
-  <time class="dt-published" datetime="2023-05-01T00:00:00.000Z" itemprop="datePublished">2023-05-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/05/01/zero-trust-private-dns/index/">Cloudflare Zero Trust 添加私有解析DNS</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>很多公司，尤其是跨国大公司，会要求员工连接VPN（或者到办公室）来进入到一个10段的大内网。在这个内网内方能访问各种公司内部的资源，比如GitLab、Confluence、Jira之类的。</p>
-<p>这种情况下就是做了私有DNS解析，这个解析记录并不会发布到公网上，就像你家路由器对于主机名为home这台设备的解析一样，只有进入了你家的网络才有。</p>
-<p>在使用Cloudflare Zero Trust的情况下，我们也可以做到私有DNS解析，并且完全免费！使用Cloudflare Zero Trust，零成本的创建你的工作网络环境，如此简单！</p>
-<h2 id="设置DNS服务器"><a href="#设置DNS服务器" class="headerlink" title="设置DNS服务器"></a>设置DNS服务器</h2><p>既然要设置私有DNS解析，那么毫无疑问需要设置一个由我们掌控的DNS服务器。简单起见，这里我直接在路由器上设置解析。如果你使用的也是LEDE&#x2F;OpenWRT，那么在 网络-DHCP&#x2F;DNS，最下面 「自定义域名挟持」中填入你的域名和解析到的IP地址。当然这个IPv4地址也可以写到公网IP，只不过这样有些搞笑🥸</p>
-<p><img src="/images/2023042200381642.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>添加保存之后，刷新一下本地的DNS缓存，就应该发现已经能ping通了</p>
-<p><img src="/images/2023042200381753.png" alt="文本 描述已自动生成"></p>
-<h2 id="注册WARP"><a href="#注册WARP" class="headerlink" title="注册WARP"></a>注册WARP</h2><p>具体可以参考这篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/cf-zero-trust.html">《使用Cloudflare Zero Trust创建大内网》</a>，简单的说就是配置Cloudflared Tunnel、创建WARP设备注册权限、创建WARP Profile、选择Split Tunnel的模式，然后下载WARP认证连接。这里WARP就相当于公司给你安装的VPN了。</p>
-<p>再提一下include和exclude这两种Split Tunnel的区别：</p>
-<ul>
-<li>Include：类似于WireGuard的<code>allowIP=192.168.7.0/24</code>, 其他非指定网段的流量会直接从你的网络出去，不走Cloudflare，可以理解成非全局VPN。此时你需要去include的规则中添加你的 <code>192.168.7.0/24</code></li>
-<li>Exclude：所有流量都要走Cloudflare，类似全局VPN。此时你需要去exclude的规则中删除你的<code>192.168.7.0/24</code></li>
-</ul>
-<p>无论你是选择include还是exclude，确保连接WARP后，能够ping通内网的IP就可以进行下一步了。</p>
-<h2 id="配置DNS-fallback"><a href="#配置DNS-fallback" class="headerlink" title="配置DNS fallback"></a>配置DNS fallback</h2><p>在Zero Trust网页上，进入到Profile配置页面，下拉能找到 Local Domain Fallback</p>
-<p><img src="/images/2023042200381896.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
-<p>点击Manage，左侧添加域名、DNS服务器和备注。这个DNS服务器就是上面配置好的那个。</p>
-<p><img src="/images/2023042200381969.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><h3 id="内网测试"><a href="#内网测试" class="headerlink" title="内网测试"></a>内网测试</h3><p>我现在连到了家里的网络，因此肯定能解析 <code>samba.dmesg.app</code> 这个域名的，此处没有任何问题</p>
-<h3 id="外网测试"><a href="#外网测试" class="headerlink" title="外网测试"></a>外网测试</h3><p>手机开个热点，电脑连接上</p>
-<p><img src="/images/2023042200382056.png" alt="文本 描述已自动生成"></p>
-<p>连接WARP！</p>
-<p><img src="/images/2023042200382134.png"></p>
-<p>私有解析完成！</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>感谢Cloudflare为我们提供了这么好用的网络服务。小公司可以直接用Cloudflare Zero Trust 组建自己的内网了，然后用Firewall Policies进行适当的权限控制。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/05/01/zero-trust-private-dns/index/" data-id="clhp7rto100c4s2qrgntdhgy2" data-title="Cloudflare Zero Trust 添加私有解析DNS" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-cloudflare-access-gfwed-server/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/04/29/cloudflare-access-gfwed-server/index/" class="article-date">
-  <time class="dt-published" datetime="2023-04-29T00:00:00.000Z" itemprop="datePublished">2023-04-29</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>我有些服务器被墙了，除了通过跳板机连接，还有什么好的办法吗？当然有了，使用Cloudflare Zero Trust即可。我们不仅可以使用ssh客户端，甚至还可以通过浏览器访问。除了SSH协议之外，RDP、SMB甚至任何奇奇怪怪的协议都可以。</p>
-<h2 id="安装并连接cloudflared"><a href="#安装并连接cloudflared" class="headerlink" title="安装并连接cloudflared"></a>安装并连接cloudflared</h2><p>首先还是要想办法连接到被墙的机器，下载cloudflared</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/cloudflare/cloudflared/releases">https://github.com/cloudflare/cloudflared/releases</a></p>
-<p>在网页上Access – Tunnels中创建一个 Tunnel，然后按照提示安装。</p>
-<hr>
-<h1 id="连接到服务器"><a href="#连接到服务器" class="headerlink" title="连接到服务器"></a>连接到服务器</h1><p>Cloudflare提供了三种通过tunnel连接到服务器的方式，第一种是通过客户端安装WARP，第二种是通过客户端安装<code>cloudflared</code>，第三种是直接通过浏览器访问。</p>
-<h2 id="通过WARP连接服务器"><a href="#通过WARP连接服务器" class="headerlink" title="通过WARP连接服务器"></a>通过WARP连接服务器</h2><p>这种办法其实和<a target="_blank" rel="noopener" href="https://dmesg.app/cf-zero-trust.html">《使用Cloudflare Zero Trust创建大内网》</a>一样，区别只是创建大内网时，我们内网的设备写的是局域网IP，而这里则可能会写公网IP。但是本质上没有区别哒！</p>
-<p>在网页上Tunnel中，配置<strong>Private Network</strong>，填入服务器的IP。如果类似GCP那种分配的内网IP，直接写内网IP对应的段也可以；否则直接写公网IP也可以。</p>
-<p>老生常谈，创建Profile，表达式写比如说 <a href="mailto:ssh@dmesg.app">ssh@dmesg.app</a></p>
-<p><img src="/images/2023042202404060.png" alt="图形用户界面 描述已自动生成"></p>
-<p>Split Tunnel选择include，然后添加服务器的IP。</p>
-<p><img src="/images/2023042202404112.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>使用WARP连接，输入邮箱进行验证</p>
-<p>WARP连接成功之后，就会发现能SSH啦，再也不怕GFW了</p>
-<p><img src="/images/2023042202404290.png" alt="图形用户界面, 文本, 聊天或短信 描述已自动生成"></p>
-<h2 id="通过cloudflared-access连接"><a href="#通过cloudflared-access连接" class="headerlink" title="通过cloudflared access连接"></a>通过cloudflared access连接</h2><p>在网页上，配置<strong>Public Hostname</strong>，下面Service Type选择SSH，URL写<code>127.0.0.1:22</code>，如果你想通过这个跳到其他服务器，那么就写<code>IP:22</code></p>
-<p><img src="/images/2023042202404214.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>客户端需要安装cloudflared，先登录 <code>cloudflared login</code></p>
-<p>然后修改SSH配置文件 <code>~/.ssh/config</code></p>
-<p>Host ssh.dmesg.app</p>
-<h1 id="记得修改cloudflared路径"><a href="#记得修改cloudflared路径" class="headerlink" title="记得修改cloudflared路径"></a>记得修改cloudflared路径</h1><p>ProxyCommand &#x2F;opt&#x2F;homebrew&#x2F;bin&#x2F;cloudflared access ssh –hostname %h</p>
-<p>然后再<code>ssh username@ssh.dmesg.app</code> 就可以啦</p>
-<p>当然如果不想改config那么也可以</p>
-<p>cloudflared access ssh –hostname ssh.dmesg.app –url 127.0.0.1:10022</p>
-<p>然后另外一个窗口</p>
-<p>ssh <a href="mailto:&#x72;&#x6f;&#111;&#116;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#x2e;&#x30;&#x2e;&#49;">&#x72;&#x6f;&#111;&#116;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#x2e;&#x30;&#x2e;&#49;</a> -p 10022</p>
-<p>效果是一样的！</p>
-<p>只要你的脑洞足够大，甚至可以通过<code>cloudflared access</code> 去连接任意TCP协议，甚至连UNIX套接字都可以哦</p>
-<h2 id="使用浏览器连接"><a href="#使用浏览器连接" class="headerlink" title="使用浏览器连接"></a>使用浏览器连接</h2><p>同上，<strong>Public Hostname</strong>创建一个SSH服务，比如说域名叫 <code>browser.dmesg.app</code></p>
-<p>然后 Application – Add Application – Self-hosted，application sub domain 同样写 <code>browser.dmesg.app</code></p>
-<p>然后创建policies，和以前的方法一样，如果只是测试用甚至可以Everyone</p>
-<p>下一步Additional Settings中，选择SSH</p>
-<p><img src="/images/2023042202404319.png" alt="图形用户界面, 文本 描述已自动生成"></p>
-<p><img src="/images/2023042202404461.png" alt="图形用户界面 低可信度描述已自动生成"></p>
-<p>浏览器打开链接就可以了，注意这里的用户名是服务器的用户名，比如<code>root</code>，并不是进行邮箱验证的 <code>xxx@dmesg.app</code></p>
-<p><img src="/images/2023042202404579.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
-<p>下一步输入认证信息即可登录。根据服务器sshd配置不同，选择密码或者key登录即可。</p>
-<p><img src="/images/2023042202404680.png" alt="文本 描述已自动生成"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/04/29/cloudflare-access-gfwed-server/index/" data-id="clhp7rtet000xs2qr2kqcfyc5" data-title="使用Cloudflare Zero Trust连接被墙的服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-zero-trust-login-method/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/04/22/zero-trust-login-method/index/" class="article-date">
-  <time class="dt-published" datetime="2023-04-22T00:00:00.000Z" itemprop="datePublished">2023-04-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="什么是App-Launcher"><a href="#什么是App-Launcher" class="headerlink" title="什么是App Launcher"></a>什么是App Launcher</h2><p>所谓App launcher，就是当用户登录之后，会显示一些应用，可以直接点击跳转过去。再也不用单独收藏每一个链接啦，只要收藏这个 App Launcher即可。长这样</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003361458.png"><img src="/images/2023042003361458.png"></a></p>
-<h2 id="添加新登录验证方式"><a href="#添加新登录验证方式" class="headerlink" title="添加新登录验证方式"></a>添加新登录验证方式</h2><p>通常来讲，我们是通过邮件的方式来进行验证的。非常简单，但是有时邮件可能会发送失败，比如说被Gmail拦截。那么有没有办法添加新的验证方式呢？答案当然是有的啦。Cloudflare继承了非常多的登录方式，如下图所示，甚至有一个通用的SAML：</p>
-<p><img src="/images/2023042003351149.png" alt="表格 描述已自动生成"></p>
-<p>下面就以配置GitHub登录来说，Google等同理基本没太大差别。</p>
-<h2 id="创建GitHub-App"><a href="#创建GitHub-App" class="headerlink" title="创建GitHub App"></a>创建GitHub App</h2><p>打开GitHub，进入Settings – Developer Settings – OAuth Apps，新建一个app</p>
-<ul>
-<li>Application name：随便写，自己记得就可以</li>
-<li>Homepage URL： 你的team url，比如说 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a></li>
-<li>Callback：同上，<a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback">https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback</a></li>
-</ul>
-<p>创建之后，复制 Client ID，然后点击Generate a new client secret 复制secret的值</p>
-<h2 id="创建GitHub-Organization"><a href="#创建GitHub-Organization" class="headerlink" title="创建GitHub Organization"></a>创建GitHub Organization</h2><p>创建一个GitHub Organization，后续做验证的时候要用这个。</p>
-<h2 id="配置Zero-Trust"><a href="#配置Zero-Trust" class="headerlink" title="配置Zero Trust"></a>配置Zero Trust</h2><p>回到Cloudflare Zero Trust，选择Settings – Authentication – Login Methods，右侧有一个Add new，然后选择GitHub</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003372621.png"><img src="/images/2023042003372621.png"></a></p>
-<p>填入刚刚复制的ID和secret，点击保存</p>
-<p> </p>
-<p>下面会弹出一个小的框框</p>
-<p><img src="/images/2023042003351386.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
-<p>点击finish setup或者复制链接到新窗口打开，在org中给我们新创建的org授权，点击Grant，然后authorize</p>
-<p><img src="/images/2023042003351323.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>此时回到Login Methods 就可以看到已经添加成功啦，点击 Test按钮可以看下Cloudflare从GitHub的API拿到的数据</p>
-<p><img src="/images/2023042003351481.png" alt="背景图案 描述已自动生成"></p>
-<h2 id="配置验证"><a href="#配置验证" class="headerlink" title="配置验证"></a>配置验证</h2><p>此时如果你打开 team url，比如 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a> 在Login就已经能看到GitHub了。</p>
-<p><img src="/images/202304200335155.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>当然这还没完，不能所有人都能通过GitHub OAuth进入App Launcher呀！因此我们还需要进一步配置</p>
-<p>点开Zero Trust – Settings – App Launcher – Manage</p>
-<p>首先确认一下Authentication页面已经选中了GitHub，默认应该是所有认证方式都可以，当然你也可以自定义</p>
-<p><img src="/images/2023042003351550.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>然后在Rules中，新建或者编辑已有规则，我们会发现有三种可以选择的模式： include、require和exclude</p>
-<p><img src="/images/2023042003351695.png" alt="图形用户界面 描述已自动生成"></p>
-<ul>
-<li>include：类似逻辑OR操作符，用户只要满足条件之一就可以</li>
-<li>require：类似逻辑AND操作符，用户要满足所有的条件</li>
-<li>exclude：类似逻辑NOT，排除条件</li>
-</ul>
-<p>[v_error] 添加require规则的时候要注意，是要满足所有条件才可以授权。比如我的require规则添加了两条，分别是County&#x3D;China &amp; Country&#x3D;US，那么没人可以通过，因为IP只能在一个国家而不是两个国家。 [&#x2F;v_error]</p>
-<p>这里我们的需求是，用户要么通过 dmesg.app 的邮箱验证，要么在新创建的那个Organization里，所以新添加一个include，Selector选择GitHub Organization，organization name写创建的name</p>
-<p><img src="/images/2023042003351779.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>如果我们的需求是，用户在org里，并且邮箱为 <a href="mailto:xxx@xxx.com">xxx@xxx.com</a>，那么就要一个include 邮箱规则，一个require GitHub organization规则。</p>
-<p>返回 team url就可以登录了。</p>
-<p>注意：配置 App Launcher的权限，并不等于拥有应用的权限，<strong>应用的权限是独立的</strong>。</p>
-<p>举个例子，我之前创建的redis，只能邮箱进行验证，并且放到了launcher之中，那么在App Launcher这里我通过GitHub OAuth后，并看不到那个redis。想要看到对应的应用，那只能去编辑对应应用的规则。</p>
-<h2 id="Access-Group"><a href="#Access-Group" class="headerlink" title="Access Group"></a>Access Group</h2><p>把一样的规则配置多次就显得很蠢，这个时候就要用Access Group。</p>
-<p>Access – Access Group，设置名称和配置和前面一样</p>
-<p><img src="/images/2023042003351846.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>在其他地方，添加策略的时候选择这个Group就可以了。甚至在WARP的Device enrollment permissions中也可以这样搞！</p>
-<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/policies/access/">https://developers.cloudflare.com/cloudflare-one/policies/access/</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/04/22/zero-trust-login-method/index/" data-id="clhp7rtnz00c2s2qrbtpb4apw" data-title="Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-zero-trust-access-web/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/04/20/zero-trust-access-web/index/" class="article-date">
-  <time class="dt-published" datetime="2023-04-20T00:00:00.000Z" itemprop="datePublished">2023-04-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>有些时候我们跑一些web应用，想把他们放在公网上，但是又不能每个人都可以访问。如果这个程序不支持通过身份验证，那么之前的做法大概会前面套上一个nginx之类的反向代理，在反向代理中配置身份认证。</p>
-<p>这样……也不是不行，但是配置nginx就让人感觉很繁琐！在有了Cloudflare Zero Trust之后，我们可以利用Cloudflare做到这种身份认证的事情。</p>
-<p>我这刚好有一个redis insight，接下来就可以说一下这个东西怎么跑</p>
-<h2 id="Redis-Insight"><a href="#Redis-Insight" class="headerlink" title="Redis Insight"></a>Redis Insight</h2><p>Redis官方出的一个用户管理redis的工具，可以增删改查啦什么的。跑起来很容易，用docker跑是这样的：才不用那个electron套壳呢</p>
-<p>docker run -d –restart&#x3D;unless-stopped –name&#x3D;redisinsight \<br>    -v redisinsight:&#x2F;db -p 127.0.0.1:8001:8001 \<br>    -e RITRUSTEDORIGINS&#x3D;<a target="_blank" rel="noopener" href="https://redis.dmesg.app/">https://redis.dmesg.app</a> \<br>    redislabs&#x2F;redisinsight</p>
-<p>由于 Redis Insight有 CORS检查，因此这里要设置环境变量来控制，要记住不可以带 <code>/</code>哦</p>
-<p>然后把容器连接到网络，因为我的redis通过docker-compose跑了两个，因此要把容器和网络连接起来：</p>
-<p>docker network connect botsrunner_default redisinsight<br>docker network connect yyetsbot_default redisinsight</p>
-<h2 id="创建Argo-tunnel，添加Public-Hostname"><a href="#创建Argo-tunnel，添加Public-Hostname" class="headerlink" title="创建Argo tunnel，添加Public Hostname"></a>创建Argo tunnel，添加Public Hostname</h2><p>如下图所示。此时<code>redis.dmesg.app</code>应该可以访问了</p>
-<p><img src="/images/2023042003301977.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<h2 id="开启access"><a href="#开启access" class="headerlink" title="开启access"></a>开启access</h2><p>Zero Trust – Access – Applications – Add Application – Self-hosted</p>
-<p>选择对应的会话有效期，对应的子域名</p>
-<p><img src="/images/2023042003302065.png" alt="图形用户界面 描述已自动生成"></p>
-<p>下一页configure rules选择最简单的email方式即可</p>
-<p><img src="/images/2023042003302199.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>此时打开对应的网站，就会发现已经进入了验证页面</p>
-<p><img src="/images/2023042003302235.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>输入邮箱验证之后就可以正常访问了。</p>
-<p>在Redis Insight中，添加连接的时候，用<code>redis.yyetsbot_default</code> 来表示<code>yyetsbot_default</code>这个网络的<code>redis</code> service。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003342554.png"><img src="/images/2023042003342554.png"></a></p>
-<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="收不到验证码"><a href="#收不到验证码" class="headerlink" title="收不到验证码"></a>收不到验证码</h3><p>别怕，可能是被拦截了，比如说Gmail……</p>
-<p><img src="/images/2023042003302348.png" alt="图形用户界面, 文本 中度可信度描述已自动生成"></p>
-<h3 id="Redis-Insight页面无法显示"><a href="#Redis-Insight页面无法显示" class="headerlink" title="Redis Insight页面无法显示"></a>Redis Insight页面无法显示</h3><p>应该是cache的问题，开development mode暂时绕过，验证通过之后再关掉好了</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/04/20/zero-trust-access-web/index/" data-id="clhp7rtny00c0s2qr0qjzc0ow" data-title="使用Cloudflare Zero Trust保护你的Web应用" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1089,7 +1104,7 @@ def verify\_payment(self):
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1102,23 +1117,23 @@ def verify\_payment(self):
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

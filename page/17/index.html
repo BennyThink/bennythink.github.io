@@ -73,6 +73,601 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-school-3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/11/09/school-3/index/" class="article-date">
+  <time class="dt-published" datetime="2016-11-09T00:00:00.000Z" itemprop="datePublished">2016-11-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/11/09/school-3/index/">[学校上网系列]3. 从网盘秒传中想到的：不要想当然</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天恰逢美国大选，特朗普已经成为新任美国总统。所以我也来凑个热闹，当然今天我不打算谈论总统的事，今天我要继续谈论我们的学校上网系列之从网盘秒传想到的</p>
+<p>鉴于360云盘宣布关门大吉，估计大家伙都转移到百度网盘了吧。提到网盘，大家可能会把他当做备份数据的、存储资料的一个地方。所以今天我也就来科普下一些和数据备份相关的概念以及如何安全、可靠的进行数据备份。嗷对了，自从百度云改版之后，下载什么东西都得用那丫的百度云管家。婶不能忍啊！ :twisted:</p>
+<p>再继续之前，强烈建议阅读爱范儿上的一篇文章：<a target="_blank" rel="noopener" href="http://www.ifanr.com/653360">《国内的网盘一个个倒下，这里有一份能让你用到老的存储指南》</a></p>
+<p>在说数据备份之前，我们要先学习一些基础知识：数据备份的三种方式、如何选择存储媒介、超大空间和秒传，之后我们会讨论下如何安全的使用云盘、如何干他丫的百度云管家。</p>
+<h2 id="数据备份的三种方式"><a href="#数据备份的三种方式" class="headerlink" title="数据备份的三种方式"></a>数据备份的三种方式</h2><p>通常来说，最常见的数据备份方式有完整备份、增量备份、差异备份。</p>
+<h3 id="完整备份"><a href="#完整备份" class="headerlink" title="完整备份"></a>完整备份</h3><p>把所有文件、文件夹或数据作一次性的复制，不考虑其中是否有任何更改、变化的备份方式就叫做完整备份。通常来说，第一次备份都会是完整备份。举个例子，我周一把整个分区&#x2F;目录的文件都以某种方式备份&#x2F;封装到某个特定的存储介质中，这就叫做完整备份。</p>
+<h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>指对上一次完整备份或增量备份后更新的数据进行备份。举个例子，我周一进行了完整备份，周二进行增量备份则是这段时间内发生变化的数据作为一个”增量”和周一的备份文件放在一起，这个过程就叫做增量备份。周三继续进行增量备份是和周二进行对比，变化的数据进行备份。换句话说，增量备份是跟<strong>前一次备份</strong>对比，备份变化的。</p>
+<h3 id="差异备份"><a href="#差异备份" class="headerlink" title="差异备份"></a>差异备份</h3><p>提供运行完整备份后变更的文件的备份。差异备份和增量备份非常相近。只不过差异备份永远是和完整备份的那次进行比较（在这里也就是周一的完整备份）</p>
+<hr>
+<p>估计大家伙此时还是懵逼的状态，依旧没搞懂增量和差异的区别……我们举个很大的例子：</p>
+<p>周一进行完整备份，周二进行增量备份，周三进行增量备份，周四进行差异备份，周五进行差异备份，他们备份之后的文件名分别为file1, file2, file3, file4, file5</p>
+<p>那么请继续往下看。</p>
+<h2 id="三种备份方式的还原"><a href="#三种备份方式的还原" class="headerlink" title="三种备份方式的还原"></a>三种备份方式的还原</h2><h3 id="完整备份-1"><a href="#完整备份-1" class="headerlink" title="完整备份"></a>完整备份</h3><p>最简单了，直接还原file1即可。</p>
+<h3 id="增量备份-1"><a href="#增量备份-1" class="headerlink" title="增量备份"></a>增量备份</h3><p>假如我要恢复到周二的状态，那么需要file1和file2这两个文件，假如需要恢复到周三的状态，那么就需要file1, file2, file3这三个文件。</p>
+<h3 id="差异备份-1"><a href="#差异备份-1" class="headerlink" title="差异备份"></a>差异备份</h3><p>假如需要恢复到周四的状态，那么就需要file1, file4；假如需要恢复到周五的状态，那么就需要file1和file5（并不需要file4）</p>
+<hr>
+<p>看出增量备份和差异备份的区别了吗？</p>
+<p>增量备份是针对<strong>上一次备份的</strong>（无论是增量还是完整），它的恢复需要<strong>每一次的增量文件和最开始的完整备份</strong>，也就是说恢复到周三的状态不能没有file2这个文件；</p>
+<p>差异备份是针对<strong>完整备份的</strong>，它的恢复需要本次<strong>差异备份文件</strong>和对应的<strong>完整备份</strong>。假如我想恢复到周四，那么只需要file1和file4就够了，file2和file3都是完全无关的。</p>
+<h3 id="这有什么用？和网盘有何关系？"><a href="#这有什么用？和网盘有何关系？" class="headerlink" title="这有什么用？和网盘有何关系？"></a>这有什么用？和网盘有何关系？</h3><p>当然有用了，尤其是那些喜欢备份系统分区的人们——每次都是完整备份，浪费时间、浪费空间。</p>
+<p><img src="/images/110916_1153_1.png"></p>
+<p>著名的备份软件True Image即提供这三种备份方式。</p>
+<p>对于使用网盘的人们来说……网盘如果能够支持类似增量备份这种技术，将会大幅度减少上传时间。实际上，网盘中存在的这种技术一般被称作”<strong>差异同步</strong>“，对这个技术做的最好的应该是Dropbox。举个例子，假如你上传了一个压缩包，之后又给压缩包进行了一些修改（增加、修改、删除文件等），Dropbox会分析这个压缩包中哪里被修改了，然后只上传修改过的那些字节。这一技术有一点像rsync 。因为这技术太先进了，所以很少有网盘会用，维基百科上有个页面，有兴趣可以去<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Comparison_of_online_backup_services">查阅这里</a></p>
+<h2 id="如何选择备份媒介"><a href="#如何选择备份媒介" class="headerlink" title="如何选择备份媒介"></a>如何选择备份媒介</h2><p>备份媒介，指的是你是把备份文件复制到移动硬盘上，U盘上还是上传到虚无缥缈的”云”上？</p>
+<p>我们要从几个方面来考虑这个问题。</p>
+<h3 id="速度"><a href="#速度" class="headerlink" title="速度"></a>速度</h3><p>毫无疑问，拷贝到移动硬盘上的速度是要<strong>远远快于</strong>上传到云端的，况且中国奉行下载很快、上传很慢的不对等”百兆光纤”这个现象要更加明显。下载也基本同理。</p>
+<h3 id="保密性"><a href="#保密性" class="headerlink" title="保密性"></a>保密性</h3><p>你的数据是否是保密的呢？。如果移动硬盘被借走、偷走，那么所有数据就会被人偷窥；而上传到网盘…也可能有类似的担忧：网盘提供商偷窥（比如说美国的NSA啦，中国的金盾啦）、传输过程中被窃听（很多网盘上传下载都不是加密的）、网盘账号被盗（网盘被入侵、被搜索引擎检索）</p>
+<p>在这里点名批评百度网盘，用它，<a target="_blank" rel="noopener" href="http://www.pingwest.com/pay-for-your-data-and-privacy/">那就先给你的隐私买个保险吧</a>。</p>
+<h3 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h3><p>硬盘坏了、着火、被盗、地震，使用移动硬盘这类的可能就要遭殃了。但是除非发生极大规模的全国性灾难、云存储厂商跑路、内容被审查，云端资料大概还是比较安全的……</p>
+<p>[v_blue]其实我看好BT Sync[&#x2F;v_blue]</p>
+<h3 id="易用性"><a href="#易用性" class="headerlink" title="易用性"></a>易用性</h3><p>假如你想分享某个视频给朋友，U盘拷贝进去再给他可能很麻烦；但是上传到网盘再分享就很简单了。</p>
+<h2 id="超大空间和秒传的秘密"><a href="#超大空间和秒传的秘密" class="headerlink" title="超大空间和秒传的秘密"></a>超大空间和秒传的秘密</h2><p>对于大多数人来说，2T的空间是一种诱惑啊。但是天真的你难道以为百度真的为你量身订造买了三块价值300元的1硬盘总计900元和其他电费、带宽费来为你服务吗？还有哎百度说的2T是2048G——1024进制，而不是硬盘厂商们喜欢的900G</p>
+<p>当然不会了！ [v_tips]为什么要3x1T？不应该直接就是2T吗 RAID5啊亲，这么重要的应用场合，肯定要用到磁盘阵列的，而且RAID5应用比较广泛，速度和安全并存。 [&#x2F;v_tips]</p>
+<p>事实当然不是这样了。笨理想，同样的文件服务器上肯定只有一份（逻辑上只有一份），但是从技术上他们是怎么确定同一个文件的呢？这就引入了单向散列函数的概念。</p>
+<h3 id="单向散列函数"><a href="#单向散列函数" class="headerlink" title="单向散列函数"></a>单向散列函数</h3><p>英文名字是hash，原意为砸碎，这倒是很形象，也有人音译为”哈希”。单向散列函数是一种将无穷无尽的东西转换为<strong>有限长度的</strong>、<strong>尽可能不重复的、不可逆</strong>字符串的算法，这个算法叫做单向散列函数，这个字符串叫做散列值、摘要、信息摘要。说到这，有些童鞋可能会问，你把无穷的东西转换成有穷的东西，肯定会有两个东西转换之后会是相同的嘛！问得好！这种现象叫做碰撞，分为……！</p>
+<p>说到这可能”散列”这个概念还是很难理解。那么指纹可以理解吗？你对一首歌求某个散列算法的散列值，就相当于把这首歌的指纹求出来了——就像你的指纹可以几乎唯一的代表你一样，这个散列值也可以几乎唯一的代表那首歌。</p>
+<p>举个例子，你把00000000散列之后的摘要是abjhda62c，你把仅仅改变了一个bit的10000000散列之后，摘要就会变为fjgha267d2。输入值只变了一位，但是摘要却变得面目全非。也就是说，散列可以用来验证文件的正确性、</p>
+<p>聪明的童鞋大概想到了…假如我上传了某部电影，此时服务器上海没有这个文件，于是只好乖乖的上传了。上传完之后，另一个用户再上传同一部电影的时候（或者是散列值相同的文件），服务器（或者是客户端）经过计算发现散列值相同，那也就直接给另一个用户做标记并提示”秒传”。</p>
+<p>这也就是秒传的原理。 [v_blue]Windows下的HashTab用起来挺舒服的[&#x2F;v_blue]</p>
+<hr>
+<p>单向散列函数有哪些基本特征呢？ <strong>单向性</strong> 你能把砸碎的镜子复原吗？很难吧。单向散列函数的单向性是指的操作方向的不可逆性，在单向散列函数中是指只能从输入推导出输出，而不能从输出计算出输入。</p>
+<p><strong>唯一性</strong> 散列函数的输入和输出不是唯一对应关系的（无穷怎么可能会一一对应有穷），如果两个散列值相同，两个输入值很可能是相同的，但也可能不同，这种情况称为”哈希碰撞”。碰撞分为两种，强碰撞和弱碰撞。</p>
+<p><strong>弱抗碰撞性：</strong>当给定某条消息的散列值时，单向散列函数必须确保要找到和该条消息具有相同散列值的另外一条消息是非常困难的。</p>
+<p><strong>强抗碰撞性：</strong>是指要找到散列值相同的两条不同的消息是非常困难的。</p>
+<p>这里的碰撞可能说的有点多了……但是百度云使用的是MD5，而MD5早就被认为是不安全的散列函数了。我曾见过用工作站碰撞小黄片玩的孩子… [v_tips]PS：在对用户身份进行认证中（也就是你登录账户的时候），散列函数是起到非常关键的作用的。没有哪家系统会直接明文把用户密码存到数据库里吧，再不济也得用散列函数hash一下（然而这却无法阻挡彩虹表的脚步），比较好的做法是使用随机盐配合安全的散列函数。[&#x2F;v_tips]</p>
+<h2 id="如何安全的使用云盘"><a href="#如何安全的使用云盘" class="headerlink" title="如何安全的使用云盘"></a>如何安全的使用云盘</h2><p>几个月之前，几个字幕组的成员因为<a target="_blank" rel="noopener" href="http://news.sohu.com/20160929/n469374932.shtml">上传日剧资源被日本警方逮捕</a></p>
+<p>虽说字幕组本身就是游走在法律边缘的，但是我还是想说一句，字幕组挺辛苦的。那么，假如你是上面新闻里被抓的字幕组成员，假如你的网盘受到监控、传输被监听，假如给你一次重来的机会，你该怎样避免被抓到呢……？</p>
+<p>再假如你不是很放心云存储厂商，你怕他们泄露隐私，但是你又不得不使用，那该怎么办呢？ [v_error]PS，这不是想要说”匿名术”，这只是想说，怎样能够在<strong>轻度危险的情况</strong>下安全的使用云盘；同时也不会涉及到那些很牛逼的破解技术，比如说”冷启动攻击”什么的。[&#x2F;v_error]</p>
+<h3 id="使用VeraCrypt创建加密卷，并将加密卷上传"><a href="#使用VeraCrypt创建加密卷，并将加密卷上传" class="headerlink" title="使用VeraCrypt创建加密卷，并将加密卷上传"></a>使用VeraCrypt创建加密卷，并将加密卷上传</h3><p>创建加密卷，哪怕拿到它，没有密码也是无法解密的。在轻度危险的情况下，大概也不会有人揍你胁迫你交出密码。至于加密卷的密码，可以使用某些支持端到端加密的IM软件、或者是GPG发邮件等方法告知接收人。</p>
+<p>对于那些不信任云存储厂商但又没办法的人，创建加密卷可能是非常棒的办法了——同时这时候支持差分同步就要好太多太多了。</p>
+<p>使用VeraCrypt创建加密卷具体方法，可以参考我的博文<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版：密码学科普，兼谈GnuPG和VeraCrypt》</a></p>
+<h3 id="使用GPG创建加密文件"><a href="#使用GPG创建加密文件" class="headerlink" title="使用GPG创建加密文件"></a>使用GPG创建加密文件</h3><p>这个本质和上面是一样的，只不过非对称往往速度不占优势</p>
+<h3 id="使用WinRar、7zip等开启文件名加密功能"><a href="#使用WinRar、7zip等开启文件名加密功能" class="headerlink" title="使用WinRar、7zip等开启文件名加密功能"></a>使用WinRar、7zip等开启文件名加密功能</h3><p>一定要记得开启文件名加密功能，否则，哎嘿嘿还是能看到文件名的。</p>
+<p><img src="/images/110916_1153_2.png"><img src="/images/110916_1153_3.png"></p>
+<h3 id="注意：不要对加密卷再次使用WinRar等工具进行压缩"><a href="#注意：不要对加密卷再次使用WinRar等工具进行压缩" class="headerlink" title="注意：不要对加密卷再次使用WinRar等工具进行压缩"></a>注意：不要对加密卷再次使用WinRar等工具进行压缩</h3><p>为啥捏？学习一点点信息论、密码学的人大概会懂，加密过的东西的熵都是很高的，是压不动的，还浪费你CPU，非得想弄成压缩包，或者是纯粹利用压缩软件的分卷压缩功能，请记得选”只存储”这个选项。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>最近心情比较浮躁，这篇文章也写得比较草率，一度都觉得想放弃了。近几天我也会尽快更新“美文推荐”的。最后，留下一句话：</p>
+<blockquote>
+<p>有些人总觉得，我踢球进门了，是我球技好；射偏了，那是打雷吓到了我。其实真正起决定性作用的是球技，打不打雷下不下雨只是次要因素。</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/11/09/school-3/index/" data-id="clhp7rtj50085s2qrcfydgzrb" data-title="[学校上网系列]3. 从网盘秒传中想到的：不要想当然" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-school-2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/10/05/school-2/index/" class="article-date">
+  <time class="dt-published" datetime="2016-10-05T00:00:00.000Z" itemprop="datePublished">2016-10-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/10/05/school-2/index/">[学校上网系列]2. 从钓鱼网站中想到的：不靠谱的域名</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_blue]由于本篇提到了一些HTTPS的事情，所以，插播一个特大喜讯，<a target="_blank" rel="noopener" href="http://www.solidot.org/story?sid=49821">Mozilla表态将停止信任WoSign 和StartCom签发的新证书</a>！[&#x2F;v_blue]</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/school-1.html">上一篇文章</a>谈了下开放式网络的危险性，实际上在开放式网络中很危险的地方就在<strong>以DNS劫持的方式来达到钓鱼</strong>的目的——尤其是对那些安全性意识很差的人来说。有的童鞋可能会收到”您有1000积分可兑换100元话费，请点击<a target="_blank" rel="noopener" href="http://jf.l0086.cn进行兑换" ,于是果断点击结果被骗.所以这篇文章主要就来说说钓鱼网站的那些事. ">http://jf.l0086.cn进行兑换&quot;，于是果断点击结果被骗。所以这篇文章主要就来说说钓鱼网站的那些事。</a></p>
+<p>在说钓鱼网站之前，我们首先要了解一下几个非常基础的概念：<strong>IP、域名、DNS</strong>。之后我们会说说当你在浏览器地址栏输入网址并按回车的时候发生了什么。</p>
+<p>[v_tips]友情提示：只想知道怎么防骗的，直接看最后的总结啦！[&#x2F;v_tips]</p>
+<h2 id="IP"><a href="#IP" class="headerlink" title="IP"></a>IP</h2><p>互联网协议地址（Internet Protocol Address），缩写为IP地址（IP Address），是分配给网络上使用网际协议的设备的数字标签。常见的IP地址分为IPv4与IPv6两大类。</p>
+<p>212.41.1.74就是一个合法的IPv4地址。</p>
+<p>IPv4是一个32位的地址，每8位使用一个点来进行分隔，我们人类通常使用<strong>点分十进制</strong>将11111111.11111111.11111111.11111111转化为255.255.255.255，甚至是使用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%97%A0%E7%B1%BB%E5%88%AB%E5%9F%9F%E9%97%B4%E8%B7%AF%E7%94%B1">CIDR表示法</a>来表示一个IP段。</p>
+<p>IP地址就好似门牌号，对于人类来说不太好记，对于机器来说当然没问题啦！谁也不会输入220.181.112.244来访问百度吧？</p>
+<p><img src="/images/100416_0523_1.png"></p>
+<p>于是人类就发明了一种可以把易于记住的字符串转换成对应的IP的东西，叫做DNS</p>
+<h2 id="域名"><a href="#域名" class="headerlink" title="域名"></a>域名</h2><p>所谓域名，简单理解，就是你在浏览器地址栏看到的以http:&#x2F;&#x2F;或者https:&#x2F;&#x2F;开头的一串比较好记的英文字符串（不包括http:&#x2F;&#x2F;、https:&#x2F;&#x2F;）。</p>
+<p><img src="/images/100416_0523_2.png"></p>
+<p>这里dmesg.app即是一个域名</p>
+<p>其中最后的com被称为TLD（Top Level Domain）</p>
+<p>TLD一般分为两种：</p>
+<p><strong>国家和地区顶级域名</strong>（Country code top-level domain，ccTLD）：简而言之，cn就是ccTLD</p>
+<p><strong>通用顶级域</strong>（Generic top-level domain，gTLD）： com就是gTLD</p>
+<h2 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h2><p>域名系统（英文：Domain Name System，缩写：DNS）是因特网的一项服务。它作为将<strong>域名和IP地址相互映射</strong>的一个分布式数据库，能够使人更方便地访问互联网。</p>
+<p>DNS使用<strong>TCP或者UDP的53号端口</strong>，通常人们默认都会使用UDP 53.因为UDP是无连接的协议，你敢想象下查询个域名还需要三次握手这么麻烦费时吗？</p>
+<p>那么从域名到IP这个转化过程是由DNS完成的，这个过程具体是怎样的呢？我们简要的来说下。</p>
+<p>[v_tips]顺便提一句，DNS查询有两种方式：<strong>递归和迭代</strong>。DNS客户端设置使用的DNS服务器一般都是递归服务器，它负责<strong>全权处理</strong>客户端的DNS查询请求，直到返回最终结果。而DNS服务器之间一般采用迭代查询方式。[&#x2F;v_tips]</p>
+<blockquote>
+<p>1. 在浏览器中输入网址或者点击超链接，浏览器会先提取出来域名，比如说<a target="_blank" rel="noopener" href="http://www.qq.com.浏览器首先会在自己的缓存中查找是否有该域名对应的ip地址,如果有,就先调用这个ip地址映射,完成域名解析./">www.qq.com。浏览器首先会在自己的缓存中查找是否有该域名对应的IP地址，如果有，就先调用这个IP地址映射，完成域名解析。</a></p>
+<p>2. 如果浏览器缓存中没有这个域名的映射，就去查找hosts，如果有，就先调用这个IP地址映射，完成域名解析。</p>
+<p>3. 如果hosts与浏览器缓存都没查到，那就要向系统设置的DNS发送查询请求（通常这个DNS是ISP提供的DNS或者是阿里DNS等公共DNS），我们暂时称这个服务器为ISP DNS。ISP DNS服务器首先检查自身缓存，如果存在记录则直接返回结果。</p>
+<p>4. 如果以上操作均失败，ISP DNS会在配置文件找到13组根服务器的地址，并向根域名服务器发送查询报文query <a target="_blank" rel="noopener" href="http://www.qq.com.根域名服务器返回.com域的权威域名服务器地址,这一级首先会返回的是顶级域名的权威域名服务器./">www.qq.com。根域名服务器返回.com域的权威域名服务器地址，这一级首先会返回的是顶级域名的权威域名服务器。</a></p>
+<p>5. ISP DNS服务器向.com域的权威域名服务器发送查询报文query <a target="_blank" rel="noopener" href="http://www.qq.com,得到.qq.com域的权威域名服务器地址./">www.qq.com，得到.qq.com域的权威域名服务器地址。</a></p>
+<p>6.ISP DNS服务器向.qq.com域的权威域名服务器发送查询报文query <a target="_blank" rel="noopener" href="http://www.qq.com,得到主机www的a记录,存入自身缓存并返回给客户端./">www.qq.com，得到主机www的A记录，存入自身缓存并返回给客户端。</a></p>
+</blockquote>
+<p>如果有点懵逼的话，你就这么想，ISP DNS是个跑腿的，假如他的缓存里没有你要解析的域名，他就去找<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%A0%B9%E7%B6%B2%E5%9F%9F%E5%90%8D%E7%A8%B1%E4%BC%BA%E6%9C%8D%E5%99%A8">rootDNS</a>，rootDNS再踢皮球让他去找对应顶级域的DNS，然后再踢皮球…最终找到了真正的IP，返回并记入缓存。</p>
+<p>想想如果DNS全都挂掉了，大家不仅仅要打IP地址上网了，各种商业交易也会完蛋，连微信都聊不了哎——实际情况非常糟糕，这大概就会是互联网和整个世界的末日。</p>
+<h2 id="在你敲回车时，都发生了些什么"><a href="#在你敲回车时，都发生了些什么" class="headerlink" title="在你敲回车时，都发生了些什么"></a>在你敲回车时，都发生了些什么</h2><p>在了解了DNS解析的过程之后，我们来说下，当你在地址栏输入一个网址并敲回车之后，究竟发生了些什么呢。假如说，你是第一次在Chrome的地址栏中输入dmesg.app吧！我猜没有几个人会输入带http、https的吧！</p>
+<blockquote>
+<p>1. 首先根据输入的网址，提取出域名（在本例中，也就是dmesg.app）</p>
+<p>2. 根据上面”DNS解析过程”解析出正确的IP地址。</p>
+<p>3. 浏览器就会向这个 IP地 址 对应的 Web 端口（一般也就是80）发送 HTTP Get请求。</p>
+</blockquote>
+<p>对于一没开HTTPS的网站来说，这就是完整的过程了，只要缓存没过期，每一次都遵循这个过程。但是…对待HTTPS的网站，要额外多出来一些步骤。</p>
+<blockquote>
+<p>4. 服务器发送<a target="_blank" rel="noopener" href="https://dmesg.app的301重定向给浏览器,浏览器向带https的443端口发起请求,开始验证证书、密钥交换等等/">https://dmesg.app的301重定向给浏览器，浏览器向带https的443端口发起请求，开始验证证书、密钥交换等等</a></p>
+<p>5. 在HTTPS建立之后，服务器会发送对应的响应报文，有些还会加上一个Strict-Transport-Security响应头。</p>
+</blockquote>
+<p>在我的博客中，当你第二次访问dmesg.app时，除了DNS解析过程还是一样之外，请求的时候就变得不同了….</p>
+<ul>
+<li>在接下来的一段时间内（我设置的是63072000秒，即两年），浏览器只要向bennythink.com或其子域名发送HTTP请求时，必须采用HTTPS来发起连接。比如，用户点击超链接或在地址栏输入 <a target="_blank" rel="noopener" href="http://dmesg.app/">http://dmesg.app/</a> ，浏览器应当自动将 http 转写成 https，然后直接向 <a target="_blank" rel="noopener" href="https://dmesg.app/">https://dmesg.app/</a> 发送请求。</li>
+<li>在接下来的两年中，如果 bennythink.com 服务器发送的TLS证书无效，用户不能忽略浏览器警告继续访问网站。</li>
+</ul>
+<h1 id="当你遇到钓鱼网站时……"><a href="#当你遇到钓鱼网站时……" class="headerlink" title="当你遇到钓鱼网站时……"></a>当你遇到钓鱼网站时……</h1><h2 id="迷惑人的字符"><a href="#迷惑人的字符" class="headerlink" title="迷惑人的字符"></a>迷惑人的字符</h2><p>我们回到文章最开始，我列举了一个中国移动积分商城的例子，如果你瞪大眼睛瞅一瞅，你会发现是l0086而不是10086（字母L和数字1）如果l0086这个网站存在并且做的和10086一样，那么你的服务密码不就跟你说拜拜啦！</p>
+<p>相应的，有几个字符在某些非等宽字体下看起来非常相似，1、I、l，0、O、o，如果骇客恰巧注册到了这样的域名——或者是开放式网络中通过DNS劫持，轻轻松松骗起人嘛。</p>
+<p><img src="/images/100416_0523_3.png"></p>
+<p>不同编程字体下的1Il0Oo，从左到右依次为Source Code Pro、Ubuntu Mono、Monaco、DejaVu Sans Mono</p>
+<p>在word里用调成微软雅黑看看这个六个字符，几乎分不清的好嘛！Android的Droid Sans也一个样…</p>
+<h2 id="不可信的域名"><a href="#不可信的域名" class="headerlink" title="不可信的域名"></a>不可信的域名</h2><p>有人可能会说，那我瞪大眼睛看清楚了网址（域名），确保是真正的网站而不是山寨的，不就行了嘛？这种想法，要分情况讨论，对应http的，其实是大错特错。原因在于，域名系统本身就是<strong>不可靠</strong>的！回想一下DNS解析的过程，好像DNS服务器都有个缓存哎 。这是为了提高查询效率的，先看看自己的缓存里有没有，没有了再往上一级去问。缓存是存在一定时间的时效性的，可能是几分钟也可能是几小时，缓存里的某条记录如果过期了，就会被删除。</p>
+<p>你有没有想过，假如有人故意配置错了域名和IP的配置关系呢？假如从源头开始这个对应的映射关系就是错误的呢？假如有人抢在真正的域名服务器应答之前”抢答”了呢？（正是因为UDP协议才可以”抢答”，但是哪怕人们使用TCP的DNS，中间人也依旧可以使用RST来中断连接。可靠的办法是使用DNSCrypt加密查询请求）</p>
+<p>这也就是针对DNS的攻击方法，常见的有<strong>DNS劫持</strong>和<strong>DNS污染</strong></p>
+<p><strong>劫持</strong>：域名服务器上都会保存一大堆的域名记录（每条记录包含”域名”和”IP地址”）。当收到域名查询的时候，域名服务器会从这堆记录中找到对方想要的，然后回应给对方。如果域名服务器上的某条记录被<strong>人为修改</strong>了（改成错的），那么一旦要查询这条记录，得到的就是错误的结果。这种情况称之为”域名劫持”。</p>
+<p>不知道有没有遇见或者听说过打开网页蹦到了什么”互联星空”，或者是下载什么软件被替换成了其他的东西，这些都属于劫持。</p>
+<p><strong>污染</strong>：当你的电脑向域名服务器发送了”域名查询”的请求，然后域名服务器把回应发送给你的电脑，这之间是有一个时间差的。如果某个攻击者能够在域名服务器的”DNS应答”还没有到达你的电脑之前，先伪造一个错误的”DNS应答”发给你电脑。那么你的电脑收到的就是错误的信息，并得到一个错误的 IP地址。DNS污染还有一个还有个别名叫投毒，多形象，河流上游投诉上游以下全部中毒。就是说，污染可以扩散到下层的DNS服务器。</p>
+<h2 id="值得信任的https"><a href="#值得信任的https" class="headerlink" title="值得信任的https"></a>值得信任的https</h2><p>在说废话之前，先说下结论：在<strong>理想状态下</strong>，HTTPS是可以相信的。</p>
+<p>理想状态？没错理想状态，In theory, there is no difference between theory and practice. But, in practice, there is.</p>
+<p>带着小锁头是指使用了HTTPS的网站，在Chrome中显示为绿色的小锁头，有些可能还会带有Certificate Transparency</p>
+<p><img src="/images/100416_0523_4.png"></p>
+<p>在解释这个问题之前，我们首先想一想，为什么说HTTP是不安全的？</p>
+<p><strong>一是</strong>HTTP可以被嗅探、监听；<strong>二是</strong>HTTP可以被中间人劫持并且双方不会感觉到任何异常。</p>
+<p>应对第一个问题，我们可以通过一种办法来使得客户端和服务器<strong>协商</strong>出来一个只有他俩知道的<strong>密钥</strong>来对通信进行加密，这样即使被窃听、被篡改也无所谓，通常我们会使用混合密码体系、Diffie-Hellman密钥交换算法来达到这个目的；</p>
+<p>《你的灯亮着吗？发现问题的真正来源》里说过一句话：<strong>每一个解决方案都是下一个问题的来源</strong>。在应对”HTTP不安全”的第一个问题时，我们成功解决了被窃听、篡改的问题，但是随之而来我们引发了一个更严重的问题：被中间人劫持该怎么办？</p>
+<p>再想想怎么应对中间人劫持之前，我们首先想一想问题的来源和本质：为什么我们能被悄无声息的中间人劫持？</p>
+<p>想</p>
+<p>几</p>
+<p>分</p>
+<p>钟</p>
+<p>试</p>
+<p>试</p>
+<p> </p>
+<p><strong>缺乏有效的身份认证机制</strong>是使得中间人劫持发生的根本原因。</p>
+<p>为此，人们采取的方法是引入第三方认证机构构建PKI。</p>
+<h2 id="https不完全可靠的原因"><a href="#https不完全可靠的原因" class="headerlink" title="https不完全可靠的原因"></a>https不完全可靠的原因</h2><h3 id="垃圾浏览器警告证书错误处理不当"><a href="#垃圾浏览器警告证书错误处理不当" class="headerlink" title="垃圾浏览器警告证书错误处理不当"></a>垃圾浏览器警告证书错误处理不当</h3><p>有些浏览器，比如说”360安全浏览器”在遇到证书错误，用户选择继续之后，地址栏竟然提示用户安全，所谓”<a target="_blank" rel="noopener" href="http://www.solidot.org/story?sid=33350">安全浏览器</a>“就是这么安全的？</p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/multiple1902/status/583707734748467200">https://twitter.com/multiple1902/status/583707734748467200</a></p>
+<h3 id="小白用户忽略证书警告"><a href="#小白用户忽略证书警告" class="headerlink" title="小白用户忽略证书警告"></a>小白用户忽略证书警告</h3><p>很多小白用户不知道什么是https，不晓得加了那个s意味着什么，当然也不理解证书是怎么回事了。既然可以继续，那干嘛不继续呢？于是就被中间人劫持了。</p>
+<p>国家级发动的利用CA的中间人劫持（WoSign、CNNIC、12306）</p>
+<p>这种事情确实发生过，<a target="_blank" rel="noopener" href="https://pao-pao.net/article/403">戳</a>、<a target="_blank" rel="noopener" href="https://zh.greatfire.org/blog/2015/mar/evidence-shows-cnnic-and-cac-behind-mitm-attacks">戳</a></p>
+<p>当一个合法的CA配合GFW进行中间人劫持时，<strong>任何浏览器</strong>都不会给用户警告。当然这种事情，一旦发现，绝对妥妥的不会再有任何浏览器信任它签发的证书。</p>
+<p>除了用合法的CA签发证书，某些国家也可以利用行政力量强制每台电脑安装根证书，比如说<a target="_blank" rel="noopener" href="http://www.solidot.org/story?mode=thread&sid=46384">哈萨克斯坦依法安装国家安全证书</a>，还有天朝12306的那个SRCA根证书……<strong>我向来不惮以最大的恶意来揣测党国。</strong></p>
+<h3 id="CA错误签发证书、CA被黑"><a href="#CA错误签发证书、CA被黑" class="headerlink" title="CA错误签发证书、CA被黑"></a>CA错误签发证书、CA被黑</h3><p>CA的一些失误，比如说本应该<a target="_blank" rel="noopener" href="http://www.solidot.org/story?sid=49448">签发子域名、却给了裸域的泛域名证书</a>，<a target="_blank" rel="noopener" href="https://www.sslchina.com/diginotar-incident/">CA被黑导致私钥泄露</a>，同样也会危害https安全性。 </p>
+<h3 id="HTTPS降级攻击"><a href="#HTTPS降级攻击" class="headerlink" title="HTTPS降级攻击"></a>HTTPS降级攻击</h3><p>在前面说”敲回车发生了什么的时候”，我们提到了这个问题。人们在浏览器输入网址时，或者是点击别的地方的超链接时，很少会有人打带着https开头的，所以通常是由服务器发送给浏览器一个301重定向到https的响应报文，浏览器再去访问这个新的url，验证证书、密钥交换。在这个重定向的过程中就出现了一个问题，服务器给浏览器的重定向响应报文必然是http的，因为此时还没有协商密钥呢——假如此时的响应报文被劫持，那重定向到什么地方都是可能的！ 原本安全的https就这样被”降级”成了不安全的http，甚至是被重定向到别的网站！随后，人们搞了个HSTS（HTTP Strict Transport Security），服务器可选加入这样子的一个响应头：</p>
+<p>Strict-Transport-Security max-age&#x3D;63072000; includeSubDomains; preload</p>
+<p>在63072000秒内浏览器必须使用https访问该网站，并且不允许忽略证书错误。</p>
+<p>但是这个也要求你最起码成功的https访问了一次……还是没能彻底的解决问题。</p>
+<p>于是Google站出来维护了一个HSTS Preload List，某个域名只要成功加入了这个Preload List，在几个月之后，这项信息就会被”硬编码”到浏览器中，浏览器就会一直对该域名使用HTTPS。麻麻再也不担心我被降级攻击了</p>
+<h3 id="网站使用了不安全的cipher-suite或者协议、TLS爆出漏洞"><a href="#网站使用了不安全的cipher-suite或者协议、TLS爆出漏洞" class="headerlink" title="网站使用了不安全的cipher suite或者协议、TLS爆出漏洞"></a>网站使用了不安全的cipher suite或者协议、TLS爆出漏洞</h3><p>众所周知SSLv3、心脏流血（heartbleed）</p>
+<h3 id="Mixed-Content"><a href="#Mixed-Content" class="headerlink" title="Mixed Content"></a>Mixed Content</h3><p>所谓Mixed Content是指网页是https的，但是加载了一些不安全的http的资源，比如图片、音乐、form表单甚至是js等危险资源。由于这些是非https的，所以可以被替换成其他资源，导致网页外观发生变化。当这种情况发生的时候，绿锁头就消失啦！而js等危险资源默认不会被浏览器加载。很多从http迁移到https的博主们都会苦恼于Mixed Content吧。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>好像这篇文章都在谈着阳春白雪的技术…从钓鱼网站里想到的一些问题。大概没有涉及到怎么防骗吧。那就总结下，钓鱼的主要形式：</p>
+<p>中奖积分等短信、留言诱骗或是美女等…用户点击链接，跳转到钓鱼网站、或者是下载吸费应用。</p>
+<p><strong>1. 注意1、I、l，0、O、o等看起来非常相近的字符；</strong> <strong>2. http开头的网址不可靠、不值得相信。</strong> <strong>3. https开头的网址，大部分情况下是可以相信的；</strong> <strong>4. Android机尽量关闭未知源，或者不随意安装apk。</strong></p>
+<p>其实啊一句话，别贪小便宜呐。贪小便宜吃大亏呀~</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/school-0.html">回到本系列目录</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/10/05/school-2/index/" data-id="clhp7rtis0083s2qr1fej0zbd" data-title="[学校上网系列]2. 从钓鱼网站中想到的：不靠谱的域名" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-school-0/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/09/19/school-0/index/" class="article-date">
+  <time class="dt-published" datetime="2016-09-19T00:00:00.000Z" itemprop="datePublished">2016-09-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/09/19/school-0/index/">你在学校上网时，应该注意的安全问题：一些信息安全的常识[目录]</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/09/2016091911535879.jpg"><img src="/images/2016091911535879-300x178.jpg" alt="img441836789"></a></p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>为嘛要写这么一系列文章呢？</p>
+<p>其实自打<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">《如何防范网络审计》</a>一文之后，我一直想写一篇文章来全方面提高大家的网络安全意识。但是考虑到自己并不是安全圈的专家，考虑到受众范围及他们对此的感兴趣程度，就一直这么想着，没有动笔。</p>
+<p>某天有个小伙伴鼓舞我去写一写，本着吃饱了撑的没事干顺便完善下知识结构、刷几个访问量的目的，就动笔写写吧….</p>
+<p>我想起了高中物理老师在给我们讲量子力学的时候说过的一句话，大概意思是：世界上那么多大牛，只研究了量子力学中的一丢丢，当年我的老师给我讲了一丢丢中的一丢丢，而我大概就是对量子力学中的一丢丢的一丢丢略懂皮毛，来给你们扫个盲…</p>
+<p>所以我也是来跟你们<strong>扫盲、科普</strong>的。当然”信息安全”这四个字包含的范围太宽泛，所以我主要来说网络安全的事。更具体一些，用一句话来说明这篇文章是干嘛的：</p>
+<blockquote>
+<p>你在学校上网时，应该注意的安全问题：一些信息安全的常识</p>
+</blockquote>
+<p>本文预计会比较长，所以会分系列。</p>
+<h2 id="本系列旨在"><a href="#本系列旨在" class="headerlink" title="本系列旨在"></a>本系列旨在</h2><ul>
+<li>提高知识水平；</li>
+<li>提高网络安全意识，防止被骗；</li>
+<li>保护隐私；</li>
+<li>提高个人权利意识。</li>
+</ul>
+<h2 id="本系列目录"><a href="#本系列目录" class="headerlink" title="本系列目录"></a>本系列目录</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/school-1.html">从开放式网络中想到的：无处不在的危险</a></li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/school-2.html">从钓鱼网站中想到的：不靠谱的域名</a></li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/school-3.html">从网盘秒传中想到的：不要想当然</a></li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">从网络审计中想到的：老大哥在看着你</a></li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/school-5.html">从设置密码中想到的：糟糕的密码</a></li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/school-6.html">从下载软件中想到的：你下载的软件安全吗？</a></li>
+</ol>
+<h2 id="有一个小问题…"><a href="#有一个小问题…" class="headerlink" title="有一个小问题…"></a>有一个小问题…</h2><p>唔…我是不是该使用markdown了？一天天总是二次排版，word一次cms里一次&#x2F;(ㄒoㄒ)&#x2F;~~可惜WordPress只能通过插件支持markdown</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/09/19/school-0/index/" data-id="clhp7rtiq007zs2qr9ys41rmg" data-title="你在学校上网时，应该注意的安全问题：一些信息安全的常识[目录]" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-school-1/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/09/19/school-1/index/" class="article-date">
+  <time class="dt-published" datetime="2016-09-19T00:00:00.000Z" itemprop="datePublished">2016-09-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/09/19/school-1/index/">[学校上网系列]1. 从开放式网络中想到的：无处不在的危险</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>在一切的嘟囔之前，让我先说一句，<strong>【</strong>直接使用<strong>】</strong>任何<strong>开放式网络</strong>都是十分危险的！开放式网络<strong>主要</strong>指的是学校、机场、咖啡厅等公共场合的开放Wi-Fi以及有线网络。公司的网络同样也不值得相信。所有不可控的网络都应该被划分到”开放式网络”中。</p>
+<p>在开放式网络中，中间人劫持是极有可能存在的。一点技术含量都没有，一部root的Android手机就足够了。</p>
+<h2 id="序"><a href="#序" class="headerlink" title="序"></a>序</h2><p>话说六七年前呐，人们上网，还是通过插着网线的台式机；随后的2011、2012智能设备的兴起，越来越多的人开始使用可以连接到Wi-Fi的智能手机，越来越多的家庭开始有了”无线路由器”。</p>
+<p>到现在，2016年，Wi-Fi已经遍地可见了——肯德基、必胜客、公园游乐场等餐饮娱乐场所，银行、学校、医院、火车站、机场等服务场所。</p>
+<p>在空中飞着的无线电波啊，是不是给人一种飘渺虚无的没有安全感的感觉？其实有线网络也没安全到哪里去。</p>
+<p>在兴致勃勃的连接上公共Wi-Fi时，你是否想过一个很严肃的问题：你的通信，是安全的吗？”安全”这二字虽然简单，但是却意味着四件事情：我的通信内容无法被第三者看到（隐私性）、我的通信即使被第三者看到也无法被解密（保密性）、我的通信发送给了正确的接受者（通信正确性、真实性）、我的通信内容没有被篡改（内容正确性、完整性）。</p>
+<h2 id="什么是”开放式网络”"><a href="#什么是”开放式网络”" class="headerlink" title="什么是”开放式网络”"></a>什么是”开放式网络”</h2><p>提到”开放式网络”，很多人可能就想到那些公共场合的无密码的Wi-Fi，其实这样的想法是<strong>不准确的、错误的</strong>。在进一步说明什么是”开放式网络”之前，我们先想一想自己新安装的Windows第一次联网的时候的情景：</p>
+<p><img src="/images/091916_1138_1.png"></p>
+<p>Windows将网络分为<strong>专用网络</strong>和<strong>公用网络</strong>，在此我同样建议这样分类，但是很明显工作网络也是很难信任的（参见<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">《如何防范网络审计》</a>）。所以，靠谱的分类是这样子滴：</p>
+<p><strong>开放网络：</strong>公共场合的Wi-Fi（无论是否有密码保护）、工作网络、学校网络</p>
+<p><strong>专用网络：</strong>家庭网络</p>
+<p>开放网络<strong>包括但不限制于</strong>公共场合的Wi-Fi、公司网络、学校网络以及所有被你认定为<strong>不信任</strong>的网络。</p>
+<p>在此我们将网络分成两部分，一部分是”外部网络”，你不可以控制的那部分网络；一部分称为”内部网络”，你的路由器的那个网段对你来说就属于内部网络，你可能有权控制、也可能只是众多客户之一。</p>
+<p>一句话总结，<strong>所有不可控的网络</strong>都应该被划分到”开放式网络”中。</p>
+<p> </p>
+<p>[v_blue]</p>
+<p>小提示：Wi-Fi和WLAN的区别</p>
+<p>WLAN是Wireless LAN的缩写，即无线局域网；而Wi-Fi是Wireless Fidelity，意为”无线保真”，是指能将电脑、手机等以无线方式互联的技术。Wi-Fi是WLAN的一个”子集”[&#x2F;v_blue]</p>
+<h2 id="为什么”开放式网络”很危险"><a href="#为什么”开放式网络”很危险" class="headerlink" title="为什么”开放式网络”很危险"></a>为什么”开放式网络”很危险</h2><p>在”开放式网络中”，我们的定义是：我们无法信任处于同一网络的其他设备。在继续讨论为何”开放式网络”危险之前，我们先想想小时候的一个游戏。</p>
+<p>20岁以上的小盆友可能小时候玩过”土电话”，就像下图所示一样。</p>
+<p><img src="/images/091916_1138_2.jpg"></p>
+<p>一个发送端，一个接收端，通过一条线路”链接”到一起，这就是最简单的通信模式。下面我对这个图稍作改动</p>
+<p><img src="/images/091916_1138_3.jpg"></p>
+<p>假设一个不怀好意的”滑稽”在双方不知情的情况接入通信链路，那么他就<strong>极有可能</strong>监听到这两者的通信内容。</p>
+<p>在真实的网络中，直接通过一条线连接并通信的情况是很罕见的，通常一条通信线路都需要很多设备来”中转”。</p>
+<p>如果在你的这个通信线路中同样存在一个不怀好意的”设备”记录你的通信，而且这个设备不是网关，这就叫”旁路”——而且通常是你无法察觉的。或者我们称之为”嗅探”更容易理解。这个现象其实很常见的，在《网络审计》中我们会重提这个问题。</p>
+<p>在开放式网络中，<strong>任何人</strong>都可以接入这个网络，并且一般来说，任何一个设备均可以通过”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/ARP%E6%AC%BA%E9%A8%99">ARP欺骗</a>“来<strong>阻断</strong>数据包、<strong>中转</strong>数据包甚至是<strong>篡改</strong>数据包——这也就是说，开放式网络中，你看到的大部分东西，都不一定是它本来的面貌。其中”中转数据包”便是攻击者加载客户和网关之间充当“翻译”，具体模式大概如下：</p>
+<p>1. 对目标主机A进行ARP欺骗，声称自己是网关；</p>
+<p>2. 转发目标主机A的数据到网关，维持目标主机A的外出数据；</p>
+<p>3. 对网关进行ARP欺骗，声称自己是目标主机A；</p>
+<p>4. 转发网关的数据到目标主机A，维持目标主机A的接收数据；</p>
+<p>5. 监听劫持或者修改目标主机A的进入和外出数据，从而实现攻击。</p>
+<p>这种攻击也就是<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB">MITM</a>（Man In the Middle attack，中间人攻击）的一种实施模式，在目标主机A和网关之间充当中间人，同理，攻击者也同样可以在目标主机A和目标主机B之间充当中间人。攻击者可以选择默默的监听，也可以选择篡改数据，甚至是丢弃数据来达到阻止通信的目的。</p>
+<p>中间人攻击之所以能成功，是因为通信双方<strong>缺乏有效的身份认证机制</strong>。</p>
+<p>盗用随想的一张图：</p>
+<p><img src="/images/091916_1138_4.png"></p>
+<p>需要注意的是，ARP欺骗只是中间人攻击的一种模式而已，在内网中存在中间人攻击，在外部网络也同样存在中间人攻击，由政府、黑客操纵发动的中间人攻击也不是没有。</p>
+<p>在开放式网络中，大部分情况下接入者是有能力进行ARP欺骗的，而凑巧的是互联网发展之初很多应用层协议都是【<strong>明文</strong>】传输的——你的通信内容已经不再具有隐私性。</p>
+<h2 id="你还能信任开放式网络吗？"><a href="#你还能信任开放式网络吗？" class="headerlink" title="你还能信任开放式网络吗？"></a>你还能信任开放式网络吗？</h2><p>不信，那就让我攻击一次来给你看。在淘宝、QQ邮箱登录还不是HTTPS的年代，我就干过这样的事情，真的一点技术含量都没有，只需要耐心而已。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/09/091916_1138_5.png"><img src="/images/091916_1138_5.png" alt="091916_1138_5.png"></a></p>
+<p>这是我在自己的网络中使用ARP欺骗进行MITM之后的结果，捕捉到了一些提交的表单中的账号密码。</p>
+<p>由于cain内置的表单内容不够多，所以没能看到一部分明文登录表单，可以通过wireshark自己查看下登录表单名，再添加到cain中。</p>
+<h2 id="在”开放式网络”之中的危险因素分析和应对措施"><a href="#在”开放式网络”之中的危险因素分析和应对措施" class="headerlink" title="在”开放式网络”之中的危险因素分析和应对措施"></a>在”开放式网络”之中的危险因素分析和应对措施</h2><h3 id="危险的原因"><a href="#危险的原因" class="headerlink" title="危险的原因"></a>危险的原因</h3><p>互联网的发展，大概可以这样说：设计者们把互联网设计成了一个漏水的瓶子，后人们就负责堵住漏水的洞。</p>
+<p>在想要在网络中保证安全之前， 我们首先要理解为什么会不安全（如果你实在懒得看，就跳过这一部分吧）</p>
+<ul>
+<li><strong>隐私性</strong></li>
+</ul>
+<p>我的通信内容无法被第三者窃取。当第三者窃取的时候，我会注意到。</p>
+<ul>
+<li><strong>保密性</strong></li>
+</ul>
+<p>我的通信即使被第三者看到也无法被解密，这也就等同于”我的通信内容无法被第三者看到”。</p>
+<ul>
+<li><strong>通信正确性、真实性</strong></li>
+</ul>
+<p>我的通信发送给了正确的接受者，而不是冒充的”中间人”，想要保证这一点，我们需要一种有效的身份认证机制。</p>
+<ul>
+<li><strong>内容正确性、完整性</strong></li>
+</ul>
+<p>我的通信内容没有被篡改，我能够识别篡改。举个例子，你怎么知道你看的网页和我的服务器想要发送给你的网页是一样的？</p>
+<h3 id="如何应对这四个危险因素"><a href="#如何应对这四个危险因素" class="headerlink" title="如何应对这四个危险因素"></a>如何应对这四个危险因素</h3><ul>
+<li><strong>保证隐私性</strong></li>
+</ul>
+<p>想要单纯的保证通信的隐私性，很抱歉这是不可能的。在现有的网络之中，任何中间设备都有可能记录下你的通信内容。</p>
+<ul>
+<li><strong>保证保密性</strong></li>
+</ul>
+<p>值得庆幸的是，随着现代密码学的发展，这一点已经成为可能。使用一种安全的加密算法来加密通信内容。然而如何配送加密密钥又成了一个问题，幸好人们发明了一些行之有效的密钥交换算法。</p>
+<ul>
+<li><strong>保证通信正确性、真实性</strong></li>
+</ul>
+<p>我们需要一种身份认证机制，通常都是<strong>客户认证服务器的身份</strong>（双向认证的情况也有，比如说4G网络的双向鉴权）。我们可以让服务器颁发证书&#x2F;指纹给客户，以后每次连接的时候客户都会验证证书&#x2F;指纹，之后如果有人进行中间人劫持，证书&#x2F;指纹是必然要变化的。SSH便是采取这种模式的（然而SSH的第一次连接是无法避免中间人劫持的）。这一点往往也是SSL&#x2F;TLS设计中最困难的、理论与实际差距最大的一部分，通常我们会引入第三方认证机构，并对认证机构分层级管理——所谓PKI体系</p>
+<ul>
+<li><strong>保证内容正确性、完整性</strong></li>
+</ul>
+<p>单向散列函数似乎是个很好的选择——哪怕原始信息发生1 bit的变化，散列结果都会变得完全不同。</p>
+<p>单向散列函数是个啥捏？下一个系列见</p>
+<h1 id="说了这么堆废话，那么我们该如何保证在”开放式网络”中的安全性呢？"><a href="#说了这么堆废话，那么我们该如何保证在”开放式网络”中的安全性呢？" class="headerlink" title="说了这么堆废话，那么我们该如何保证在”开放式网络”中的安全性呢？"></a>说了这么堆废话，那么我们该如何保证在”开放式网络”中的安全性呢？</h1><h2 id="解决方案一：选择加密的网络协议"><a href="#解决方案一：选择加密的网络协议" class="headerlink" title="解决方案一：选择加密的网络协议"></a>解决方案一：选择加密的网络协议</h2><p>显而易见的是，在开放式网络之中，选择完善的<strong>加密通信协议</strong>，比如说HTTPS, SSH而不是HTTP, telnet。于是问题来了，国内很多门户网站、社交网站都没有采取全站HTTPS，包括新浪、搜狐、贴吧、微博……嗷呜满脸悲伤，本以为找到了个解决方案呢，是不？哎，<strong>每一个解决方案都是下一个问题的来源</strong>。那我们就想办法解决下一个问题吧。 [v_error]警告： 通常来说，一般人针对HTTPS进行的MITM会导致浏览器警告错误的证书。无论何时，看到“证书错误”的警告，一定不要盲目点继续。12306那个SB当我没说[&#x2F;v_error]</p>
+<h2 id="解决方案二：将非加密协议承载在加密隧道协议之上"><a href="#解决方案二：将非加密协议承载在加密隧道协议之上" class="headerlink" title="解决方案二：将非加密协议承载在加密隧道协议之上"></a>解决方案二：将非加密协议承载在加密隧道协议之上</h2><p>以HTTP为例，HTTP是一个典型的应用层协议，它的运作需要传输层的TCP、网络层的IP等等的配合。如果我们给HTTP的下层协议”打个补丁”使其增加安全性，那么我们的目的不就达到了吗？是啊……SSL&#x2F;TLS就是酱紫的，但是为了避免篇幅太长，SSL&#x2F;TLS我们要留到以后再说。</p>
+<h3 id="1-使用加密的VPN协议"><a href="#1-使用加密的VPN协议" class="headerlink" title="1. 使用加密的VPN协议"></a>1. 使用加密的VPN协议</h3><p>这标题看起来很难懂是不是，但是如果我说”挂个<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%99%9B%E6%93%AC%E7%A7%81%E4%BA%BA%E7%B6%B2%E8%B7%AF">VPN</a>“是不是就秒懂了？不要提到VPN就想到翻墙哦。</p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E8%99%9B%E6%93%AC%E7%A7%81%E4%BA%BA%E7%B6%B2%E8%B7%AF">VPN</a>全称是Virtual Private Network，虚拟专用网。这东西，最开始呐，有一群懒虫们想在家里访问公司的内部网络。扯一条专线过去吧，太费钱了，不如发明一种协议虚拟个”隧道”？没错这就是VPN的最初思想。通常VPN是加密的，它利用已加密的通道协议（Tunneling Protocol）来达到保密、发送端认证、消息准确性等私人消息安全效果。这种技术可以<strong>利用不安全的网络来发送可靠、安全的消息</strong>。</p>
+<p>当你成功连接VPN时，VPN程序会修改系统的路由表，使得所有数据，无论是你聊的QQ还是看的视频或是刷的微博都从加密的隧道转发出去（OpenVPN则将数据从虚拟的TAP网卡发送、接收），也就是所谓的”全局”。在这里”所有”画了删除线，比如说WebRTC就会直接无视路由表。</p>
+<p>VPN根据不同的协议，可以有很多分类，常见的有PPTP、L2TP、OpenVPN、SSTP等</p>
+<p>其中PPTP已经不再安全（使用iOS的用户应该记得那个警告吧）</p>
+<p>L2TP是未加密的，通常搭配IPSec、IKE2等来达到加密、认证的目的。</p>
+<p>OpenVPN使用OpenSSL库来加密数据与控制信息，而且对服务器也有证书认证、并且是跨平台的。</p>
+<h3 id="2-使用加密的SOCKS5协议"><a href="#2-使用加密的SOCKS5协议" class="headerlink" title="2. 使用加密的SOCKS5协议"></a>2. 使用加密的SOCKS5协议</h3><p>在这里比较有名的恐怕是Clowwindy的shadowsocks了吧——shadowsocks是一款安全的加密的SOCKS5代理、附带有流量混淆功能。然而SOCKS5却不够”全局”，有些软件无法设置代理，有些设置了代理，其自带的自动更新也常常会绕过代理。包括可恶的Flash都会无视代理设置。</p>
+<h2 id="关于HTTP与HTTPS"><a href="#关于HTTP与HTTPS" class="headerlink" title="关于HTTP与HTTPS"></a>关于HTTP与HTTPS</h2><p>HTTP发明于上个世纪的八十年代，那个时候互联网先驱们们还没有想到如此复杂、险象环生的网络。随着网络的不断发展，HTTP也从1.0变成了广泛应用的1.1，最终2015年发布了全新的<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/HTTP/2">HTTP&#x2F;2</a>（这么前卫的我当然启用了HTTP&#x2F;2的支持，只要你使用Google Chrome、Mozilla Firefox、Microsoft Edge或Opera中任意一款即可，一部分套牌浏览器的内核也应该高于支持HTTP&#x2F;2的<a target="_blank" rel="noopener" href="http://blog.chromium.org/2016/02/transitioning-from-spdy-to-http2.html">Chromium版本号</a>）</p>
+<p>然而尽管到了HTTP&#x2F;2，可是HTTP&#x2F;2依旧没有强制加密连接。</p>
+<p>随着斯诺登把NSA大规模监听计划<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%A8%9C%E9%8F%A1%E8%A8%88%E7%95%AB">棱镜</a>曝光之后，人们越来越关注隐私，越来越反对政府对个人权利的<strong>肆意侵犯</strong>（但是有很多天朝人民却在跪着，还想让别人也都跟着一起跪着）；各大公司纷纷加强安全基础设施，开启透明度报告并启用全站HTTPS——在HTTPS这事上大概只有Google做的最激进了，不仅改变了搜索引擎的算法提升了HTTPS网站的权重，甚至打算在Chrome 56中正式将HTTP页面标记为不安全。</p>
+<p>在HTTP的时代，任何网页都可能不是你想看的真正的网页，任何内容都可能是被篡改过的，你输入的任何信息都可能被第三方窃取，一切隐私都是不可能的！</p>
+<h2 id="为什么我们要启用全站HTTPS"><a href="#为什么我们要启用全站HTTPS" class="headerlink" title="为什么我们要启用全站HTTPS"></a>为什么我们要启用全站HTTPS</h2><p>尽管HTTPS会对性能造成一定程度的影响，但是随着HTTP&#x2F;2的逐渐普及、HTTPS性能调优和人们对隐私关注的提高，HTTPS不应该只是为了保护用户的账号密码，用户所浏览的任何网页都应该得到加密。</p>
+<p>同时，不是全站HTTPS也存在一些缺点，比如说cookie泄露、跳转时降级攻击。</p>
+<p>早就应该到了全站HTTPS的时代了！HTTP已死！纸都别烧了。</p>
+<h2 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h2><p>在开放式网络中啊，要么搜索下周杰伦多少岁（一些无关紧要的事情），要么挂上一个VPN来保证通信安全！个人信息是可以拿来交易的，知道嘛。</p>
+<p>在写目录的时候，我把一些密码学的概念、HTTPS&#x2F;SSL&#x2F;TLS放到了这一部分，但是写着写着就发现这会使篇幅严重加长并且和题目《从开放式网络中想到的》毫无关系。所以只好以后再单独写一篇HTTPS&#x2F;SSL&#x2F;TLS了（如果我能写好的话）。</p>
+<p>感谢那些鼓励我写此系列文章的朋友们！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/school-0.html">回到本系列目录</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/09/19/school-1/index/" data-id="clhp7rtir0081s2qr2yt7gujd" data-title="[学校上网系列]1. 从开放式网络中想到的：无处不在的危险" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-xi-misspeaking/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/09/12/xi-misspeaking/index/" class="article-date">
+  <time class="dt-published" datetime="2016-09-12T00:00:00.000Z" itemprop="datePublished">2016-09-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/china/">china</a>►<a class="article-category-link" href="/categories/china/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/09/12/xi-misspeaking/index/">脱衣服给我看嘛：一个字引发的“血案”</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>2018-12-19 更新：现在口误是一件更好玩的事情了哟，颐指气使啦，金科玉律啦。新话字典看来要开始了吧。</p>
+<p>大概几个月前，在zhao这个repo被takedown好几天之后，我才写文章说了下这事；这G20也结束有段时间了，必然到了我后知后觉的时候…</p>
+<p>还是那句话，如果因为这篇博文，我的博客被墙，乃至于我被请走喝茶，那也是我<strong>三生有幸</strong>，幸运在”<strong>GFW认证必属精品</strong>“，幸运在有人读这篇乱七八糟的文章。</p>
+<p>就G20来说，这个事件本身有很多值得谈的地方，比如空城杭州，比如突然能打开Twitter的WiFi，比如峰会的影响，比如奥巴马下飞机前后中美官员的冲突。但是呐，这都不够讽刺的，讽刺的是，你看到我的新衣服了吗？漂亮不？</p>
+<p>友情提示：上面提到了奥巴马下飞机期间中美官员的冲突，希望大家看看纽约时报的报道，<a target="_blank" rel="noopener" href="http://www.nytimes.com/2016/09/05/world/asia/china-obama-group-of-20-summit-airport-arrival.html?_r=0">英文版戳我</a>，<a target="_blank" rel="noopener" href="http://cn.nytimes.com/asia-pacific/20160906/china-obama-group-of-20-summit-airport-arrival/">中文版戳我</a>。然后再看看大陆媒体的报道。一定要看，看过了之后会不会觉得高下立判哎？</p>
+<p>好啦好啦，不绕圈子，今天我们要说的话题，是关于口误和自嘲的，就是那个”买舅啊二菜”和”浓缩的都是精华”的精彩案例。更直奔下主题，就是四个字：通商宽衣（农）。</p>
+<h2 id="事件回顾"><a href="#事件回顾" class="headerlink" title="事件回顾"></a>事件回顾</h2><p>话说啊，在G20期间，”俺们的”习大大是注定要发言讲话的。唉，身为”一国之君”，想必国事操劳，再加上底下那么多人呢，习大大这么一紧张还是怎么滴的啊，就弄巧成拙了，就把”轻关易道，通商宽农”的”农”读成了”衣”。</p>
+<p>估计当时在场的老外应该是没懂，但是中国人可能会在想——脱衣服…做完了交易脱衣服哎哟喂！</p>
+<p>[v_tips]哎你别说，衣农这俩字看十分钟我都不认识分不出来了，其实这个现象叫做<a target="_blank" rel="noopener" href="https://zh.m.wikipedia.org/zh/%E8%AF%AD%E4%B9%89%E9%A5%B1%E5%92%8C">语义饱和</a>。[&#x2F;v_tips]</p>
+<p>然后捏…</p>
+<p>之后的几天，”宽衣”就成了敏感词啦，甚至看到有人说被请喝茶。</p>
+<h2 id="口误不是笑话的一大分类吗"><a href="#口误不是笑话的一大分类吗" class="headerlink" title="口误不是笑话的一大分类吗"></a>口误不是笑话的一大分类吗</h2><p>有一个英文名词，叫做speech errors（言语失误），通常被称作slip of the tongue, misspeaking，是指人们自发的、无心的、无意识产生的一种语言偏差。</p>
+<p>speech errors有很多分类，常见的有停顿 、重复 、改正、感叹词 、口吃和失言。其中失言，就是俺们常说的口误啦。</p>
+<p>主要形式有提前(anticipations)，延续(perseverations)，省略(omissions)，增加(additions)，倒置(exchange)，代替(substitution)，混合(blends)。</p>
+<p>[v_tips]这东东在英文维基上<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Speech_error">有个条目</a>，写的那叫一个详细啊；反观国内的百科，就是让我们去看笑话的。[&#x2F;v_tips]</p>
+<p>顺便插一句，弗洛伊德认为，一个人平时不经意间出现的诸如口误、笔误、动机性遗忘、童年回忆遗忘等差错并不是无意义的，而是受到其潜意识的影响。</p>
+<h2 id="为嘛读错了呢？"><a href="#为嘛读错了呢？" class="headerlink" title="为嘛读错了呢？"></a>为嘛读错了呢？</h2><p>既然看我高大上的解释了口误的一些概念，那咱们现在就想一想，以一个平常人的心态而不是语言学家、心理学家来想想，为嘛会读错字呢？</p>
+<h3 id="1-人多紧张呗"><a href="#1-人多紧张呗" class="headerlink" title="1. 人多紧张呗"></a>1. 人多紧张呗</h3><p>这是一种接近本能的反应，尤其对于我这种没见过大世面的人，说话都自带俄语颤音了。但是作为领导人，啥大世面没见过？还是读稿不是脱稿，早就习惯了吧。</p>
+<h3 id="2-没看过稿子呗"><a href="#2-没看过稿子呗" class="headerlink" title="2.没看过稿子呗"></a>2.没看过稿子呗</h3><p>作为领导人，发言是有提词器滴，那么照着读，再加上一点点本能的紧张，再加上姿势水平可能不够，把形似的两个字弄混了，至少可以说明，他基本没看过稿子吧，要不这么文绉绉的词怎么会变得这么有喜感。（可怜了那写稿子的兄弟，是不是该回家了）</p>
+<h3 id="3-这会真无聊呗"><a href="#3-这会真无聊呗" class="headerlink" title="3. 这会真无聊呗"></a>3. 这会真无聊呗</h3><p>此处省略几百字…</p>
+<h2 id="谁不曾口误"><a href="#谁不曾口误" class="headerlink" title="谁不曾口误"></a>谁不曾口误</h2><p>紧张是人类的本能反应，肾上腺素这玩意不是你说不分泌就不分泌的；口误也是谁都能理解的，谁还没”买舅”过啊。</p>
+<p>来看看其他政客是怎么应对口误的（大家一搜就能看到很多，比如说<a target="_blank" rel="noopener" href="http://edu.qq.com/a/20100201/000090.htm">这个</a>）：</p>
+<h3 id="奥巴马："><a href="#奥巴马：" class="headerlink" title="奥巴马："></a>奥巴马：</h3><p>奥巴马大选期间”我的穆斯林信仰”，保龄球技术。 [v_blue]插句话，提到奥巴马，我就想到有一次他的提词器被偷了 :mrgreen: 上台几乎成哑巴了那个被嘲讽的啊。[&#x2F;v_blue]</p>
+<h3 id="布什："><a href="#布什：" class="headerlink" title="布什："></a>布什：</h3><p>英语里有个词叫做”Bushism”，专门指俩布什演讲的用词不当、错误表述等现象。</p>
+<p>哎我真的是懒得找了，一句口误变成敏感词的，除了古时候的皇帝，现在的曹县和天朝 ，还有谁能比？</p>
+<h2 id="你这反应……"><a href="#你这反应……" class="headerlink" title="你这反应……"></a>你这反应……</h2><p>中文里有个成语，叫做欲盖弥彰。谁还没有口误的时候，作为公众人物、乃至是政客，这更是常见的，他们内心应该清楚公众人物难免会受到大家伙的评议甚至是非议，读错字至于此番封锁屏蔽吗？</p>
+<p>当然在他的眼中是至于的。我问你，你所信仰的神灵，是不是他所言都是正确的，是不是他从未犯错、即使是错也是为了警告世人？</p>
+<h2 id="个人崇拜"><a href="#个人崇拜" class="headerlink" title="个人崇拜"></a>个人崇拜</h2><p>个人崇拜是指，以大规模宣传手段将某个人在一个社群中塑造成崇拜对象，通常都通过媒体手段将其人格形象理想化、英雄化甚至神化。</p>
+<p>或许大家对个人崇拜这个概念不太了解，那么我们想想偶像崇拜——你会认为你的偶像是<strong>完美的</strong>，你会<strong>盲目相信</strong>你的偶像，你会<strong>盲目服从</strong>你的偶像，你会认为你的偶像是<strong>独一无二</strong>的；之后，由于光环效应，你会以为只会弹钢琴的偶像什么都会，你会对偶像的闯红灯视而不见（或者装作不记得），你会为偶像痴狂。</p>
+<p>如果是个人偶像崇拜，那也就不过是对这个人有影响；但是如果整个国家都在以偶像崇拜为目的，推广这个“偶像”，那这就可以称作个人崇拜了。可以说个人崇拜是国家机器宣传之下的偶像崇拜的极端表现，甚至再走极端，可以称作“造神”。</p>
+<p>大概四十多年前，_“他像红太阳一样，伟大的导师，伟大的领袖，伟大的舵手”_。</p>
+<p>四十几年之后……</p>
+<p>[collapse title&#x3D;”政治、经济、外交、文学——撒币，滑坡，南海，晒书单？”] 包子露馅了。 [&#x2F;collapse]</p>
+<h2 id="所谓自由，只不过是让你选择吃猪食还是狗屎"><a href="#所谓自由，只不过是让你选择吃猪食还是狗屎" class="headerlink" title="所谓自由，只不过是让你选择吃猪食还是狗屎"></a>所谓自由，只不过是让你选择吃猪食还是狗屎</h2><p>只许州官放火，你小百姓老老实实吃猪食去。</p>
+<p>我可以对全世界说宽衣，但是你连笑一下都不行。这大概就是当局的想法吧。 人家白俄罗斯的<a target="_blank" rel="noopener" href="http://news.sina.com.cn/c/2016-06-30/doc-ifxtscen3041338.shtml">民众都能裸体上班</a>呢。</p>
+<p>从此时此刻起，言论审查变得更加严厉。主子喜欢的你就多说点，主子不喜欢的擦边球都别打，小心掉脑袋哦。</p>
+<p>我们喜欢”家长权威式政府”，其实那家长不过是个酒蒙子。</p>
+<p>言论自由与诽谤？恐怕你需要<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/02/freedom-of-speech.html">戳我</a>。</p>
+<hr>
+<p>我想起了大概一个月前我曾在哪说过的话：以前小的时候我很喜欢下棋，可是一输就又哭又闹，输不得，所以后来根本没人跟我玩了。现在想想，我也有那么幼稚的时候；再想想，那个时候的我不就正好是现在中国的心态与现状吗？</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/09/12/xi-misspeaking/index/" data-id="clhp7rtno00bos2qrhs3c564x" data-title="脱衣服给我看嘛：一个字引发的“血案”" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-chrome-theme-color/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/09/09/chrome-theme-color/index/" class="article-date">
+  <time class="dt-published" datetime="2016-09-09T00:00:00.000Z" itemprop="datePublished">2016-09-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/09/09/chrome-theme-color/index/">让你的网站更具个性：WordPress下Android Chrome通知栏变色</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>让你的网站更具个性：WordPress下Android Chrome通知栏变色</p>
+<p>在大家用Android版Chrome时，可能会发现有些时候通知栏会变色，举个Quora的栗子</p>
+<p><img src="/images/090916_0514_WordP1.png"></p>
+<p>感觉很搭很个性是不是！</p>
+<p>其实想要支持这一特性，只要插入一个meta标签、并且设备的Chrome版本大于39、运行于Lollipop（Android 5.0）以后的版本，就可以完美支持这一特性啦！</p>
+<p>对应的meta标签可以参考如下格式，其中content后面是颜色的十六进制表示：</p>
+<p>将meta放到head后面就可以啦！</p>
+<p>十六进制颜色可以用Photoshop的拾色器取出来。</p>
+<p>对于WordPress来说，找到你主题的header.php，将上面的一行插入到它该有的地方，搜索下，放在其他meta下面就好啦~！</p>
+<p>友情提示：header.php这个文件非常重要，修改之前备份一下更好！</p>
+<hr>
+<p>顺路提一句，沉浸模式和通知栏变色是两个概念。</p>
+<p>来看看我的效果图：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/09/090916_0514_WordP3.png"><img src="/images/090916_0514_WordP3-300x163.png" alt="090916_0514_WordP3.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/09/090916_0514_WordP4.png"><img src="/images/090916_0514_WordP4-300x199.png" alt="090916_0514_WordP4.png"></a></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>配色也是一门艺术啊！</p>
+<p>本文参考资料：</p>
+<p><a target="_blank" rel="noopener" href="https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android?hl=en">https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android?hl=en</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/09/09/chrome-theme-color/index/" data-id="clhp7rtel000ss2qr569f2msd" data-title="让你的网站更具个性：WordPress下Android Chrome通知栏变色" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-lfs/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/08/24/lfs/index/" class="article-date">
@@ -366,753 +961,6 @@
 
 
   
-    <article id="post-mysql-3065/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/07/06/mysql-3065/index/" class="article-date">
-  <time class="dt-published" datetime="2016-07-06T00:00:00.000Z" itemprop="datePublished">2016-07-06</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/07/06/mysql-3065/index/">piwigo mysql error 3065解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><a target="_blank" rel="noopener" href="https://memory.shemissed.me/">piwigo做的图床</a>，在升级了MySQL（版本号5.7.13）之后，某一天突然发现点进去相册就提示MySQL error 3065，具体报错如下：</p>
-<blockquote>
-<p><strong>Warning</strong>: [mysql error 3065] Expression #1 of ORDER BY clause is not in SELECT list, references column ‘pic.piwigo_images.date_available’ which is not in SELECT list; this is incompatible with DISTINCT</p>
-<p>SELECT DISTINCT(image_id)</p>
-<p>FROM piwigo_image_category</p>
-<p>INNER JOIN piwigo_images ON id &#x3D; image_id</p>
-<p>WHERE</p>
-<p>category_id &#x3D; 5</p>
-</blockquote>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/07/201607061239441.png"><img src="/images/201607061239441.png" alt="2"></a></p>
-<p>去Google搜索一番找到了这么个链接<a target="_blank" rel="noopener" href="https://github.com/Piwigo/Piwigo/issues/376">https://github.com/Piwigo/Piwigo/issues/376</a></p>
-<p>找到了解决方案，修改配置文件</p>
-<p>vim &#x2F;etc&#x2F;my.cnf</p>
-<p>在mysqld字段下增加如下一行</p>
-<p>sql-mode&#x3D;””</p>
-<p>重启MySQL即可</p>
-<p>systemctl restart mysql.service</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/07/06/mysql-3065/index/" data-id="clhp7rthm0059s2qrbt9i00du" data-title="piwigo mysql error 3065解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-takedown-on-github/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/07/02/takedown-on-github/index/" class="article-date">
-  <time class="dt-published" datetime="2016-07-02T00:00:00.000Z" itemprop="datePublished">2016-07-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/07/02/takedown-on-github/index/">GitHub的妥协：government takedown on programthink / zhao事件随想</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这事已经过去一个星期了，按理说，我现在写文章来说这事似乎有点过气。怎奈事务繁多，除去写了封抗议信，都在忙着别的事，所以今天在此补上。</p>
-<p>在编辑这篇文章的时候，我突然意识到，当初“可能吧”就是因为发表了<a target="_blank" rel="noopener" href="https://kenengba.com/post/2821.html">声援Google退出中国</a>的文章而被屏蔽至今，Jason Ng多次被请喝茶。如果因为这gov takedown这事我能够获得<strong>同样的荣誉</strong>，那到时候我一定要发表一篇获奖感言。</p>
-<h2 id="事件回顾"><a href="#事件回顾" class="headerlink" title="事件回顾"></a>事件回顾</h2><p>话说网上有个很有名的人叫<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/">编程随想</a>，他将今年自己整理的<a target="_blank" rel="noopener" href="https://github.com/programthink/zhao">《太子党关系网络》</a>开源到 GitHub 上。最近却被”中国政府”的一项<a target="_blank" rel="noopener" href="https://github.com/github/gov-takedowns/blob/master/China/2016/2016-06-08-programthink-zhao.md">删除命令</a>给”删除”了，更准确的说是<strong>选择性屏蔽</strong>——中国IP将会显示gov takedown信息，而海外IP则不会。</p>
-<p>这事可火了，来看看那些西方主流媒体的报道</p>
-<p><a target="_blank" rel="noopener" href="https://www.techdirt.com/articles/20160623/07384934793/rather-than-launch-massive-ddos-attack-this-time-china-just-asks-github-to-take-down-page-it-doesnt-like.shtml">https://www.techdirt.com/articles/20160623/07384934793/rather-than-launch-massive-ddos-attack-this-time-china-just-asks-github-to-take-down-page-it-doesnt-like.shtml</a></p>
-<p><a target="_blank" rel="noopener" href="http://qz.com/718465/chinas-fierce-censors-try-a-new-tactic-with-github-asking-nicely/">http://qz.com/718465/chinas-fierce-censors-try-a-new-tactic-with-github-asking-nicely/</a></p>
-<p>顺便提一句，这不好GitHub第一次<a target="_blank" rel="noopener" href="https://github.com/github/gov-takedowns">takedown</a>，前几次都是俄罗斯——真不愧是中俄好基友</p>
-<p>好吧，有必要啰嗦一番，口诛笔伐GitHub和某gov了。下面就请大家跟着我来看看GitHub和中国政府的爱恨情仇。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/07/2016070202234286.png"><img src="/images/2016070202234286.png" alt="21"></a></p>
-<h2 id="GitHub和中国的较量"><a href="#GitHub和中国的较量" class="headerlink" title="GitHub和中国的较量"></a>GitHub和中国的较量</h2><p>GitHub和中国政府一直以来都不太和谐，在这短短的几年里，从2013年开始，有过多次大规模冲突。下面就让我们回顾下。</p>
-<h3 id="1-第一次封锁"><a href="#1-第一次封锁" class="headerlink" title="1.第一次封锁"></a>1.第一次封锁</h3><p><strong>起因</strong></p>
-<p>某个程序员在 GitHub 上建立了一个项目（<a target="_blank" rel="noopener" href="https://github.com/mothran/mongol">你戳我试试</a>），利用 Python 脚本来定位 GFW 的物理部署位置。</p>
-<p><strong>经过</strong></p>
-<p>2013年1月20日，GFW利用域名污染和关键词过滤等手段封锁GitHub李开复在新浪微博进行抗议。</p>
-<p><strong>结果</strong></p>
-<p>政府迫于压力解除封锁。此次可称为”<a target="_blank" rel="noopener" href="http://www.williamlong.info/archives/3355.html">李开复救火</a>“。GitHub胜出</p>
-<h3 id="2-中间人攻击"><a href="#2-中间人攻击" class="headerlink" title="2.中间人攻击"></a>2.中间人攻击</h3><p><strong>起因</strong></p>
-<p>某网友（大概也是程序员）在 GitHub 上建了个页面，列举那些替 GFW 卖命的技术人员。同时还在美国白宫官网发起一个请愿，呼吁美国政府禁止这些人入境美国。</p>
-<p><strong>经过</strong></p>
-<p>2013年1月26日，有中国大陆的用户在访问GitHub时发现证书无效，经检查发现，GitHub的证书变为了一自签伪证书。</p>
-<p><strong>结果</strong></p>
-<p>攻击持续了约一个小时后停止，访问恢复正常。</p>
-<h3 id="3-旁观者攻击（大炮攻击）"><a href="#3-旁观者攻击（大炮攻击）" class="headerlink" title="3.旁观者攻击（大炮攻击）"></a>3.旁观者攻击（大炮攻击）</h3><p><strong>起因</strong></p>
-<p>当局迫使GitHub移除GreatFire和NY times</p>
-<p><strong>经过</strong></p>
-<p>第一轮，利用中国大陆以外的网民与翻墙的网民浏览被劫持的百度JavaScript文件，该文件每2秒向GitHub上的两个页面发出请求，被GitHub的弹窗警告拦住； 第二轮，跨域攻击，被GitHub检查Referer拦住； 第三轮，DDoS攻击GitHub Pages； 第四轮，SYN flood，利用TCP协议缺陷发送大批伪造的TCP连接请求，耗尽GitHub的资源</p>
-<p><strong>结果</strong></p>
-<p>GFW还是没得逞，此repo还活的好好的。</p>
-<p>4.clowwindy</p>
-<p><strong>起因</strong></p>
-<p>这就不好说了嘛，干不掉工具，就只好威胁制造工具的人了。</p>
-<p><strong>经过</strong></p>
-<p>2015年8月22日，Shadowsocks作者Clowwindy迫于警方压力删除项目。几天之后的25日，GoAgent作者自行删除项目（那时GoAgent已经完蛋好久了）。同一天GitHub再次遭到来自中国大陆的DDoS攻击。</p>
-<p><strong>结果</strong></p>
-<p>Clowwindy宣布不再参与任何形式的开发shadowsocks，GoAgent作者phus.lu发表称”从未因GoAgent获利或得到其他人的经济支持”</p>
-<h2 id="关于”托管内容”的两种观点"><a href="#关于”托管内容”的两种观点" class="headerlink" title="关于”托管内容”的两种观点"></a>关于”托管内容”的两种观点</h2><p>在更深入的讨论这个事件之前，我们先来说说“托管内容”和自我审查的事。通常，我们经常能看到两种观点。</p>
-<p>一种观点认为，GitHub是码农的天堂，托管政治内容导致被封，是<strong>得不偿失</strong>的。所以此类内容应该被删除。</p>
-<p>另一种观点认为，只要托管的内容不违反GitHub的ToS, 那么托管什么内容，是该用户的自由。</p>
-<p>很显然我是【完全】支持后一种观点的，对待前一种观点，最好的描述就是”自宫、自我阉割”了。套用出处未知的一句话，</p>
-<blockquote>
-<p>审查制度的最高境界就是：让人们在发表意见的时候会做出自我审查，同时强迫他人进行自我审查。</p>
-</blockquote>
-<h2 id="所谓”政治不应该与技术挂钩”"><a href="#所谓”政治不应该与技术挂钩”" class="headerlink" title="所谓”政治不应该与技术挂钩”"></a>所谓”政治不应该与技术挂钩”</h2><p>在zhao这个repo下（<a target="_blank" rel="noopener" href="https://github.com/greatfire">GreatFire</a>的众多repo下也有），有很多issue和回复，称”纯技术网站”、”政治不应该与技术挂钩”。毫无疑问我还是【强烈反对】这种说法的。为啥呢？</p>
-<h3 id="1-应该谴责谁"><a href="#1-应该谴责谁" class="headerlink" title="1.应该谴责谁"></a>1.应该谴责谁</h3><p>很奇怪的是，如果某个”本不应该被封的网站”被封，不去讨伐GFW反而去指责某些”不合法”内容？这大概是和被人捅了一刀不去抓凶手、却和卖刀的干架，不怪强奸犯管不住自己的屌、怪女孩穿着暴露是一个道理吧。</p>
-<h3 id="2-技术与政治是否有关"><a href="#2-技术与政治是否有关" class="headerlink" title="2.技术与政治是否有关"></a>2.技术与政治是否有关</h3><p>把技术和政治<strong>挂钩</strong>的【始作俑者】正是GFW。所以你说政治和技术到底有没有关？别说是技术，你生活中的事情，都会或多或少的<strong>和政治挂钩</strong>。俗话说得好，<strong>你可以不关心政治，但是政治会来关心你</strong>——你不信吗？来看看为啥房价越调控越高？为啥工资不涨物价倒是飞涨？为啥食品安全问题越来越严重？为啥疫苗都有假的？为啥魏则西被”百毒”死？为啥雷洋被嫖娼死？难道还是觉得太远？为啥你要浪费脑细胞来背毛概？</p>
-<h3 id="3-用户的自由"><a href="#3-用户的自由" class="headerlink" title="3.用户的自由"></a>3.用户的自由</h3><p>GitHub的ToS下，放什么Repo是该用户的自由！不知道看客你是否有阅读过GitHub的ToS——至少我有。这个问题我在后面会再提下的。</p>
-<h3 id="4-每个国家都有审查制度？"><a href="#4-每个国家都有审查制度？" class="headerlink" title="4.每个国家都有审查制度？"></a>4.每个国家都有审查制度？</h3><p>有人会说，你看那些欧美国家，他们也有审查，别的国家也有审查制度，怎么天朝有审查就不行了呢？</p>
-<p>这是彻彻底底的谬误好不好嘛！</p>
-<p>某个事件存在，并不意味着他是合理的。犯罪普遍存在，莫非犯罪行为就是正当的、合理的？</p>
-<p>天朝的审查制度和成熟民主国家的审查制度，是有着【本质区别】的。</p>
-<p><strong>有法可依和无法可依</strong></p>
-<p>比如说美国审查儿童色情，有着明确的法律定义什么是儿童色情；而天朝那条法律把“胡萝卜”列敏感词？</p>
-<p><strong>透明执法和暗箱操作</strong></p>
-<p>前文我列出了很多“透明度报告”，这就属于透明的内容之一。政府人员光明正大的执法、接受那些“天杀的”媒体的监督。而天朝呢？想想几年前是怎么干扰Gmail的，怎么DDoS GitHub的。</p>
-<p><strong>循规蹈矩与随心所欲</strong></p>
-<p>有着法律条条框框的限制，政府所有的审查动作都要在法律允许的范围内进行。民众告政府的事情算是很常见的。</p>
-<p>反观天朝，就是看谁不爽就毙谁嘛。领导人脑袋一热一拍屁股，难免也有很多躺枪的。</p>
-<h3 id="5-为什么会这样"><a href="#5-为什么会这样" class="headerlink" title="5.为什么会这样"></a>5.为什么会这样</h3><p>心理学中，大概有这么几种现象是比较出名的、可以用来粗略的分析下我所反对的第一种观点的动机。</p>
-<p><strong>斯德哥尔摩效应：</strong>人质反过来爱上施暴者。我们用GitHub多不容易，这是恩惠啊，你还想咋滴？殊不知，能够使用任何网络服务是一个人生来即有的自由，这是人权。</p>
-<p><strong>选择性失察：</strong>这里的”察”包含了多个方面，失忆、失明、失聪。</p>
-<p><strong>圣君情节：</strong>渴望会出现一位”明君”带领我们走向辉煌。拜托，这都2016年了，怎么还想着几百年前的封建思想。况且，人是靠不住的，只有制度才【有可能】靠得住。</p>
-<h2 id="与其他takedown的对比"><a href="#与其他takedown的对比" class="headerlink" title="与其他takedown的对比"></a>与其他takedown的对比</h2><p>有些朋友可能会提及，其实这事也不怎么新鲜——几年前Google就曾根据中国政府的请求移除了某些页面&#x2F;用户（<a target="_blank" rel="noopener" href="https://www.google.com/transparencyreport/removals/government/notes/?hl=zh-CN#authority=CN&period=all">参见此处Google透明度报告</a>）。但愚以为，这两者的takedown的性质是完全不同的。</p>
-<h3 id="1-删除请求的内容"><a href="#1-删除请求的内容" class="headerlink" title="1.删除请求的内容"></a>1.删除请求的内容</h3><p>Google+那次是因为有人冒充天朝”Supreme Leader”，还有一些和恐怖组织相关的用户账号，这毫无疑问是违反ToS的。</p>
-<h3 id="2-删除请求的态度"><a href="#2-删除请求的态度" class="headerlink" title="2.删除请求的态度"></a>2.删除请求的态度</h3><p>Google【并非】会遵从所有请求，从透明度报告中可以看到，Google也拒绝了好几个认为法律依据不足的、无依据takedown。</p>
-<h3 id="3-删除请求的权威性"><a href="#3-删除请求的权威性" class="headerlink" title="3.删除请求的权威性"></a>3.删除请求的权威性</h3><p>透明度报告指出，takedown由<strong>中国互联网违法和不良信息举报中心</strong>发出，而”中国互联网违法和不良信息举报中心 “由<strong>中国互联网协会互联网新闻信息服务工作委员会</strong>成立，而”中国互联网协会互联网新闻信息服务工作委员会”在<strong>国务院新闻办公室、信息产业部的支持与指导下</strong>成立，性质为【政府机构】。</p>
-<p>反观对GitHub，是由”<strong>Cyber Security Association of China（中国网络空间安全协会）</strong>“发出，该机构成立于2016年3月25日，理事长方滨兴，是由国内从事网络空间安全相关产业、教育、科研、应用的机构、企业及个人共同自愿结成的<strong>全国性、行业性、非营利性社会组织</strong>。也就是说这是非政府机构，成立不久【可能】就自导自演了这么一出。此时我只想说，GitHub的法务人员是咋的了——就不怕得寸进尺的要求takedown “government takedown”这个repo？</p>
-<h2 id="托管政治内容是否违反GitHub的ToS"><a href="#托管政治内容是否违反GitHub的ToS" class="headerlink" title="托管政治内容是否违反GitHub的ToS"></a>托管政治内容是否违反GitHub的ToS</h2><p>这只有阅读<a target="_blank" rel="noopener" href="https://help.github.com/articles/github-terms-of-service/">GitHub的ToS</a>才可以，在我这，其实这也有些“<strong>选择性披露</strong>”，然而大家可以自己去看相应条款——我只找到了这两条和本小标题相关性比较大的条款。</p>
-<blockquote>
-<p>F2：GitHub does not pre-screen Content, but GitHub and its designee have the right (but not the obligation) in their sole discretion to refuse or remove any Content that is available via the Service.</p>
-</blockquote>
-<p>GitHub不会预先审查内容，但是其员工有权利（但却没义务）自行酌情移除内容。</p>
-<blockquote>
-<p>G7：We may, but have no obligation to, remove Content and Accounts containing Content that we determine in our sole discretion are unlawful, offensive, threatening, libelous, defamatory, pornographic, obscene or otherwise objectionable or violates any party’s intellectual property or these Terms of Service.</p>
-</blockquote>
-<p>GitHub可能、但却义务移除被认为包含有非法的、攻击性的、诽谤、色情、侵犯他人知识产权等性质的言论。</p>
-<p>这两条说的蛮清楚的，我们可以说issue 38【可能】涉及诽谤——或者被称为言论自由。毕竟GitHub是一家美国公司，要遵守的是美国法律。所以关于该issue是否涉及诽谤，我持否定意见。关于言论自由与诽谤，前辈随想君有过一个很好的总结文章（<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/02/freedom-of-speech.html">戳我就可以了</a>）</p>
-<p>我大致摘抄关键内容如下：</p>
-<blockquote>
-<h3 id="◇言论的对象：活人-VS-死人"><a href="#◇言论的对象：活人-VS-死人" class="headerlink" title="◇言论的对象：活人 VS 死人"></a>◇言论的对象：活人 VS 死人</h3><p>有可能牵涉到诽谤罪名的言论，必定是针对”某人”的。关于言论的对象，还可以分两种：活人，死人。 下面是不同国家的差异。</p>
-<p><strong>较好的国家</strong> 有些国家的立法明确规定：”诽谤罪的前提是针对活人”。换句话说，你可以随便骂已经死亡的人，不算诽谤。为啥会有这个前提捏？因为这些国家对”诽谤罪”的定义是，必须使得言论的对象造成【实质性伤害】。而死人是不存在”实质性伤害”的。 显然，这样的立法具有更宽松的言论自由环境。</p>
-<p><strong>较差的国家</strong> 在有些国家，没有批评【死人】的言论自由。</p>
-<p>举例：伊斯兰教国家 在某些奉行政教合一的伊斯兰国家，如果你胆敢批评穆罕穆德（伊斯兰教的创始人，已死了上千年），你的下场会很惨。</p>
-<h3 id="◇言论的对象：普通人-VS-公职人员"><a href="#◇言论的对象：普通人-VS-公职人员" class="headerlink" title="◇言论的对象：普通人 VS 公职人员"></a>◇言论的对象：普通人 VS 公职人员</h3><p>对于”言论的对象”，俺刚才解释”活人”与”死人”的差异。除了这个差异，还存在另一个差异：身份的差异。身份的差异有很多种，俺重点说一下”普通人”和”公职人员”的差异（所谓的”公职人物”就是在政府部门担任职务的人）。 下面是不同国家的差异。</p>
-<p><strong>较好的国家</strong> 有些国家的立法，对”普通人”的保护力度更【大】，对”公职人物”的保护力度更【小】。为啥要对”公职人物”区别对待捏？刻意【减少】对”公职人物”的保护，反过来也就是方便对”公职人物”进行批评监督。这样民众就可以比较放肆地对政府官员进行批评，而不用担心被控诽谤。</p>
-<p>举例：美国的”真实恶意原则” 比如美国的立法明确规定，”诽谤罪，适用于公职人员和普通个人的标准不同。如果原告是公职人员，原告必须【证明】被告（发言者）存在【真实恶意】，诽谤的罪名才能成立。”（这就是美国法律界非常有名的”真实恶意原则”，这是最高法院审理”纽约时报诉沙利文案”确立的，该案的维基词条在”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BA%BD%E7%BA%A6%E6%97%B6%E6%8A%A5%E8%AF%89%E6%B2%99%E5%88%A9%E6%96%87%E6%A1%88">这里</a>“） 所谓的”真实恶意”是指：发言人明知【事实陈述】是虚假的，依然发表该事实陈述。从这个定义可以看出：要【证明】”真实恶意”是非常困难滴（因为这涉及到，证明一个人的内心活动），所以美国【公职人员】在这类诉讼中很难获胜。 反之，如果是针对普通的人的诽谤诉讼，原告无需证明被告（发言者）具有【真实恶意】。</p>
-<p>显然，这样的立法具有更宽松的言论自由环境，非常有利于对政府的监督。</p>
-<p><strong>较差的国家</strong> 有些国家，不区分”公职人员”和”普通人”。在这些国家中批评政府官员就要当心了——因为政府官员可以反过来告你诽谤。</p>
-<p>举例：新加坡 在这方面，最典型的例子就是新加坡。新加坡的三代领导人（李光耀、吴作栋、李显龙）非常善于用”诽谤罪”来打压反对党和舆论的批评。 新加坡反对党的领导人徐顺全因为批评政府领导人，被控”诽谤罪”，受到巨额罚款，几乎倾家荡产。连美国报刊（比如：华尔街日报、纽约时报、等）驻新加坡的记者都多次被控告”对新加坡领导人诽谤”。</p>
-<p><strong>奇葩的国家</strong> 还有一种国家比”较差的国家”还要差，不妨称之为”奇葩的国家”（比如天朝就是）。在这些国家中，名义上也有针对”诽谤罪”的立法。但这些立法仅仅是摆设。在这些国家中，如果你胆敢批评政府领导人（不管你的批评言论是否构成”诽谤罪”），都会被逮捕。 换句话说，这些国家同前面提到的”较好的国家”是【相反】滴。在”奇葩的国家”里面，你诽谤普通人，通常没啥事。但绝对不允许你批评政府领导人。</p>
-</blockquote>
-<h2 id="GitHub为何要妥协"><a href="#GitHub为何要妥协" class="headerlink" title="GitHub为何要妥协"></a>GitHub为何要妥协</h2><p>想想GitHub和俺们政府的深仇大恨，本应该觉得GitHu管理层骨气应该不错——被大炮攻击了都毫不服软。</p>
-<p>但是此次却想不到GitHub采取了这么一个折中的、【非常欠妥】的处理方法。因为一个issue而过滤整个repo，这种做法是<strong>难以接受的</strong>——如果我把同样的issue放到知名项目里呢？</p>
-<p>我的猜想之一，GitHub的在这些”冲突”之后，应当收到了很多请求<strong>移除类似内容的邮件</strong>——某些自我阉割的的码农们的施压。为了避免再次发生大规模的”冲突”，GitHub不得已选择了这种手段。</p>
-<p>甚至有些证据（搜索该issue用户的过往发言）指明这是”中国网络空间安全协会”自导自演的、方便通知删除该repo的伎俩与借口。</p>
-<h2 id="我们该怎么办"><a href="#我们该怎么办" class="headerlink" title="我们该怎么办"></a>我们该怎么办</h2><p>毫无疑问，GitHub此次的骨气、形象已经彻底打折扣了——但是既然已经搞了个大新闻，我们就要继续玩大的，向GitHub Support提交抗议施压。</p>
-<p>那我们抗议该从哪几点来呢？</p>
-<h3 id="1-提交请求部门的权威性"><a href="#1-提交请求部门的权威性" class="headerlink" title="1.提交请求部门的权威性"></a>1.提交请求部门的权威性</h3><p>该组织不是政府部门，何来”government takedown”</p>
-<h3 id="2-处理方式的合理性"><a href="#2-处理方式的合理性" class="headerlink" title="2.处理方式的合理性"></a>2.处理方式的合理性</h3><p>退一万步来说，因为一个issue而屏蔽整个repo是不合理的、难以接受的。</p>
-<p>我们可以晓之以理、动之以情的讲述道理，让他们看看，反思下当初的GitHub是多么有骨气！</p>
-<h2 id="GitHub的回应"><a href="#GitHub的回应" class="headerlink" title="GitHub的回应"></a>GitHub的回应</h2><p>我抗议之后，隔日收到了他们的回复：</p>
-<p>由于安全和隐私问题，讨论其他用户的repo是不合适滴。</p>
-<p>原文：</p>
-<blockquote>
-<p>Thank you very much for your email. I’m sorry to disappoint, but for security and privacy reasons we cannot discuss another user’s repository.</p>
-</blockquote>
-<p>这借口真是够无奈的——GitHub管理层你是进行了py交易吗？</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>大家知否？App要实名啦，iOS游戏得审查啦。我又想起了一句话，这倒车水平真溜啊，还没忘记打远光。</p>
-<p>本文最后，送给大家一首诗歌，以及三段我认为<a target="_blank" rel="noopener" href="https://dmesg.app/video-clips">非常有气势的视频</a>——Fight for your freedom.</p>
-<blockquote>
-<p>起初他们追杀共产主义者， 我没有说话，因为我不是共产主义者； 接着他们追杀犹太人， 我没有说话，因为我不是犹太人； 后来他们追杀工会会员， 我没有说话，因为我不是工会会员； 后来他们又追杀天主教徒， 我没有说话，因为我是新教徒； 最后他们奔我而来， 就再也没有人能站起来为我说话了。</p>
-</blockquote>
-<p>或许下一个雷洋就是你。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/07/02/takedown-on-github/index/" data-id="clhp7rtkt009es2qrdcmke1zb" data-title="GitHub的妥协：government takedown on programthink / zhao事件随想" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-semi-auto-blacklist/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/06/16/semi-auto-blacklist/index/" class="article-date">
-  <time class="dt-published" datetime="2016-06-16T00:00:00.000Z" itemprop="datePublished">2016-06-16</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/06/16/semi-auto-blacklist/index/">利用ufw或者Nginx拉黑对xmlrpc.php的暴力破解</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>终于考完试啦，加点黑名单玩玩，没有技术含量的水水水  :roll:  :roll:</p>
-<p>最近一定没人会问，博主你干嘛去了，都一个月没更新博文了。哎，实属无奈啊，我昨天才考完“软件工程”，一直忙着复习来着。提到软件工程，我就想讲个笑话。</p>
-<blockquote>
-<p>有一天，有人夸我，小伙子你挺厉害啊，什么专业的？我说，SE的。他问，SE是啥？我说，是Shit Eating啦； 又有一天，有人问我，你这专业都学啥啊？我说，CS啊。他很惊讶，天天打游戏？我说，不，是Create Shit啊。</p>
-</blockquote>
-<p>此笑话如此无情的讽刺了中国高校的软工教育和所谓“软件工程”。</p>
-<p>虽说这一科考完了，但还是剩下很多待考的东东…还全都是背的。但至少在现在的这个空档，让我水水博文吧！</p>
-<p>目前的一个小小的问题就是，总是有人暴力破解后台，其中包括对xmlrpc.php的，也有wp-login.php的。对于xmlrpc的破解，只能在日志里看到；wp-login.php有插件可以帮忙处理。</p>
-<p>我就先手动处理下吧，备忘。</p>
-<h2 id="xmlrpc-php是什么"><a href="#xmlrpc-php是什么" class="headerlink" title="xmlrpc.php是什么"></a>xmlrpc.php是什么</h2><p>XML-RPC 是 WordPress 用于第三方客户端（如 WordPress iPhone 和安卓客户端，Windows Live Writer 等）的 API 接口，还可以用于 pingbacks 和 trackbacks 端口，作为站点之间的通讯桥梁。</p>
-<p>简而言之，当你使用Word的文件-共享-发布至博客将你的文章发布到WordPress的时候，就会使用到这个文件。</p>
-<h2 id="xmlrpc-php的风险"><a href="#xmlrpc-php的风险" class="headerlink" title="xmlrpc.php的风险"></a>xmlrpc.php的风险</h2><p>这东东，很危险的——<a target="_blank" rel="noopener" href="http://www.freebuf.com/articles/web/38861.html">暴力破解</a>嘛，还没有验证码什么的。</p>
-<p>应对措施</p>
-<p>稍微搜索一下便知，好多办法啊。直接删掉，000权限，禁用掉rpc服务，改个别人猜不到的名字，等等。</p>
-<p>但是呢，我就想小小的做一个蜜罐——我的<strong>黑名单</strong>已经饥渴难耐了。</p>
-<p>然而我并不太会shell脚本，实在无能为力写一个自动分析日志并加黑名单的脚本啊……还不想用插件，所以只能偶尔手动玩了。 [v_blue] GitHub上搜索到了一些脚本，<a target="_blank" rel="noopener" href="https://github.com/gurdiga/wp-protect-xmlrpc">传送门</a>[&#x2F;v_blue]</p>
-<h2 id="处理办法"><a href="#处理办法" class="headerlink" title="处理办法"></a>处理办法</h2><h3 id="揪出来大量post-xmlrpc-php的IP"><a href="#揪出来大量post-xmlrpc-php的IP" class="headerlink" title="揪出来大量post xmlrpc.php的IP"></a>揪出来大量post xmlrpc.php的IP</h3><p>grep -a ‘xmlrpc.php’ dmesg.app.log | awk ‘{print $1}’</p>
-<p>之后我们需要把这个IP里出现次数最多的那几个找出来，然后判断是不是自己所为。</p>
-<p>这个我暂时没找到好的办法——但是可以确定的是shell脚本可以很方便的做到这点，C++ STL中的count()也很方便。</p>
-<p>#利用正则表达式去除重复行<br>(^.*\n)(?&#x3D;\1)<br>#查询某个IP在日志中出现次数<br>grep -o ‘123.206.87.223’ dmesg.app.log |wc –l<br>#去除重复行<br>sort -k2n file | uniq &gt; a.out</p>
-<h2 id="封禁手段"><a href="#封禁手段" class="headerlink" title="封禁手段"></a>封禁手段</h2><h3 id="1-Nginx黑名单"><a href="#1-Nginx黑名单" class="headerlink" title="1. Nginx黑名单"></a>1. Nginx黑名单</h3><p>vim &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;blackip.conf</p>
-<p>然后把IP（或者是CIDR表示法）放到黑名单里吧</p>
-<p>deny 1.2.3.4;<br>deny 1.2.3.4&#x2F;16;</p>
-<p>修改nginx配置文件，将blackip.conf包含到配置文件之中</p>
-<p>vim &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf&#x2F;nginx.conf<br>include blackip.conf;</p>
-<p>然后保存退出</p>
-<p>之后重启nginx或者重新加载配置，黑名单即生效。</p>
-<p>#重启nginx，以下三选一<br>service nginx restart<br>systemctl restart nginx.service<br>&#x2F;etc&#x2F;init.d&#x2F;nginx restart<br>#重载配置<br>nginx -s reload</p>
-<p> </p>
-<h3 id="2-ufw封禁"><a href="#2-ufw封禁" class="headerlink" title="2.ufw封禁"></a>2.ufw封禁</h3><p>ufw就是umcomplicated firewall，是Ubuntu上的基于iptables的防火墙，使用起来比较方便，不像iptables规则那么变态……</p>
-<p>来看看基本用法吧，也是我的配置方法</p>
-<p>#默认入网规则全部拒绝<br>ufw default deny<br>#允许22号、TCP&#x2F;UDP协议、从任何位置入网请求<br>ufw allow 22<br>#允许SSH协议、从任何位置入网请求<br>ufw allow ssh<br>ufw allow http<br>ufw allow https<br>#启用防火墙<br>ufw enable<br>#显示防火墙状态和规则数字<br>ufw status numbered<br>#删除2号规则<br>ufw delete 2<br>#阻止192.168.1.5对所有端口的入网请求<br>ufw deny from 192.168.1.5 to any<br>#阻止192.168.1.5对所有443（HTTPS）的入网请求<br>ufw deny from 192.168.1.5 to any port 443<br>#查看ufw日志<br> less &#x2F;var&#x2F;log&#x2F;ufw.log<br>#重置ufw<br>ufw reset</p>
-<p>[v_error]一定要注意，如果你是通过SSH连接到服务器的，请第一步就添加ssh对应端口的入网请求（默认是22）[&#x2F;v_error]</p>
-<p>但是， ufw这家伙有点逗。我先ufw default deny将默认规则改成禁止入网，再添加http，https，ssh的入网规则，为了测试效果就把自己的IP给deny了，刷新网站发现没效果啊！查了些资料，发现ufw是规则匹配模式，从上匹配到下，匹配到符合规则的就停止，而后加的规则是在下面的，必然就被无视了。所以，那该怎么办呢？ 聪明的你一定想到了，那插入规则到第一行不就得了。</p>
-<p>#禁止14.3.20.228访问443，插入规则到第一行。<br>ufw insert 1 deny from 14.3.20.228 to any port 443</p>
-<p>[v_blue]小提示：deny，reject，limit区别 除了deny，还有reject和limit两种语法，根据manual，他们的区别是： limit： connection rate limiting ufw会允许连接到该端口，但是一个IP如果在30秒钟之内尝试6次，那么就暂时封禁。这也就意味着 ufw limit ssh是很必要的 reject：给出拒绝原因而不是deny直接拒绝什么提示都没有。 [&#x2F;v_blue]</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/06/16/semi-auto-blacklist/index/" data-id="clhp7rtjl008bs2qr2d8h0uh6" data-title="利用ufw或者Nginx拉黑对xmlrpc.php的暴力破解" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-udp53/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/05/22/udp53/index/" class="article-date">
-  <time class="dt-published" datetime="2016-05-22T00:00:00.000Z" itemprop="datePublished">2016-05-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/05/22/udp53/index/">UDP 53免费上网、DNS隧道经验谈</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_error]郑重声明： 本文仅供研究学习技术交流，请勿用于商业及非法用途。如产生任何纠纷，与本人无关。[&#x2F;v_error]</p>
-<hr>
-<p>这是一篇回炉重炒的福利文</p>
-<p>本文将介绍一种绕过Web认证来免费上网的姿势，不敢保证在所有网络环境下都好用，但是至少我已经享受一段时间免费的待遇了。</p>
-<h2 id="一-原理简介"><a href="#一-原理简介" class="headerlink" title="一. 原理简介"></a>一. 原理简介</h2><p>在连接到某个需要Web认证的热点之前，我们已经获得了一个内网IP，此时，如果我们访问某个HTTP网站，网关会对这个HTTP响应报文劫持并篡改，302重定向给我们一个web认证界面（所以点HTTPS的网站是不可能跳转到web认证页面的）。详细原理可以<a target="_blank" rel="noopener" href="http://www.ruijie.com.cn/fw/wt/36502">戳这里</a></p>
-<p>我们看到了，网关（或者说交换机）都默认放行DHCP 和DNS报文，也就是UDP53与UDP 67。有些网关甚至不会报文进行检查，这也就意味着任何形式的数据包都可以顺畅通过。</p>
-<p>既然如此，我们就可以在公网搞一台服务器，然后借此来免费上网，顺便还能<a target="_blank" rel="noopener" href="https://dmesg.app/prevent-from-network-audit.html">防止网络审计</a>——再一次画了删除线的”免费”，其实只是把钱花在服务器上了。我们这次免费上网的主要突破点就是UDP 53，当然了，据一位朋友实践，UDP 67也可以绕过Web认证，甚至是那些UDP 53无法绕过的热点。当然啦，TCP 53也行，毕竟DNS也有TCP的。</p>
-<h2 id="二-环境检测"><a href="#二-环境检测" class="headerlink" title="二. 环境检测"></a>二. 环境检测</h2><p>废话不多说了，连上热点并且不要进行认证，打开cmd（或者GNU&#x2F;Linux的终端），输入如下内容</p>
-<p>nslookup <a target="_blank" rel="noopener" href="http://www.baidu.com/">www.baidu.com</a></p>
-<p>这是我的结果</p>
-<p><img src="/images/052216_0640_UDP53DNS1.png"></p>
-<p>我在没有进行Web认证的情况下成功查询到的IP地址，但是我们并无法确定网关是放行了UDP 53的<strong>所有数据包</strong>还是只放行了<strong>DNS报文</strong>。所以我们要进一步测试下！如果连这都过不了，那还是洗洗睡吧。好吧，说实话，脚本其实是测试TCP的53。 [v_blue]2016年9月10日更新：用我的这个小工具试试吧（此工具测试的其实是TCP53，但是如果允许TCP，那么UDP也肯定没问题） [&#x2F;v_blue] [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/UDP53-Filter-Type'/]%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/UDP53-Filter-Type&#39;\]项目地址\[/gt\]</a> 去Git仓库下载源码，之后Linux用户运行</p>
-<p>python UDP53.py</p>
-<p>Windows用户直接双击dist下的udp.exe吧！</p>
-<p>下图是Windows下的运行结果<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/05/2016091006202571.png"><img src="/images/2016091006202571.png" alt="41212"></a></p>
-<p>[v_blue]有人会问，为何你两次nslookup得到的IP不同呢？想都不用想，百度肯定是在全国各地都部署了内容分发节点，就近访问啊。[&#x2F;v_blue]</p>
-<h2 id="三-实战：允许任何类型数据包通过的网关（提示congratulations）"><a href="#三-实战：允许任何类型数据包通过的网关（提示congratulations）" class="headerlink" title="三. 实战：允许任何类型数据包通过的网关（提示congratulations）"></a>三. 实战：允许任何类型数据包通过的网关（提示congratulations）</h2><p>遇到这种情况，那就是人生中最幸运的事情啦！想法很简单，既然允许任何类型是数据通过UDP 53，那我就在外网搭建一个UDP 53的服务，然后连接上就好了。</p>
-<h3 id="使用UDP-53的OpenVPN（UDP-67同理）"><a href="#使用UDP-53的OpenVPN（UDP-67同理）" class="headerlink" title="使用UDP 53的OpenVPN（UDP 67同理）"></a>使用UDP 53的OpenVPN（UDP 67同理）</h3><p>这种情况我选择搭建OpenVPN的UDP 53（或者也可以试试UDP 67），搭建方法我已经在半年前的博文<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">《SoftEther VPN Server安装手记+福利》</a>提到了，只需要最后开启UDP 53的OpenVPN即可。</p>
-<p><img src="/images/052216_0640_UDP53DNS2.png"></p>
-<p>PS，APP Store大陆区早就封杀了OpenVPN，我来给你们提供一个美国住址来注册美区账号吧</p>
-<p>5200 Zoo Dr，Los Angeles, CA 90027<br>(323) 668-0104</p>
-<p>其实，如果是完全放行53（TCP、UDP），那么弄个Shadowsocks也行，开个全局呗。 如果此时抓包，咱能发现，wireshark会告诉咱DNS协议下那些都是malformed packet，必然呐……</p>
-<h2 id="四-实战：仅允许DNS报文通过的网关（提示sad-face）"><a href="#四-实战：仅允许DNS报文通过的网关（提示sad-face）" class="headerlink" title="四. 实战：仅允许DNS报文通过的网关（提示sad face）"></a>四. 实战：仅允许DNS报文通过的网关（提示sad face）</h2><p>这种情况下，我劝你还是放弃吧。但是并不是不可以免费上网，有一种技术叫做DNS隧道，还有Ping隧道→_→人们为了免费上网还真是什么方法都用上了啊。 [v_tips]据称在某些情况下DNS隧道效果也很好，我没有测试过[&#x2F;v_tips] 万能的SoftEther VPN Server同样提供了这个略显鸡肋的功能</p>
-<p>加密与网络-VPN over ICMP &#x2F; DNS 设置</p>
-<p><img src="/images/052216_0640_UDP53DNS3.png"></p>
-<p>注意，需要使用SoftEther VPN Client 管理工具4.0以上，VPN over DNS不可以与OpenVPN with UDP 53共存。</p>
-<p>之后在SoftEther VPN Client 管理工具中新建连接，填入相关信息即可。</p>
-<p>这里我的测试不太多，我从国外论坛上找到这么一句话：</p>
-<blockquote>
-<p>Softether client got it’s TCP protocol on top of it’s priority as it’s the stable one, UDP on Nat-t comes next, then ICMP and then DNS. of all these protocol only the vpn over DNS did not work for me as it fails to retrieve the right ip and gateway.</p>
-</blockquote>
-<p>SoftEther VPN Client先尝试TCP协议，然后尝试UDP on Nat-t，然后再Ping隧道和DNS隧道。</p>
-<p>下图是勉强成功建立DNS隧道的截图。</p>
-<p><img src="/images/052216_0640_UDP53DNS4.png"></p>
-<h2 id="五-注意事项"><a href="#五-注意事项" class="headerlink" title="五. 注意事项"></a>五. 注意事项</h2><h3 id="1-速度"><a href="#1-速度" class="headerlink" title="1.速度"></a>1.速度</h3><p>允许所有数据包通过UDP 53的情况下，速度主要取决于你的服务器的<strong>出网带宽</strong>和<strong>热点本身的网速</strong>。</p>
-<h3 id="2-IP问题"><a href="#2-IP问题" class="headerlink" title="2.IP问题"></a>2.IP问题</h3><p>服务器在外地，所以淘宝支付宝之类的需要验证码之类的。以后如果申诉也要记得把登陆地区选上服务器所在地。</p>
-<h3 id="3-安全问题"><a href="#3-安全问题" class="headerlink" title="3.安全问题"></a>3.安全问题</h3><p>某些热点是公开的、没有密码保护的，所以可以很轻松的搞<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB">中间人攻击</a>——甚至是root的Android手机都可以做到。而OpenVPN可以防止中间人攻击（配置文件里有服务器的证书），同时我使用了AES-128-CBC加密，搞定网络审计简直是轻轻松松的。</p>
-<h2 id="六-服务器的选购"><a href="#六-服务器的选购" class="headerlink" title="六. 服务器的选购"></a>六. 服务器的选购</h2><p>国内VPS价格普遍离谱，恰巧我还是学生党，也算捡到了大便宜→_→不是学生党谁想着免费上网的心思啊？</p>
-<p>其实大部分人最关心的问题还是速度吧！</p>
-<p>UDP 53的OpenVPN速度主要限制就在<strong>热点本身的速度</strong>和服务器的<strong>出口带宽</strong>速度。腾讯云学生版带宽都是1Mbps，所以限制基本就是服务器出口带宽了……</p>
-<p>所以下面给大家贴出来我在腾讯云和阿里云撕逼的经验（传说七牛今年也会推出云主机，我很期待啊）</p>
-<h3 id="腾讯云："><a href="#腾讯云：" class="headerlink" title="腾讯云："></a>腾讯云：</h3><p>策略是，每个月赠送”满65元减64元”优惠券，包年包月1核1G内存1Mbps恰巧是65元。至于你怎么凑满那65元，是没有限制的。但说实话，要是选择按流量计费，那流量是很不耐用的…！</p>
-<h3 id="阿里云："><a href="#阿里云：" class="headerlink" title="阿里云："></a>阿里云：</h3><p>价格要比腾讯云稍微贵一点点（接近十块钱），但是可以在购买界面直接选择其他数值的峰值带宽，并且每月赠送15G出网流量。</p>
-<p>但是，他丫的要签到！自己看去……</p>
-<p><img src="/images/052216_0640_UDP53DNS6.png"></p>
-<p>国内学生云服务器优惠也就这两个马家了……</p>
-<h2 id="七-买不起服务器、不会搭建、网速太慢"><a href="#七-买不起服务器、不会搭建、网速太慢" class="headerlink" title="七.买不起服务器、不会搭建、网速太慢"></a>七.买不起服务器、不会搭建、网速太慢</h2><p>这你叫我咋办。</p>
-<h2 id="八-最后"><a href="#八-最后" class="headerlink" title="八. 最后"></a>八. 最后</h2><p>给大家看看百度的广告，或者是”推广”吧。</p>
-<p>TMD整个第一屏都是广告，没有一个字和学生二字贴边。</p>
-<p><img src="/images/052216_0640_UDP53DNS7.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/05/22/udp53/index/" data-id="clhp7rtmr00als2qr0vvkacow" data-title="UDP 53免费上网、DNS隧道经验谈" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-ubuntumate-raspberry2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/05/05/ubuntumate-raspberry2/index/" class="article-date">
-  <time class="dt-published" datetime="2016-05-05T00:00:00.000Z" itemprop="datePublished">2016-05-05</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/05/05/ubuntumate-raspberry2/index/">Ubuntu MATE 16.04 for Raspberry 2安装配置</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_blue]2019年更新： 最终，我换回了raspbian，苦等的18.04怎么也不来，也不想do-release-upgrade，于是直接上raspbian lite吧，开机后内存占用才30M，很完美~<a target="_blank" rel="noopener" href="https://weworkweplay.com/play/automatically-connect-a-raspberry-pi-to-a-wifi-network/">自动连WiFi参考</a>[&#x2F;v_blue]</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/05/201605050804463.png"><img src="/images/201605050804463.png" alt="ghhg"></a></p>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨天把树莓派揪了出来，全新安装了Ubuntu MATE 16.04，发现这版本还是不错的……然而却存在很多问题，比如说，每次更新、下载软件都得跑去遥远的美帝——反正不在大陆了；SD卡没有扩展等。</p>
-<p>那今天就水一贴来说说Ubuntu MATE 16.04 for Raspberry 2安装之后的事情……</p>
-<p>本文的主要内容（主要解决的问题）有：</p>
-<p>扩展文件系统</p>
-<p>更换软件源</p>
-<p>安装OpenSSH</p>
-<p>完善语言支持</p>
-<p>1080P显示器黑边</p>
-<p>音频默认输出端口</p>
-<p>播放器的硬件加速</p>
-<p>更改桌面风格</p>
-<p>监测CPU温度</p>
-<p>参考资料：<a target="_blank" rel="noopener" href="https://ubuntu-mate.org/raspberry-pi/">https://ubuntu-mate.org/raspberry-pi/</a></p>
-<h2 id="配置要求"><a href="#配置要求" class="headerlink" title="配置要求"></a>配置要求</h2><p>Raspberry 2或者3一个，显示器，鼠标，键盘，HDMI（或者转换器+VGA），microUSB数据线，8GB+的microSD（官方推荐使用Class 6或者Class 10 microSDHC），网线或者无线网卡，至少5V1A的直流电源适配器……一个都不能少。</p>
-<p>因为Ubuntu MATE 没有预先定义的用户，所以烧完卡之后直接想用ssh是不成的……</p>
-<p>反正这配置要求是蛮多的，有Pi的肯定没觉得啥了……</p>
-<p>那就一步一步来吧……</p>
-<p>先说点废话</p>
-<p>纠结树莓派的应用场景，所以我买了两张卡，一张做了OSMC，一张做了Ubuntu MATE</p>
-<p>后来想了想，有这么三种使用方法：</p>
-<p>**1.**把树莓派丢在路由器旁边，随意装个支持SSH的系统，挂个硬盘做NAS，好在现在很多电视有WiFi模块，怎么说也有54Mbps，不看1080P的原盘是没问题了……</p>
-<p>**2.**把树莓派连在电视上，用无线网卡连到路由器，装OSMC挂硬盘当HTPC……当然啦HTPC也可以SSH然后用samba的。PS，OSMC支持遥控器哦！</p>
-<p>**3.**同上，只不过装的是Ubuntu MATE……插个键盘鼠标还能偶尔上个网</p>
-<p>顺便搭建LNMP什么的也完全不过分(→_→)Pi这性能得编译半个晚上还是果断二进制包吧……</p>
-<p>反正现在我也没有多余的移动硬盘，也没有自己的家，还是先让它吃灰吧……</p>
-<h2 id="烧制Ubuntu-MATE"><a href="#烧制Ubuntu-MATE" class="headerlink" title="烧制Ubuntu MATE"></a>烧制Ubuntu MATE</h2><p><a target="_blank" rel="noopener" href="https://ubuntu-mate.org/raspberry-pi/ubuntu-mate-16.04-desktop-armhf-raspberry-pi.img.xz.torrent">点击这里下载种子</a>，然后下载镜像，是xz格式的，随意用什么东西解压缩，用Win32 Disk Imager写入到卡里，这我就不说了……</p>
-<h2 id="安装Ubuntu-MATE"><a href="#安装Ubuntu-MATE" class="headerlink" title="安装Ubuntu MATE"></a>安装Ubuntu MATE</h2><p>此步略……</p>
-<p>我相信大家都会的。</p>
-<p> </p>
-<h2 id="扩展文件系统"><a href="#扩展文件系统" class="headerlink" title="扩展文件系统"></a>扩展文件系统</h2><p>默认来说，16G的卡大概只有7G左右是默认被使用的，需要扩展下。很可惜</p>
-<p>rasp-config</p>
-<p>并不能使用（To do里有一项是后期会添加rasp-config），所以我们要手动扩展下。</p>
-<p>官网给出了两种办法：</p>
-<h3 id="第一种"><a href="#第一种" class="headerlink" title="第一种"></a>第一种</h3><p>在Ubuntu MATE的welcome窗口里调整，只需要点击Information -Resize 即可。（Welcome里可以看到好些好玩的东西呢，我这就截个图给你们看看）</p>
-<p><img src="/images/050516_0715_UbuntuMate12.png"></p>
-<h3 id="另外一种方式"><a href="#另外一种方式" class="headerlink" title="另外一种方式"></a>另外一种方式</h3><p>sudo fdisk &#x2F;dev&#x2F;mmcblk0</p>
-<p>删除第二个分区 (d回车, 2回车), 用默认参数新建分区 (n回车, p回车, 2回车, 回车两次, ), w回车，然后重启，再运行</p>
-<p>sudo resize2fs &#x2F;dev&#x2F;mmcblk0p2</p>
-<p><img src="/images/050516_0715_UbuntuMate13.png"></p>
-<p>重启即可。</p>
-<h2 id="更换软件源为国内源"><a href="#更换软件源为国内源" class="headerlink" title="更换软件源为国内源"></a>更换软件源为国内源</h2><p>别想着直接把mirrors.163.com等的sources.list直接复制过去，是不管用的，因为树莓派是ARM架构的。这里我找到了科大的软件源，顺便吐槽一句，科大的源里东西可真多啊，界面还好看！</p>
-<p>sudo pluma &#x2F;etc&#x2F;apt&#x2F;sources.list</p>
-<p>清空所有内容，添加如下内容（提前做好备份哦！）</p>
-<p>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-updates main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-updates main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-security main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-security main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-backports main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-backports main restricted universe multiverse</p>
-<p>如果你是用的是wily，那就把xenial替换成wily就好了（新版的设置里自带个中国的软件源，直接选就好啦）</p>
-<p>之后尽情的</p>
-<p>sudo apt-get update<br>sudo apt-get upgrade</p>
-<h2 id="安装语言包"><a href="#安装语言包" class="headerlink" title="安装语言包"></a>安装语言包</h2><p>16.04比14.04和15.10大了那么多，果然还是有些道理的，但是依旧有些翻译不完整。</p>
-<p>和Ubuntu差不多，上面的面板里点languages support，之后就会弹出语言支持不完整</p>
-<p><img src="/images/050516_0715_UbuntuMate15.png"></p>
-<p>点安装，输入密码就可以了。速度还是很好的</p>
-<p><img src="/images/050516_0715_UbuntuMate16.png"></p>
-<h2 id="安装openssh-server"><a href="#安装openssh-server" class="headerlink" title="安装openssh-server"></a>安装openssh-server</h2><p>更新源之后</p>
-<p>sudo apt-get install openssh-server</p>
-<p>之后其他电脑用putty之类的就可以了。用户是你设置的用户，密码是你设置的密码。</p>
-<h2 id="1080P显示器有黑边"><a href="#1080P显示器有黑边" class="headerlink" title="1080P显示器有黑边"></a>1080P显示器有黑边</h2><p>sudo pluma &#x2F;boot&#x2F;cofig.txt</p>
-<p>369行，去掉disable_overscan&#x3D;1的注释</p>
-<p>注意，不是前面70多行的HDMI_Mode&#x3D;4那里，别改错了</p>
-<p><img src="/images/050516_0715_UbuntuMate17.png"></p>
-<h2 id="音频默认输出端口"><a href="#音频默认输出端口" class="headerlink" title="音频默认输出端口"></a>音频默认输出端口</h2><h3 id="使用3-5mm或者HDMI输出音频"><a href="#使用3-5mm或者HDMI输出音频" class="headerlink" title="使用3.5mm或者HDMI输出音频"></a>使用3.5mm或者HDMI输出音频</h3><p>#3.5mm<br>sudo amixer cset numid&#x3D;3 1<br>#HDMI<br>sudo amixer cset numid&#x3D;3 2</p>
-<p>这个是全局的。</p>
-<h3 id="omxplayer输出音频端口"><a href="#omxplayer输出音频端口" class="headerlink" title="omxplayer输出音频端口"></a>omxplayer输出音频端口</h3><p>#3.5mm<br>omxplayer -o local video.mp4<br>#HDMI<br>omxplayer -o hdmi video.mp4</p>
-<p>仅对omxplayer有效。如果HDMI和3.5mm都接入了，那么omxplayer默认会输出到HDMI</p>
-<h2 id="VLC和ffmpeg硬件加速"><a href="#VLC和ffmpeg硬件加速" class="headerlink" title="VLC和ffmpeg硬件加速"></a>VLC和ffmpeg硬件加速</h2><p>大概树莓派上最好的播放器就是omxplayer，甚至有人还写了个GUI，TBOPlayer，好想音译成淘宝播放器，GitHub Repo在此：<a target="_blank" rel="noopener" href="https://github.com/KenT2/tboplayer">https://github.com/KenT2/tboplayer</a></p>
-<p>Ubuntu MATE带有VLC，也添加了OpenMax IL硬件解码的支持。</p>
-<h3 id="VLC启用硬件加速"><a href="#VLC启用硬件加速" class="headerlink" title="VLC启用硬件加速"></a>VLC启用硬件加速</h3><p>打开VLC，工具-偏好设置-视频，选择OpenMax IL</p>
-<p><img src="/images/050516_0715_UbuntuMate18.png"></p>
-<p>官网还提了一句，To use hardware accelerated video playback with ffplay you must specify the h264_mmal codec</p>
-<p>ffplay -vcodec h264_mmal video.mp4</p>
-<p>我没有进行测试</p>
-<p>[v_error]注意： 树莓派上的硬件加速是直接把视频输出，所以你看不到暂停、快进什么的播放控制。 所以 ，得用热键……参考如下wiki <a target="_blank" rel="noopener" href="https://wiki.videolan.org/Hotkeys_table/">https://wiki.videolan.org/Hotkeys_table&#x2F;</a>[&#x2F;v_error]</p>
-<h2 id="更改桌面风格"><a href="#更改桌面风格" class="headerlink" title="更改桌面风格"></a>更改桌面风格</h2><p>使用MATE Tweak工具，怀念瘟都死的我啊哈哈，Redmond很像Windows了，而且有好些主题可以换，好色主义的我啊哈哈哈~~</p>
-<p><img src="/images/050516_0715_UbuntuMate19.png"></p>
-<h2 id="监控CPU温度"><a href="#监控CPU温度" class="headerlink" title="监控CPU温度"></a>监控CPU温度</h2><p>懒得上GitHub上找写的非常好的程序了，我这就找了一个非常简单的代码……</p>
-<p>新建文件temp.c</p>
-<p>粘贴入如下内容</p>
-<p>#include<br>#include<br>#include  </p>
-<p>#include &lt;sys&#x2F;types.h&gt;<br>#include &lt;sys&#x2F;stat.h&gt;<br>#include </p>
-<p>#define TEMP_PATH “&#x2F;sys&#x2F;class&#x2F;thermal&#x2F;thermal_zone0&#x2F;temp”<br>#define MAX_SIZE 32<br>int main(void)<br>{<br>    int fd;<br>    double temp &#x3D; 0;<br>    char buf[MAX_SIZE];</p>
-<pre><code>// 打开/sys/class/thermal/thermal\_zone0/temp
-fd = open(TEMP\_PATH, O\_RDONLY);
-if (fd &lt; 0) &#123;
-    fprintf(stderr, &quot;failed to open thermal\_zone0/temp\\n&quot;);
-    return -1;
-&#125;
-
-// 读取内容
-if (read(fd, buf, MAX\_SIZE) &lt; 0) &#123;
-    fprintf(stderr, &quot;failed to read temp\\n&quot;);
-    return -1;
-&#125;
-
-// 转换为浮点数打印
-temp = atoi(buf) / 1000.0;
-printf(&quot;temp: %.2f\\n&quot;, temp);
-
-// 关闭文件
-close(fd);
-</code></pre>
-<p>}</p>
-<p>之后运行</p>
-<p>gcc –o temp temp.c</p>
-<p>会生成一个temp的二进制文件，继续运行</p>
-<p>.&#x2F;temp即可看到CPU温度。</p>
-<p>要想在任何目录都能看到CPU温度，就</p>
-<p>sudo cp temp &#x2F;bin</p>
-<p>任何目录运行temp都能看到CPU温度了——伸手去摸的别怪我哦（别想+x的事啦，是755啦。）</p>
-<p>还记得有个东西叫psensor吗？还有hardinfo（堪称Linux版AIDA64——其实比AIDA64还是有差距的）</p>
-<h2 id="迷之bug"><a href="#迷之bug" class="headerlink" title="迷之bug"></a>迷之bug</h2><p>应该是fcitx的事…？看不到输入法候选框。反正我也只是想拿它做个多媒体中心&#x2F;NAS而已。</p>
-<p><img src="/images/050516_0715_UbuntuMate111.png"></p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>我想了一想，像我这么懒的人，有必要</p>
-<p>alias ai&#x3D;’apt-get install’</p>
-<p>一下了……</p>
-<p><img src="/images/050516_0715_UbuntuMate112.jpg"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/05/05/ubuntumate-raspberry2/index/" data-id="clhp7rtmq00ajs2qr9qvn7gmz" data-title="Ubuntu MATE 16.04 for Raspberry 2安装配置" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
-    <article id="post-letsencrypt-nginx-subdomain/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/04/25/letsencrypt-nginx-subdomain/index/" class="article-date">
-  <time class="dt-published" datetime="2016-04-25T00:00:00.000Z" itemprop="datePublished">2016-04-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/04/25/letsencrypt-nginx-subdomain/index/">手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_error]警告： 国内的大部分服务器会拦截80端口的通信，所以在这种情况下，无论是用webroot还是standalone模式，都是不可能成功签发证书的（因为这俩本质上都是http challenge）。 在这种情况下只能使用DNS challenge了，命令大致如下（renew要稍微麻烦一些）： <code>certbot certonly --manual --preferred-challenges dns</code> 官网详的教程<a target="_blank" rel="noopener" href="https://certbot.eff.org/docs/">戳我</a>[&#x2F;v_error]</p>
-<p>话说Let’s Encrypt已经进入正式版了，咱就来说说怎么签发证书。本人呐，恰巧今日弄了个马甲站<a target="_blank" rel="noopener" href="http://www.shemissed.me,还弄了几个子域名,于是乎就顺便也给弄了let's/">www.shemissed.me,还弄了几个子域名，于是乎就顺便也给弄了Let&#39;s</a> Encrypt吧！</p>
-<p>先声明下我的网站的结构，如果读者和我的建站结构一样，那么，跟着走就可以了！</p>
-<p>使用LNMP1.3一键安装包，nginx版本是1.9.5</p>
-<p>网站目录全部在&#x2F;home&#x2F;wwwroot，其中包含三个子域名（不要管那个default，是我懒得删除了）</p>
-<p><a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a> 主站 <a target="_blank" rel="noopener" href="http://angela.shemissed.me/">angela.shemissed.me</a> 给女神的祝福 <a target="_blank" rel="noopener" href="http://memory.shemissed.me/">memory.shemissed.me</a> 图床</p>
-<p><img src="/images/042516_1416_LetsEncry1.png"></p>
-<p>通过</p>
-<p>lnmp vhost add</p>
-<p>添加了三个子域名，配置为文件如下</p>
-<p><img src="/images/042516_1416_LetsEncry2.png"> [v_blue]关于子域名和二级域名的关系，其实子域名是个相对的概念，就像你是你爸爸的儿子，你儿子是你的儿子一样。而二级域名则是固定的概念，从右侧起第二个.就算二级域名。 纯粹的说，<a target="_blank" rel="noopener" href="http://www.shemissed.me也是shemissed.me的子域名./">www.shemissed.me也是shemissed.me的子域名。</a> 这里我就同一称作子域名啦！[&#x2F;v_blue]</p>
-<p>要注意，Let’s Encrypt并不是泛域名证书（可以签_.abc.com，_就代表泛域名的意思啦）</p>
-<p>现在Let’s Encrypt已经支持泛域名证书啦，使用如下命令，推荐用screen（0.22以后版本）：</p>
-<p>.&#x2F;certbot-auto –server <a target="_blank" rel="noopener" href="https://acme-v02.api.letsencrypt.org/directory">https://acme-v02.api.letsencrypt.org/directory</a> -d *.example.com –manual –preferred-challenges dns-01 certonly</p>
-<p>查询TXT记录</p>
-<p>dig txt example.com</p>
-<p> </p>
-<h2 id="准备Let’s-Encrypt"><a href="#准备Let’s-Encrypt" class="headerlink" title="准备Let’s Encrypt"></a>准备Let’s Encrypt</h2><p>这里有两种方法，一种是包管理器，一种的repo</p>
-<h3 id="包管理器（Ubuntu-16-04）或者官方PPA"><a href="#包管理器（Ubuntu-16-04）或者官方PPA" class="headerlink" title="包管理器（Ubuntu 16.04）或者官方PPA"></a>包管理器（Ubuntu 16.04）或者官方PPA</h3><p>sudo apt install certbot</p>
-<p>PPA</p>
-<p>sudo add-apt-repository ppa:certbot&#x2F;certbot<br>sudo apt-get update<br>sudo apt-get install certbot</p>
-<h3 id="使用GitHub的repo"><a href="#使用GitHub的repo" class="headerlink" title="使用GitHub的repo"></a>使用GitHub的repo</h3><p>找个目录，执行下两句吧</p>
-<p>git clone <a target="_blank" rel="noopener" href="https://github.com/certbot/certbot">https://github.com/certbot/certbot</a><br>cd certbot</p>
-<p><img src="/images/042516_1416_LetsEncry3.png"></p>
-<p>[v_notice]我该使用那种办法？这两种有何区别 包管理器中的Let’s Encrypt&#x2F;certbot版本比较旧。 当然啦，我个人选择GitHub上最新的，因为支持wildcard哟。 值得注意的是，低版本的并不会兼容高版本的！会出现错误的。 [&#x2F;v_notice]</p>
-<h2 id="使用Let’s-Encrypt生成证书"><a href="#使用Let’s-Encrypt生成证书" class="headerlink" title="使用Let’s Encrypt生成证书"></a>使用Let’s Encrypt生成证书</h2><p>无论使用那种方法，只需要执行certonly即可。 如果你是使用包管理器的，那么就</p>
-<p>letsencrypt certonly</p>
-<h1 id="or"><a href="#or" class="headerlink" title="or"></a>or</h1><p>certbot certonly</p>
-<p>如果你是使用GitHub Repo的，那就cd进对应的目录，然后执行</p>
-<p>.&#x2F;certbot-auto certonly</p>
-<p><img src="/images/042516_1416_LetsEncry4.png"> 此后这两者的步骤是相同的了。 检测并安装环境……此时只需要等待等待……</p>
-<p><img src="/images/042516_1416_LetsEncry5.png"></p>
-<p>很磕碜的界面是不是，PuTTY就这熊样，xshell就没这个问题了。要是有强迫症，就开个screen，就没这么难看啦！</p>
-<p>在这一步很多人选择第一项，包括我自己也曾这样尝试过，不知为何会报”dialog error”，各位如果失败了的话，就停掉web服务器，就<strong>果断选择2</strong>吧！</p>
-<p>我这次讲解就直接从2来了，先停掉web服务器（以Nginx为例）</p>
-<p>service nginx stop</p>
-<p>选择2，回车</p>
-<p>输入你的邮箱</p>
-<p><img src="/images/042516_1416_LetsEncry7.png"></p>
-<p>接受许可条款</p>
-<p><img src="/images/042516_1416_LetsEncry8.png"></p>
-<p>输入你的域名，这里我们先给<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>签，所以就先输入这一个，要记得www哦（而且我并没有解析@）</p>
-<p><img src="/images/042516_1416_LetsEncry9.png"></p>
-<p>[v_blue]有人可能会问了，为什么我看到有的人的证书是abc.com，但是域名却是<a href="http://www.abc.com呢？如图">www.abc.com呢？如图</a></p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/04/2016082714251989.png"><img src="/images/2016082714251989-300x156.png" alt="www和不带www"></a></p>
-<p>其实，在输入域名这一块，你可以输入abc.com,<a target="_blank" rel="noopener" href="http://www.abc.com,然后配置的时候直接选择abc.com的那个证书,就可以啦./">www.abc.com,然后配置的时候直接选择abc.com的那个证书，就可以啦。</a> 至于你想怎么选择，没有太大的安全考虑的情况下，那是随便滴！顺便提一句，这个叫做DNS Name啦……[&#x2F;v_blue]</p>
-<p>回车确定就会提示Congratulations啦。</p>
-<p>证书（fullchain.pem）和私钥（privkey.pem）已经给你放到了&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a></p>
-<p><img src="/images/042516_1416_LetsEncry11.png"></p>
-<h2 id="修改nginx的配置文件"><a href="#修改nginx的配置文件" class="headerlink" title="修改nginx的配置文件"></a>修改nginx的配置文件</h2><p>由于我是自行编译安装的，所以配置文件的路径在&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf</p>
-<p>我们重点需要编辑的是vhost下的那个<a target="_blank" rel="noopener" href="http://www.shemissed.me.conf的配置文件./">www.shemissed.me.conf的配置文件。</a></p>
-<p>没有监听443端口，因此，我们就需要在这后面加入监听443的配置内容。</p>
-<p>conf目录下可以看到一个enable-ssl-example.conf，都看到example了，还寻思啥呢，把这个example的内容全部复制到<a target="_blank" rel="noopener" href="http://www.shemissed.me.conf最下面/">www.shemissed.me.conf最下面</a></p>
-<p>之后我们只需要修改server name, root, ssl_certificate, ssl_certificate_key,并删掉下面多余的监听80的就可以了。我下面把我的完整的配置文件写出来供参考，#后面的是注释。</p>
-<p>[v_error]默认的那个example其实我不太安全的，我根据自己的需求进行了一些更改，感谢<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/1709.html">落格博客</a>！[&#x2F;v_error] 先生成迪菲-赫尔曼密钥 以增强安全</p>
-<p>openssl dhparam -out &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;dhparam.pem 2048</p>
-<p>你所需要做的事情就是<strong>修改网站目录、域名、证书私钥路径</strong>，然后保存。最顺快的情况就是搜索替换<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>为你的域名或者子域。（请注意此配置文件启用了HTTP&#x2F;2、自动跳转到https，有HSTS, X-Frame-Options, X-Xss-Protection, X-Content-Type-Options, Referrer-Policy这几个响应头，会防止一些盗链，请确定这符合你的意愿、并且你的Web服务器支持HTTP&#x2F;2）</p>
-<p><strong><a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/TLS">最新的配置文件请点击这里</a></strong></p>
-<p>server<br>    {<br>        listen 80;<br>        #listen [::]:80;<br>        server_name <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;<br>        index index.html index.htm index.php default.html default.htm default.php;<br>        root  &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;<br>    rewrite ^(.*)$  https:&#x2F;&#x2F;$host$1 permanent;<br>        #include other.conf;<br>        #error_page   404   &#x2F;404.html;<br>        include enable-php.conf;</p>
-<pre><code>location ~ .\*\\.(ico|gif|jpg|jpeg|png|bmp|swf)$ 
-&#123; expires      30d;
-  valid\_referers none blocked www.shemissed.me \*.google.com \*.baidu.com \*.so.com \*.bing.com;
-  if ($invalid\_referer) &#123;
-  rewrite ^/ https://o51bfbumd.qnssl.com/link.jpg;
- &#125;
-&#125;
-
-    location ~ .\*\\.(js|css)?$
-    &#123;
-        expires      12h;
-    &#125;
-
-    location ~ /\\.
-    &#123;
-        deny all;
-    &#125;
-
-    access\_log  /home/wwwlogs/www.shemissed.me.log;
-&#125;
-</code></pre>
-<p>server<br>        {<br>        listen 443 ssl http2 ;<br>        #listen [::]:443 ssl spdy;<br>        server_name     <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;     #此处写你的域名<br>        index index.html index.htm index.php default.html default.htm default.php;<br>        root  &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;   #此处写你的网站目录</p>
-<pre><code>ssl on;
-    ssl\_certificate /etc/letsencrypt/live/www.shemissed.me/fullchain.pem;   #此处写你的证书文件的路径
-    ssl\_certificate\_key /etc/letsencrypt/live/www.shemissed.me/privkey.pem;    #私钥，同上
-    
-    ssl\_session\_timeout 20m;
-    ssl\_session\_cache builtin:1000 shared:SSL:10m;
-    ssl\_protocols TLSv1 TLSv1.1 TLSv1.2;
-    ssl\_prefer\_server\_ciphers on;
-    
-    ssl\_dhparam /etc/ssl/certs/dhparam.pem;
-    ssl\_ciphers &#39;ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA&#39;;
-    
-    ssl\_stapling on;
-    ssl\_stapling\_verify on;
-        
-</code></pre>
-<p>add_header Strict-Transport-Security “max-age&#x3D;63072000; includeSubDomains; preload”;<br>add_header X-Frame-Options “SAMEORIGIN” always;<br>add_header X-Xss-Protection “1; mode&#x3D;block” always;<br>add_header X-Content-Type-Options “nosniff” always;<br>#add_header Public-Key-Pins ‘pin-sha256&#x3D;”YLh1dUR9y6Kja30RrAn7JKnbQG&#x2F;uEtLMkBgFF2Fuihg&#x3D;”; pin-sha256&#x3D;”sRHdihwgkaib1P1gxX8HFszlD+7&#x2F;gTfNvuAybgLPNis&#x3D;”; max-age&#x3D;10; includeSubDomains’;<br>#add_header  Content-Security-Policy  “default-src https: ‘unsafe-inline’ ‘unsafe-eval’ data:;”;<br>add_header Referrer-Policy “no-referrer-when-downgrade”;</p>
-<pre><code>    #error\_page   404   /404.html;
-    include enable-php.conf;
-if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
-    return 403;
-&#125;
-    location /nginx\_status
-    &#123;
-        stub\_status on;
-        access\_log   off;
-    &#125;
-
-   location ~ .\*\\.(ico|gif|jpg|jpeg|png|bmp|swf)$ 
-&#123; expires      30d;
-  valid\_referers none blocked www.shemissed.me \*.google.com \*.baidu.com \*.so.com;
-  if ($invalid\_referer) &#123;
-  rewrite ^/ https://o51bfbumd.qnssl.com/link.jpg;
- &#125;
-&#125;
-
-    location ~ .\*\\.(js|css)?$
-    &#123;
-        expires      12h;
-    &#125;
-    
-    location / 
-    &#123;
-        try\_files $uri $uri/ /index.php; 
-    &#125;
-
-    access\_log  /home/wwwlogs/www.shemissed.me.log;   #日志文件
-</code></pre>
-<p>}</p>
-<p>保存，然后启动nginx</p>
-<p>service nginx start</p>
-<p>我们访问下，自动跳转了哟，而且启用了HSTS支持。</p>
-<p>小锁头已经出现</p>
-<p><img src="/images/042516_1416_LetsEncry14.png"></p>
-<p> </p>
-<p>PS，SSLLabs可以来测试你的HTTPS安全性哦！<a target="_blank" rel="noopener" href="https://www.ssllabs.com/ssltest/index.html">戳我</a>！</p>
-<p>其他两个子域，大家看着改吧…生成memory.shemissed.me…我玩不动了，要歇菜了。</p>
-<p>大家要注意，let’s encrypt的证书会在90天之后过期，快到期的时候</p>
-<p>.&#x2F;certbot-auto renew</p>
-<p>续期，这就不用说啥了。按照官网的推荐，一天两次cron最好了</p>
-<p>另外，如果用webroot模式，这样申请证书</p>
-<p>certbot certonly –webroot –webroot-path &#x2F;home&#x2F;wwwroot&#x2F;dmesg.app –renew-by-default –email <a href="mailto:&#49;&#x31;&#x31;&#x40;&#49;&#49;&#49;&#46;&#x63;&#111;&#109;">&#49;&#x31;&#x31;&#x40;&#49;&#49;&#49;&#46;&#x63;&#111;&#109;</a> –text –agree-tos -d dmesg.app</p>
-<p>Nginx里这么配置</p>
-<p>location ~ &#x2F;.well-known {<br>        allow all;<br>    }</p>
-<p>对呢，由于咱用的standlone模式，所以要关掉webserver才能续期成功，方法之一是写个bash脚本判断上一条命令返回值，方法之二是用hook，比如说：</p>
-<p>certbot renew --pre-hook “service nginx stop” --post-hook “service nginx start”</p>
-<hr>
-<h1 id="其他的一些小问题"><a href="#其他的一些小问题" class="headerlink" title="其他的一些小问题"></a>其他的一些小问题</h1><h2 id="HTTP自动跳转HTTPS"><a href="#HTTP自动跳转HTTPS" class="headerlink" title="HTTP自动跳转HTTPS"></a>HTTP自动跳转HTTPS</h2><p>啥都别说啦，在每个vhost的80的server段加个</p>
-<p>rewrite ^(.*)$  https:&#x2F;&#x2F;$host$1 permanent;</p>
-<p>在</p>
-<p>root &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;</p>
-<p>这一行下加就行。实测在nginx.conf加这一句是没有用滴……（Apache就用.htaccess吧）</p>
-<p>顺便提一句，如果是apache的话，思路也是一样的。同样以我【本站】的配置文件为例（很不幸本站没有vhost啊……），修改httpd-ssl.conf中的</p>
-<p>SSLCertificateFile “&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;dmesg.app&#x2F;fullchain.pem”<br>SSLCertificateKeyFile “&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;dmesg.app&#x2F;privkey.pem”<br>DocumentRoot “&#x2F;home&#x2F;wwwroot&#x2F;default”<br>ServerName dmesg.app:443</p>
-<p>自己看着改吧……我可懒得折腾这网站的vhost了</p>
-<h2 id="裸域自动跳转www二级域"><a href="#裸域自动跳转www二级域" class="headerlink" title="裸域自动跳转www二级域"></a>裸域自动跳转www二级域</h2><p>首先要设置@解析到你的IP，然后在nginx.conf中，在80的server段下添加如下内容</p>
-<p>if ($host &#x3D; ‘shemissed.me’ )<br>{<br>  rewrite  ^&#x2F;(.*)$ <a target="_blank" rel="noopener" href="https://www.shemissed.me/$1">https://www.shemissed.me/$1</a> permanent;<br>}</p>
-<h2 id="WordPress-404"><a href="#WordPress-404" class="headerlink" title="WordPress 404"></a>WordPress 404</h2><p>在443段下添加如下即可！</p>
-<p>location &#x2F; {<br>     try_files $uri $uri&#x2F; &#x2F;index.php;<br>}</p>
-<h2 id="Typecho-404"><a href="#Typecho-404" class="headerlink" title="Typecho 404"></a>Typecho 404</h2><p>在对应的443段添加如下信息（仅限于那些使用了lnmp1.3一键安装包的人哟，其他方式的不敢保证成功率。但是就是php path info的事情而已）</p>
-<p>include typecho.conf;<br>include enable-php-pathinfo.conf;</p>
-<h2 id="写后谈"><a href="#写后谈" class="headerlink" title="写后谈"></a>写后谈</h2><p>nginx配置文件真是简单易懂啊……还好编辑！</p>
-<p>当初我就为了个WP Super Cache选择了Apache……</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/04/25/letsencrypt-nginx-subdomain/index/" data-id="clhp7rth7004gs2qra8jhgz8a" data-title="手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1157,7 +1005,7 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1170,23 +1018,23 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
       <ul>
         
           <li>
-            <a href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
           <li>
-            <a href="/2023/12/09/tron-trx/index/">使用 Tron(TRX) 收款</a>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
           <li>
-            <a href="/2023/11/26/nodejs-dual-stack/index/">Node.js 18升级：双栈协议踩坑</a>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
           <li>
-            <a href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
           <li>
-            <a href="/2023/11/09/es-ee-se-unicode/index/">Unicode编码之谜：为什么🇪🇸🇪🇪包含了🇸🇪？</a>
+            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>
