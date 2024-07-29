@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>隐藏于 Cloudflare 的全球网络之中 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="做一个网站是很简单的事情。买一个域名，买一个服务器，A记录解析过去就好了。 这样做其实有一个非常大的安全隐患，不怀好意的人可以拿到你的服务器的IP，然后就可以做很多坏事，比如 (D)DoS、暴力破解SSH之类的。 一个很简单的办法，就是用 Cloudflare之类的CDN，这样可以隐藏源站IP。这样他们无法直接攻击你的服务器，只能疯狂打 Cloudflare。  就像我前不久一样，遭遇了人生中第一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="隐藏于 Cloudflare 的全球网络之中">
+<meta property="og:url" content="http://example.com/2024/07/27/hide-in-cf/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="做一个网站是很简单的事情。买一个域名，买一个服务器，A记录解析过去就好了。 这样做其实有一个非常大的安全隐患，不怀好意的人可以拿到你的服务器的IP，然后就可以做很多坏事，比如 (D)DoS、暴力破解SSH之类的。 一个很简单的办法，就是用 Cloudflare之类的CDN，这样可以隐藏源站IP。这样他们无法直接攻击你的服务器，只能疯狂打 Cloudflare。  就像我前不久一样，遭遇了人生中第一">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2024072722290473.jpeg">
+<meta property="og:image" content="http://example.com/images/2024072722290512.png">
+<meta property="og:image" content="http://example.com/images/2024072722290647.png">
+<meta property="og:image" content="http://example.com/images/2024072722290775.png">
+<meta property="og:image" content="http://example.com/images/2024072722290851.png">
+<meta property="article:published_time" content="2024-07-27T00:00:00.000Z">
+<meta property="article:modified_time" content="2024-07-29T14:37:10.334Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2024072722290473.jpeg">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-hide-in-cf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/07/27/hide-in-cf/index/" class="article-date">
+  <time class="dt-published" datetime="2024-07-27T00:00:00.000Z" itemprop="datePublished">2024-07-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      隐藏于 Cloudflare 的全球网络之中
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>做一个网站是很简单的事情。买一个域名，买一个服务器，A记录解析过去就好了。</p>
+<p>这样做其实有一个非常大的安全隐患，不怀好意的人可以拿到你的服务器的IP，然后就可以做很多坏事，比如 (D)DoS、暴力破解SSH之类的。</p>
+<p>一个很简单的办法，就是用 Cloudflare之类的CDN，这样可以隐藏源站IP。这样他们无法直接攻击你的服务器，只能疯狂打 Cloudflare。</p>
+<hr>
+<p>就像我前不久一样，遭遇了人生中第一次DoS，峰值大概有5500万请求的样子，基本上都被Cloudflare的规则拦住了。</p>
+<p><img src="/images/2024072722290473.jpeg" alt="图形用户界面, 图表 描述已自动生成"></p>
+<p>[v_tips]有趣的是，攻击来自于 AS4983 ，归属于 Intel。我猜更有可能和Intel® Developer Cloud有关，而不是Intel的内部网络被黑或者员工做坏事。[&#x2F;v_tips]</p>
+<p>然而即使使用了 Cloudflare也并不是100%安全。如果使用方式不正确，也有可能暴露源站IP的。如果被抓到了源站IP，那么坏人就可以疯狂给这个IP发起请求，你的Cloudflare规则配置的再好都没有用。</p>
+<hr>
+<h1 id="泄漏源站IP的方式"><a href="#泄漏源站IP的方式" class="headerlink" title="泄漏源站IP的方式"></a>泄漏源站IP的方式</h1><h2 id="网络空间测绘"><a href="#网络空间测绘" class="headerlink" title="网络空间测绘"></a>网络空间测绘</h2><p>有一些安全公司，如censys、shodan之类的。他们会扫描整个IPv4的地址，然后尝试连接各种常用端口来确定这个IP上都跑了什么服务。</p>
+<p>比如说我随便输入一个域名，即使这个域名在Cloudflare之后，也可能看到相关的结果</p>
+<p><img src="/images/2024072722290512.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>点进去，通过证书信息就能确认，这个IP大概率是这个网站的，那还不快打？</p>
+<h2 id="钓鱼泄漏"><a href="#钓鱼泄漏" class="headerlink" title="钓鱼泄漏"></a>钓鱼泄漏</h2><p>利用目标网站的功能来执行服务器端请求。例如，如果一个网站允许用户输入一个 URL 来获取该 URL 的内容（如网页抓取或 URL 预览功能），可以提供一个由自己控制的 URL。</p>
+<p>比如 WebP Cloud Services吧，这个服务是做网站图片加速的，那么自然要去用户给的地址去获取图片，这样IP也就会被泄露啦。当然了聪明如 <a target="_blank" rel="noopener" href="https://nova.moe/">Nova Kowk</a>怎么会让这种事情发生？</p>
+<h2 id="其他泄漏方式"><a href="#其他泄漏方式" class="headerlink" title="其他泄漏方式"></a>其他泄漏方式</h2><h3 id="子域名"><a href="#子域名" class="headerlink" title="子域名"></a>子域名</h3><p>有一些程序可以通过常用的词语来暴力猜测子域名，有可能配置的时候不小心忘记点亮小云朵，或者自己持有的其他域名解析不小心忘记打码，那么就暴露了。</p>
+<h3 id="历史DNS记录"><a href="#历史DNS记录" class="headerlink" title="历史DNS记录"></a>历史DNS记录</h3><p>有些网站提供历史DNS记录，有概率找到</p>
+<h3 id="邮件MX记录"><a href="#邮件MX记录" class="headerlink" title="邮件MX记录"></a>邮件MX记录</h3><p>如果自建邮件服务器，那么是肯定会暴露IP了。</p>
+<h3 id="Cloudflare信息泄露或者内部作案"><a href="#Cloudflare信息泄露或者内部作案" class="headerlink" title="Cloudflare信息泄露或者内部作案"></a>Cloudflare信息泄露或者内部作案</h3><p>这个概率应该很低。</p>
+<hr>
+<h1 id="隐藏IP的方式"><a href="#隐藏IP的方式" class="headerlink" title="隐藏IP的方式"></a>隐藏IP的方式</h1><h2 id="屏蔽censys并不完美"><a href="#屏蔽censys并不完美" class="headerlink" title="屏蔽censys并不完美"></a>屏蔽censys并不完美</h2><p>网上一搜censys 你就会发现有很多种办法，说根据UA屏蔽啦，根据IP屏蔽啦等等。</p>
+<p>这种做法治标不治本的。今天屏蔽了censys，明天还有densys，甚至简单写个代码，花最多几百G的流量扫一遍全球的IPv4地址也没什么难度。</p>
+<h2 id="只允许-Cloudflare的访问很麻烦"><a href="#只允许-Cloudflare的访问很麻烦" class="headerlink" title="只允许 Cloudflare的访问很麻烦"></a>只允许 Cloudflare的访问很麻烦</h2><p>Cloudflare公开了他们的<a target="_blank" rel="noopener" href="https://www.cloudflare.com/zh-cn/ips/">IP地址</a>，因此一种办法是把他们的全部IP地址加入白名单中，然后其他所有的IP地址的请求全部拒绝。</p>
+<p>这是一种切实可行的办法，然而有如下缺点：</p>
+<ol>
+<li>需要跟踪 Cloudflare IP变化</li>
+<li>需要配置繁琐的iptables、nginx或者WAF等规则，配置起来会比较麻烦</li>
+<li>80和443的规则都要配一遍</li>
+<li>费心费时费力</li>
+<li>一不小心手抖配置错了可能自己都没法SSH</li>
+<li>如果你用docker，还会发现<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">docker能给你的iptables开个洞 🤦</a></li>
+</ol>
+<h2 id="Cloudflare-Argo-Tunnel是未来"><a href="#Cloudflare-Argo-Tunnel是未来" class="headerlink" title="Cloudflare Argo Tunnel是未来"></a>Cloudflare Argo Tunnel是未来</h2><p>Argo Tunnel会在你的服务器和Cloudflare 之间创建一个加密的安全隧道，然后这个隧道可以用来承载很多不同种类型的流量，比如 http，tcp，ssh，smb，rdp，甚至是 unix 套接字都可以</p>
+<p>你的机器没有公网IP都没关系的，只要你的服务器能够连接到Cloudflare的网络就可以。用起来很简单，甚至都不用学习奇奇怪怪的命令。</p>
+<p>去 Cloudflare Zero Trust – Networks – Tunnel 创建 Tunnel，服务器安装 cloudflared，然后添加 Public hostname就可以了</p>
+<p><img src="/images/2024072722290647.png" alt="图形用户界面 描述已自动生成"></p>
+<p>你的应用程序甚至只用监听在 localhost而不是0.0.0.0，也就是说你的服务器只开一个SSH就够了</p>
+<h2 id="隐藏SSH"><a href="#隐藏SSH" class="headerlink" title="隐藏SSH"></a>隐藏SSH</h2><p>更进一步，我们可以连SSH都隐藏起来。在public hostname那里创建一个域名，如果担心子域名被扫到，那就起个随机的子域名</p>
+<p>协议选择 SSH，URL选择 <code>127.0.0.1:22</code></p>
+<p>然后在你的电脑上运行 cloudflared建立隧道</p>
+<p>cloudflared access ssh –hostname something.dmesg.app –url 127.0.0.1:10022</p>
+<h1 id="接到你的服务器"><a href="#接到你的服务器" class="headerlink" title="接到你的服务器"></a>接到你的服务器</h1><p>ssh <a href="mailto:&#x72;&#111;&#x6f;&#116;&#x40;&#x31;&#50;&#55;&#x2e;&#x30;&#46;&#48;&#x2e;&#49;">&#x72;&#111;&#x6f;&#116;&#x40;&#x31;&#50;&#55;&#x2e;&#x30;&#46;&#48;&#x2e;&#49;</a> -p 10022 </p>
+<p>之后去厂商的WAF里，比如 Azure是这样的，入网全部拒绝</p>
+<p><img src="/images/2024072722290775.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>Vultr是这样的，随便添加一个dummy 入网规则</p>
+<p><img src="/images/2024072722290851.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>这样你的IP在其他人看来完全是黑洞，ping不通，什么端口都没开，就像没被使用一样，只有 Cloudflare知道背后的真相。</p>
+<h2 id="隐藏应用程序向外发起的请求"><a href="#隐藏应用程序向外发起的请求" class="headerlink" title="隐藏应用程序向外发起的请求"></a>隐藏应用程序向外发起的请求</h2><p>如果你的应用程序会向外发请求，而这个外部是可以被用户自定义的，那么就存在被钓鱼的情况。即使你配置的再好，那么也会被抓到IP。</p>
+<p>这种情况下，要做的事情自然是全方面审查代码，如果遇到会被钓鱼的地方，那么需要让流量走代理。</p>
+<p>至于走什么代理，一种方式是走商业VPN，比如Surfshark之类的，通过wireguard转socks5；另一种方式是走 Cloudflare WARP，WARP可以运行在 proxy mode而不是接管全局流量</p>
+<p>warp-cli register</p>
+<h1 id="warp-监听本地的11111端口"><a href="#warp-监听本地的11111端口" class="headerlink" title="warp 监听本地的11111端口"></a>warp 监听本地的11111端口</h1><p>warp-cli set-proxy-port 11111</p>
+<h1 id="warp-proxy-mode"><a href="#warp-proxy-mode" class="headerlink" title="warp proxy mode"></a>warp proxy mode</h1><p>warp-cli set-mode proxy</p>
+<h1 id="永久开启"><a href="#永久开启" class="headerlink" title="永久开启"></a>永久开启</h1><p>warp-cli enable-always-on</p>
+<p>对于Go的应用，这样就可以了</p>
+<p>https_proxy&#x3D;socks5:&#x2F;&#x2F;127.0.0.1:11111 http_proxy&#x3D;socks5:&#x2F;&#x2F;127.0.0.1:11111 go run main.go</p>
+<p>还有一种方式是使用 Cloudflare Workers，请求由Workers转发，代码很简单</p>
+<p>export default {<br>  async fetch(request: Request): Promise {<br>    &#x2F;**<br>     * Replace `remote` with the host you wish to send requests to<br>     *&#x2F;<br>    const remote &#x3D; “<a href="https://example.com/">https://example.com</a>“;</p>
+<pre><code>return await fetch(remote, request);
+</code></pre>
+<p>  },<br>};</p>
+<p>更具体的使用方式可以看下面的参考阅读</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>哎这个世界上坏人真的太多了，但是 Cloudflare 真的帮助了我很多，更重要的是这一切还都是免费的！</p>
+<blockquote>
+<p>不得不感慨，「At Cloudflare, we have our eyes set on an ambitious goal — to help build a better Internet.」，真的不仅仅是一句口号。</p>
+<p>—— Nova Kowk</p>
+</blockquote>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://nova.moe/cloudflared-distributed/">分布式部署 cloudflared 让访客就近回源，进一步提升访问速度</a></li>
+<li><a target="_blank" rel="noopener" href="https://nova.moe/accelerate-and-secure-with-cloudflared/">使用 Cloudflare Argo Tunnel(cloudflared) 来加速和保护你的网站</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.webp.se/cloudflare-workers-origin-zh/">WebP Cloud 使用 Cloudflare Workers 回源</a></li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/cloudflare-access-gfwed-server.html">使用 Cloudflare Zero Trust 连接被墙的服务器</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/07/27/hide-in-cf/index/" data-id="clz73fpm100004zjfdxhg9whw" data-title="隐藏于 Cloudflare 的全球网络之中" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/07/17/azure-waf/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">救命！我的 Azure Front Door WAF 规则不生效怎么办！</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
+          </li>
+        
+          <li>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
+          </li>
+        
+          <li>
+            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

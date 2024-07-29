@@ -73,6 +73,99 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-replace-the-server-notes/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/01/15/replace-the-server-notes/index/" class="article-date">
+  <time class="dt-published" datetime="2016-01-15T00:00:00.000Z" itemprop="datePublished">2016-01-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/01/15/replace-the-server-notes/index/">更换服务器小记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨天花费半天时间给服务器从DigitalOcean换到了Vultr。果真还是新手啊，换服务器简直要折磨死。</p>
+<p>要注册Vultr的<a target="_blank" rel="noopener" href="http://www.vultr.com/?ref=6864780">点这里哦</a></p>
+<p>其实主要搬wordpress，也就是四步：</p>
+<blockquote>
+<p>第一步：备份网站根目录下所有文件并转移到新VPS；</p>
+<p>第二步：备份网站数据库文件并在新主机上建立数据库，进行导入；</p>
+<p>第三步：修改wp-config.php文件，确保网站文件与数据库通信正常；</p>
+<p>第四步：在新主机上绑定域名，大功告成！</p>
+</blockquote>
+<p>按照这个说明，依次来一下……</p>
+<h2 id="打包网站目录。先把所有wordpress插件都禁用了！非常重要！"><a href="#打包网站目录。先把所有wordpress插件都禁用了！非常重要！" class="headerlink" title="打包网站目录。先把所有wordpress插件都禁用了！非常重要！"></a>打包网站目录。先把所有wordpress插件都禁用了！非常重要！</h2><p>懒人专版，WinSCP连接到服务器，找到网站根目录。选择全部文件（除了phpmyadmin和ftp目录）</p>
+<p>右键，自定义命令，tar&#x2F;Gzip，文件就压缩到了网站根目录。</p>
+<p><img src="/images/011516_0719_1.png"></p>
+<h2 id="备份数据库。Phpmyadmin，选择wordpress的表，导出"><a href="#备份数据库。Phpmyadmin，选择wordpress的表，导出" class="headerlink" title="备份数据库。Phpmyadmin，选择wordpress的表，导出"></a>备份数据库。Phpmyadmin，选择wordpress的表，导出</h2><p><img src="/images/011516_0719_2.png"></p>
+<p>到新的服务器，当然要预先安装好LAMP或者LNMP，到网站目录下wget下网站打包文件，然后tar xvf xxx.tgz解压缩</p>
+<p>以IP的形式访问新服务器的phpmyadmin，新建对应wordpress的表，然后导入。</p>
+<p><img src="/images/011516_0719_4.png"></p>
+<p> </p>
+<h2 id="然后改wp-config-php，基本上只需要把这三项改下"><a href="#然后改wp-config-php，基本上只需要把这三项改下" class="headerlink" title="然后改wp-config.php，基本上只需要把这三项改下"></a>然后改wp-config.php，基本上只需要把这三项改下</h2><p>&#x2F;** WordPress数据库的名称 *&#x2F;<br>define(‘DB_NAME’, ‘*****‘);<br>&#x2F;** MySQL数据库用户名 *&#x2F;<br>define(‘DB_USER’, ‘*****‘);<br>&#x2F;** MySQL数据库密码 *&#x2F;<br>define(‘DB_PASSWORD’, ‘******‘);</p>
+<h2 id="域名解析。由于我用了cloudflare，直接去cloudflare里的DNS把IP指向新IP"><a href="#域名解析。由于我用了cloudflare，直接去cloudflare里的DNS把IP指向新IP" class="headerlink" title="域名解析。由于我用了cloudflare，直接去cloudflare里的DNS把IP指向新IP"></a>域名解析。由于我用了cloudflare，直接去cloudflare里的DNS把IP指向新IP</h2><p><img src="/images/011516_0719_5.png"></p>
+<p>然后登陆wordpress后台，该启用的插件都启用了吧……</p>
+<p>等等等等，这就结束了吗？我的网站模式比较特殊，所以这就导致了如果按照以上教程走会失败的。</p>
+<ul>
+<li>哪里特殊呢？</li>
+</ul>
+<p>Cloudflare CDN+FullSSL</p>
+<p>这该怎样的顺序才好啊？</p>
+<p>我的途径是，将FullSSL改成 Flexible或者Off，解析更换到新的服务器，复制网站文件，设置先不https自动跳转，改数据库将https的改成http，然后配置证书，之后测试正常再全部改回常规模式。</p>
+<h2 id="顺手呢，禁用掉密码登录、改用密钥！"><a href="#顺手呢，禁用掉密码登录、改用密钥！" class="headerlink" title="顺手呢，禁用掉密码登录、改用密钥！"></a>顺手呢，<strong>禁用掉密码登录、改用密钥</strong>！</h2><p>先登录到服务器，然后执行</p>
+<p>ssh-keygen -t rsa -b 2048</p>
+<p>按几次回车直接默认就可以，如果愿意可以给私钥设置密码保护。</p>
+<p>之后将&#x2F;root&#x2F;.ssh&#x2F;id_rsa和id_rsa.pub复制到本地</p>
+<p>mv &#x2F;root&#x2F;.ssh&#x2F;id_rsa.pub &#x2F;root&#x2F;.ssh&#x2F;authorized_keys</p>
+<p>再执行：</p>
+<p>chmod 600 &#x2F;root&#x2F;.ssh&#x2F;authorized_keys</p>
+<p>修改&#x2F;etc&#x2F;ssh&#x2F;sshd_config 文件，将<strong>RSAAuthentication</strong> 和 <strong>PubkeyAuthentication</strong> 后面的值都改成<strong>yes</strong> ，保存。顺便将PasswordAuthentication yes改成no禁用密码登录吧。</p>
+<p>重启ssh</p>
+<p>&#x2F;etc&#x2F;init.d&#x2F;ssh restart</p>
+<p>然后打开puttygen.exe，载入私钥，选择id_rsa，已经转换成putty的专用私钥了。再保存下私钥。</p>
+<p>Putty里选择SSH-认证，选择刚刚的私钥。</p>
+<p><img src="/images/011516_0719_6.png"></p>
+<p>Yoho再也不怕密码破解了。</p>
+<h2 id="之后又想起，这SSH登陆界面太单调怎么行？改个好玩的吧！"><a href="#之后又想起，这SSH登陆界面太单调怎么行？改个好玩的吧！" class="headerlink" title="之后又想起，这SSH登陆界面太单调怎么行？改个好玩的吧！"></a>之后又想起，这SSH登陆界面太单调怎么行？改个好玩的吧！</h2><p>改改这个玩玩就够了，</p>
+<p>nano &#x2F;etc&#x2F;update-motd.d&#x2F;10-help-text</p>
+<p>像C语言一样，printf “Hello”</p>
+<p>printf “\n”<br>printf “\033[44;30;5m This server is protected by the FBI. \033[0m \n”<br>printf “\033[41;37;5m FBI Warning \033[0m \n”<br>printf “Federal law provides severe civil and criminal penalties for\n”<br>printf “the unauthorized reproduction,distribution,or exhibition of\n”<br>printf “copyrighted motion prictures(Title 17, United States Code,\n”<br>printf “Sections 501 and 508). The federal bureau of Investigation\n”<br>printf “investigate allegations of criminal copyright infringement.\n”<br>printf “(Title 17, United States Code, Section 506)\n\n”</p>
+<p>修改之后用</p>
+<p>sudo run-parts &#x2F;etc&#x2F;update-motd.d</p>
+<p>就可以预览下啦</p>
+<p>这效果简直赞，谁来弄个草泥马神兽的让我瞧瞧！</p>
+<p><img src="/images/011516_0719_7.jpg"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/01/15/replace-the-server-notes/index/" data-id="clhp7rtij007js2qr4ihwawa5" data-title="更换服务器小记" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-half-college/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/01/06/half-college/index/" class="article-date">
@@ -842,90 +935,11 @@
 
 
   
-    <article id="post-dynamic-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2015/11/04/dynamic-router/index/" class="article-date">
-  <time class="dt-published" datetime="2015-11-04T00:00:00.000Z" itemprop="datePublished">2015-11-04</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2015/11/04/dynamic-router/index/">[系列]3.Packet Tracer6动态路由的分析</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>动态路由有很多协议，依赖路由器之间互相通信来确定、更新路由表。</p>
-<p>先举一个简单的例子：</p>
-<p><img src="/images/110415_0930_31.png"></p>
-<p>Router0知道什么？它知道报文怎么送给PC0的网段（192.168.1.0）和送给Router1的网段（192.168.2.0）</p>
-<p>Router2知道报文怎么送给PC1的网段（192.168.3.0）和送给Router0的网段（192.168.2.0）</p>
-<p>所以这两个的路由表就出来了。</p>
-<p>这俩路由器会互相”沟通”并且检查彼此是否挂掉了。</p>
-<p>Router0：</p>
-<p><img src="/images/110415_0930_32.png"></p>
-<p>Router1：</p>
-<p><img src="/images/110415_0930_33.png"></p>
-<p>我们来ping下试试：</p>
-<p><img src="/images/110415_0930_34.png"></p>
-<p>第一次会超时，为嘛呢？</p>
-<p>因为路由器之间还没有”沟通”并生成动态路由表，所以就超时啦。</p>
-<p>简单的分析完了，来看下略微复杂的、完整的拓扑图，其实道理完全一样呀！</p>
-<p><img src="/images/110415_0930_35.png"></p>
-<p>我们就来看Router5，坐起第二个。</p>
-<p>R5都知道些什么？它知道怎么送到R4，R6和R7（注意，不是OPPO的那个R7）</p>
-<p>那它的动态路由该是啥样子的呢？就是和这三个路由器相连接口的IP的网段吗？</p>
-<p>哎还真说对了，R5只需要设置三个动态路由，第一条左侧的R4-192.168.2.0，第二条和右侧的192.168.3.0，第三条和上面的192.168.8.0</p>
-<p><img src="/images/110415_0930_36.png"></p>
-<p>看，一点都不带错的。</p>
-<p>其他的路由器也这样设置，知道怎么把报文送给谁，就把网段设置成设置动态路由。</p>
-<p>或许脑袋瓜发达的你会问，那回程路由呢？哎孩子呀，让那八个路由器自己沟通交流去吧，咱不管他们是说的0000101还是010010101反正是肯定会协商出来一个动态变化的路由表的。</p>
-<p>万事ping为先，先试试通不通啊。</p>
-<p><img src="/images/110415_0930_37.png"></p>
-<p>超时一次的原因已经解释了。</p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p>动态路由表之间的路由器，他们会互相检查彼此的存活状态（有一个时间间隔），如果挂了那么就动态的删除掉对应的路由表。</p>
-<p>所以对于动态路由表来说，挂了就自动选择别的路走。哪怕没挂也会选择比较快的路。当然了，挂了总得允许人家丢个包嘛！</p>
-<p>加主机那个，就是把交换机连到路由器上并给交换机分配一个IP，然后给连接到交换机的PC再分配好对应网段的静态IP，那些都是可以互相ping通的。</p>
-<p>木有了……真的木有了<img src="/images/110415_0930_39.png"></p>
-<p>不要再看了</p>
-<p>再看人家会害羞⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄的 <img src="/images/110415_0930_310.jpg"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2015/11/04/dynamic-router/index/" data-id="clhp7rtft0025s2qr2sol71cq" data-title="[系列]3.Packet Tracer6动态路由的分析" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/20/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/22/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/20/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/22/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -978,6 +992,10 @@
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -991,10 +1009,6 @@
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

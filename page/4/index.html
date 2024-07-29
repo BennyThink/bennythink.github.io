@@ -73,6 +73,91 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-who-view-micam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/04/30/who-view-micam/index/" class="article-date">
+  <time class="dt-published" datetime="2022-04-30T00:00:00.000Z" itemprop="datePublished">2022-04-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/04/30/who-view-micam/index/">谁看了我的米家摄像头？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>一年前，由于一个有些可笑的原因（别问我为什么，真的），我买了个米家的摄像头，然后分享给了某个人。那个时候我在想，有没有办法随时知道谁看了监控呢？管他是某个人还是其他什么奇奇怪怪的人。</p>
+<p>米家本身并不提供这种功能，也不像其他品牌一样在摄像头被查看的时候会有一个特殊的指示灯显示。</p>
+<p>既然如此，那作为一名有灵性的工程师，一定能找到办法的！</p>
+<p>简单的说，自然就要从网络上下手啦！毕竟这个东西是需要通过网络传输数据的，在其他人查看的时候一定会大量的传输数据，并且根据常识推断，极有可能是UDP，并且有可能通过UDP打洞的方式直接看到查看者的IP地址。</p>
+<p>话不多说，说干就干，老子干网络这么多年，还不是 permit any any 通了就走！</p>
+<h2 id="抓包"><a href="#抓包" class="headerlink" title="抓包"></a>抓包</h2><p>既然要抓包，那自然也就在路由器上动手脚最好了。此时需要一个刷了padavan、OpenWRT、Merlin之类第三方固件的路由器，然后准备好tcpdump</p>
+<p>tcpdump可以使用opkg之类的命令安装，如果你的CPU恰巧是arm的，可以<a target="_blank" rel="noopener" href="https://fw.koolcenter.com/binary/tcpdump/">用这个</a>静态编译的。</p>
+<p>假设摄像头的IP是192.168.7.149，然后路由器的网桥是br-lan（有些可能是br0）</p>
+<p>tcpdump -i br-lan udp and host 192.168.7.149</p>
+<p>此时打开手机，最好用流量来测试IP，查看摄像头，大概率会看到类似如下日志：</p>
+<p><img src="/images/2022043021474977.png"></p>
+<p>如果没有的话，去掉UDP试试看。再没有就看看接口和IP对不对，有些情况下抓对应的wlan01可能更好。</p>
+<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>此时右侧的那个疯狂刷屏39.xxxx就是我的手机数据流量的出口IP，中国移动的某个IP。有些时候会看到一些金山云的IP，可以直接忽略。</p>
+<p>那么接下来问题来了</p>
+<ol>
+<li>只有刷屏的IP才算是可能的查看记录，有什么办法揪出来吗？</li>
+<li>咱也不能时时刻刻盯着tcpdump的输出啊！</li>
+</ol>
+<h2 id="令牌桶算法"><a href="#令牌桶算法" class="headerlink" title="令牌桶算法"></a>令牌桶算法</h2><p>只有刷屏的IP才可能是查看记录，那么如何分析统计这个“刷屏频率”？最好的办法就是令牌桶算法啦！</p>
+<p>所谓令牌桶，就是设计一个桶，某个组件持续地往里面丢令牌（token），然后每个请求进来的时候去这里拿令牌，拿到了就执行，拿不到就只能等着了。</p>
+<p>令牌桶通常用于限流，我们的这个恰巧是“反着来的限流”，反正只要撞了rate limit就是我们要的数据。</p>
+<p>记得先写正则表达式过滤一下。</p>
+<p>为了方便在路由器上运行，这事必然是要用Go来写的，毕竟交叉编译嘛</p>
+<p>package main</p>
+<p>import (<br>    log “github.com&#x2F;sirupsen&#x2F;logrus”<br>    “golang.org&#x2F;x&#x2F;time&#x2F;rate”<br>)</p>
+<p>const (<br>    bucketSize &#x3D; 70<br>    bucketRate &#x3D; 35<br>)</p>
+<p>var limiter &#x3D; rate.NewLimiter(bucketRate, bucketSize)</p>
+<p>func main() {</p>
+<pre><code>if limiter.Allow() &#123;
+    log.Infoln(&quot;Using token...&quot;)
+&#125; else &#123;
+    log.Warnln(&quot;Potential view, sending alert now...&quot;)
+&#125;
+</code></pre>
+<p>}</p>
+<p>很简单，定义了一个桶，大小是70，每秒钟产生35个令牌，说人话：每秒钟抓到35个包，刚好可以抵消令牌桶消耗；每秒抓到40个包，大概8秒会报警。至于这个35和70是怎么设计的嘛，是我从实践与经验中发现这个值最稳妥、最不容易误报。</p>
+<h2 id="消息通知"><a href="#消息通知" class="headerlink" title="消息通知"></a>消息通知</h2><p>消息通知就很简单了，当 <code>limiter.Allow()</code> 不满足时，直接telegram bot就行了，这样最方便。</p>
+<p>代码太过简单，就不说了</p>
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>真挺准的！俗话说知己知彼，百战不殆反正我是认输了，权限也已经撤销了。因为我发现我就是“充话费送的”。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/04/2022043021541218.jpeg"><img src="/images/2022043021541218.jpeg"></a></p>
+<p>也真的挺不好意思的我这玩意藏着掖着，快一年了才放出来……</p>
+<p><img src="/images/2022043021481460.png"></p>
+<h2 id="参考代码"><a href="#参考代码" class="headerlink" title="参考代码"></a>参考代码</h2><p><a target="_blank" rel="noopener" href="https://gist.github.com/BennyThink/c78cefa446fc492209710796ee342dec">https://gist.github.com/BennyThink/c78cefa446fc492209710796ee342dec</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/04/30/who-view-micam/index/" data-id="clhp7rtn600b5s2qr13ef50zq" data-title="谁看了我的米家摄像头？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-spring-shanghai/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/04/23/spring-shanghai/index/" class="article-date">
@@ -1022,109 +1107,11 @@ psutil.Process().kill()
 
 
   
-    <article id="post-hysteria/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/12/03/hysteria/index/" class="article-date">
-  <time class="dt-published" datetime="2021-12-03T00:00:00.000Z" itemprop="datePublished">2021-12-03</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/12/03/hysteria/index/">一起来歇斯底里（hysteria）吧！</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>没疯，真没疯。</p>
-<p>Hysteria 是一个功能丰富的，专为恶劣网络环境进行优化的网络工具（双边加速），比如卫星网络、拥挤的公共 Wi-Fi、在中国连接国外服务器等。</p>
-<p>😂在我等人看来，这看起来是很适合做梯子的。</p>
-<p>测了一下，速度确实非常棒</p>
-<p>使用shadowsocks&#x2F;trojan的速度</p>
-<p><img src="/images/2021120317392893.png"></p>
-<p>使用hysteria</p>
-<p><img src="/images/2021120317393067.png"></p>
-<p>速度足足提升了10倍，跑满了本地带宽</p>
-<p>配置起来很简单😂就以自签名证书为例了</p>
-<h2 id="配置服务端"><a href="#配置服务端" class="headerlink" title="配置服务端"></a>配置服务端</h2><h3 id="自签名证书"><a href="#自签名证书" class="headerlink" title="自签名证书"></a>自签名证书</h3><p>openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 3650 -out certificate.pem</p>
-<h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><p>去GitHub Release可以找到，我的是OpenVZ的🐤，下载了non-tun版本的。</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/HyNetwork/hysteria/releases">https://github.com/HyNetwork/hysteria/releases</a></p>
-<h3 id="创建配置文件"><a href="#创建配置文件" class="headerlink" title="创建配置文件"></a>创建配置文件</h3><p>config.json</p>
-<p>{<br>    “listen”: “:443”,<br>    “cert”: “&#x2F;etc&#x2F;hysteria&#x2F;certificate.pem”,<br>    “key”: “&#x2F;etc&#x2F;hysteria&#x2F;key.pem”,<br>    “up_mbps”: 300,<br>    “down_mbps”: 300,<br>    “obfs”: “dankdhsawj”<br>}</p>
-<p>可选的 obfs 选项使用提供的密码对协议进行混淆，这样协议就不容易被检测出是 Hysteria&#x2F;QUIC，可以用来绕过针对性的 DPI 屏蔽或者 QoS。 如果服务端和客户端的密码不匹配就不能建立连接，因此这也可以作为一个简单的密码验证。</p>
-<p><code>up_mbps</code> 和 <code>down_mbps</code>用来限制每个客户端最大下载速度和上传速度，可选</p>
-<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>hysteria server</p>
-<p>即可。使用<code>-config</code>参数指定配置文件路径</p>
-<p>hysteria -config &#x2F;etc&#x2F;hysteria&#x2F;config.json server</p>
-<h2 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h2><h3 id="iOS"><a href="#iOS" class="headerlink" title="iOS"></a>iOS</h3><p>iOS可以使用shadowrocket，混淆字段写obfs的值，密码留空，允许不安全勾选</p>
-<p>shadowrocket测速会显示超市，延迟测试方法改成CONNECT就好了，可能是个bug</p>
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><p>{<br>    “server”: “1.1.1.1:443”,<br>    “obfs”: “1231”,<br>    “up_mbps”: 300,<br>    “down_mbps”: 300,<br>    “socks5”: {<br>        “listen”: “127.0.0.1:1080”<br>    },<br>    “insecure”: true<br>}</p>
-<p>然后直接运行<code>hysteria</code>就可以，之后可以用proxychains之类的工具了。如有需要也可以添加http字段</p>
-<p>“http”: {</p>
-<p>“listen”: “127.0.0.1:8080”</p>
-<p>}</p>
-<h2 id="systemd自动启动"><a href="#systemd自动启动" class="headerlink" title="systemd自动启动"></a>systemd自动启动</h2><p><code>/lib/systemd/system/hysteria.service</code></p>
-<p>如果是systemd的话，写个单元文件</p>
-<p>[Unit]<br>Description&#x3D;Hysteria<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
-<p>[Service]<br>Restart&#x3D;on-failure<br>Type&#x3D;simple<br>ExecStart&#x3D;&#x2F;usr&#x2F;sbin&#x2F;hysteria -config &#x2F;etc&#x2F;hysteria&#x2F;config.json server</p>
-<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
-<p>systemctl daemon-reload # 重新加载<br>systemctl enable hysteria # 开机自启<br>systemctl start hysteria # 启动</p>
-<h2 id="🐤专属配置"><a href="#🐤专属配置" class="headerlink" title="🐤专属配置"></a>🐤专属配置</h2><p>这个小鸡，是从<a target="_blank" rel="noopener" href="https://dmesg.app/super-cheap-3-5-three-years-united-states-vps-science-internet-special.html">sentris那里弄来的</a>，这么多年没想到竟然没倒闭没跑路。</p>
-<p>由于小鸡配置堪忧，<a target="_blank" rel="noopener" href="https://t.me/mikuri520/1230">我想办法给搞成了Alpine</a>，毕竟Alpine是出了名的小，省内存也是必然的。</p>
-<p><img src="/images/2021120317393327.jpeg"></p>
-<p>因为是Alpine所以自然也就是OpenRC了。</p>
-<h3 id="hysteria额外配置"><a href="#hysteria额外配置" class="headerlink" title="hysteria额外配置"></a>hysteria额外配置</h3><p>由于小鸡内存少，必须额外配置下，要不然总是被OOM Kill</p>
-<p>“recv_window_conn”: 2097152,<br>“recv_window_client”: 8388608,</p>
-<p>这样会减少OOM的可能性</p>
-<h3 id="OpenRC启动项"><a href="#OpenRC启动项" class="headerlink" title="OpenRC启动项"></a>OpenRC启动项</h3><p>如果是OpenRC……<code>/etc/init.d/hysteria</code></p>
-<p>#!&#x2F;sbin&#x2F;openrc-run</p>
-<p>name&#x3D;”hysteria”<br>command&#x3D;”&#x2F;usr&#x2F;sbin&#x2F;hysteria”<br>command_args&#x3D;”-config &#x2F;etc&#x2F;hysteria&#x2F;config.json server”<br>command_background&#x3D;”yes”<br>pidfile&#x3D;”&#x2F;run&#x2F;hysteria.pid”</p>
-<p>depend() {<br>    after sshd<br>}</p>
-<p>然后</p>
-<p>chmod +x &#x2F;etc&#x2F;init.d&#x2F;hysteria<br>rc-update add hysteria # 开机自启动<br>rc-service hysteria start # 启动</p>
-<p>非常不幸的是，如果进程挂掉了，OpenRC是没什么办法给拉起来的。可以办法是用supervisor，可以使用Go版本的 <a target="_blank" rel="noopener" href="https://github.com/ochinchina/supervisord">https://github.com/ochinchina/supervisord</a></p>
-<p>然而这个内存占用有点可怕，毕竟我整个只有64M的内存啊，这一个用了22.5%，14M了。</p>
-<p><img src="/images/2021120317393477.png"></p>
-<p>那就只能魔改crontab，10秒一次，最多20秒拉起（</p>
-<p># 创建一个shell脚本 &#x2F;usr&#x2F;bin&#x2F;restart</p>
-<p>#!&#x2F;bin&#x2F;sh<br>echo Restarting…</p>
-<p>for svc in $(rc-status –crashed); do<br>  rc-service $svc – –nodeps restart<br>done</p>
-<h1 id="加x权限"><a href="#加x权限" class="headerlink" title="加x权限"></a>加x权限</h1><p>chmod+x &#x2F;usr&#x2F;bin&#x2F;restart</p>
-<h1 id="crontab中"><a href="#crontab中" class="headerlink" title="crontab中"></a>crontab中</h1><p>* * * * * for i in {1..6}; do &#x2F;usr&#x2F;bin&#x2F;restart &amp; sleep 10; done</p>
-<p>😂感觉还行（（（</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/12/03/hysteria/index/" data-id="clhp7rtgr003xs2qr2ien8kns" data-title="一起来歇斯底里（hysteria）吧！" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1177,6 +1164,10 @@ psutil.Process().kill()
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1190,10 +1181,6 @@ psutil.Process().kill()
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

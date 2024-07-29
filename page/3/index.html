@@ -73,6 +73,138 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-meilisearch/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/14/meilisearch/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-14T00:00:00.000Z" itemprop="datePublished">2023-03-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/14/meilisearch/index/">轻量级全文搜索引擎 Meilisearch使用体验</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自从人人影视分享站被攻击之后，我便一直在想如何提升搜索性能。</p>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><h3 id="人人影视分享站的搜索功能主要包括这三大模块："><a href="#人人影视分享站的搜索功能主要包括这三大模块：" class="headerlink" title="人人影视分享站的搜索功能主要包括这三大模块："></a>人人影视分享站的搜索功能主要包括这三大模块：</h3><ol>
+<li>搜索yyets数据库的<code>cnname</code>、<code>enname</code>和<code>aliasname</code>三个字段，也就是之前爬下来的老的数据库的内容</li>
+<li>搜索评论信息，同时找到评论所在页面</li>
+<li>如果以上都无结果，那么去搜索其他网站</li>
+</ol>
+<h3 id="三大模块的优化方案"><a href="#三大模块的优化方案" class="headerlink" title="三大模块的优化方案"></a>三大模块的优化方案</h3><ul>
+<li>1和2都是使用了正则作为模糊搜索，因此加索引是没用的。虽然数据库不算很大，但是毕竟要全表检索，数量多就容易过载</li>
+<li>搜索评论时，是Python拿到结果再去请求yyets，其实可以通过聚合查询一次性搞定。让MongoDB去做这件事情肯定比Python去做要方便得多，也省得写乱七八糟的处理代码</li>
+<li>站外查询这个功能可以禁用了</li>
+<li>升级服务器</li>
+</ul>
+<p>但是以上方案无论怎么折腾，都逃不过搜索时要全表检索，只要涉及到全表检索那肯定会重IO重CPU。</p>
+<p>那不请求数据库，加redis做缓存呢？好是好，但是命中率会很低，因为每个人搜索关键词可能差很多，而且缓存多久合适？很难搞的问题</p>
+<p>那有没有更好的办法呢，那种搜索很快的数据库？当然有的了，比如知名的Elastic Search</p>
+<h2 id="全文搜索引擎"><a href="#全文搜索引擎" class="headerlink" title="全文搜索引擎"></a>全文搜索引擎</h2><p>ElasticSearch可谓是最致命知名的全文搜索引擎了，几年前在做实习生的时候<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">简单地接触过</a>。那时候在我的眼中，ES似乎和MongoDB没什么区别。</p>
+<p>为了能够让人人影视分享站的搜索功能更上一个台阶，我需要选择一个全文搜索引擎。</p>
+<p>ES确实是非常知名的全文搜索引擎，但是同时也非常致命：需要非常的配置，尤其是内存，官方建议似乎最少8G了，我真的很穷😭</p>
+<p>我对于这个全文搜索的要求如下：</p>
+<ol>
+<li>轻量级，对配置要求比较低</li>
+<li>开发活跃，有相应的Python SDK</li>
+<li>支持CJK</li>
+<li>最好再支持docker，真的不想自己写<code>Dockerfile</code>，太累了</li>
+<li>使用简单，像MongoDB那样随便插入，不需要定义schema，心智负担小一点吧</li>
+</ol>
+<p>网上搜索了一圈，发现了这么几个比较不错的产品</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/valeriansaliou/sonic">sonic</a> 官方宣称轻量级的ES替代品，支持几十种语言。坏消息是Python library没一个能用的，全挂了。官方维护的nodejs的倒还可以，不愧是亲儿子啊</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/quickwit-oss/tantivy">Tantivy</a> 官方说也支持十几种语言，并且可以通过插件支持CJK，还有一个<code>tantivy-py</code>，rust的bingding，虽然没啥自动补全了，安装时说不准还得来个rust，但是也能用。缺点就是，这个<code>tantivy-py</code>，不支持第三方tokenizer，那和不支持CJK有什么区别嘛……</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/typesense/typesense">Typesense</a> 也是非常有名的全文搜索引擎，不过对CJK的支持不太完善，并且需要定义schema</li>
+</ol>
+<p>最终我找到了今天的主角，Meilisearch，美丽搜索。支持CJK，可以容忍错别字，有官方的各种语言的SDK，自带一个简单的检索页面，使用rust构建，同样轻量级</p>
+<p><img src="/images/2023031206073470.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h2 id="Meilisearch消费数据"><a href="#Meilisearch消费数据" class="headerlink" title="Meilisearch消费数据"></a>Meilisearch消费数据</h2><p>对于全文检索来说最重要的无非是两件事情，存储数据和检索。对Meilisearch来说这很简单：</p>
+<p>import Meilisearch</p>
+<p>client &#x3D; Meilisearch.Client(“<a target="_blank" rel="noopener" href="http://127.0.0.1:7700/">http://127.0.0.1:7700</a>“, “masterKey”)<br>index &#x3D; client.index(“demo”)<br>documents &#x3D; [<br>    {<br>        “id”: 123,<br>        “title”: “后端的接口大概在半年前就写好了”<br>    },<br>    {<br>        “id”: 456,<br>        “title”: “我最近才学了一点点 React做好了邮件验证的功能”<br>    }<br>]<br>index.add_documents(documents)</p>
+<p>可一次性提交很多数据，Meilisearch会异步处理。如果想要知道处理结果可以看tasks结果，如：</p>
+<p>task &#x3D; index.add_documents(documents)<br>time.sleep(1)<br>print(index.get_task(task.task_uid))</p>
+<h3 id="Meilisearch的ID"><a href="#Meilisearch的ID" class="headerlink" title="Meilisearch的ID"></a>Meilisearch的ID</h3><p>Meilisearch要求数据包含ID，如果你提交的数据是这样的</p>
+<p>documents &#x3D; [<br>    {<br>        “title”: “后端的接口大概在半年前就写好了”,<br>        “titleId”: “123a”,<br>        “content”: “好的”,<br>        “contentId”: “yagwah2”<br>    },<br>    {<br>        “title”: “我最近才学了一点点 React做好了邮件验证的功能”,<br>        “titleId”: “456b”,<br>        “content”: “不好”,<br>        “contentId”: “9777”<br>    },<br>]</p>
+<p>你会发现在网页上看不到这些索引，这是因为Meilisearch要求数据中包含唯一ID，这也是以后更新索引的依据。给每一条数据加上一个唯一的ID就好了。或者：</p>
+<p>如果你的数据中不包括id字段，那么Meilisearch将会尝试自动从其他<a target="_blank" rel="noopener" href="https://docs.meilisearch.com/learn/core_concepts/primary_key.html#setting-the-primary-key">类似ID的字段中推导</a>，比如你的数据是：</p>
+<p>{<br>    “username”: “abcdefg”,<br>    “date”: “2021-06-13 22:32:48”,<br>    “comment”: “很好看”,<br>    “commentID”: “60c61710004833fc8cd4b240”,<br>    “origin”: “comment”,<br>    “hasAvatar”: None,<br>    “resourceName”: “急诊室的故事”,<br>}</p>
+<p>Meilisearch就会把<code>commentID</code>当作ID去使用。但是如果非常不巧你的数据中包含多个ID结尾的字段，如</p>
+<p>{<br>    “username”: “abcdefg”,<br>    “date”: “2021-06-13 22:32:48”,<br>    “comment”: “很好看”,<br>    “commentID”: “60c61710004833fc8cd4b240”,<br>    “origin”: “comment”,<br>    “hasAvatar”: None,<br>    “resourceID”: 10323,<br>    “resourceName”: “急诊室的故事”,<br>}</p>
+<p>那么就会推导失败，此时要么自己添加好id，要么指定主键名</p>
+<p>index.add_documents(documents, primary_key&#x3D;”commentID”)</p>
+<h2 id="Meilisearch检索数据"><a href="#Meilisearch检索数据" class="headerlink" title="Meilisearch检索数据"></a>Meilisearch检索数据</h2><p>非常简单高效，唯一的缺点是没有提供confidence score之类的东西，有的时候搜出来的东西实在是离谱🤡</p>
+<p>result &#x3D; index.search(“棒”)</p>
+<p>不用考虑简体繁体，有非常多的参数可以选择，具体<a target="_blank" rel="noopener" href="https://docs.meilisearch.com/reference/api/search.html">可以看文档</a></p>
+<h2 id="集成Meilisearch"><a href="#集成Meilisearch" class="headerlink" title="集成Meilisearch"></a>集成Meilisearch</h2><p>把Meilisearch集成到人人影视分享站，要考虑的问题如下：</p>
+<ol>
+<li>数据持久化，我的所有应用都是docker跑的，这样就一定要考虑数据持久化的事情</li>
+<li>消费数据，要保证Meilisearch的数据和MongoDB同步更新，并且在每次重启容器时也不会有丢失</li>
+<li>保证返回一样的数据结构，避免前端改来改去</li>
+</ol>
+<h3 id="数据持久化"><a href="#数据持久化" class="headerlink" title="数据持久化"></a>数据持久化</h3><p>Meilisearch的数据并不重要，因此不需要映射宿主机的目录到容器之中，只需要docker volume就可以了。</p>
+<p>docker volume create meili</p>
+<p>然后</p>
+<p>docker run -v meili:&#x2F;meili_data getmeili&#x2F;meilisearch:v1.0.2</p>
+<p>用<code>docker-compose</code>的话，也基本一样</p>
+<p>version: ‘3.1’</p>
+<p>services:<br>  meili:<br>    image: getmeili&#x2F;meilisearch:v1.0.2<br>    volumes:<br>      - meilisearch:&#x2F;meili_data</p>
+<p>volumes:<br>  meilisearch:</p>
+<h3 id="第一次消费数据"><a href="#第一次消费数据" class="headerlink" title="第一次消费数据"></a>第一次消费数据</h3><p>由于Meilisearch是异步处理数据的，也就意味着提交一大堆数据之后，我们并不会阻塞。</p>
+<p>因此问题就变成了如何更优雅的从MongoDB中查询到我们想要的数据，然后一股脑的塞过去。</p>
+<p>此时就要用到 MongoDB的<code>aggregate</code>了，非常强大的功能，一个查询就可以全部搞定，不用拿Python再遍历然后二次查</p>
+<p>我的第一次消费数据也非常简单粗暴，程序启动时丢个线程去跑就好了，反正也没多少，第一次几秒钟就结束</p>
+<p>threading.Thread(target&#x3D;engine.run_import).start()</p>
+<h3 id="同步数据"><a href="#同步数据" class="headerlink" title="同步数据"></a>同步数据</h3><p>MongoDB有一个功能叫做 Change Stream，这是一种发布订阅的模式，简单的说就是当数据库发生变更，MongoDB会“推送”数据过去。</p>
+<p>唯一的小缺点是，数据库药需要配置成replica set才可以。当然了，只有一个节点的replica set也没问题啦。</p>
+<p>用起来很容易，先在配置文件中启用replica set，如果用的docker，那么command追加<code>--replSet rs0</code>即可，然后启动MongoDB，</p>
+<p>配置replica set，比如我要配置两个节点的</p>
+<p>rs.initiate({<br>    _id: “rs0”,<br>    members: [{<br>        _id: 0,<br>        host: “localhost:27017”<br>    },<br>    {<br>        _id: 1,<br>        host: “mongo2:27017”<br>    }]<br>})</p>
+<p><code>rs.status()</code>可以查看配置结果</p>
+<p>多个节点的话，等到数据同步好了，可选配置一下优先级</p>
+<p>cfg &#x3D; rs.conf()<br>cfg.members[0].priority &#x3D; 0.5<br>cfg.members[1].priority &#x3D; 0.5<br>cfg.members[2].priority &#x3D; 1 # 最高<br>rs.reconfig(cfg)</p>
+<p>配置成功之后，比如我想监听<code>comment</code>这个集合的变化</p>
+<p>cursor &#x3D; self.db.comment.watch()<br>for change in cursor:<br>    print(change)</p>
+<p>无论是增删改都会在这个<code>change</code>中体现。我同样也很简单粗暴，拿到数据了<code>add_documents</code> 就好。</p>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p>由于在喂数据的时候就是根据前端的要的数据构造的，所以这里根本不用管，直接把Meilisearch返回的结果返回给前端就好了</p>
+<h2 id="性能对比"><a href="#性能对比" class="headerlink" title="性能对比"></a>性能对比</h2><p>在开了省电模式的M1 Macbook单核心、2G内存的docker engine环境，用<code>ab -c 100 -n 2000</code> 的跑分，优化前：</p>
+<p><img src="/images/2023031206073540.png" alt="文本 描述已自动生成"></p>
+<p>优化后：</p>
+<p><img src="/images/2023031206073648.png" alt="文本 描述已自动生成"></p>
+<p>每秒请求次数从20左右提升到200多，直接10倍，这不比升级机器配置好多啦！并且IO、CPU、RAM占用也比MongoDB理想多了。</p>
+<p> </p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>我也不知道这个人是谁，还在孜孜不倦的爬呀爬😂 虽然并无任何影响，但是看着就很恶心人，有什么好的办法吗</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/03/2023031506455240.png"><img src="/images/2023031506455240.png"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/14/meilisearch/index/" data-id="clhp7rthj004vs2qr0dxwgmy6" data-title="轻量级全文搜索引擎 Meilisearch使用体验" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-yyets-hack/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/03/12/yyets-hack/index/" class="article-date">
@@ -896,96 +1028,11 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
 
 
   
-    <article id="post-who-view-micam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/04/30/who-view-micam/index/" class="article-date">
-  <time class="dt-published" datetime="2022-04-30T00:00:00.000Z" itemprop="datePublished">2022-04-30</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/04/30/who-view-micam/index/">谁看了我的米家摄像头？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>一年前，由于一个有些可笑的原因（别问我为什么，真的），我买了个米家的摄像头，然后分享给了某个人。那个时候我在想，有没有办法随时知道谁看了监控呢？管他是某个人还是其他什么奇奇怪怪的人。</p>
-<p>米家本身并不提供这种功能，也不像其他品牌一样在摄像头被查看的时候会有一个特殊的指示灯显示。</p>
-<p>既然如此，那作为一名有灵性的工程师，一定能找到办法的！</p>
-<p>简单的说，自然就要从网络上下手啦！毕竟这个东西是需要通过网络传输数据的，在其他人查看的时候一定会大量的传输数据，并且根据常识推断，极有可能是UDP，并且有可能通过UDP打洞的方式直接看到查看者的IP地址。</p>
-<p>话不多说，说干就干，老子干网络这么多年，还不是 permit any any 通了就走！</p>
-<h2 id="抓包"><a href="#抓包" class="headerlink" title="抓包"></a>抓包</h2><p>既然要抓包，那自然也就在路由器上动手脚最好了。此时需要一个刷了padavan、OpenWRT、Merlin之类第三方固件的路由器，然后准备好tcpdump</p>
-<p>tcpdump可以使用opkg之类的命令安装，如果你的CPU恰巧是arm的，可以<a target="_blank" rel="noopener" href="https://fw.koolcenter.com/binary/tcpdump/">用这个</a>静态编译的。</p>
-<p>假设摄像头的IP是192.168.7.149，然后路由器的网桥是br-lan（有些可能是br0）</p>
-<p>tcpdump -i br-lan udp and host 192.168.7.149</p>
-<p>此时打开手机，最好用流量来测试IP，查看摄像头，大概率会看到类似如下日志：</p>
-<p><img src="/images/2022043021474977.png"></p>
-<p>如果没有的话，去掉UDP试试看。再没有就看看接口和IP对不对，有些情况下抓对应的wlan01可能更好。</p>
-<h2 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h2><p>此时右侧的那个疯狂刷屏39.xxxx就是我的手机数据流量的出口IP，中国移动的某个IP。有些时候会看到一些金山云的IP，可以直接忽略。</p>
-<p>那么接下来问题来了</p>
-<ol>
-<li>只有刷屏的IP才算是可能的查看记录，有什么办法揪出来吗？</li>
-<li>咱也不能时时刻刻盯着tcpdump的输出啊！</li>
-</ol>
-<h2 id="令牌桶算法"><a href="#令牌桶算法" class="headerlink" title="令牌桶算法"></a>令牌桶算法</h2><p>只有刷屏的IP才可能是查看记录，那么如何分析统计这个“刷屏频率”？最好的办法就是令牌桶算法啦！</p>
-<p>所谓令牌桶，就是设计一个桶，某个组件持续地往里面丢令牌（token），然后每个请求进来的时候去这里拿令牌，拿到了就执行，拿不到就只能等着了。</p>
-<p>令牌桶通常用于限流，我们的这个恰巧是“反着来的限流”，反正只要撞了rate limit就是我们要的数据。</p>
-<p>记得先写正则表达式过滤一下。</p>
-<p>为了方便在路由器上运行，这事必然是要用Go来写的，毕竟交叉编译嘛</p>
-<p>package main</p>
-<p>import (<br>    log “github.com&#x2F;sirupsen&#x2F;logrus”<br>    “golang.org&#x2F;x&#x2F;time&#x2F;rate”<br>)</p>
-<p>const (<br>    bucketSize &#x3D; 70<br>    bucketRate &#x3D; 35<br>)</p>
-<p>var limiter &#x3D; rate.NewLimiter(bucketRate, bucketSize)</p>
-<p>func main() {</p>
-<pre><code>if limiter.Allow() &#123;
-    log.Infoln(&quot;Using token...&quot;)
-&#125; else &#123;
-    log.Warnln(&quot;Potential view, sending alert now...&quot;)
-&#125;
-</code></pre>
-<p>}</p>
-<p>很简单，定义了一个桶，大小是70，每秒钟产生35个令牌，说人话：每秒钟抓到35个包，刚好可以抵消令牌桶消耗；每秒抓到40个包，大概8秒会报警。至于这个35和70是怎么设计的嘛，是我从实践与经验中发现这个值最稳妥、最不容易误报。</p>
-<h2 id="消息通知"><a href="#消息通知" class="headerlink" title="消息通知"></a>消息通知</h2><p>消息通知就很简单了，当 <code>limiter.Allow()</code> 不满足时，直接telegram bot就行了，这样最方便。</p>
-<p>代码太过简单，就不说了</p>
-<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>真挺准的！俗话说知己知彼，百战不殆反正我是认输了，权限也已经撤销了。因为我发现我就是“充话费送的”。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/04/2022043021541218.jpeg"><img src="/images/2022043021541218.jpeg"></a></p>
-<p>也真的挺不好意思的我这玩意藏着掖着，快一年了才放出来……</p>
-<p><img src="/images/2022043021481460.png"></p>
-<h2 id="参考代码"><a href="#参考代码" class="headerlink" title="参考代码"></a>参考代码</h2><p><a target="_blank" rel="noopener" href="https://gist.github.com/BennyThink/c78cefa446fc492209710796ee342dec">https://gist.github.com/BennyThink/c78cefa446fc492209710796ee342dec</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/04/30/who-view-micam/index/" data-id="clhp7rtn600b5s2qr13ef50zq" data-title="谁看了我的米家摄像头？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/4/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1038,6 +1085,10 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1051,10 +1102,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

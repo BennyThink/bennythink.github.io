@@ -73,6 +73,139 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ffmpeg/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/11/10/ffmpeg/index/" class="article-date">
+  <time class="dt-published" datetime="2016-11-10T00:00:00.000Z" itemprop="datePublished">2016-11-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/11/10/ffmpeg/index/">自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_tips]有点不好意思啊此文无图… :shock: 还有这个字体咋样呀 :razz:  [&#x2F;v_tips]</p>
+<p>[v_error]一键编译脚本在<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/3">第三页</a>！ [&#x2F;v_error] 话说很久之前，人人影视放出来了一个压片工具，总共有192M的样子，而且只能在Windows上运行。对于我等Linux党，这可怎么行呢？于是我就想到了ffmpeg这个万能的神器。当然了ffmpeg作为自由软件，你从包管理器里安装的、直接configure编译的，是不会带libx264</p>
+<p>这类非自由软件，自然想要压制影片就不是那么好玩了……</p>
+<p>那既然酱紫，我们就只好手动编译一个non-free的ffmpeg，然后再来使用嘛！</p>
+<p>[v_act]这种压片的方法是把字幕混到视频流中，也就是说视频最终是音频流+视频流，是没有字幕流的，字幕已经是视频的一部分了。这也可以极大程度上的避免盗字幕的行为。[&#x2F;v_act] 懒虫们，假如你们真的懒得看这么长的文章，并且你确定你的发行版是比较新的发行版，那么请直接翻到本文最后看”一键式编译教程”吧！</p>
+<h2 id="准备特效字体"><a href="#准备特效字体" class="headerlink" title="准备特效字体"></a>准备特效字体</h2><p>有很多字幕都是用了自定义字体，请记得给你的发行版安装对应的字体呀！桌面版直接双击安装即可。如果是服务器版，把字体复制到&#x2F;usr&#x2F;share&#x2F;fonts&#x2F;truetype和原来字体一样的位置，或者新建个winFonts目录便于区分也可以。</p>
+<p>之后运行</p>
+<p>sudo apt install fontconfig<br>sudo fc-cache –fv</p>
+<p>运行fc-list可以看到已安装字体列表</p>
+<p>查看中文字体，可以使用</p>
+<p>sudo fc-list :lang&#x3D;zh</p>
+<p>并且请注意编码格式的问题，Linux一般使用<strong>UTF-8</strong>而Windows则是GB2312</p>
+<p> </p>
+<h1 id="编译安装ffmpeg"><a href="#编译安装ffmpeg" class="headerlink" title="编译安装ffmpeg"></a>编译安装ffmpeg</h1><p>我使用的是Ubuntu，所以这里我就按照<a target="_blank" rel="noopener" href="https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu">官网提供的教程编译</a>啦！</p>
+<h2 id="安装必备依赖"><a href="#安装必备依赖" class="headerlink" title="安装必备依赖"></a>安装必备依赖</h2><p>sudo apt-get update<br>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \<br>libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev</p>
+<p>[v_tips] 注意，如果是服务器版Ubuntu，可以把第二步替换成如下（你装原来的也行，反正是ffplay和X11的依赖……）</p>
+<p>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libtheora-dev libtool libvorbis-dev pkg-config texinfo zlib1g-dev</p>
+<p>[&#x2F;v_tips]</p>
+<p>创建一个用来下载源码的目录</p>
+<p>mkdir ~&#x2F;ffmpeg_sources</p>
+<h2 id="编译与安装"><a href="#编译与安装" class="headerlink" title="编译与安装"></a>编译与安装</h2><h3 id="yasm"><a href="#yasm" class="headerlink" title="yasm"></a>yasm</h3><p>如果你的包管理器里的yasm版本号&gt;&#x3D;1.2.0，那就可以用包管理器安装</p>
+<p>（使用sudo apt search yasm查看版本号，就想编译的，我也没意见）</p>
+<p>sudo apt-get install yasm</p>
+<p>否则请编译安装</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz">http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz</a><br>tar xzvf yasm-1.3.0.tar.gz<br>cd yasm-1.3.0<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin”<br>make<br>make install<br>make distclean</p>
+<h3 id="libx264"><a href="#libx264" class="headerlink" title="libx264"></a>libx264</h3><p>如果你的包管理器里的libx264版本号&gt;&#x3D;0.118，那就是用包管理器安装</p>
+<p>sudo apt-get install libx264-dev</p>
+<p>否则需要编译安装</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://download.videolan.org/pub/x264/snapshots/last/_x264.tar.bz2">http://download.videolan.org/pub/x264/snapshots/last\_x264.tar.bz2</a><br>tar xjvf last_x264.tar.bz2<br>cd x264-snapshot*<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin” –enable-static –disable-opencl<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean</p>
+<h3 id="libx265"><a href="#libx265" class="headerlink" title="libx265"></a>libx265</h3><p>只能选择编译安装啦。</p>
+<p>sudo apt-get install cmake mercurial<br>cd ~&#x2F;ffmpeg_sources<br>hg clone <a target="_blank" rel="noopener" href="https://bitbucket.org/multicoreware/x265">https://bitbucket.org/multicoreware/x265</a><br>cd ~&#x2F;ffmpeg_sources&#x2F;x265&#x2F;build&#x2F;linux<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” cmake -G “Unix Makefiles” -DCMAKE_INSTALL_PREFIX&#x3D;”$HOME&#x2F;ffmpeg_build” -DENABLE_SHARED:bool&#x3D;off ..&#x2F;..&#x2F;source<br>make<br>make install</p>
+<h3 id="libfdk-aac"><a href="#libfdk-aac" class="headerlink" title="libfdk-aac"></a>libfdk-aac</h3><p>如果你的包管理器中有libfdk-aac-dev，那就可以使用包管理器安装（没有版本需求）</p>
+<p>sudo apt-get install libfdk-aac-dev</p>
+<p>否则需要编译安装</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget -O fdk-aac.tar.gz <a target="_blank" rel="noopener" href="https://github.com/mstorsjo/fdk-aac/tarball/master">https://github.com/mstorsjo/fdk-aac/tarball/master</a><br>tar xzvf fdk-aac.tar.gz<br>cd mstorsjo-fdk-aac*<br>autoreconf -fiv<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make distclean</p>
+<h3 id="ibmp3lame"><a href="#ibmp3lame" class="headerlink" title="ibmp3lame"></a>ibmp3lame</h3><p>如果你的包管理器中有ibmp3lame，版本号&gt;&#x3D;3.98.3，那么你可以使用包管理器安装</p>
+<p>sudo apt-get install libmp3lame-dev</p>
+<p>否则需要编译安装</p>
+<p>sudo apt-get install nasm<br>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz">http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz</a><br>tar xzvf lame-3.99.5.tar.gz<br>cd lame-3.99.5<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –enable-nasm –disable-shared<br>make<br>make install<br>make distclean</p>
+<h3 id="libopus"><a href="#libopus" class="headerlink" title="libopus"></a>libopus</h3><p>如果你的包管理中有libopus，版本号&gt;&#x3D;1.1，那你可以使用包管理器安装</p>
+<p>sudo apt-get install libopus-dev</p>
+<p>否则需要编译安装。</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz">http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz</a><br>tar xzvf opus-1.1.2.tar.gz<br>cd opus-1.1.2<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make clean</p>
+<h3 id="libvpx"><a href="#libvpx" class="headerlink" title="libvpx"></a>libvpx</h3><p>只能编译安装（注意，这个链接是在Google的服务器上，如果服务器在国内下载不回来，就自己翻墙下载然后上传到服务器吧）</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2">http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2</a><br>tar xjvf libvpx-1.5.0.tar.bz2<br>cd libvpx-1.5.0<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-examples –disable-unit-tests<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make clean</p>
+<h2 id="编译ffmpeg"><a href="#编译ffmpeg" class="headerlink" title="编译ffmpeg"></a>编译ffmpeg</h2><p>耗时可能会比较长</p>
+<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2">http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2</a><br>tar xjvf ffmpeg-snapshot.tar.bz2<br>cd ffmpeg<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” PKG_CONFIG_PATH&#x3D;”$HOME&#x2F;ffmpeg_build&#x2F;lib&#x2F;pkgconfig” .&#x2F;configure \<br>–prefix&#x3D;”$HOME&#x2F;ffmpeg_build” \<br>–pkg-config-flags&#x3D;”–static” \<br>–extra-cflags&#x3D;”-I$HOME&#x2F;ffmpeg_build&#x2F;include” \<br>–extra-ldflags&#x3D;”-L$HOME&#x2F;ffmpeg_build&#x2F;lib” \<br>–bindir&#x3D;”$HOME&#x2F;bin” \<br>–enable-gpl \<br>–enable-libass \<br>–enable-libfdk-aac \<br>–enable-libfreetype \<br>–enable-libmp3lame \<br>–enable-libopus \<br>–enable-libtheora \<br>–enable-libvorbis \<br>–enable-libvpx \<br>–enable-libx264 \<br>–enable-libx265 \<br>–enable-nonfree<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean<br>hash –r</p>
+<p>[v_blue]注意：</p>
+<p>1.如果你直接运行configure，将会是没有non-free软件的ffmpeg；官方的configure配置会在<del>下生成一个bin（编译之后安装就会在</del>&#x2F;bin下）、ffmpeg_build目录；如果不喜欢，那就照猫画虎的改掉$HOME（记得都要改哦），make install的时候就到&#x2F;bin啦！</p>
+<p>2.在Ubuntu中，~&#x2F;bin默认是被包含到PATH中的，所以当你注销-登录或者</p>
+<p>source ~&#x2F;.profile</p>
+<p>之后可以从任何目录运行<del>&#x2F;bin中的程序的。再不济，咱把</del>&#x2F;bin里的拷贝到&#x2F;bin里总可以吧？</p>
+<p>3.如果需要安装man page，请运行</p>
+<p>echo “MANPATH_MAP $HOME&#x2F;bin $HOME&#x2F;ffmpeg_build&#x2F;share&#x2F;man” &gt;&gt; ~&#x2F;.manpath</p>
+<p>[&#x2F;v_blue]</p>
+<hr>
+<p>我假设你已经编译好了ffmpeg，并且准备好了你的视频和字幕。</p>
+<p>前面提过了，如果你的字幕中使用了自定义字体，请记得同时安装对应的字体！</p>
+<p>并且，请注意<strong>字幕文件的编码格式</strong>，Linux通常会使用UTF-8无BOM，而Windows则是GB2312这类。为了避免出乱码，还是老老实实转换成UTF-8吧！</p>
+<p>下一页我会介绍一些压片的方法，关于ffmpeg的更多方法，大家伙就自己搜索、看官方的文档、man page啦！</p>
+<p>注意，压制过程中可能会出现这样的警告</p>
+<p>Glyph 0x36C not found, selecting one more font for (YouYuan, 700, 0)</p>
+<p>不要管他啦……只要是UTF-8编码的，会压出来的！ 该看下一页啦~~</p>
+<h2 id="不改变视频、音频编码格式及参数，将字幕压制"><a href="#不改变视频、音频编码格式及参数，将字幕压制" class="headerlink" title="不改变视频、音频编码格式及参数，将字幕压制"></a>不改变视频、音频编码格式及参数，将字幕压制</h2><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h2 id="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"><a href="#使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式" class="headerlink" title="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"></a>使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h3 id="关于preset参数："><a href="#关于preset参数：" class="headerlink" title="关于preset参数："></a>关于preset参数：</h3><p>预设是一系列参数的集合，这个集合能够在编码速度和压缩率之间做出一个权衡。一个编码速度稍慢的预设会提供更高的压缩效率（压缩效率是以文件大小来衡量的)。这就是说，假如你想得到一个指定大小的文件或者采用恒定比特率编码模式，你可以采用一个较慢的预设来获得更好的质量。同样的，对于恒定质量编码模式，你可以通过选择一个较慢的预设轻松地节省比特率。</p>
+<p>如果你很有耐心，通常的建议是使用最慢的预设。目前所有的预设按照编码速度降序排列为： ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo默认为medium</p>
+<p>[v_blue]如果你蒙圈了，那就这么说的，ultrafast处理的最快，但是文件大；placebo处理的慢，但是文件小；建议medium或者fast就可以了……有耐心的话，veryslow也够了。[&#x2F;v_blue]</p>
+<h3 id="crf-Constant-Rate-Factor"><a href="#crf-Constant-Rate-Factor" class="headerlink" title="crf(Constant Rate Factor)"></a>crf(Constant Rate Factor)</h3><p>该方法在输出文件的大小不太重要的时候，可以使整个文件达到特定的视频质量。该编码模式在单遍编码模式下提供了最大的压缩效率，每一帧可以按照要求的视频质量去获取它需要的比特数。不好的一面是，你不能获取一个特定大小的视频文件，或者说将输出位率控制在特定的大小上。</p>
+<p>crf的参数值中，其中0为无损模式，23为缺省值，51可能是最差的。该数字越小，图像质量越好。从主观上讲，18~28是一个合理的范围。18往往被认为从视觉上看是无损的，它的输出视频质量和输入视频一模一样或者说相差无几。但从技术的角度来讲，它依然是有损压缩。 [v_blue]我觉得选择20就差不多啦~~[&#x2F;v_blue]</p>
+<h3 id="以H-264、Lame自定义参数重新编码、压制"><a href="#以H-264、Lame自定义参数重新编码、压制" class="headerlink" title="以H.264、Lame自定义参数重新编码、压制"></a>以H.264、Lame自定义参数重新编码、压制</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” -acodec libmp3lame -ab 128k lame.mp4</p>
+<p>如果想压制AAC的音频，就在最后把acodec libmp3lame改成acodec aac</p>
+<p>其中-ab 128k指的是平均码率为128k</p>
+<h2 id="以H-264自定义分辨率、AAC自定义参数缩放压制视频"><a href="#以H-264自定义分辨率、AAC自定义参数缩放压制视频" class="headerlink" title="以H.264自定义分辨率、AAC自定义参数缩放压制视频"></a>以H.264自定义分辨率、AAC自定义参数缩放压制视频</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass,scale&#x3D;800:-1” -acodec aac -ab 128k aac.mp4</p>
+<p>其中的scale&#x3D;800:-1指的是输出800:对应比例的视频。假如你要压制720P的，那就把800改成1280；假如你要1080的，那就改成1920。通常来说，分辨率高的压分辨率低的好办，低的压高的就麻烦了……</p>
+<h2 id="两遍模式"><a href="#两遍模式" class="headerlink" title="两遍模式"></a>两遍模式</h2><p>如果你的目标是一个确定大小的文件而且帧与帧之间的视频质量并不重要，这个方法很适用。这通过一个例子可以得到很好地解释。你的视频有10分钟（600秒）的时长同时要求输出为50MB，因为比特率&#x3D;文件大小&#x2F;时长，</p>
+<p>50MB*8192（MB转kilobits)&#x2F;600秒&#x3D;683 kbps（全局比特率）</p>
+<p>683kbps-128kbps(音频比特率）&#x3D;555kbps（视频比特率）,</p>
+<p>两遍编码的例子：</p>
+<p>ffmpeg -y -i input -c:v libx264 -preset medium -b:v 555k -pass 1 -an -f mp4 &#x2F;dev&#x2F;null &amp;&amp;<br>ffmpeg -i input -c:v libx264 -preset medium -b:v 555k -pass 2 -c:a libfdkaac -b:a 128k mp4 output.mp4</p>
+<h2 id="分割视频（拷贝视频和音频流，速度比较快）"><a href="#分割视频（拷贝视频和音频流，速度比较快）" class="headerlink" title="分割视频（拷贝视频和音频流，速度比较快）"></a>分割视频（拷贝视频和音频流，速度比较快）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -ss 01:00:00 -i input_file_h264.mp4 -vcodec copy -acodec copy -t 00:06:00 output_file.mp4</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我这上面这几个小标题写的乱乱糟糟的，在这里统一做一个总结吧：</p>
+<h3 id="需要原封不动的把字幕压进去"><a href="#需要原封不动的把字幕压进去" class="headerlink" title="需要原封不动的把字幕压进去"></a>需要原封不动的把字幕压进去</h3><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h3 id="需要快速的压制质量较好的H264视频"><a href="#需要快速的压制质量较好的H264视频" class="headerlink" title="需要快速的压制质量较好的H264视频"></a>需要快速的压制质量较好的H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<h3 id="需要快速压制质量较好的H264、720P视频"><a href="#需要快速压制质量较好的H264、720P视频" class="headerlink" title="需要快速压制质量较好的H264、720P视频"></a>需要快速压制质量较好的H264、720P视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 23 -vf “ass&#x3D;Lantern.ass,scale&#x3D;1280:-1” out.mp4</p>
+<h3 id="需要压制超高质量的、缓慢的压制H264视频"><a href="#需要压制超高质量的、缓慢的压制H264视频" class="headerlink" title="需要压制超高质量的、缓慢的压制H264视频"></a>需要压制超高质量的、缓慢的压制H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset veryslow -crf 18 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
+<p>这个……crf的质量大家自己掂量着办！0最好，53最差，默认23，合理范围18~28 preset也看着办 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo 越慢，压缩率越高。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>视频编码这是个长久的技术活啊，而且需要很多的经验！自己多编码多玩玩，自然就有懂啦！</p>
+<p>下一页是给懒虫们留着的哦~~ 附录</p>
+<p>给懒虫们的一键式编译脚本。我不太会写脚本，所以这个还是有很大改善空间的….目前只支持Debian系 使用方法： git clone仓库，给两个文件都加x权限，root身份运行onekey-ffmpeg.sh即可。 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/onekey-compile-ffmpeg'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80%E6%88%B3%E6%88%91/[/gt/]">https://github.com/BennyThink/onekey-compile-ffmpeg&#39;\]开源地址戳我\[/gt\]</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/11/10/ffmpeg/index/" data-id="clhp7rtht005zs2qrbjgt43ap" data-title="自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-school-3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/11/09/school-3/index/" class="article-date">
@@ -894,78 +1027,11 @@
 
 
   
-    <article id="post-vps-google-drive/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/07/25/vps-google-drive/index/" class="article-date">
-  <time class="dt-published" datetime="2016-07-25T00:00:00.000Z" itemprop="datePublished">2016-07-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/07/25/vps-google-drive/index/">使用海外vps中转Google Drive文件</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天美女学姐给我发了足足350M的照片 :neutral: 而且竟然是半小时之内上传到Google Drive！感叹于蓝灯速度如此之快（做一下乘除法，200KB&#x2F;s的上传）之余，我就在想怎么把这些东西中转回国内啊……</p>
-<p>按照以往的套路，先用海外的vps把这些文件下载回来，然后上传回七牛，之后再去七牛下载就嗖嗖的啦！</p>
-<p><img src="/images/072516_1527_vpsGoogle2.gif"></p>
-<p>那么就来吧！突然想吐槽一句，要不要推荐给她Dropbox，这家伙可是支持”<strong>字节级差异同步</strong>“的啊</p>
-<h2 id="零-准备工作…"><a href="#零-准备工作…" class="headerlink" title="零. 准备工作…"></a>零. 准备工作…</h2><p>首先， 你要有个Google账号，其次，你的Google Drive里总得有点东西吧，再有，得会<a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html">翻墙</a>吧！</p>
-<h2 id="一-安装Google-Drive-Linux-客户端"><a href="#一-安装Google-Drive-Linux-客户端" class="headerlink" title="一. 安装Google Drive Linux 客户端"></a>一. 安装Google Drive Linux 客户端</h2><p>Google Drive官方【并没有】Linux版的客户端，所以各路神仙们就根据Google API自己写了同步程序，服务器就不要想带图形界面的了，幸运的是，我找到了grive这个命令行版的程序。</p>
-<p>以Ubuntu 16.04为例（14.04的源里有这个程序，但是奉劝各位……自己添加ppa吧）</p>
-<p>#添加ppa<br>sudo add-apt-repository ppa:nilarimogard&#x2F;webupd8<br>#更新源<br>sudo apt-get update<br>#安装<br>sudo apt-get install grive</p>
-<p><img src="/images/072516_1527_vpsGoogle3.png"> [v_blue]小提示 非常幸运的是，Dropbox有Linux cml的客户端程序哦~ <a target="_blank" rel="noopener" href="https://www.dropbox.com/install?os=lnx">https://www.dropbox.com/install?os=lnx</a>[&#x2F;v_blue]</p>
-<h2 id="二-配置grive"><a href="#二-配置grive" class="headerlink" title="二. 配置grive"></a>二. 配置grive</h2><p>俗话说的好，有个靠谱的男人（man）是非常重要滴，他能告诉你一切你想知道的东西，还能告诉你你不想知道的南北。我的意思是，先man grive看看用法啊！</p>
-<p><img src="/images/072516_1527_vpsGoogle4.png"></p>
-<p>简单明了……</p>
-<p>创建某个目录作为Google Drive的同步目录，举例如下（我就是传说中的root敢死队）</p>
-<p>mkdir &#x2F;root&#x2F;upload<br>cd &#x2F;root&#x2F;upload<br>grive –a</p>
-<p>好家伙，复制这段链接，粘贴到浏览器里，授权然后获得一个授权码吧！</p>
-<p><img src="/images/072516_1527_vpsGoogle5.png"></p>
-<p>傻乎乎的全都给我同步回来了……没办法，这个工具就这样。</p>
-<p><img src="/images/072516_1527_vpsGoogle6.png"></p>
-<h2 id="三-同步到七牛云存储"><a href="#三-同步到七牛云存储" class="headerlink" title="三. 同步到七牛云存储"></a>三. 同步到七牛云存储</h2><p>[v_error]2016年7月27日更新 七牛官方已经停止开发qrsync转而使用qshell（官方文档<a target="_blank" rel="noopener" href="http://developer.qiniu.com/code/v6/tool/qshell.html">在这里</a>），所以这里将介绍qshell的使用方法。 如果想查看原来工具的使用方法，半年前的博文<a target="_blank" rel="noopener" href="https://dmesg.app/auto-backup-to-qiniu.html">《[新手向]自动备份网站及数据库至七牛云存储》</a>[&#x2F;v_error]</p>
-<p>#下载qshell<br>wget <a target="_blank" rel="noopener" href="http://devtools.qiniu.com/qshell-v1.8.0.zip">http://devtools.qiniu.com/qshell-v1.8.0.zip</a><br>#解压缩<br>unzip qshell-v1.8.0.zip<br>#根据平台只留下自己的对应平台文件，并重命名为qshell（方便打字嘛）<br>qshell account  AccessKey SecretKey<br>#创建配置文件，最简单的方式<br>{<br>    “src_dir”       :   “&#x2F;Users&#x2F;jemy&#x2F;Temp7”,<br>    “access_key”    :   “ELUs3就是不给看rIpbM6Wh6x”,<br>    “secret_key”    :   “LVzZY2Sq看啊看啊vOWtiLkDtKip”,<br>    “bucket”        :   “if-pbl”<br>}<br>#执行上传命令<br>qshell qupload &#x2F;path&#x2F;to&#x2F;conf<br>#多线程上传<br>qshell qupload 10 &#x2F;path&#x2F;to&#x2F;conf</p>
-<p>[v_blue]上传速度很慢怎么办？ 配置文件中使用up_host参数，参见<a target="_blank" rel="noopener" href="https://github.com/qiniu/qshell/wiki/qupload">https://github.com/qiniu/qshell/wiki/qupload</a> 例子 “up_host” : “<a target="_blank" rel="noopener" href="http://up.qiniug.com/">http://up.qiniug.com</a>“, [&#x2F;v_blue]</p>
-<p>[v_tips]小提示：每次都输入这么长的命令，很烦有没有？ 有啊，直接写个relay.sh，内容就是执行同步那一行（就不要管用哪个shell啦），给x权限，丢到&#x2F;bin里，以后直接relay.sh就好了嘛；或者alias也可以啊。[&#x2F;v_tips]</p>
-<h2 id="四-去七牛自己下吧"><a href="#四-去七牛自己下吧" class="headerlink" title="四. 去七牛自己下吧"></a>四. 去七牛自己下吧</h2><p>选择私有空间的……嘿嘿嘿。</p>
-<h2 id="五-其他杂谈"><a href="#五-其他杂谈" class="headerlink" title="五.其他杂谈"></a>五.其他杂谈</h2><p>其实，YouTube的视频我就是这么中转的，用了一个非常方便的工具，名为youtube-dl，用法极其简单，后面直接加上YouTube的链接即可。天真的你以为它只能下载YouTube的视频吗？图样图森破，大陆的土豆优酷什么也赫然在列，<a target="_blank" rel="noopener" href="https://github.com/rg3/youtube-dl/blob/master/docs/supportedsites.md">不信你点我Ctrl+F</a></p>
-<p><img src="/images/072516_1527_vpsGoogle7.gif"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/07/25/vps-google-drive/index/" data-id="clhp7rtmx00avs2qrcj3zfaqp" data-title="使用海外vps中转Google Drive文件" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/16/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><a class="page-number" href="/page/19/">19</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/18/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/16/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><a class="page-number" href="/page/19/">19</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/18/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1018,6 +1084,10 @@
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1031,10 +1101,6 @@
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

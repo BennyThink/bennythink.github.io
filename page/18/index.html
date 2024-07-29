@@ -73,6 +73,73 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-vps-google-drive/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/07/25/vps-google-drive/index/" class="article-date">
+  <time class="dt-published" datetime="2016-07-25T00:00:00.000Z" itemprop="datePublished">2016-07-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/07/25/vps-google-drive/index/">使用海外vps中转Google Drive文件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天美女学姐给我发了足足350M的照片 :neutral: 而且竟然是半小时之内上传到Google Drive！感叹于蓝灯速度如此之快（做一下乘除法，200KB&#x2F;s的上传）之余，我就在想怎么把这些东西中转回国内啊……</p>
+<p>按照以往的套路，先用海外的vps把这些文件下载回来，然后上传回七牛，之后再去七牛下载就嗖嗖的啦！</p>
+<p><img src="/images/072516_1527_vpsGoogle2.gif"></p>
+<p>那么就来吧！突然想吐槽一句，要不要推荐给她Dropbox，这家伙可是支持”<strong>字节级差异同步</strong>“的啊</p>
+<h2 id="零-准备工作…"><a href="#零-准备工作…" class="headerlink" title="零. 准备工作…"></a>零. 准备工作…</h2><p>首先， 你要有个Google账号，其次，你的Google Drive里总得有点东西吧，再有，得会<a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html">翻墙</a>吧！</p>
+<h2 id="一-安装Google-Drive-Linux-客户端"><a href="#一-安装Google-Drive-Linux-客户端" class="headerlink" title="一. 安装Google Drive Linux 客户端"></a>一. 安装Google Drive Linux 客户端</h2><p>Google Drive官方【并没有】Linux版的客户端，所以各路神仙们就根据Google API自己写了同步程序，服务器就不要想带图形界面的了，幸运的是，我找到了grive这个命令行版的程序。</p>
+<p>以Ubuntu 16.04为例（14.04的源里有这个程序，但是奉劝各位……自己添加ppa吧）</p>
+<p>#添加ppa<br>sudo add-apt-repository ppa:nilarimogard&#x2F;webupd8<br>#更新源<br>sudo apt-get update<br>#安装<br>sudo apt-get install grive</p>
+<p><img src="/images/072516_1527_vpsGoogle3.png"> [v_blue]小提示 非常幸运的是，Dropbox有Linux cml的客户端程序哦~ <a target="_blank" rel="noopener" href="https://www.dropbox.com/install?os=lnx">https://www.dropbox.com/install?os=lnx</a>[&#x2F;v_blue]</p>
+<h2 id="二-配置grive"><a href="#二-配置grive" class="headerlink" title="二. 配置grive"></a>二. 配置grive</h2><p>俗话说的好，有个靠谱的男人（man）是非常重要滴，他能告诉你一切你想知道的东西，还能告诉你你不想知道的南北。我的意思是，先man grive看看用法啊！</p>
+<p><img src="/images/072516_1527_vpsGoogle4.png"></p>
+<p>简单明了……</p>
+<p>创建某个目录作为Google Drive的同步目录，举例如下（我就是传说中的root敢死队）</p>
+<p>mkdir &#x2F;root&#x2F;upload<br>cd &#x2F;root&#x2F;upload<br>grive –a</p>
+<p>好家伙，复制这段链接，粘贴到浏览器里，授权然后获得一个授权码吧！</p>
+<p><img src="/images/072516_1527_vpsGoogle5.png"></p>
+<p>傻乎乎的全都给我同步回来了……没办法，这个工具就这样。</p>
+<p><img src="/images/072516_1527_vpsGoogle6.png"></p>
+<h2 id="三-同步到七牛云存储"><a href="#三-同步到七牛云存储" class="headerlink" title="三. 同步到七牛云存储"></a>三. 同步到七牛云存储</h2><p>[v_error]2016年7月27日更新 七牛官方已经停止开发qrsync转而使用qshell（官方文档<a target="_blank" rel="noopener" href="http://developer.qiniu.com/code/v6/tool/qshell.html">在这里</a>），所以这里将介绍qshell的使用方法。 如果想查看原来工具的使用方法，半年前的博文<a target="_blank" rel="noopener" href="https://dmesg.app/auto-backup-to-qiniu.html">《[新手向]自动备份网站及数据库至七牛云存储》</a>[&#x2F;v_error]</p>
+<p>#下载qshell<br>wget <a target="_blank" rel="noopener" href="http://devtools.qiniu.com/qshell-v1.8.0.zip">http://devtools.qiniu.com/qshell-v1.8.0.zip</a><br>#解压缩<br>unzip qshell-v1.8.0.zip<br>#根据平台只留下自己的对应平台文件，并重命名为qshell（方便打字嘛）<br>qshell account  AccessKey SecretKey<br>#创建配置文件，最简单的方式<br>{<br>    “src_dir”       :   “&#x2F;Users&#x2F;jemy&#x2F;Temp7”,<br>    “access_key”    :   “ELUs3就是不给看rIpbM6Wh6x”,<br>    “secret_key”    :   “LVzZY2Sq看啊看啊vOWtiLkDtKip”,<br>    “bucket”        :   “if-pbl”<br>}<br>#执行上传命令<br>qshell qupload &#x2F;path&#x2F;to&#x2F;conf<br>#多线程上传<br>qshell qupload 10 &#x2F;path&#x2F;to&#x2F;conf</p>
+<p>[v_blue]上传速度很慢怎么办？ 配置文件中使用up_host参数，参见<a target="_blank" rel="noopener" href="https://github.com/qiniu/qshell/wiki/qupload">https://github.com/qiniu/qshell/wiki/qupload</a> 例子 “up_host” : “<a target="_blank" rel="noopener" href="http://up.qiniug.com/">http://up.qiniug.com</a>“, [&#x2F;v_blue]</p>
+<p>[v_tips]小提示：每次都输入这么长的命令，很烦有没有？ 有啊，直接写个relay.sh，内容就是执行同步那一行（就不要管用哪个shell啦），给x权限，丢到&#x2F;bin里，以后直接relay.sh就好了嘛；或者alias也可以啊。[&#x2F;v_tips]</p>
+<h2 id="四-去七牛自己下吧"><a href="#四-去七牛自己下吧" class="headerlink" title="四. 去七牛自己下吧"></a>四. 去七牛自己下吧</h2><p>选择私有空间的……嘿嘿嘿。</p>
+<h2 id="五-其他杂谈"><a href="#五-其他杂谈" class="headerlink" title="五.其他杂谈"></a>五.其他杂谈</h2><p>其实，YouTube的视频我就是这么中转的，用了一个非常方便的工具，名为youtube-dl，用法极其简单，后面直接加上YouTube的链接即可。天真的你以为它只能下载YouTube的视频吗？图样图森破，大陆的土豆优酷什么也赫然在列，<a target="_blank" rel="noopener" href="https://github.com/rg3/youtube-dl/blob/master/docs/supportedsites.md">不信你点我Ctrl+F</a></p>
+<p><img src="/images/072516_1527_vpsGoogle7.gif"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/07/25/vps-google-drive/index/" data-id="clhp7rtmx00avs2qrcj3zfaqp" data-title="使用海外vps中转Google Drive文件" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-mysql-3065/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/07/06/mysql-3065/index/" class="article-date">
@@ -1118,79 +1185,11 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
 
 
   
-    <article id="post-diskgenius-mbr2gpt/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/03/19/diskgenius-mbr2gpt/index/" class="article-date">
-  <time class="dt-published" datetime="2016-03-19T00:00:00.000Z" itemprop="datePublished">2016-03-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/03/19/diskgenius-mbr2gpt/index/">DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<p>话说，前几天比较忙，因为从Windows 7迁移到Windows 10——顺路从MBR改成了GPT，解决了以前的一个问题。</p>
-<p>以前写过一篇<a target="_blank" rel="noopener" href="https://dmesg.app/newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi.html">《[新手向]无需重装，Windows 7 由BIOS改成UEFI启动》</a></p>
-<p>其实我自己在弄的时候就遇见了这么一个问题：</p>
-<p><img src="/images/031916_1157_DiskGeniusM1.png"></p>
-<blockquote>
-<p>磁盘的首、尾部分没有转换到GUID分区表所必须的空间（除了MBR扇区外还需要各33个扇区）。请先删除分区或者对分区进行调整后再转换。</p>
-</blockquote>
-<p>这个问题属实棘手，怎么搜索也都没解决方案……后来经过我的研究，终于找到了解决解决方案——而且不会丢任何文件！</p>
-<p>DiskGenius提示首、尾部分没有所必须的空间，那咱们就手动的弄出来点空间呗……</p>
-<p>首先必须先启动到PE，然后大部分人的硬盘应该是有很多个分区的，我们就选择最后一个分区，右键-调整分区大小。</p>
-<p>不用多，给后面空出来点，前面也给空出来点就可以。</p>
-<p><img src="/images/031916_1157_DiskGeniusM2.png"></p>
-<p>调整之后硬盘的这个条前后就多出了空白的空间。</p>
-<p><img src="/images/031916_1157_DiskGeniusM3.png"></p>
-<p>再试试转换，噢耶！</p>
-<p><img src="/images/031916_1157_DiskGeniusM4.png"></p>
-<p>你看是GPT了吧！</p>
-<p>后面的空间嘛……愿意就合并回去，不愿意就拉倒。</p>
-<p>一不小心又暴露了我是虚拟机测试的……但是我想说，真实情况也差不多是这样。</p>
-<p>那我是怎么创造出来这种无法转换的情况呢？</p>
-<p>其实很简单啊，一个空白的硬盘，你一个扇区都不丢一点空间都不留的，都给分了就可以了……</p>
-<p> </p>
-<p>管理，献上我的壁纸！啦啦啦！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016031912040444.jpg"><img src="/images/2016031912040444.jpg" alt="Battlefield (57)"></a></p>
-<p>Battlefield 3 - 碎剑者行动→_→英文我忘记了。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/03/19/diskgenius-mbr2gpt/index/" data-id="clhp7rtf7001ls2qrd5o356th" data-title="DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/17/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/19/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/17/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/19/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1243,6 +1242,10 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1256,10 +1259,6 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

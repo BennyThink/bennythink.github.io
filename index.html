@@ -73,6 +73,121 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-hide-in-cf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/07/27/hide-in-cf/index/" class="article-date">
+  <time class="dt-published" datetime="2024-07-27T00:00:00.000Z" itemprop="datePublished">2024-07-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>做一个网站是很简单的事情。买一个域名，买一个服务器，A记录解析过去就好了。</p>
+<p>这样做其实有一个非常大的安全隐患，不怀好意的人可以拿到你的服务器的IP，然后就可以做很多坏事，比如 (D)DoS、暴力破解SSH之类的。</p>
+<p>一个很简单的办法，就是用 Cloudflare之类的CDN，这样可以隐藏源站IP。这样他们无法直接攻击你的服务器，只能疯狂打 Cloudflare。</p>
+<hr>
+<p>就像我前不久一样，遭遇了人生中第一次DoS，峰值大概有5500万请求的样子，基本上都被Cloudflare的规则拦住了。</p>
+<p><img src="/images/2024072722290473.jpeg" alt="图形用户界面, 图表 描述已自动生成"></p>
+<p>[v_tips]有趣的是，攻击来自于 AS4983 ，归属于 Intel。我猜更有可能和Intel® Developer Cloud有关，而不是Intel的内部网络被黑或者员工做坏事。[&#x2F;v_tips]</p>
+<p>然而即使使用了 Cloudflare也并不是100%安全。如果使用方式不正确，也有可能暴露源站IP的。如果被抓到了源站IP，那么坏人就可以疯狂给这个IP发起请求，你的Cloudflare规则配置的再好都没有用。</p>
+<hr>
+<h1 id="泄漏源站IP的方式"><a href="#泄漏源站IP的方式" class="headerlink" title="泄漏源站IP的方式"></a>泄漏源站IP的方式</h1><h2 id="网络空间测绘"><a href="#网络空间测绘" class="headerlink" title="网络空间测绘"></a>网络空间测绘</h2><p>有一些安全公司，如censys、shodan之类的。他们会扫描整个IPv4的地址，然后尝试连接各种常用端口来确定这个IP上都跑了什么服务。</p>
+<p>比如说我随便输入一个域名，即使这个域名在Cloudflare之后，也可能看到相关的结果</p>
+<p><img src="/images/2024072722290512.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>点进去，通过证书信息就能确认，这个IP大概率是这个网站的，那还不快打？</p>
+<h2 id="钓鱼泄漏"><a href="#钓鱼泄漏" class="headerlink" title="钓鱼泄漏"></a>钓鱼泄漏</h2><p>利用目标网站的功能来执行服务器端请求。例如，如果一个网站允许用户输入一个 URL 来获取该 URL 的内容（如网页抓取或 URL 预览功能），可以提供一个由自己控制的 URL。</p>
+<p>比如 WebP Cloud Services吧，这个服务是做网站图片加速的，那么自然要去用户给的地址去获取图片，这样IP也就会被泄露啦。当然了聪明如 <a target="_blank" rel="noopener" href="https://nova.moe/">Nova Kowk</a>怎么会让这种事情发生？</p>
+<h2 id="其他泄漏方式"><a href="#其他泄漏方式" class="headerlink" title="其他泄漏方式"></a>其他泄漏方式</h2><h3 id="子域名"><a href="#子域名" class="headerlink" title="子域名"></a>子域名</h3><p>有一些程序可以通过常用的词语来暴力猜测子域名，有可能配置的时候不小心忘记点亮小云朵，或者自己持有的其他域名解析不小心忘记打码，那么就暴露了。</p>
+<h3 id="历史DNS记录"><a href="#历史DNS记录" class="headerlink" title="历史DNS记录"></a>历史DNS记录</h3><p>有些网站提供历史DNS记录，有概率找到</p>
+<h3 id="邮件MX记录"><a href="#邮件MX记录" class="headerlink" title="邮件MX记录"></a>邮件MX记录</h3><p>如果自建邮件服务器，那么是肯定会暴露IP了。</p>
+<h3 id="Cloudflare信息泄露或者内部作案"><a href="#Cloudflare信息泄露或者内部作案" class="headerlink" title="Cloudflare信息泄露或者内部作案"></a>Cloudflare信息泄露或者内部作案</h3><p>这个概率应该很低。</p>
+<hr>
+<h1 id="隐藏IP的方式"><a href="#隐藏IP的方式" class="headerlink" title="隐藏IP的方式"></a>隐藏IP的方式</h1><h2 id="屏蔽censys并不完美"><a href="#屏蔽censys并不完美" class="headerlink" title="屏蔽censys并不完美"></a>屏蔽censys并不完美</h2><p>网上一搜censys 你就会发现有很多种办法，说根据UA屏蔽啦，根据IP屏蔽啦等等。</p>
+<p>这种做法治标不治本的。今天屏蔽了censys，明天还有densys，甚至简单写个代码，花最多几百G的流量扫一遍全球的IPv4地址也没什么难度。</p>
+<h2 id="只允许-Cloudflare的访问很麻烦"><a href="#只允许-Cloudflare的访问很麻烦" class="headerlink" title="只允许 Cloudflare的访问很麻烦"></a>只允许 Cloudflare的访问很麻烦</h2><p>Cloudflare公开了他们的<a target="_blank" rel="noopener" href="https://www.cloudflare.com/zh-cn/ips/">IP地址</a>，因此一种办法是把他们的全部IP地址加入白名单中，然后其他所有的IP地址的请求全部拒绝。</p>
+<p>这是一种切实可行的办法，然而有如下缺点：</p>
+<ol>
+<li>需要跟踪 Cloudflare IP变化</li>
+<li>需要配置繁琐的iptables、nginx或者WAF等规则，配置起来会比较麻烦</li>
+<li>80和443的规则都要配一遍</li>
+<li>费心费时费力</li>
+<li>一不小心手抖配置错了可能自己都没法SSH</li>
+<li>如果你用docker，还会发现<a target="_blank" rel="noopener" href="https://dmesg.app/ufw-vs-docker.html">docker能给你的iptables开个洞 🤦</a></li>
+</ol>
+<h2 id="Cloudflare-Argo-Tunnel是未来"><a href="#Cloudflare-Argo-Tunnel是未来" class="headerlink" title="Cloudflare Argo Tunnel是未来"></a>Cloudflare Argo Tunnel是未来</h2><p>Argo Tunnel会在你的服务器和Cloudflare 之间创建一个加密的安全隧道，然后这个隧道可以用来承载很多不同种类型的流量，比如 http，tcp，ssh，smb，rdp，甚至是 unix 套接字都可以</p>
+<p>你的机器没有公网IP都没关系的，只要你的服务器能够连接到Cloudflare的网络就可以。用起来很简单，甚至都不用学习奇奇怪怪的命令。</p>
+<p>去 Cloudflare Zero Trust – Networks – Tunnel 创建 Tunnel，服务器安装 cloudflared，然后添加 Public hostname就可以了</p>
+<p><img src="/images/2024072722290647.png" alt="图形用户界面 描述已自动生成"></p>
+<p>你的应用程序甚至只用监听在 localhost而不是0.0.0.0，也就是说你的服务器只开一个SSH就够了</p>
+<h2 id="隐藏SSH"><a href="#隐藏SSH" class="headerlink" title="隐藏SSH"></a>隐藏SSH</h2><p>更进一步，我们可以连SSH都隐藏起来。在public hostname那里创建一个域名，如果担心子域名被扫到，那就起个随机的子域名</p>
+<p>协议选择 SSH，URL选择 <code>127.0.0.1:22</code></p>
+<p>然后在你的电脑上运行 cloudflared建立隧道</p>
+<p>cloudflared access ssh –hostname something.dmesg.app –url 127.0.0.1:10022</p>
+<h1 id="接到你的服务器"><a href="#接到你的服务器" class="headerlink" title="接到你的服务器"></a>接到你的服务器</h1><p>ssh <a href="mailto:&#x72;&#111;&#x6f;&#116;&#x40;&#x31;&#50;&#55;&#x2e;&#x30;&#46;&#48;&#x2e;&#49;">&#x72;&#111;&#x6f;&#116;&#x40;&#x31;&#50;&#55;&#x2e;&#x30;&#46;&#48;&#x2e;&#49;</a> -p 10022 </p>
+<p>之后去厂商的WAF里，比如 Azure是这样的，入网全部拒绝</p>
+<p><img src="/images/2024072722290775.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>Vultr是这样的，随便添加一个dummy 入网规则</p>
+<p><img src="/images/2024072722290851.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>这样你的IP在其他人看来完全是黑洞，ping不通，什么端口都没开，就像没被使用一样，只有 Cloudflare知道背后的真相。</p>
+<h2 id="隐藏应用程序向外发起的请求"><a href="#隐藏应用程序向外发起的请求" class="headerlink" title="隐藏应用程序向外发起的请求"></a>隐藏应用程序向外发起的请求</h2><p>如果你的应用程序会向外发请求，而这个外部是可以被用户自定义的，那么就存在被钓鱼的情况。即使你配置的再好，那么也会被抓到IP。</p>
+<p>这种情况下，要做的事情自然是全方面审查代码，如果遇到会被钓鱼的地方，那么需要让流量走代理。</p>
+<p>至于走什么代理，一种方式是走商业VPN，比如Surfshark之类的，通过wireguard转socks5；另一种方式是走 Cloudflare WARP，WARP可以运行在 proxy mode而不是接管全局流量</p>
+<p>warp-cli register</p>
+<h1 id="warp-监听本地的11111端口"><a href="#warp-监听本地的11111端口" class="headerlink" title="warp 监听本地的11111端口"></a>warp 监听本地的11111端口</h1><p>warp-cli set-proxy-port 11111</p>
+<h1 id="warp-proxy-mode"><a href="#warp-proxy-mode" class="headerlink" title="warp proxy mode"></a>warp proxy mode</h1><p>warp-cli set-mode proxy</p>
+<h1 id="永久开启"><a href="#永久开启" class="headerlink" title="永久开启"></a>永久开启</h1><p>warp-cli enable-always-on</p>
+<p>对于Go的应用，这样就可以了</p>
+<p>https_proxy&#x3D;socks5:&#x2F;&#x2F;127.0.0.1:11111 http_proxy&#x3D;socks5:&#x2F;&#x2F;127.0.0.1:11111 go run main.go</p>
+<p>还有一种方式是使用 Cloudflare Workers，请求由Workers转发，代码很简单</p>
+<p>export default {<br>  async fetch(request: Request): Promise {<br>    &#x2F;**<br>     * Replace `remote` with the host you wish to send requests to<br>     *&#x2F;<br>    const remote &#x3D; “<a href="https://example.com/">https://example.com</a>“;</p>
+<pre><code>return await fetch(remote, request);
+</code></pre>
+<p>  },<br>};</p>
+<p>更具体的使用方式可以看下面的参考阅读</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>哎这个世界上坏人真的太多了，但是 Cloudflare 真的帮助了我很多，更重要的是这一切还都是免费的！</p>
+<blockquote>
+<p>不得不感慨，「At Cloudflare, we have our eyes set on an ambitious goal — to help build a better Internet.」，真的不仅仅是一句口号。</p>
+<p>—— Nova Kowk</p>
+</blockquote>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://nova.moe/cloudflared-distributed/">分布式部署 cloudflared 让访客就近回源，进一步提升访问速度</a></li>
+<li><a target="_blank" rel="noopener" href="https://nova.moe/accelerate-and-secure-with-cloudflared/">使用 Cloudflare Argo Tunnel(cloudflared) 来加速和保护你的网站</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.webp.se/cloudflare-workers-origin-zh/">WebP Cloud 使用 Cloudflare Workers 回源</a></li>
+<li><a target="_blank" rel="noopener" href="https://dmesg.app/cloudflare-access-gfwed-server.html">使用 Cloudflare Zero Trust 连接被墙的服务器</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/07/27/hide-in-cf/index/" data-id="clz73fpm100004zjfdxhg9whw" data-title="隐藏于 Cloudflare 的全球网络之中" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-azure-waf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/07/17/azure-waf/index/" class="article-date">
@@ -1010,61 +1125,11 @@ def verify\_payment(self):
 
 
   
-    <article id="post-steam-deck-stuck/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/11/25/steam-deck-stuck/index/" class="article-date">
-  <time class="dt-published" datetime="2023-11-25T00:00:00.000Z" itemprop="datePublished">2023-11-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/11/25/steam-deck-stuck/index/">Steam Deck 启动游戏卡 logo</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近买了个 Steam Deck，在玩游戏的时候发现一个很奇怪的bug。当休眠之后再次打开游戏，就会不停转 steam logo，如下图所示</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/11/2023111419033136.jpeg"><img src="/images/2023111419033136.jpeg"></a></p>
-<p>但是如果按菜单键，会发现游戏已经加载成功了</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/11/2023111419033188.jpeg"><img src="/images/2023111419033188.jpeg"></a></p>
-<p>重启之后可以解决，但是不能每次都重启啊。</p>
-<p>后来发现，在 <strong>设置-自定义-用作唤醒影片</strong> 这个关掉就可以了 😂</p>
-<p>这种 Bug 也是绝了😓</p>
-<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a target="_blank" rel="noopener" href="https://steamcommunity.com/app/1675200/discussions/1/6348431004268742880/">https://steamcommunity.com/app/1675200/discussions/1/6348431004268742880/</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/11/25/steam-deck-stuck/index/" data-id="clqxhsvet0003w1qr6tqg2y2l" data-title="Steam Deck 启动游戏卡 logo" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1117,6 +1182,10 @@ def verify\_payment(self):
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1130,10 +1199,6 @@ def verify\_payment(self):
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

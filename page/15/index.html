@@ -73,6 +73,100 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-quic/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/04/06/quic/index/" class="article-date">
+  <time class="dt-published" datetime="2017-04-06T00:00:00.000Z" itemprop="datePublished">2017-04-06</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/04/06/quic/index/">前卫一下：给你的网站开启QUIC</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天在推上偶然发现Google在自己的服务器上启用了<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/QUIC">QUIC</a>，QUIC这东西嘛（发音同quick），就是Quick UDP Internet Connection，Google制定的一种基于UDP的低时延的互联网传输层协议。我觉得吧，Google率先在自家鼓捣部署的东西，那都是比较有前景的，比如说<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/SPDY">spdy</a>（基本上成了<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/HTTP/2">http&#x2F;2</a>的前身），比如说bbr，反正大概都是一些很牛的东西，我有信心般<strong>盲目的相信</strong>QUIC也是挺有前景的！</p>
+<p>通常呐，咱们在访问一些HTTPS网站的时候，Chrome会告诉我们该连接使用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%82%B3%E8%BC%B8%E5%B1%A4%E5%AE%89%E5%85%A8%E5%8D%94%E8%AD%B0">TLS</a>1.2（好像Google也在自家的一些服务部署了TLS1.3，<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%82%B3%E8%BC%B8%E5%B1%A4%E5%AE%89%E5%85%A8%E5%8D%94%E8%AD%B0#TLS_1.3.EF.BC.88.E8.8D.89.E6.A1.88.EF.BC.89">TLS1.3还是草案呢吧</a>），使用XXX加密和身份验证，使用XXX作为密钥交换机制。咱都知道HTTP是基于TCP的应用层协议，而TLS就好似套在了应用层和传输层之间的东西一样。盗用别人的话，以前的HTTP就是塑料管，一捅就漏（被篡改、劫持等），但是TLS就像是个金属外壳，这么一包上啊，就没那么容易漏水了。</p>
+<p>而QUIC这玩意就更好玩了，它没管TCP的事，反而奇葩选择了UDP做为下一层协议，并且QUIC协议内置了TLS栈，实现了自己的传输加密层，等等等等我是说不明白了，反正我也不懂装懂呢嘛，盗用网上的图，QUIC的地位看起来是这样的：</p>
+<p><img src="/images/040617_1241_QUI1.png"></p>
+<p>反正嘛，这玩意就是看起来很厉害的样子，鉴于还没看到类似的中文教程，我就自己折腾下分享出来吧！请注意，这整篇文章都是<strong>实验性质</strong>的，想好了再折腾啊！出事了别怪我就好哦。</p>
+<h2 id="对QUIC的支持"><a href="#对QUIC的支持" class="headerlink" title="对QUIC的支持"></a>对QUIC的支持</h2><h3 id="支持QUIC的Web服务器"><a href="#支持QUIC的Web服务器" class="headerlink" title="支持QUIC的Web服务器"></a>支持QUIC的Web服务器</h3><p>目前支持QUIC的服务器不是那么多，在Chromium的源码中有一个测试服务器，GitHub上有几个从Chromium抠下来的项目，还有go quic，大概都是属于<strong>pre-alpha</strong>阶段。但是几经搜寻，我找到了一个名为<a target="_blank" rel="noopener" href="https://caddyserver.com/">caddy</a>的、用go写的Web服务器，这家伙提供<strong>实验性质的quic支持</strong>。</p>
+<p>话说这caddy有啥新特性呢？我去官网看了眼文档，给我的感觉是，caddy的目的是让网站变得<strong>更简单更易用</strong>，抢Nginx和Apache的饭碗并不是它的追求。而且这家伙配置文件很简洁，也没啥依赖，大概随用随走的意思！当然可能它也是为数不多的、开源的支持quic的Web服务器吧！</p>
+<p>最令人眼睛一亮的是，这家伙自己就支持https，能签证书、续期咱就输个邮箱啥的，它就能帮咱去Let’s Encrypt搞个证书回来，而且去SSLLabs还会得A，简直是神奇啊！而且这家伙还能直接从git push写博客，具体没仔细看</p>
+<p>[v_blue]有小伙伴可能会问了，那Nginx、Apache这俩是否支持QUIC呢？这个嘛……短时间之内应该还不会支持。毕竟这改动要好大的。GitHub上有个libquic，目前只有实验性质的<a target="_blank" rel="noopener" href="https://github.com/devsisters/goquic">goquic</a>能用这个库，别的还是等等吧。等到支持的时候，重新编译下就好啦。[&#x2F;v_blue]</p>
+<h3 id="支持QUIC的浏览器"><a href="#支持QUIC的浏览器" class="headerlink" title="支持QUIC的浏览器"></a>支持QUIC的浏览器</h3><p>呐……Chrome、Chromium都没问题的！只要你的版本比较新，基本上就已经支持并默认开启QUIC啦。咱可以到<code>chrome://net-internals/#quic</code>里看下，开头就会告知我们是否启用了QUIC的支持。如果没开启的话，就到<code>chrome://flags</code>开启下</p>
+<p>这么一看，那就是服务端的支持了，那咱咋开启啊……当然是去caddy官网下载，然后启动就好了。话说想要成功有挺多条件的，有一片不深不浅的水域，有一块不大不小的坑……啊不对，反正就是不是想象中的那么简单啦。</p>
+<p>咱来谈谈准备条件吧。</p>
+<p>首先，咱得有个域名，有个服务器，要是WordPress啥的还得准备好PHP、MySQL（MariaDB）啥的，对，最好再把证书也搞好（这一步不是必须的，因为Caddy可以为咱申请证书，但是我就当大家都搞好了）。我的运行环境是Ubuntu 16.04 64Bit，别的环境不敢保证。</p>
+<p>好，今天有点废话，那咱正式开始踩坑吧……</p>
+<p>咦？都有什么坑呀？我会告诉你，caddy官网下载的二进制如果开启quic会报错退出哟；我还会说，需要go1.8，包管理器的go1.6是不行滴！</p>
+<p>如果你太懒，懒得自己弄，并且相信我的话，那就<a target="_blank" rel="noopener" href="http://oks2t4o68.bkt.clouddn.com/caddy20170417.tar.bz2">戳我</a>下载我编译好的吧！</p>
+<h2 id="安装golang"><a href="#安装golang" class="headerlink" title="安装golang"></a>安装golang</h2><p>这golang啊，是C语言他爹、玩了<a target="_blank" rel="noopener" href="https://dmesg.app/reason-of-this-blog.html">Thompson Hack</a>的汤普森老爷子在Google搞的语言，据说很牛。怎奈Ubuntu 16.04的源里的go是1.6，然而caddy需要1.8，所以咱只能自己从官网搞个go回来了。为了偷懒，我们就不从源码编译了，直接下二进制就好了。想从源码编译golang的我不拦着哟！</p>
+<p>wget <a target="_blank" rel="noopener" href="https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz">https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz</a><br>sudo tar -C &#x2F;usr&#x2F;local -xzf go1.8.linux-amd64.tar.gz<br>#编辑bashrc<br>vim ~&#x2F;.bashrc<br>#文件最后加入这么一行，保存退出<br>export PATH&#x3D;$PATH:&#x2F;usr&#x2F;local&#x2F;go&#x2F;bin<br>#重新载入<br>source ~&#x2F;.bashrc<br>go version</p>
+<p>显示为go version go1.8 linux&#x2F;amd64就可以了</p>
+<p>注意：如果你安装了1.8以下的golang，需要卸载，包管理器的就用类似<code>apt remove golang-go</code>之类的命令卸载，编译的就直接<code>sudo rm –rf /usr/local/go</code>即可</p>
+<h2 id="准备并编译caddy"><a href="#准备并编译caddy" class="headerlink" title="准备并编译caddy"></a>准备并编译caddy</h2><p>啥gcc啊，make啊，源码啊啥的都得准备好，gcc之类的就不说了，包管理器就够了。咱从源码开始，我们就假设工作目录为<code>/home/test</code>了、并且你已经切换到这个目录啦。</p>
+<p>export GOPATH&#x3D;&#x2F;home&#x2F;test<br>go get github.com&#x2F;mholt&#x2F;caddy&#x2F;caddy<br>cd $GOPATH&#x2F;src&#x2F;github.com&#x2F;mholt&#x2F;caddy&#x2F;caddy<br>.&#x2F;build.bash</p>
+<p>我估计大家会在第二步的时候失败或者是太慢（尤其是当你的服务器在境内的时候），那么请跟我一起艹GFW吧；</p>
+<p>可以考虑使用下面这一堆命令</p>
+<p>export GOPATH&#x3D;&#x2F;home&#x2F;test<br>wget <a target="_blank" rel="noopener" href="http://7xvwrt.com1.z0.glb.clouddn.com/caddy170406.tar.bz2">http://7xvwrt.com1.z0.glb.clouddn.com/caddy170406.tar.bz2</a><br>tar xf caddy170406.tar.bz2<br>cd $GOPATH&#x2F;src&#x2F;github.com&#x2F;mholt&#x2F;caddy&#x2F;caddy<br>.&#x2F;build.bash</p>
+<p>在执行完最后一句的时候，咱应该会在当前目录下发现一个名为<code>caddy</code>的二进制程序。当然如果咱就想要个性，咱用<code>./build.bash fuckGFW</code>那生成的二进制就叫<code>fuckGFW</code>了。那些<code>./build.bash candy.exe</code>的人还是让我去撞墙吧\(^o^)&#x2F;~</p>
+<h2 id="配置CaddyFile"><a href="#配置CaddyFile" class="headerlink" title="配置CaddyFile"></a>配置CaddyFile</h2><p>假设咱把caddy放在了<code>/home/caddy</code>，反正放哪都行，随便啦。</p>
+<p>咱就大概编辑个这么模样的文件，名为Caddyfile</p>
+<p>:443 <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a> {<br>root &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a><br>fastcgi &#x2F; &#x2F;tmp&#x2F;php-cgi.sock php<br>log &#x2F;home&#x2F;wwwlogs&#x2F;caddy.<a target="_blank" rel="noopener" href="http://www.shemissed.me.log/">www.shemissed.me.log</a><br>tls &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/fullchain.pem">www.shemissed.me/fullchain.pem</a> &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/privkey.pem">www.shemissed.me/privkey.pem</a><br>}</p>
+<p>假如要是有多个虚拟主机（vhost），就接着写</p>
+<p>memory.shemissed.me {<br>root &#x2F;home&#x2F;wwwroot&#x2F;memory.shemissed.me<br>fastcgi &#x2F; &#x2F;tmp&#x2F;php-cgi.sock php<br>log &#x2F;home&#x2F;wwwlogs&#x2F;caddy.memory.shemissed.me.log<br>tls &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;memory.shemissed.me&#x2F;fullchain.pem &#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;memory.shemissed.me&#x2F;privkey.pem<br>}</p>
+<p>类似这样的就行了。</p>
+<p>大家伙看着改咯。其中：</p>
+<p>如果你想开启HSTS，那就加个</p>
+<p>Strict-Transport-Security “max-age&#x3D;63072000; includeSubDomains; preload;”</p>
+<p>如果想自己设定cipher suite，那就看<a target="_blank" rel="noopener" href="https://caddyserver.com/docs">官网文档</a>去，剩下的更多的特性，什么rewrite就自己发挥吧。 [v_blue]注意： <code>/tmp/php-cgi.sock</code>是php-fpm的监听地址，去<code>php-fpm.conf</code>里看下listen写的是啥就行了，有的人可能会是<code>127.0.0.1:9000</code>。如果你后端使用的是jsp，也这样照猫画虎的改。[&#x2F;v_blue]</p>
+<h2 id="运行caddy"><a href="#运行caddy" class="headerlink" title="运行caddy"></a>运行caddy</h2><p>咱把上上一部编译出来的二进制拷贝到<code>/home/caddy</code>下，然后把这个路径加入到Path之中（<code>export PATH=$PATH:/home/caddy</code>），之后咱<code>caddy -conf /home/caddy/Caddyfile -port 443 -http2 –quic</code>，再去浏览器刷新几下看F12，就应该能看到QUIC了吧？</p>
+<p><img src="/images/040617_1241_QUI2.png"></p>
+<p>有的时候死活不出来QUIC（尤其是PC版哦），俺也不知道是为啥……PS，此网站不适合访问……！</p>
+<h2 id="等等，这就结束了吗？"><a href="#等等，这就结束了吗？" class="headerlink" title="等等，这就结束了吗？"></a>等等，这就结束了吗？</h2><p>当然不是，其实这坑还是非常多的，假如终端关掉了，那caddy不就被kill了嘛。咱可以加个&amp;给丢后台，再用pidof写个脚本加入crontab检查运行状态。尽管如此，这样用也不是最佳实践。</p>
+<p>那正确的应该咋用呢？</p>
+<p>把二进制放在<code>/usr/local/bin/caddy</code></p>
+<p>把SysV风格的启动脚本放在<code>/etc/init.d/caddy</code>（这个脚本可以在官网的二进制包里找到）</p>
+<p>配置文件目录放这<code>/etc/caddy</code>证书放在子目录ssl 并且属主是www啥的</p>
+<p>创建配置文件<code>/etc/caddy/Caddyfile</code></p>
+<p>用<code>service caddy start|stop|restart|reload|status</code> 管理服务（<code>/etc/init.d/candy restart</code>）</p>
+<p>还有啥，比如说</p>
+<p>别用root运行</p>
+<p>用non-login shell运行</p>
+<p>提高ulimit文件描述符限制（<code>ulimit -n 8192</code>，或者在<code>/etc/profile</code>中） 反正一堆咯，自己读readme咯</p>
+<h2 id="最后的注意事项"><a href="#最后的注意事项" class="headerlink" title="最后的注意事项"></a>最后的注意事项</h2><p>我没把这玩意部署在本站上，因为我目前也暂时把它当做<strong>experimental features &amp; I’m just boring</strong>，所以就搞到了马甲站上，也没做什么更多的测试……等个几年，等到TLS1.3正式公布、QUIC被更多的Web服务器支持，我再开……当然了，现在TCP_BBR已经在4.9内核里，我还是没开 :arrow: </p>
+<p>所以，那些想要折腾的、体验一下QUIC快感的人，不妨试试吧！走在世界的最前端~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/04/06/quic/index/" data-id="clhp7rtif0077s2qrcafz128y" data-title="前卫一下：给你的网站开启QUIC" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-no-more-maxiang/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/04/05/no-more-maxiang/index/" class="article-date">
@@ -882,98 +976,11 @@
 
 
   
-    <article id="post-ubuntu-compile-vc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/02/10/ubuntu-compile-vc/index/" class="article-date">
-  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/security/">security</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/02/10/ubuntu-compile-vc/index/">在Ubuntu下编译并使用VeraCrypt</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>VeraCrypt是个啥我就不说了，咱集中精力来谈谈如何在Ubuntu下编译并使用VeraCrypt [v_tips]提示： VeraCrypt有官方编译好的二进制包，可以自己下载。但是在这里为了练习编译软件的技巧，并使用最新版呢，我们选择手动编译。[&#x2F;v_tips] <a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/">VeraCrypt官网</a></p>
-<h2 id="一-下载源码"><a href="#一-下载源码" class="headerlink" title="一  下载源码"></a>一  下载源码</h2><p>有好几个地方可以下载源码</p>
-<p>[gb href&#x3D;’<a target="_blank" rel="noopener" href="https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt/_1.19/_Source.tar.gz'/]%E5%AE%98%E7%BD%91%E7%A8%B3%E5%AE%9A%E7%89%88%EF%BC%881.19%EF%BC%89/[/gb/]">https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt\_1.19\_Source.tar.gz&#39;\]官网稳定版（1.19）\[/gb\]</a></p>
-<p>[bb href&#x3D;’<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/SourceControl/latest#README.md'\]%E5%AE%98%E7%BD%91%E6%9C%80%E6%96%B0%E7%89%88%EF%BC%881.20%EF%BC%89\[/bb\]">https://VeraCrypt.codeplex.com/SourceControl/latest#README.md&#39;\]官网最新版（1.20）\[/bb\]</a></p>
-<p>[yb href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/VeraCrypt/VeraCrypt'/]GitHub">https://github.com/VeraCrypt/VeraCrypt&#39;\]GitHub</a> Repository[&#x2F;yb]</p>
-<p>[lhb href&#x3D;’<a target="_blank" rel="noopener" href="https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/'/]SourceForge/[/lhb/]">https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/&#39;\]SourceForge\[/lhb\]</a></p>
-<p>我就用官网的最新版为例了。</p>
-<p>然后给源码解压缩，切到对应的目录，这里就不多说了。</p>
-<h2 id="二-安装依赖"><a href="#二-安装依赖" class="headerlink" title="二  安装依赖"></a>二  安装依赖</h2><p>通过阅读readme，我们可以发现，在Linux下编译VeraCrypt需要这些依赖：</p>
-<blockquote>
-<p>GNU Make GNU C++ Compiler 4.0 or compatible NASM assembler 2.08 or compatible (x86&#x2F;x64 architecture only) pkg-config makeself (Linux only) wxWidgets 3.0 shared library and header files installed or wxWidgets 3.0 library source code FUSE library and header files</p>
-</blockquote>
-<p>想要使用VeraCrypt还需要dmsetup这个依赖，所以在这里直接安装了。</p>
-<p>sudo apt update<br>sudo apt install -y build-essential g++ nasm pkg-config makeself libwxgtk3.0-dev wx3.0-headers libfuse-dev fuse dmsetup</p>
-<p>反正是一个不差的安装了。PS，我是怎么知道这些软件包的名字的？<code>apt search</code>嘛…… [v_blue]请注意： 这些依赖在Ubuntu 16.04的源中都有，如果你选择的源有问题导致更新失败，可能导致一些依赖安装失败。[&#x2F;v_blue]</p>
-<h2 id="三-编译源码"><a href="#三-编译源码" class="headerlink" title="三  编译源码"></a>三  编译源码</h2><p>VeraCrypt的源码有<code>makefile</code>文件，所以我们直接<code>make</code>即可。</p>
-<p>切换到src目录，</p>
-<p>cd src<br>make</p>
-<p>提示：多核心处理器的用户，假如你是四核的，使用<code>make -j4</code>或者<code>make -j6</code>，选择一个恰当的并行数量并行编译会明显提高编译速度。但是请不要尝试使用<code>make -j10</code>——否则你的电脑会慢成狗。</p>
-<p>等待这功夫我讲个笑话吧：</p>
-<blockquote>
-<p>说有个施工队叫gcc，专门负责盖大楼。一天某开发商让他们盖个楼，盖完了之后开发商一看，说，一楼这大门的门把手图纸画错了，应该用圆的，怎么画成方的了？改了吧。施工队一听，赶紧下令：图纸画错啦，把楼炸了重新盖！虽说这样对于拉动GDP有很好的作用，但毕竟属于精神不正常的范畴。</p>
-<p>（摘自《笨兔兔的故事》，又名《Linux入门很简单》）</p>
-</blockquote>
-<p>估计你看完懂了啥意思，编译也差不多了</p>
-<h2 id="四-安装"><a href="#四-安装" class="headerlink" title="四  安装"></a>四  安装</h2><p>编译完成之后，屏幕上大概会有这样的输出结果</p>
-<p>self-extractable archive …..successfully created.</p>
-<p>之后我们就切到<code>src/setup/Linux</code>下，执行如下命令即可安装</p>
-<p>.&#x2F;VeraCrypt-1.20-BETA2-setup-gui-x64</p>
-<p>安装步骤很简单，依次选择<code>Install VeraCrypt，I accept，OK</code>,可能还需要你在新的窗口里输入密码，即可安装成功。</p>
-<p>在dash里直接打vera就能找到了（可能注销或者重启之后才有）</p>
-<p>之后VeraCrypt使用方法就和Windows下一样了，除了最后挂载的时候可能会让你输入当前用户的密码。</p>
-<p><img src="/images/021017_1318_UbuntuVe1.png"> [v_notice]友情提示： 我发现源码目录下有个Translations，我想把VeraCrypt汉化成中文版的，可以吗？ 非常抱歉的是，<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/wikipage?title=Language%20Packs">只有Windows版本的VeraCrypt才支持语言包</a>……[&#x2F;v_notice]</p>
-<h2 id="五-升级"><a href="#五-升级" class="headerlink" title="五  升级"></a>五  升级</h2><p>VeraCrypt的源码发出新版本了，我想升级，该怎么办呢？</p>
-<p>嗯……下载最新的源码，从步骤三开始。</p>
-<h2 id="六-使用方法与总结"><a href="#六-使用方法与总结" class="headerlink" title="六  使用方法与总结"></a>六  使用方法与总结</h2><p>关于VeraCrypt的使用方法，请戳很久之前写过的<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版密码学科普》</a>.</p>
-<p>下面我来总结一下在Linux编译软件的方法或者说是技巧吧！</p>
-<p>满足依赖，使用<code>configure</code>生成<code>makefile</code>（有些可能不是configure），执行<code>make</code>编译，然后<code>sudo make install</code>安装，基本上就是这么个步骤，如果还要更简洁，那么就是：</p>
-<p>读readme，根据readme里面的说明来。&#x2F;(ㄒoㄒ)&#x2F;~~ :arrow:</p>
-<h2 id="七-其他问题"><a href="#七-其他问题" class="headerlink" title="七  其他问题"></a>七  其他问题</h2><p>有童鞋可能想问了，对称密码的VeraCrypt我有了，那公钥密码在Linux下有好的选择吗？</p>
-<p>当然有啦！seahorse就是一个很好的选择</p>
-<p>sudo apt install seahorse-nautilus seahhorse</p>
-<p>注销后即可在鹦鹉螺右键看到哦！</p>
-<p>其他的GnuGPG前端，可以<a target="_blank" rel="noopener" href="https://www.gnupg.org/related_software/swlist.html">戳我参考这里</a></p>
-<p>[v_tips]提示： seahorse有个地方可能会让人感到困惑，当你用别人的公钥加密文件之后，你会发现自己双击也能打开。别担心，除了你和公钥持有者，别人都打不开的（会提示没有密钥）。[&#x2F;v_tips]</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/02/10/ubuntu-compile-vc/index/" data-id="clhp7rtmp00acs2qr0at581i2" data-title="在Ubuntu下编译并使用VeraCrypt" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/14/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/16/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/14/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/16/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1026,6 +1033,10 @@
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1039,10 +1050,6 @@
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

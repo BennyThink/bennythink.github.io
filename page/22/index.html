@@ -73,6 +73,85 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-dynamic-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/11/04/dynamic-router/index/" class="article-date">
+  <time class="dt-published" datetime="2015-11-04T00:00:00.000Z" itemprop="datePublished">2015-11-04</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/11/04/dynamic-router/index/">[系列]3.Packet Tracer6动态路由的分析</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>动态路由有很多协议，依赖路由器之间互相通信来确定、更新路由表。</p>
+<p>先举一个简单的例子：</p>
+<p><img src="/images/110415_0930_31.png"></p>
+<p>Router0知道什么？它知道报文怎么送给PC0的网段（192.168.1.0）和送给Router1的网段（192.168.2.0）</p>
+<p>Router2知道报文怎么送给PC1的网段（192.168.3.0）和送给Router0的网段（192.168.2.0）</p>
+<p>所以这两个的路由表就出来了。</p>
+<p>这俩路由器会互相”沟通”并且检查彼此是否挂掉了。</p>
+<p>Router0：</p>
+<p><img src="/images/110415_0930_32.png"></p>
+<p>Router1：</p>
+<p><img src="/images/110415_0930_33.png"></p>
+<p>我们来ping下试试：</p>
+<p><img src="/images/110415_0930_34.png"></p>
+<p>第一次会超时，为嘛呢？</p>
+<p>因为路由器之间还没有”沟通”并生成动态路由表，所以就超时啦。</p>
+<p>简单的分析完了，来看下略微复杂的、完整的拓扑图，其实道理完全一样呀！</p>
+<p><img src="/images/110415_0930_35.png"></p>
+<p>我们就来看Router5，坐起第二个。</p>
+<p>R5都知道些什么？它知道怎么送到R4，R6和R7（注意，不是OPPO的那个R7）</p>
+<p>那它的动态路由该是啥样子的呢？就是和这三个路由器相连接口的IP的网段吗？</p>
+<p>哎还真说对了，R5只需要设置三个动态路由，第一条左侧的R4-192.168.2.0，第二条和右侧的192.168.3.0，第三条和上面的192.168.8.0</p>
+<p><img src="/images/110415_0930_36.png"></p>
+<p>看，一点都不带错的。</p>
+<p>其他的路由器也这样设置，知道怎么把报文送给谁，就把网段设置成设置动态路由。</p>
+<p>或许脑袋瓜发达的你会问，那回程路由呢？哎孩子呀，让那八个路由器自己沟通交流去吧，咱不管他们是说的0000101还是010010101反正是肯定会协商出来一个动态变化的路由表的。</p>
+<p>万事ping为先，先试试通不通啊。</p>
+<p><img src="/images/110415_0930_37.png"></p>
+<p>超时一次的原因已经解释了。</p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>动态路由表之间的路由器，他们会互相检查彼此的存活状态（有一个时间间隔），如果挂了那么就动态的删除掉对应的路由表。</p>
+<p>所以对于动态路由表来说，挂了就自动选择别的路走。哪怕没挂也会选择比较快的路。当然了，挂了总得允许人家丢个包嘛！</p>
+<p>加主机那个，就是把交换机连到路由器上并给交换机分配一个IP，然后给连接到交换机的PC再分配好对应网段的静态IP，那些都是可以互相ping通的。</p>
+<p>木有了……真的木有了<img src="/images/110415_0930_39.png"></p>
+<p>不要再看了</p>
+<p>再看人家会害羞⁄(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄的 <img src="/images/110415_0930_310.jpg"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/11/04/dynamic-router/index/" data-id="clhp7rtft0025s2qr2sol71cq" data-title="[系列]3.Packet Tracer6动态路由的分析" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-static-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2015/11/03/static-router/index/" class="article-date">
@@ -795,64 +874,11 @@
 
 
   
-    <article id="post-three-steps-to-build-from-scratch-a-website/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2015/08/23/three-steps-to-build-from-scratch-a-website/index/" class="article-date">
-  <time class="dt-published" datetime="2015-08-23T00:00:00.000Z" itemprop="datePublished">2015-08-23</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2015/08/23/three-steps-to-build-from-scratch-a-website/index/">[系列]从无到有三步建造一个网站</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_blue]这篇文章最初写于2015年的夏天。那时候自己还很幼稚还很萌，也不懂得太多的知识、写文章的经验。所以一年多以后，打算重新编排、好好的完善着一系列啦。这么做的原因，我猜你懂的[&#x2F;v_blue] 本来是要在这添加上_茜さす_这首歌的，但是因为我这是HTTPS网易云又是HTTP，我又懒得写H5的Music语法，就先这样放着吧。</p>
-<p>本系列将分成三篇。</p>
-<p> </p>
-<ul>
-<li><a target="_blank" rel="noopener" href="http://dmesg.app/series-one-of-the-three-steps-to-build-a-website-from-scratch-application-hosting.html">申请网站主机</a></li>
-<li><a target="_blank" rel="noopener" href="http://dmesg.app/series-building-ii-applications-for-domain-names.html">申请域名</a></li>
-<li><a target="_blank" rel="noopener" href="http://dmesg.app/series-station-number-three-configuring-the-host.html">配置主机</a></li>
-</ul>
-<p> </p>
-<p> </p>
-<p>附：<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/ToolBoxForWebsite.rar">建站必备工具箱windows版</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2015/08/23/three-steps-to-build-from-scratch-a-website/index/" data-id="clhp7rtma009ys2qr75zrdlrs" data-title="[系列]从无到有三步建造一个网站" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/21/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="page-number current">22</span>
+    <a class="extend prev" rel="prev" href="/page/21/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="page-number current">22</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/23/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -905,6 +931,10 @@
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -918,10 +948,6 @@
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

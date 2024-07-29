@@ -73,6 +73,93 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-xiaoice/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/08/11/xiaoice/index/" class="article-date">
+  <time class="dt-published" datetime="2019-08-11T00:00:00.000Z" itemprop="datePublished">2019-08-11</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/08/11/xiaoice/index/">真正唯一可用的微软小冰API - realXiaoice</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>在聊天机器人中，微软小冰可以说是比较有特色的了。然而不友好的一点是微软小冰并没有开放给公众的API。上网搜一搜，也并没没有真正好用的API！所以本萌新只好自己动手，丰衣足食了。</p>
+<p>（可惜图灵机器人要咱上传手持身份证的照片，(╯‵□′)╯︵┻━┻）</p>
+<p>想和小冰聊天，只能看看与小冰合作的第三方平台了。</p>
+<p><img src="/images/2019081112582530.png"></p>
+<p>乍一看平台挺多，但是其实没有几个是提供了简单易用的SDK能够让我接管聊天这件事情的……哪像telegram那样嘛！！</p>
+<p>本API呢……是从新浪微博入手的……</p>
+<h2 id="效果图"><a href="#效果图" class="headerlink" title="效果图"></a>效果图</h2><p><img src="/images/2019081112582628.png" alt="https://github.com/BennyThink/realXiaoice/raw/master/assets/183303.png"></p>
+<p>将<a target="_blank" rel="noopener" href="https://dmesg.app/expressbot.html">ExpressBot</a>与小冰结</p>
+<p><img src="/images/2019081112582788.jpeg" alt="74964.jpg"></p>
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
+<li>可用，2019年唯一真正可用的API</li>
+<li>异步非阻塞：尽管如此，还是需要一两秒给小冰那边的~</li>
+<li>可维护：咱是要维护这个的……</li>
+</ul>
+<p>先来简单的介绍下使用方法吧！</p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><h3 id="支持GET、POST方法，也可以POST-JSON"><a href="#支持GET、POST方法，也可以POST-JSON" class="headerlink" title="支持GET、POST方法，也可以POST JSON"></a>支持GET、POST方法，也可以POST JSON</h3><p>GET <a target="_blank" rel="noopener" href="http://127.0.0.1:6789/chat?text=hello">http://127.0.0.1:6789/chat?text=hello</a></p>
+<h3 id="假如一切正常，HTTP-200"><a href="#假如一切正常，HTTP-200" class="headerlink" title="假如一切正常，HTTP 200"></a>假如一切正常，HTTP 200</h3><p>{<br>“text”: “想我干嘛”,<br>“debug”: “”<br>}</p>
+<h3 id="假如客户端有错，HTTP-400"><a href="#假如客户端有错，HTTP-400" class="headerlink" title="假如客户端有错，HTTP 400"></a>假如客户端有错，HTTP 400</h3><p>{<br>“text”: “”,<br>“debug”: “client wrong reason”<br>}</p>
+<h3 id="假如服务端有错，HTTP-500"><a href="#假如服务端有错，HTTP-500" class="headerlink" title="假如服务端有错，HTTP 500"></a>假如服务端有错，HTTP 500</h3><p>{<br>“text”: “”,<br>“debug”: “server wrong reason”<br>}</p>
+<h2 id="部署方法"><a href="#部署方法" class="headerlink" title="部署方法"></a>部署方法</h2><p>其实部署本程序很简单的啦！以下步骤，如果理想的话，只需要十年再来一次哦~</p>
+<h3 id="1-领养小冰"><a href="#1-领养小冰" class="headerlink" title="1. 领养小冰"></a>1. 领养小冰</h3><p>注册一个新浪微博账号，领养小冰，确保与小冰的私信是正常的</p>
+<h3 id="2-登录微博账号"><a href="#2-登录微博账号" class="headerlink" title="2. 登录微博账号"></a>2. 登录微博账号</h3><p>使用Chrome或者Firefox，建议开启隐身模式，打开 <a target="_blank" rel="noopener" href="https://m.weibo.cn,/">https://m.weibo.cn，</a> 登录你的微博账号</p>
+<h3 id="3-获取headers"><a href="#3-获取headers" class="headerlink" title="3. 获取headers"></a>3. 获取headers</h3><p>打开和小冰的私信页面，按F12打开控制台，切换到Network，并选中XHR，然后和小冰说句话，点开名为send的请求</p>
+<p>复制全部Request Headers中<strong>除了Content-Length以外所有行</strong>，粘贴到headers.txt中</p>
+<p><img src="/images/2019081112582868.png" alt="https://github.com/BennyThink/realXiaoice/raw/master/assets/182123.png"></p>
+<h3 id="4-安装Python-3与依赖"><a href="#4-安装Python-3与依赖" class="headerlink" title="4. 安装Python 3与依赖"></a>4. 安装Python 3与依赖</h3><p>安装适合自己平台的Python，然后</p>
+<p>pip install tornado requests</p>
+<h3 id="5-运行"><a href="#5-运行" class="headerlink" title="5. 运行"></a>5. 运行</h3><p>python ice_server.py</p>
+<h3 id="6-systemd单元文件"><a href="#6-systemd单元文件" class="headerlink" title="6. systemd单元文件"></a>6. systemd单元文件</h3><p>可能需要给<code>headers.txt</code>设置足够的权限</p>
+<p>[Unit]<br>Description&#x3D;xiaoice API by Benny<br>After&#x3D;network.target network-online.target nss-lookup.target</p>
+<p>[Service]<br>User&#x3D;nobody<br>Restart&#x3D;on-failure<br>Type&#x3D;simple<br>WorkingDirectory&#x3D;&#x2F;path&#x2F;to&#x2F;realXiaoice<br>ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;python3 &#x2F;path&#x2F;to&#x2F;realXiaoice&#x2F;ice_server.py</p>
+<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
+<h2 id="其他使用细节"><a href="#其他使用细节" class="headerlink" title="其他使用细节"></a>其他使用细节</h2><h2 id="自定义监听端口"><a href="#自定义监听端口" class="headerlink" title="自定义监听端口"></a>自定义监听端口</h2><p>python ice_server.py –p&#x3D;41123</p>
+<h2 id="自定义监听地址"><a href="#自定义监听地址" class="headerlink" title="自定义监听地址"></a>自定义监听地址</h2><p>python ice_server.py –h&#x3D;0.0.0.0</p>
+<h2 id="目前计划"><a href="#目前计划" class="headerlink" title="目前计划"></a>目前计划</h2><ul>
+<li>只允许特定IP访问API</li>
+<li>对小冰的回复增加图片支持</li>
+</ul>
+<h2 id="开源地址"><a href="#开源地址" class="headerlink" title="开源地址"></a>开源地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/BennyThink/realXiaoice">https://github.com/BennyThink/realXiaoice</a></p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/realXiaoice'/]%E6%88%B3~/[/gt/]">https://github.com/BennyThink/realXiaoice&#39;\]戳~\[/gt\]</a></p>
+<p> </p>
+<h2 id="我想要个现成的！"><a href="#我想要个现成的！" class="headerlink" title="我想要个现成的！"></a>我想要个现成的！</h2><p>那么……可以使用智障版呀！</p>
+<p>  curl “<a target="_blank" rel="noopener" href="http://39.106.197.205:16789/chat?text=hey">http://39.106.197.205:16789/chat?text=hey</a>“</p>
+<h2 id="人工智障聊天机器人"><a href="#人工智障聊天机器人" class="headerlink" title="人工智障聊天机器人"></a>人工智障聊天机器人</h2><p>另外，弄了一个机器学习的人工智障聊天机器人，可以<a target="_blank" rel="noopener" href="https://drive.google.com/open?id=1bdEdLni8X5cz5iTPnJd3t6-2aQ5pmonV">到这里下载</a></p>
+<p>使用起来很简单，<code>pip3 install -r requirements.txt</code>, 分别运行<code>interact_mmi.py</code>和<code>silly_ice.py</code>就可以了</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/08/11/xiaoice/index/" data-id="clhp7rtnp00bqs2qr5twhcwk0" data-title="真正唯一可用的微软小冰API - realXiaoice" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-vbox-ping/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2019/08/09/vbox-ping/index/" class="article-date">
@@ -951,116 +1038,11 @@
 
 
   
-    <article id="post-cmcc-ipv6/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/01/04/cmcc-ipv6/index/" class="article-date">
-  <time class="dt-published" datetime="2019-01-04T00:00:00.000Z" itemprop="datePublished">2019-01-04</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/01/04/cmcc-ipv6/index/">中国移动IPv6使用体验报告</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>经过N多年的期待，终于等到了IPv6，本文就来简单的介绍下中国移动的IPv6体验。当然辣，要先说说IPv6怎么配置。</p>
-<p>假定你是三大运营商的固网宽带，那么ISP很有可能已经提供了IPv6了。我目前使用的是FTTH，所以实际上是有一个移动光猫的。</p>
-<p>就如把大象放到冰箱里，想要使用IPv6我们也要经过如下几步：确保软硬件支持IPv6，破解光猫，配置光猫或者路由器，测试和验证。</p>
-<h2 id="确保软硬件支持IPv6"><a href="#确保软硬件支持IPv6" class="headerlink" title="确保软硬件支持IPv6"></a>确保软硬件支持IPv6</h2><p>我想只要你的设备不是太老，那么基本上对于IPv6的支持都是没太大的问题的。软件上，Windows XP都支持IPv6呢；硬件上，估计也都没太大问题吧~不支持就扔掉好惹&#x3D;￣ω￣&#x3D;</p>
-<h2 id="破解光猫"><a href="#破解光猫" class="headerlink" title="破解光猫"></a>破解光猫</h2><p>“破解”这两个字，说的好像很高大上似的，其实只是拿到光猫的超级管理员密码啦。</p>
-<p>像我的这个光猫，GS3101 吉比特无光源光纤接入用户端设备，自带2.4GHz的无线，登录长这样：</p>
-<p><img src="/images/2019010414523316.png"></p>
-<p>我的这个超管账号为CMCCAdmin，密码为aDm8H%MdA，其他光猫可以自己搜索下试试看，不行就致电要密码。</p>
-<h2 id="确定拨号模式"><a href="#确定拨号模式" class="headerlink" title="确定拨号模式"></a>确定拨号模式</h2><p>对于某些家里有矿家里有路由器（尤其是刷了第三方固件的那种）的用户，可能不太喜欢用光猫拨号，多一层NAT呢是不。当然啦，没有路由器那就只好用这只?啦。以下介绍使用路由器拨号的方法，如果是使用光猫拨号，那么直接忽略这一部分就好啦。</p>
-<h2 id="使用路由器拨号"><a href="#使用路由器拨号" class="headerlink" title="使用路由器拨号"></a>使用路由器拨号</h2><h3 id="光猫改桥接"><a href="#光猫改桥接" class="headerlink" title="光猫改桥接"></a>光猫改桥接</h3><p>首先，需要用网线把路由器的WAN和光猫的LAN连接起来。尽管咱不是千兆光纤，弄个超五类和G口连总是不过分的。需要注意的是，有些光猫是无法通过无线访问web界面的，这个时候就要插网线啦。</p>
-<p>然后，需要知道超管密码和自己的宽带账号的用户名和密码。打电话，短信，APP之类查看。假如都没有呢？作为一名优秀的全沾工程师，当然要有灵性啦！</p>
-<p><img src="/images/201901041452341.png"></p>
-<p>还是没有看见怎么办啊！把type&#x3D;password改成text？</p>
-<p>然后选择互联网连接，把模式改成桥接，协议版本改成IPv4&#x2F;IPv6双栈。</p>
-<p><img src="/images/2019010414523667.png"></p>
-<h3 id="路由器拨号设置"><a href="#路由器拨号设置" class="headerlink" title="路由器拨号设置"></a>路由器拨号设置</h3><p>这里里padavan为例，进入WAN的设置，选择PPPoE，然后确定路由器基本上就能拨号成功了。</p>
-<p><img src="/images/2019010414523717.png"></p>
-<h2 id="IPv6-IP分配设置"><a href="#IPv6-IP分配设置" class="headerlink" title="IPv6 IP分配设置"></a>IPv6 IP分配设置</h2><p>IPv6地址当然也是要分配的，目前存在两种分配手段，一种被称作Stateless，另一种就是Stateful啦。</p>
-<p>所谓statelss，就是无状态了，设备通过“无状态地址自动配置”（SLAAC）获取IPv6地址。地址会自动由路由器给出的前缀推算出，不需要其他配置，也不需要DHCP客户端。当然了，这个过程中是需要一些算法的，比如通过MAC地址算出来IPv6的除了前缀的剩下部分，如果IP重复了通过某算法重新选择一个。</p>
-<p>不过在SLAAC的过程中，是很容易通过IPv6算出来用户的MAC地址的，这样对于隐私而言很不好，所以IETF搞了一个“IPv6隐私扩展”标准(RFC 4941)。使用这个隐私扩展，操作系统会从原本的IPv6地址计算生成一个“临时地址”。在连接远程服务器时，系统会优先选择这个地址以隐藏原来的地址。</p>
-<p><img src="/images/2019010414523840.png"></p>
-<p>Windows 10中的临时IPv6.启用了隐私扩展，与外界连接的时候会优先使用这个IP</p>
-<p>另外一种分配IP的方式，stateful，也就是有状态的，需要一个中心化的服务器来管理分配IP，类似IPv4时的DHCP。DHCPv6是一个用来配置工作在IPv6网络上的IPv6主机所需的IP地址、IP前缀和&#x2F;或其他配置的网络协议。</p>
-<p>那么究竟该怎样选择呢？实际上，这俩协议也可以一起开启，互不干扰的。简单的说，DHCP倾向于被用在需要集中管理主机的站点，而无状态自动配置不需要任何集中管理，因此后者更多地被用在典型家庭网络这样的场景下。</p>
-<p>需要注意的是，原生Android至今不支持DHCPv6，也就是说，如果Android设备需要v6的IP地址，那么就要支持SLAAC，或者root了之后进行一些处理。</p>
-<p>在padavan中，设置IPv6分配模式也很简单，在外部网络（WAN）-IPv6设置中，如下图所示即可，红框内可以选择IP分配方法。</p>
-<p><img src="/images/2019010414523994.png"></p>
-<p>如果你是用光猫分配IPv6的话，那么在网络-LAN侧地址分配进行相似配置就可以了，要注意，网络配置中需要启用IPv4&amp;IPv6双栈哦（上面改桥接那块），否则这里是没用的：</p>
-<p><img src="/images/2019010414524175.png"></p>
-<p>使能？使能什么？(￣_￣|||)</p>
-<h2 id="IPv6-ping测试"><a href="#IPv6-ping测试" class="headerlink" title="IPv6 ping测试"></a>IPv6 ping测试</h2><p>目前，ping能够正常拿到响应，但是被ping却看不到了ICMPv6的响应，不晓得为什么。也许是我配置错误，也许是ISP原因？也就是说这个IPv6目前是不能拿来当公网IP使唤的……</p>
-<p>2019年1月10日更新：现在拿到的IPv6已经能从外面ping通了，国内国外都可以。但是从国外SSH似乎不太可以，国内ssh暂时没测试。</p>
-<p>2月10日更新：</p>
-<p>目前能互相ping通。之前无法ssh是因为路由器的ip6tables的input是drop，设置成允许就可以了。不过当然这样也要小心内网的智能设备被暴力破解等。命令如下：</p>
-<p>ip6tables -F<br>ip6tables -X<br>ip6tables -P INPUT ACCEPT<br>ip6tables -P OUTPUT ACCEPT<br>ip6tables -P FORWARD ACCEPT</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2019/01/2019011013492650.jpg"><img src="/images/2019011013492650.jpg"></a></p>
-<h3 id="ping国内"><a href="#ping国内" class="headerlink" title="ping国内"></a>ping国内</h3><p><img src="/images/2019010414524232.png"></p>
-<p>至于大家都很关注的ipv6.google.com，当然是你懂的啦！</p>
-<p><img src="/images/2019010414524389.png"></p>
-<p>看样子是成功DNS污染了，但是如果设置正确的hosts……啊(#`O′)IPv4时这样干说不定还是好用的吧？</p>
-<p><img src="/images/2019010414524510.png"></p>
-<h3 id="ping国外"><a href="#ping国外" class="headerlink" title="ping国外"></a>ping国外</h3><h4 id="vultr日本"><a href="#vultr日本" class="headerlink" title="vultr日本"></a>vultr日本</h4><p><img src="/images/2019010414524762.png"></p>
-<p>我记得以前IPv4路由是直接过去的，看来今晚也绕路了？反正IPv6是绕路的</p>
-<p>[v_error] 提到这里饶不饶路，我突然想说下，ping越低越好吗？对于某些人、或者是某些特殊类型的应用（如游戏）来说在某些情况下可能会是这样的。</p>
-<p>但是从路由的角度来说，RIP认为跳数越低的越好；EIGRP考虑了链路的带宽、延迟、可靠性、负载，使用这四个因素和设定的K值计算之后作为度量值；OSPF则是考虑了管理距离和度量值。 你说呢？? [&#x2F;v_error]</p>
-<h4 id="vultr洛杉矶"><a href="#vultr洛杉矶" class="headerlink" title="vultr洛杉矶"></a>vultr洛杉矶</h4><p><img src="/images/2019010414524877.png"></p>
-<p>正常水平</p>
-<h2 id="IPv6访问测试"><a href="#IPv6访问测试" class="headerlink" title="IPv6访问测试"></a>IPv6访问测试</h2><p>得益于我这个牛逼哄哄的Windows 10（可能有anyconnect或者HyperV作祟），说不定过了多长时间IPv6的IP就没了，或者有IP但是提示没有No network access禁用网卡再启用可能就好了，同样的树莓派和android就没这个问题，这……</p>
-<h3 id="test-ipv6-com"><a href="#test-ipv6-com" class="headerlink" title="test-ipv6.com"></a>test-ipv6.com</h3><p><img src="/images/2019010414524943.png"></p>
-<p>我可真勇敢?(￢︿̫̿￢☆)只是你没检测出来我的v4好不好嘛。</p>
-<p>访问百度没啥问题，只不过不会手动跳https</p>
-<p><img src="/images/2019010414525018.png"></p>
-<p>其他的IPv6网站，反正还活着的好像都没啥问题。</p>
-<h2 id="IPv6其他测试：Xbox网络测试"><a href="#IPv6其他测试：Xbox网络测试" class="headerlink" title="IPv6其他测试：Xbox网络测试"></a>IPv6其他测试：Xbox网络测试</h2><p>NAT全通有木有很羡慕（巨硬：我出bug也不是一天两天了）</p>
-<p><img src="/images/2019010414525924.png"></p>
-<h2 id="中国移动IPv6总结"><a href="#中国移动IPv6总结" class="headerlink" title="中国移动IPv6总结"></a>中国移动IPv6总结</h2><p>目前就以上的简单测试结果总体来看，移动固网宽带还是一定程度上部署了IPv6的，只不过设备拿到的地址从外面是ping不通的，从国外也无法建立TCP连接，国内估计也不能通TCP（没有服务器给我玩啊?）。</p>
-<p>至于IPv6访问国外其他地区是否绕路，这还是得自己追踪路由。反正vultr的$2.5的IPv6 Only似乎是可以一定程度上简单使用的。</p>
-<p>太长不看总结：有点鸡肋。</p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>东北大学：我错了，别这么玩我了。我不想被RST</p>
-<p>啪打飞。https还配置错了，叫我说什么好。</p>
-<p><img src="/images/2019010414530113.png"></p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/IPv6_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">https://wiki.archlinux.org/index.php/IPv6_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)</a></p>
-<p><a target="_blank" rel="noopener" href="https://networkengineering.stackexchange.com/questions/47829/dhcpv6-stateful-vs-stateless-what-is-difference-between-it">https://networkengineering.stackexchange.com/questions/47829/dhcpv6-stateful-vs-stateless-what-is-difference-between-it</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/01/04/cmcc-ipv6/index/" data-id="clhp7rtex001ds2qr3y4cgxdx" data-title="中国移动IPv6使用体验报告" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/8/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/10/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/8/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/10/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1113,6 +1095,10 @@
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1126,10 +1112,6 @@
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

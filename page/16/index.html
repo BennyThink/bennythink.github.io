@@ -73,6 +73,93 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ubuntu-compile-vc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/02/10/ubuntu-compile-vc/index/" class="article-date">
+  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/02/10/ubuntu-compile-vc/index/">在Ubuntu下编译并使用VeraCrypt</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>VeraCrypt是个啥我就不说了，咱集中精力来谈谈如何在Ubuntu下编译并使用VeraCrypt [v_tips]提示： VeraCrypt有官方编译好的二进制包，可以自己下载。但是在这里为了练习编译软件的技巧，并使用最新版呢，我们选择手动编译。[&#x2F;v_tips] <a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/">VeraCrypt官网</a></p>
+<h2 id="一-下载源码"><a href="#一-下载源码" class="headerlink" title="一  下载源码"></a>一  下载源码</h2><p>有好几个地方可以下载源码</p>
+<p>[gb href&#x3D;’<a target="_blank" rel="noopener" href="https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt/_1.19/_Source.tar.gz'/]%E5%AE%98%E7%BD%91%E7%A8%B3%E5%AE%9A%E7%89%88%EF%BC%881.19%EF%BC%89/[/gb/]">https://launchpad.net/VeraCrypt/trunk/1.19/+download/VeraCrypt\_1.19\_Source.tar.gz&#39;\]官网稳定版（1.19）\[/gb\]</a></p>
+<p>[bb href&#x3D;’<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/SourceControl/latest#README.md'\]%E5%AE%98%E7%BD%91%E6%9C%80%E6%96%B0%E7%89%88%EF%BC%881.20%EF%BC%89\[/bb\]">https://VeraCrypt.codeplex.com/SourceControl/latest#README.md&#39;\]官网最新版（1.20）\[/bb\]</a></p>
+<p>[yb href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/VeraCrypt/VeraCrypt'/]GitHub">https://github.com/VeraCrypt/VeraCrypt&#39;\]GitHub</a> Repository[&#x2F;yb]</p>
+<p>[lhb href&#x3D;’<a target="_blank" rel="noopener" href="https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/'/]SourceForge/[/lhb/]">https://sourceforge.net/p/VeraCrypt/code/ci/master/tree/&#39;\]SourceForge\[/lhb\]</a></p>
+<p>我就用官网的最新版为例了。</p>
+<p>然后给源码解压缩，切到对应的目录，这里就不多说了。</p>
+<h2 id="二-安装依赖"><a href="#二-安装依赖" class="headerlink" title="二  安装依赖"></a>二  安装依赖</h2><p>通过阅读readme，我们可以发现，在Linux下编译VeraCrypt需要这些依赖：</p>
+<blockquote>
+<p>GNU Make GNU C++ Compiler 4.0 or compatible NASM assembler 2.08 or compatible (x86&#x2F;x64 architecture only) pkg-config makeself (Linux only) wxWidgets 3.0 shared library and header files installed or wxWidgets 3.0 library source code FUSE library and header files</p>
+</blockquote>
+<p>想要使用VeraCrypt还需要dmsetup这个依赖，所以在这里直接安装了。</p>
+<p>sudo apt update<br>sudo apt install -y build-essential g++ nasm pkg-config makeself libwxgtk3.0-dev wx3.0-headers libfuse-dev fuse dmsetup</p>
+<p>反正是一个不差的安装了。PS，我是怎么知道这些软件包的名字的？<code>apt search</code>嘛…… [v_blue]请注意： 这些依赖在Ubuntu 16.04的源中都有，如果你选择的源有问题导致更新失败，可能导致一些依赖安装失败。[&#x2F;v_blue]</p>
+<h2 id="三-编译源码"><a href="#三-编译源码" class="headerlink" title="三  编译源码"></a>三  编译源码</h2><p>VeraCrypt的源码有<code>makefile</code>文件，所以我们直接<code>make</code>即可。</p>
+<p>切换到src目录，</p>
+<p>cd src<br>make</p>
+<p>提示：多核心处理器的用户，假如你是四核的，使用<code>make -j4</code>或者<code>make -j6</code>，选择一个恰当的并行数量并行编译会明显提高编译速度。但是请不要尝试使用<code>make -j10</code>——否则你的电脑会慢成狗。</p>
+<p>等待这功夫我讲个笑话吧：</p>
+<blockquote>
+<p>说有个施工队叫gcc，专门负责盖大楼。一天某开发商让他们盖个楼，盖完了之后开发商一看，说，一楼这大门的门把手图纸画错了，应该用圆的，怎么画成方的了？改了吧。施工队一听，赶紧下令：图纸画错啦，把楼炸了重新盖！虽说这样对于拉动GDP有很好的作用，但毕竟属于精神不正常的范畴。</p>
+<p>（摘自《笨兔兔的故事》，又名《Linux入门很简单》）</p>
+</blockquote>
+<p>估计你看完懂了啥意思，编译也差不多了</p>
+<h2 id="四-安装"><a href="#四-安装" class="headerlink" title="四  安装"></a>四  安装</h2><p>编译完成之后，屏幕上大概会有这样的输出结果</p>
+<p>self-extractable archive …..successfully created.</p>
+<p>之后我们就切到<code>src/setup/Linux</code>下，执行如下命令即可安装</p>
+<p>.&#x2F;VeraCrypt-1.20-BETA2-setup-gui-x64</p>
+<p>安装步骤很简单，依次选择<code>Install VeraCrypt，I accept，OK</code>,可能还需要你在新的窗口里输入密码，即可安装成功。</p>
+<p>在dash里直接打vera就能找到了（可能注销或者重启之后才有）</p>
+<p>之后VeraCrypt使用方法就和Windows下一样了，除了最后挂载的时候可能会让你输入当前用户的密码。</p>
+<p><img src="/images/021017_1318_UbuntuVe1.png"> [v_notice]友情提示： 我发现源码目录下有个Translations，我想把VeraCrypt汉化成中文版的，可以吗？ 非常抱歉的是，<a target="_blank" rel="noopener" href="https://veracrypt.codeplex.com/wikipage?title=Language%20Packs">只有Windows版本的VeraCrypt才支持语言包</a>……[&#x2F;v_notice]</p>
+<h2 id="五-升级"><a href="#五-升级" class="headerlink" title="五  升级"></a>五  升级</h2><p>VeraCrypt的源码发出新版本了，我想升级，该怎么办呢？</p>
+<p>嗯……下载最新的源码，从步骤三开始。</p>
+<h2 id="六-使用方法与总结"><a href="#六-使用方法与总结" class="headerlink" title="六  使用方法与总结"></a>六  使用方法与总结</h2><p>关于VeraCrypt的使用方法，请戳很久之前写过的<a target="_blank" rel="noopener" href="https://dmesg.app/encryption-gpg-veracrypt.html">《2016版密码学科普》</a>.</p>
+<p>下面我来总结一下在Linux编译软件的方法或者说是技巧吧！</p>
+<p>满足依赖，使用<code>configure</code>生成<code>makefile</code>（有些可能不是configure），执行<code>make</code>编译，然后<code>sudo make install</code>安装，基本上就是这么个步骤，如果还要更简洁，那么就是：</p>
+<p>读readme，根据readme里面的说明来。&#x2F;(ㄒoㄒ)&#x2F;~~ :arrow:</p>
+<h2 id="七-其他问题"><a href="#七-其他问题" class="headerlink" title="七  其他问题"></a>七  其他问题</h2><p>有童鞋可能想问了，对称密码的VeraCrypt我有了，那公钥密码在Linux下有好的选择吗？</p>
+<p>当然有啦！seahorse就是一个很好的选择</p>
+<p>sudo apt install seahorse-nautilus seahhorse</p>
+<p>注销后即可在鹦鹉螺右键看到哦！</p>
+<p>其他的GnuGPG前端，可以<a target="_blank" rel="noopener" href="https://www.gnupg.org/related_software/swlist.html">戳我参考这里</a></p>
+<p>[v_tips]提示： seahorse有个地方可能会让人感到困惑，当你用别人的公钥加密文件之后，你会发现自己双击也能打开。别担心，除了你和公钥持有者，别人都打不开的（会提示没有密钥）。[&#x2F;v_tips]</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/02/10/ubuntu-compile-vc/index/" data-id="clhp7rtmp00acs2qr0at581i2" data-title="在Ubuntu下编译并使用VeraCrypt" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ufw-iptables/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/02/10/ufw-iptables/index/" class="article-date">
@@ -903,144 +990,11 @@
 
 
   
-    <article id="post-ffmpeg/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/11/10/ffmpeg/index/" class="article-date">
-  <time class="dt-published" datetime="2016-11-10T00:00:00.000Z" itemprop="datePublished">2016-11-10</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/11/10/ffmpeg/index/">自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_tips]有点不好意思啊此文无图… :shock: 还有这个字体咋样呀 :razz:  [&#x2F;v_tips]</p>
-<p>[v_error]一键编译脚本在<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/3">第三页</a>！ [&#x2F;v_error] 话说很久之前，人人影视放出来了一个压片工具，总共有192M的样子，而且只能在Windows上运行。对于我等Linux党，这可怎么行呢？于是我就想到了ffmpeg这个万能的神器。当然了ffmpeg作为自由软件，你从包管理器里安装的、直接configure编译的，是不会带libx264</p>
-<p>这类非自由软件，自然想要压制影片就不是那么好玩了……</p>
-<p>那既然酱紫，我们就只好手动编译一个non-free的ffmpeg，然后再来使用嘛！</p>
-<p>[v_act]这种压片的方法是把字幕混到视频流中，也就是说视频最终是音频流+视频流，是没有字幕流的，字幕已经是视频的一部分了。这也可以极大程度上的避免盗字幕的行为。[&#x2F;v_act] 懒虫们，假如你们真的懒得看这么长的文章，并且你确定你的发行版是比较新的发行版，那么请直接翻到本文最后看”一键式编译教程”吧！</p>
-<h2 id="准备特效字体"><a href="#准备特效字体" class="headerlink" title="准备特效字体"></a>准备特效字体</h2><p>有很多字幕都是用了自定义字体，请记得给你的发行版安装对应的字体呀！桌面版直接双击安装即可。如果是服务器版，把字体复制到&#x2F;usr&#x2F;share&#x2F;fonts&#x2F;truetype和原来字体一样的位置，或者新建个winFonts目录便于区分也可以。</p>
-<p>之后运行</p>
-<p>sudo apt install fontconfig<br>sudo fc-cache –fv</p>
-<p>运行fc-list可以看到已安装字体列表</p>
-<p>查看中文字体，可以使用</p>
-<p>sudo fc-list :lang&#x3D;zh</p>
-<p>并且请注意编码格式的问题，Linux一般使用<strong>UTF-8</strong>而Windows则是GB2312</p>
-<p> </p>
-<h1 id="编译安装ffmpeg"><a href="#编译安装ffmpeg" class="headerlink" title="编译安装ffmpeg"></a>编译安装ffmpeg</h1><p>我使用的是Ubuntu，所以这里我就按照<a target="_blank" rel="noopener" href="https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu">官网提供的教程编译</a>啦！</p>
-<h2 id="安装必备依赖"><a href="#安装必备依赖" class="headerlink" title="安装必备依赖"></a>安装必备依赖</h2><p>sudo apt-get update<br>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev \<br>libxcb-xfixes0-dev pkg-config texinfo zlib1g-dev</p>
-<p>[v_tips] 注意，如果是服务器版Ubuntu，可以把第二步替换成如下（你装原来的也行，反正是ffplay和X11的依赖……）</p>
-<p>sudo apt-get -y install autoconf automake build-essential libass-dev libfreetype6-dev \<br>libtheora-dev libtool libvorbis-dev pkg-config texinfo zlib1g-dev</p>
-<p>[&#x2F;v_tips]</p>
-<p>创建一个用来下载源码的目录</p>
-<p>mkdir ~&#x2F;ffmpeg_sources</p>
-<h2 id="编译与安装"><a href="#编译与安装" class="headerlink" title="编译与安装"></a>编译与安装</h2><h3 id="yasm"><a href="#yasm" class="headerlink" title="yasm"></a>yasm</h3><p>如果你的包管理器里的yasm版本号&gt;&#x3D;1.2.0，那就可以用包管理器安装</p>
-<p>（使用sudo apt search yasm查看版本号，就想编译的，我也没意见）</p>
-<p>sudo apt-get install yasm</p>
-<p>否则请编译安装</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz">http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz</a><br>tar xzvf yasm-1.3.0.tar.gz<br>cd yasm-1.3.0<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin”<br>make<br>make install<br>make distclean</p>
-<h3 id="libx264"><a href="#libx264" class="headerlink" title="libx264"></a>libx264</h3><p>如果你的包管理器里的libx264版本号&gt;&#x3D;0.118，那就是用包管理器安装</p>
-<p>sudo apt-get install libx264-dev</p>
-<p>否则需要编译安装</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://download.videolan.org/pub/x264/snapshots/last/_x264.tar.bz2">http://download.videolan.org/pub/x264/snapshots/last\_x264.tar.bz2</a><br>tar xjvf last_x264.tar.bz2<br>cd x264-snapshot*<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –bindir&#x3D;”$HOME&#x2F;bin” –enable-static –disable-opencl<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean</p>
-<h3 id="libx265"><a href="#libx265" class="headerlink" title="libx265"></a>libx265</h3><p>只能选择编译安装啦。</p>
-<p>sudo apt-get install cmake mercurial<br>cd ~&#x2F;ffmpeg_sources<br>hg clone <a target="_blank" rel="noopener" href="https://bitbucket.org/multicoreware/x265">https://bitbucket.org/multicoreware/x265</a><br>cd ~&#x2F;ffmpeg_sources&#x2F;x265&#x2F;build&#x2F;linux<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” cmake -G “Unix Makefiles” -DCMAKE_INSTALL_PREFIX&#x3D;”$HOME&#x2F;ffmpeg_build” -DENABLE_SHARED:bool&#x3D;off ..&#x2F;..&#x2F;source<br>make<br>make install</p>
-<h3 id="libfdk-aac"><a href="#libfdk-aac" class="headerlink" title="libfdk-aac"></a>libfdk-aac</h3><p>如果你的包管理器中有libfdk-aac-dev，那就可以使用包管理器安装（没有版本需求）</p>
-<p>sudo apt-get install libfdk-aac-dev</p>
-<p>否则需要编译安装</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget -O fdk-aac.tar.gz <a target="_blank" rel="noopener" href="https://github.com/mstorsjo/fdk-aac/tarball/master">https://github.com/mstorsjo/fdk-aac/tarball/master</a><br>tar xzvf fdk-aac.tar.gz<br>cd mstorsjo-fdk-aac*<br>autoreconf -fiv<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make distclean</p>
-<h3 id="ibmp3lame"><a href="#ibmp3lame" class="headerlink" title="ibmp3lame"></a>ibmp3lame</h3><p>如果你的包管理器中有ibmp3lame，版本号&gt;&#x3D;3.98.3，那么你可以使用包管理器安装</p>
-<p>sudo apt-get install libmp3lame-dev</p>
-<p>否则需要编译安装</p>
-<p>sudo apt-get install nasm<br>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz">http://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz</a><br>tar xzvf lame-3.99.5.tar.gz<br>cd lame-3.99.5<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –enable-nasm –disable-shared<br>make<br>make install<br>make distclean</p>
-<h3 id="libopus"><a href="#libopus" class="headerlink" title="libopus"></a>libopus</h3><p>如果你的包管理中有libopus，版本号&gt;&#x3D;1.1，那你可以使用包管理器安装</p>
-<p>sudo apt-get install libopus-dev</p>
-<p>否则需要编译安装。</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz">http://downloads.xiph.org/releases/opus/opus-1.1.2.tar.gz</a><br>tar xzvf opus-1.1.2.tar.gz<br>cd opus-1.1.2<br>.&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-shared<br>make<br>make install<br>make clean</p>
-<h3 id="libvpx"><a href="#libvpx" class="headerlink" title="libvpx"></a>libvpx</h3><p>只能编译安装（注意，这个链接是在Google的服务器上，如果服务器在国内下载不回来，就自己翻墙下载然后上传到服务器吧）</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2">http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.5.0.tar.bz2</a><br>tar xjvf libvpx-1.5.0.tar.bz2<br>cd libvpx-1.5.0<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” .&#x2F;configure –prefix&#x3D;”$HOME&#x2F;ffmpeg_build” –disable-examples –disable-unit-tests<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make clean</p>
-<h2 id="编译ffmpeg"><a href="#编译ffmpeg" class="headerlink" title="编译ffmpeg"></a>编译ffmpeg</h2><p>耗时可能会比较长</p>
-<p>cd ~&#x2F;ffmpeg_sources<br>wget <a target="_blank" rel="noopener" href="http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2">http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2</a><br>tar xjvf ffmpeg-snapshot.tar.bz2<br>cd ffmpeg<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” PKG_CONFIG_PATH&#x3D;”$HOME&#x2F;ffmpeg_build&#x2F;lib&#x2F;pkgconfig” .&#x2F;configure \<br>–prefix&#x3D;”$HOME&#x2F;ffmpeg_build” \<br>–pkg-config-flags&#x3D;”–static” \<br>–extra-cflags&#x3D;”-I$HOME&#x2F;ffmpeg_build&#x2F;include” \<br>–extra-ldflags&#x3D;”-L$HOME&#x2F;ffmpeg_build&#x2F;lib” \<br>–bindir&#x3D;”$HOME&#x2F;bin” \<br>–enable-gpl \<br>–enable-libass \<br>–enable-libfdk-aac \<br>–enable-libfreetype \<br>–enable-libmp3lame \<br>–enable-libopus \<br>–enable-libtheora \<br>–enable-libvorbis \<br>–enable-libvpx \<br>–enable-libx264 \<br>–enable-libx265 \<br>–enable-nonfree<br>PATH&#x3D;”$HOME&#x2F;bin:$PATH” make<br>make install<br>make distclean<br>hash –r</p>
-<p>[v_blue]注意：</p>
-<p>1.如果你直接运行configure，将会是没有non-free软件的ffmpeg；官方的configure配置会在<del>下生成一个bin（编译之后安装就会在</del>&#x2F;bin下）、ffmpeg_build目录；如果不喜欢，那就照猫画虎的改掉$HOME（记得都要改哦），make install的时候就到&#x2F;bin啦！</p>
-<p>2.在Ubuntu中，~&#x2F;bin默认是被包含到PATH中的，所以当你注销-登录或者</p>
-<p>source ~&#x2F;.profile</p>
-<p>之后可以从任何目录运行<del>&#x2F;bin中的程序的。再不济，咱把</del>&#x2F;bin里的拷贝到&#x2F;bin里总可以吧？</p>
-<p>3.如果需要安装man page，请运行</p>
-<p>echo “MANPATH_MAP $HOME&#x2F;bin $HOME&#x2F;ffmpeg_build&#x2F;share&#x2F;man” &gt;&gt; ~&#x2F;.manpath</p>
-<p>[&#x2F;v_blue]</p>
-<hr>
-<p>我假设你已经编译好了ffmpeg，并且准备好了你的视频和字幕。</p>
-<p>前面提过了，如果你的字幕中使用了自定义字体，请记得同时安装对应的字体！</p>
-<p>并且，请注意<strong>字幕文件的编码格式</strong>，Linux通常会使用UTF-8无BOM，而Windows则是GB2312这类。为了避免出乱码，还是老老实实转换成UTF-8吧！</p>
-<p>下一页我会介绍一些压片的方法，关于ffmpeg的更多方法，大家伙就自己搜索、看官方的文档、man page啦！</p>
-<p>注意，压制过程中可能会出现这样的警告</p>
-<p>Glyph 0x36C not found, selecting one more font for (YouYuan, 700, 0)</p>
-<p>不要管他啦……只要是UTF-8编码的，会压出来的！ 该看下一页啦~~</p>
-<h2 id="不改变视频、音频编码格式及参数，将字幕压制"><a href="#不改变视频、音频编码格式及参数，将字幕压制" class="headerlink" title="不改变视频、音频编码格式及参数，将字幕压制"></a>不改变视频、音频编码格式及参数，将字幕压制</h2><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h2 id="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"><a href="#使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式" class="headerlink" title="使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式"></a>使用H264（AVC）重新编码视频、不改变其他参数，不改变音频编码格式</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h3 id="关于preset参数："><a href="#关于preset参数：" class="headerlink" title="关于preset参数："></a>关于preset参数：</h3><p>预设是一系列参数的集合，这个集合能够在编码速度和压缩率之间做出一个权衡。一个编码速度稍慢的预设会提供更高的压缩效率（压缩效率是以文件大小来衡量的)。这就是说，假如你想得到一个指定大小的文件或者采用恒定比特率编码模式，你可以采用一个较慢的预设来获得更好的质量。同样的，对于恒定质量编码模式，你可以通过选择一个较慢的预设轻松地节省比特率。</p>
-<p>如果你很有耐心，通常的建议是使用最慢的预设。目前所有的预设按照编码速度降序排列为： ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo默认为medium</p>
-<p>[v_blue]如果你蒙圈了，那就这么说的，ultrafast处理的最快，但是文件大；placebo处理的慢，但是文件小；建议medium或者fast就可以了……有耐心的话，veryslow也够了。[&#x2F;v_blue]</p>
-<h3 id="crf-Constant-Rate-Factor"><a href="#crf-Constant-Rate-Factor" class="headerlink" title="crf(Constant Rate Factor)"></a>crf(Constant Rate Factor)</h3><p>该方法在输出文件的大小不太重要的时候，可以使整个文件达到特定的视频质量。该编码模式在单遍编码模式下提供了最大的压缩效率，每一帧可以按照要求的视频质量去获取它需要的比特数。不好的一面是，你不能获取一个特定大小的视频文件，或者说将输出位率控制在特定的大小上。</p>
-<p>crf的参数值中，其中0为无损模式，23为缺省值，51可能是最差的。该数字越小，图像质量越好。从主观上讲，18~28是一个合理的范围。18往往被认为从视觉上看是无损的，它的输出视频质量和输入视频一模一样或者说相差无几。但从技术的角度来讲，它依然是有损压缩。 [v_blue]我觉得选择20就差不多啦~~[&#x2F;v_blue]</p>
-<h3 id="以H-264、Lame自定义参数重新编码、压制"><a href="#以H-264、Lame自定义参数重新编码、压制" class="headerlink" title="以H.264、Lame自定义参数重新编码、压制"></a>以H.264、Lame自定义参数重新编码、压制</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” -acodec libmp3lame -ab 128k lame.mp4</p>
-<p>如果想压制AAC的音频，就在最后把acodec libmp3lame改成acodec aac</p>
-<p>其中-ab 128k指的是平均码率为128k</p>
-<h2 id="以H-264自定义分辨率、AAC自定义参数缩放压制视频"><a href="#以H-264自定义分辨率、AAC自定义参数缩放压制视频" class="headerlink" title="以H.264自定义分辨率、AAC自定义参数缩放压制视频"></a>以H.264自定义分辨率、AAC自定义参数缩放压制视频</h2><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass,scale&#x3D;800:-1” -acodec aac -ab 128k aac.mp4</p>
-<p>其中的scale&#x3D;800:-1指的是输出800:对应比例的视频。假如你要压制720P的，那就把800改成1280；假如你要1080的，那就改成1920。通常来说，分辨率高的压分辨率低的好办，低的压高的就麻烦了……</p>
-<h2 id="两遍模式"><a href="#两遍模式" class="headerlink" title="两遍模式"></a>两遍模式</h2><p>如果你的目标是一个确定大小的文件而且帧与帧之间的视频质量并不重要，这个方法很适用。这通过一个例子可以得到很好地解释。你的视频有10分钟（600秒）的时长同时要求输出为50MB，因为比特率&#x3D;文件大小&#x2F;时长，</p>
-<p>50MB*8192（MB转kilobits)&#x2F;600秒&#x3D;683 kbps（全局比特率）</p>
-<p>683kbps-128kbps(音频比特率）&#x3D;555kbps（视频比特率）,</p>
-<p>两遍编码的例子：</p>
-<p>ffmpeg -y -i input -c:v libx264 -preset medium -b:v 555k -pass 1 -an -f mp4 &#x2F;dev&#x2F;null &amp;&amp;<br>ffmpeg -i input -c:v libx264 -preset medium -b:v 555k -pass 2 -c:a libfdkaac -b:a 128k mp4 output.mp4</p>
-<h2 id="分割视频（拷贝视频和音频流，速度比较快）"><a href="#分割视频（拷贝视频和音频流，速度比较快）" class="headerlink" title="分割视频（拷贝视频和音频流，速度比较快）"></a>分割视频（拷贝视频和音频流，速度比较快）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -ss 01:00:00 -i input_file_h264.mp4 -vcodec copy -acodec copy -t 00:06:00 output_file.mp4</span><br></pre></td></tr></table></figure>
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我这上面这几个小标题写的乱乱糟糟的，在这里统一做一个总结吧：</p>
-<h3 id="需要原封不动的把字幕压进去"><a href="#需要原封不动的把字幕压进去" class="headerlink" title="需要原封不动的把字幕压进去"></a>需要原封不动的把字幕压进去</h3><p>ffmpeg –i Lantern.mp4-vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h3 id="需要快速的压制质量较好的H264视频"><a href="#需要快速的压制质量较好的H264视频" class="headerlink" title="需要快速的压制质量较好的H264视频"></a>需要快速的压制质量较好的H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 20 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<h3 id="需要快速压制质量较好的H264、720P视频"><a href="#需要快速压制质量较好的H264、720P视频" class="headerlink" title="需要快速压制质量较好的H264、720P视频"></a>需要快速压制质量较好的H264、720P视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset fast -crf 23 -vf “ass&#x3D;Lantern.ass,scale&#x3D;1280:-1” out.mp4</p>
-<h3 id="需要压制超高质量的、缓慢的压制H264视频"><a href="#需要压制超高质量的、缓慢的压制H264视频" class="headerlink" title="需要压制超高质量的、缓慢的压制H264视频"></a>需要压制超高质量的、缓慢的压制H264视频</h3><p>ffmpeg -i Lantern.mp4 -vcodec libx264 -preset veryslow -crf 18 -vf “ass&#x3D;Lantern.ass” out.mp4</p>
-<p>这个……crf的质量大家自己掂量着办！0最好，53最差，默认23，合理范围18~28 preset也看着办 ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow, placebo 越慢，压缩率越高。</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>视频编码这是个长久的技术活啊，而且需要很多的经验！自己多编码多玩玩，自然就有懂啦！</p>
-<p>下一页是给懒虫们留着的哦~~ 附录</p>
-<p>给懒虫们的一键式编译脚本。我不太会写脚本，所以这个还是有很大改善空间的….目前只支持Debian系 使用方法： git clone仓库，给两个文件都加x权限，root身份运行onekey-ffmpeg.sh即可。 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/onekey-compile-ffmpeg'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80%E6%88%B3%E6%88%91/[/gt/]">https://github.com/BennyThink/onekey-compile-ffmpeg&#39;\]开源地址戳我\[/gt\]</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/11/10/ffmpeg/index/" data-id="clhp7rtht005zs2qrbjgt43ap" data-title="自行编译ffmpeg并压制带字幕的视频、一键编译non-free ffmpeg" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/15/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/17/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/15/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/17/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1093,6 +1047,10 @@
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1106,10 +1064,6 @@
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>

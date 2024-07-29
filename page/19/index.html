@@ -73,6 +73,74 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-diskgenius-mbr2gpt/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/19/diskgenius-mbr2gpt/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-19T00:00:00.000Z" itemprop="datePublished">2016-03-19</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/19/diskgenius-mbr2gpt/index/">DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>话说，前几天比较忙，因为从Windows 7迁移到Windows 10——顺路从MBR改成了GPT，解决了以前的一个问题。</p>
+<p>以前写过一篇<a target="_blank" rel="noopener" href="https://dmesg.app/newbie-no-need-to-reload-windows-7-started-by-the-bios-to-uefi.html">《[新手向]无需重装，Windows 7 由BIOS改成UEFI启动》</a></p>
+<p>其实我自己在弄的时候就遇见了这么一个问题：</p>
+<p><img src="/images/031916_1157_DiskGeniusM1.png"></p>
+<blockquote>
+<p>磁盘的首、尾部分没有转换到GUID分区表所必须的空间（除了MBR扇区外还需要各33个扇区）。请先删除分区或者对分区进行调整后再转换。</p>
+</blockquote>
+<p>这个问题属实棘手，怎么搜索也都没解决方案……后来经过我的研究，终于找到了解决解决方案——而且不会丢任何文件！</p>
+<p>DiskGenius提示首、尾部分没有所必须的空间，那咱们就手动的弄出来点空间呗……</p>
+<p>首先必须先启动到PE，然后大部分人的硬盘应该是有很多个分区的，我们就选择最后一个分区，右键-调整分区大小。</p>
+<p>不用多，给后面空出来点，前面也给空出来点就可以。</p>
+<p><img src="/images/031916_1157_DiskGeniusM2.png"></p>
+<p>调整之后硬盘的这个条前后就多出了空白的空间。</p>
+<p><img src="/images/031916_1157_DiskGeniusM3.png"></p>
+<p>再试试转换，噢耶！</p>
+<p><img src="/images/031916_1157_DiskGeniusM4.png"></p>
+<p>你看是GPT了吧！</p>
+<p>后面的空间嘛……愿意就合并回去，不愿意就拉倒。</p>
+<p>一不小心又暴露了我是虚拟机测试的……但是我想说，真实情况也差不多是这样。</p>
+<p>那我是怎么创造出来这种无法转换的情况呢？</p>
+<p>其实很简单啊，一个空白的硬盘，你一个扇区都不丢一点空间都不留的，都给分了就可以了……</p>
+<p> </p>
+<p>管理，献上我的壁纸！啦啦啦！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/2016031912040444.jpg"><img src="/images/2016031912040444.jpg" alt="Battlefield (57)"></a></p>
+<p>Battlefield 3 - 碎剑者行动→_→英文我忘记了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/19/diskgenius-mbr2gpt/index/" data-id="clhp7rtf7001ls2qrd5o356th" data-title="DiskGenius：MBR转GPT磁盘的首、尾部分没有转换到GUID分区表所必须的空间" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-timeline-subtitles/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/03/12/timeline-subtitles/index/" class="article-date">
@@ -912,116 +980,11 @@
 
 
   
-    <article id="post-auto-backup-to-qiniu/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/06/auto-backup-to-qiniu/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-06T00:00:00.000Z" itemprop="datePublished">2016-02-06</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/06/auto-backup-to-qiniu/index/">[新手向]自动备份网站及数据库至七牛云存储</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>昨天一激动，就写了个<a target="_blank" rel="noopener" href="https://dmesg.app/cron-automatic-compression-regularly-deleted-apache-logs.html">自动删除、压缩Apache日志</a>的脚本。今天更激动，就写了个利用七牛云存储备份网站的脚本。其实都是简单的不能再简单的了，哎~~</p>
-<p>七牛云存储对待标准用户（通过身份认证即可）提供10G存储空间、10G下载流量、10万Put、100万Get，一般应用是够了~如果看官你是高校在校学生，那么还可以申请”<a target="_blank" rel="noopener" href="http://hd.qiniu.com/qingcong/pack">青葱计划</a>“，之后更是有一年期1000元七牛抵用券，想用完都没门了！</p>
-<p> </p>
-<h2 id="零。适用条件"><a href="#零。适用条件" class="headerlink" title="零。适用条件"></a>零。适用条件</h2><p>凡是用LAMP、LNMP建站的都可以~其实，只要数据库是MySQL就可以。因为在脚本里使用了mysqldump，其他数据库可能要换成别的命令。</p>
-<p> </p>
-<h2 id="一。为啥要备份呢"><a href="#一。为啥要备份呢" class="headerlink" title="一。为啥要备份呢"></a>一。为啥要备份呢</h2><p>一般博客，咱不太可能天天备份，没必要而且还占用空间。咱就采取<strong>七天为一个周期</strong>、以<strong>日期作为备份文件名</strong>的周期性备份。要是话唠还可以改成三天、两天一备份，这都是后面一个数字的问题。</p>
-<p>备份的意义有多重要就不说了，那些不懂得备份的人都是在丢了数据之后从自杀边缘走回来才懂得此条真理的~</p>
-<p>为了防止VPS服务商宕机、或者跑路、或者某天自己折腾完蛋了恰巧没做快照甚至是VPS提供商不提供快照功能，做备份是十分必须的。七牛和你的VPS同时挂了那就去买个彩票吧，做啥博客站呀~</p>
-<p>而且，我常常说，“<strong>懒人创造了世界</strong>”。你看卡尔·本茨那家伙不就偷懒不爱走路吗发明了汽车，你看莱特兄弟不就是嫌弃汽车啥的太慢就发明了飞机吗。我不就是嫌弃手工打包、下载、上传费事吗，就写了个这么个小脚本。</p>
-<p> </p>
-<h2 id="二。准备工作"><a href="#二。准备工作" class="headerlink" title="二。准备工作"></a>二。准备工作</h2><h3 id="1-七牛云存储账号一个"><a href="#1-七牛云存储账号一个" class="headerlink" title="1.七牛云存储账号一个"></a>1.七牛云存储账号一个</h3><p><a target="_blank" rel="noopener" href="http://www.qiniu.com/">http://www.qiniu.com/</a></p>
-<p>建议新建一个<strong>私有空间</strong>，仅在恢复数据的时候再切换到公开空间免得泄露网站文件。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016020612145734.png"><img src="/images/2016020612145734.png" alt="QQ截图20160206201444"></a></p>
-<h3 id="2-整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟"><a href="#2-整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟" class="headerlink" title="2.整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟"></a>2.整理好MySQL的账号密码。一般来说VPS上用户名就是root，密码我不知道哟</h3><h3 id="3-想明白要备份的网站目录在哪里"><a href="#3-想明白要备份的网站目录在哪里" class="headerlink" title="3.想明白要备份的网站目录在哪里"></a>3.想明白要备份的网站目录在哪里</h3><h2 id="三。Here-we-go"><a href="#三。Here-we-go" class="headerlink" title="三。Here we go"></a>三。Here we go</h2><p>假设网站目录在&#x2F;home&#x2F;wwwroot，phpmyadmin在&#x2F;home&#x2F;wwwroot&#x2F;phpmyadmin&#x2F;</p>
-<h3 id="在-x2F-home下创建一个wwwbackup作为备份文件夹-qiniu作为七牛同步工具文件夹。"><a href="#在-x2F-home下创建一个wwwbackup作为备份文件夹-qiniu作为七牛同步工具文件夹。" class="headerlink" title="在&#x2F;home下创建一个wwwbackup作为备份文件夹,qiniu作为七牛同步工具文件夹。"></a>在&#x2F;home下创建一个wwwbackup作为备份文件夹,qiniu作为七牛同步工具文件夹。</h3><p>mkdir &#x2F;home&#x2F;wwwbackup<br>mkdir &#x2F;home&#x2F;qiniu</p>
-<h3 id="切换到qiniu目录，下载七牛Linux同步工具。"><a href="#切换到qiniu目录，下载七牛Linux同步工具。" class="headerlink" title="切换到qiniu目录，下载七牛Linux同步工具。"></a>切换到qiniu目录，下载七牛Linux同步工具。</h3><p>[v_error]2016年7月27日更新 七牛官方已经停止开发qrsync，可以使用qshell替代。 详情见参考<a target="_blank" rel="noopener" href="https://dmesg.app/vps-google-drive.html">《使用海外vps中转Google Drive文件》</a>[&#x2F;v_error] 本着不留垃圾的原则我就rm了下。32位64位不通用，请自行切换</p>
-<p>本次以32位为例说明。（64位<a target="_blank" rel="noopener" href="http://devtools.qiniu.com/qiniu-devtools-linux_amd64-current.tar.gz">下载点这</a> ）</p>
-<p>cd &#x2F;home&#x2F;qiniu&#x2F;<br>wget <a target="_blank" rel="noopener" href="http://devtools.qiniu.com/qiniu-devtools-linux/_386-current.tar.gz">http://devtools.qiniu.com/qiniu-devtools-linux\_386-current.tar.gz</a><br>tar xvf qiniu-devtools-linux_386-current.tar.gz<br>rm -f qiniu-devtools-linux_386-current.tar.gz</p>
-<h3 id="建立配置文件（在-x2F-home-x2F-qiniu-x2F-下）"><a href="#建立配置文件（在-x2F-home-x2F-qiniu-x2F-下）" class="headerlink" title="建立配置文件（在&#x2F;home&#x2F;qiniu&#x2F;下）"></a>建立配置文件（在&#x2F;home&#x2F;qiniu&#x2F;下）</h3><p>nano conf.json</p>
-<p>输入如下内容保存：其中accesskey、secret key和bucket请自行去<a target="_blank" rel="noopener" href="https://portal.qiniu.com/setting/key">https://portal.qiniu.com/setting/key</a>获取并替换。</p>
-<p> </p>
-<p>{<br>    “src”: “&#x2F;home&#x2F;wwwbackup”,<br>    “dest”: “qiniu:access_key&#x3D;2delala不给看啦啦啦alalalLdfz&amp;secret_key&#x3D;UtqLN啦啦啦啦啦不给看fB3cuo4z9-qmcmOwAq8YFO3PKnvClJfTOHM&amp;bucket&#x3D;blog-backup”,<br>    “debug_level”: 1<br>}</p>
-<h3 id="给qrsync增加可执行权限。"><a href="#给qrsync增加可执行权限。" class="headerlink" title="给qrsync增加可执行权限。"></a>给qrsync增加可执行权限。</h3><p>chmod +x qrsync</p>
-<h3 id="切换到上层目录-创建备份脚本。"><a href="#切换到上层目录-创建备份脚本。" class="headerlink" title="切换到上层目录,创建备份脚本。"></a>切换到上层目录,创建备份脚本。</h3><p>cd ..<br>nano backup.sh</p>
-<p>内容如下：</p>
-<p>#!&#x2F;bin&#x2F;sh<br>rm &#x2F;home&#x2F;wwwroot&#x2F;default&#x2F;phpmyadmin&#x2F;save&#x2F;*<br>mysqldump -u root -p ohyeah –password&#x3D;123456789 &gt; &#x2F;home&#x2F;wwwroot&#x2F;default&#x2F;phpmyadmin&#x2F;save&#x2F;`date +%Y%m%d`.sql<br>tar -jcpf &#x2F;home&#x2F;wwwbackup&#x2F;`date +%Y%m%d`.tar.bz2 &#x2F;home&#x2F;wwwroot &gt;&#x2F;dev&#x2F;null 2&gt;&amp;1<br>&#x2F;home&#x2F;qiniu&#x2F;qrsync &#x2F;home&#x2F;qiniu&#x2F;conf.json</p>
-<p>Ctrl + X 退出保存。</p>
-<p>考虑到某些小伙伴可能喜欢有个备份日志，那就用echo重定向下好啦~~</p>
-<p>[v_blue]2016-02-07补充 如果手里还有另一台VPS，那么也可以顺手给上传到另一台VPS上，命令如下（注意第一次连接需要手动打yes） scp -i 私钥 &#x2F;home&#x2F;wwwbackup&#x2F;`date +%Y%m%d`.tar.bz2 用户名@公网IP:&#x2F;home&#x2F;blog-backup[&#x2F;v_blue]</p>
-<p>参数说明：</p>
-<p><strong>mysqldump</strong>：其中<strong>-p</strong> 后面ohyeah为要备份的数据库名字，<strong>-u</strong> 为用户名，一般来说就是root，**--password&#x3D;**为密码。&#x2F;home&#x2F;wwwroot&#x2F;default&#x2F;phpmyadmin&#x2F;save&#x2F;为导出数据库备份文件的存储路径。</p>
-<p>考虑到随着时间的增长，某个数据库的冗余备份也越来越多，所以采取了先清空原来已有备份、再重新到处对应数据库的方法。</p>
-<p><strong>tar</strong>：打包网站目录。后面的 &gt;&#x2F;dev&#x2F;null 2&gt;&amp;1意思是我要把输出丢到黑洞里~~</p>
-<p>如果要给压缩包加密码，那么就用</p>
-<p>cd &#x2F;home&#x2F;wwwbackup&#x2F;<br>tar -jcpf &#x2F;home&#x2F;wwwroot |openssl des3 -salt -k secretpassword | dd of&#x3D;`date +%Y%m%d`.des3</p>
-<p>解包用</p>
-<p>dd if&#x3D;test.des3 |openssl des3 -d -k secretpassword|tarzxf -</p>
-<p>请注意<strong>test.des3</strong>为压缩包名字，<strong>secretpassword</strong>为密码</p>
-<p> </p>
-<p>这是我的目录结构，不要嘲笑我怎么没加vhost用了个丑丑的default，</p>
-<p><img src="/images/020616_1200_1.png"></p>
-<h2 id="四。测试"><a href="#四。测试" class="headerlink" title="四。测试"></a>四。测试</h2><p>sh &#x2F;home&#x2F;backup.sh</p>
-<p>本终端没反应就对了。因为我把tar的输出都丢到黑洞里了，只有qrsync的输出暂时给我们测试用。另开一个ssh看top和nethogs即可知道运行状态。</p>
-<p>博主俺又忘记截图了。</p>
-<h2 id="五。添加cron"><a href="#五。添加cron" class="headerlink" title="五。添加cron"></a>五。添加cron</h2><p>crontab –e</p>
-<p>最后一行添加如下内容：</p>
-<p>0 0 *&#x2F;7 * * sh &#x2F;home&#x2F;backup.sh</p>
-<p>如果想10天一次，就把7改成10即可。将会在每隔七天0时0分（考虑到此时大家都在睡觉，降低服务器负载）压缩网站目录、上传到七牛云。</p>
-<p>重启cron</p>
-<p>service cron restart</p>
-<p>本次任务成功完成。</p>
-<p>来看看上传时的动态</p>
-<p><img src="/images/020616_1200_2.png"></p>
-<p>nethogs忘记截图了哈哈哈。平均速度在1M~2.5M的样子，我的服务器在日本东京。这个速度很棒的了，看看Node Query的记录吧！</p>
-<p><img src="/images/020616_1200_3.png"></p>
-<h2 id="六。后话"><a href="#六。后话" class="headerlink" title="六。后话"></a>六。后话</h2><p>童鞋们记得<strong>灵活的变换目录</strong>哦，这是作为Geeker最基本的素质了~</p>
-<p>另外，假如七牛标准用户还觉得不够用，还不想付钱，那么也可以试试更财大气粗的”<a target="_blank" rel="noopener" href="http://wantu.taobao.com/space/index.htm">阿里百川顽兔</a>“，100G的存储空间、100G月流量总是够玩了吧！</p>
-<p>初次入门阿里百川不知道怎么弄配置文件？见此篇博文：<a target="_blank" rel="noopener" href="https://dmesg.app/all-new-taesync-gui.html">《阿里百川图形化上传工具taesync》</a></p>
-<p>非常不幸的是阿里百川提供的上传工具是用Java开发的，博主俺比较懒，就不测试了。</p>
-<p>大体方法都是一样的…..就是事先写好配置文件，然后修改下执行路径。剩下都是一样一样的了~~</p>
-<p> </p>
-<p>最后问大家一个问题</p>
-<p>&#x2F;&#x2F;想一个人该怎么办？<br>#想一个人该怎么办？<br>–想一个人该怎么办？<br>&#x2F;*想一个人该怎么办？*&#x2F;<br>‘想一个人该怎么办？</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/06/auto-backup-to-qiniu/index/" data-id="clhp7rted000hs2qr7pr3hahk" data-title="[新手向]自动备份网站及数据库至七牛云存储" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/18/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/20/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/18/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="extend next" rel="next" href="/page/20/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1074,6 +1037,10 @@
       <ul>
         
           <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
@@ -1087,10 +1054,6 @@
         
           <li>
             <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/03/23/physical-esim/index/">物理化 eSIM</a>
           </li>
         
       </ul>
