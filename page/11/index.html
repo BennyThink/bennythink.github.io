@@ -73,6 +73,63 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ntpdate-problem/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/07/12/ntpdate-problem/index/" class="article-date">
+  <time class="dt-published" datetime="2018-07-12T00:00:00.000Z" itemprop="datePublished">2018-07-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/07/12/ntpdate-problem/index/">Ntpdate调整时间no server suitable for synchronization found</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>小葵花妈妈课堂开课啦</p>
+<h2 id="关于俺近期的静默"><a href="#关于俺近期的静默" class="headerlink" title="关于俺近期的静默"></a>关于俺近期的静默</h2><p>最近两个多月，俺确实比较忙（在前几篇博文中也多次提及这点），导致博客更新频率下降。在此，先向各位读者表示抱歉 :(</p>
+<p>划掉划掉，其实是最近比较忙，又觉得没什么可以写的。</p>
+<h2 id="NTP问题"><a href="#NTP问题" class="headerlink" title="NTP问题"></a>NTP问题</h2><p>最近在公司服务器上进行一些操作，需要比较精确的时间，但是发现服务器时间慢了接近半小时。</p>
+<p>对于我这么懒的人，怎么会自己用date去设置时间啊，于是自然用ntpdate同步时间啊。</p>
+<p>于是很自然的，用阿里云的ntp服务器吧</p>
+<p>[root@XXX ~]# ntpdate -v ntp1.aliyun.com<br>12 Jul 13:25:56 ntpdate[5547]: ntpdate <a href="mailto:&#52;&#46;&#50;&#x2e;&#54;&#112;&#x35;&#x40;&#49;&#x2e;&#50;&#51;&#x34;&#x39;&#x2d;&#x6f;">&#52;&#46;&#50;&#x2e;&#54;&#112;&#x35;&#x40;&#49;&#x2e;&#50;&#51;&#x34;&#x39;&#x2d;&#x6f;</a> Thu Oct 26 10:57:33 UTC 2017 (1)<br>12 Jul 13:26:01 ntpdate[5547]: no server suitable for synchronization found</p>
+<p>啊噗，这是个什么报错，莫非阿里云挂了？换到自己的服务器上发现没问题啊……</p>
+<p>别说了，网上搜那堆东西真是<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html#title-3">你抄我我抄你，你说有用吧还说得过去，都是没用的错误的，有意思嘛。</a></p>
+<p>后来想了想，可能是因为公司服务器有一些网络限制，导致只能使用内部的NTP服务器吧？于是上employee communities上搜了下，找了一个，再试试……</p>
+<p>[root@XXX ~]# ntpdate -v 1.ntp.company.com<br>12 Jul 13:42:25 ntpdate[5825]: ntpdate <a href="mailto:&#x34;&#x2e;&#50;&#x2e;&#x36;&#x70;&#53;&#x40;&#49;&#46;&#x32;&#x33;&#x34;&#57;&#x2d;&#111;">&#x34;&#x2e;&#50;&#x2e;&#x36;&#x70;&#53;&#x40;&#49;&#46;&#x32;&#x33;&#x34;&#57;&#x2d;&#111;</a> Thu Oct 26 10:57:33 UTC 2017 (1)<br>12 Jul 13:42:26 ntpdate[5825]: adjust time server 88.99.77.66 offset -0.009861 sec</p>
+<p>你看行了吧</p>
+<h2 id="关于近期和未来的计划"><a href="#关于近期和未来的计划" class="headerlink" title="关于近期和未来的计划"></a>关于近期和未来的计划</h2><p>由于工作稍微有点忙，所以除了安静的过好每一天，暂时没有什么太大的安排。</p>
+<p>非得要说说的嘛……那就是研究下<a target="_blank" rel="noopener" href="https://www.jetbrains.com/license-server/outdated-ls/">新版本的JetBrains License Server</a>? 要是能有好心人提供一个抓包样本就好了。</p>
+<p>更多详细信息可以戳这篇<a target="_blank" rel="noopener" href="https://dmesg.app/jbls.html">《JetBrains License Server 原理及 40 行 Python 代码的实现》</a></p>
+<h2 id="于是就这么水了一贴……"><a href="#于是就这么水了一贴……" class="headerlink" title="于是就这么水了一贴……?"></a>于是就这么水了一贴……?</h2>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/07/12/ntpdate-problem/index/" data-id="clhp7rthv0067s2qr2t8o1dpu" data-title="Ntpdate调整时间no server suitable for synchronization found" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-padavan-radius/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/05/13/padavan-radius/index/" class="article-date">
@@ -1061,165 +1118,6 @@ return json.dumps(bulk\_dic)
 
 
   
-    <article id="post-tgbot1/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/02/01/tgbot1/index/" class="article-date">
-  <time class="dt-published" datetime="2018-02-01T00:00:00.000Z" itemprop="datePublished">2018-02-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/02/01/tgbot1/index/">[Telegram bot 系列]1：requests库、Inline Keyboard、Reply Keyboard与其他细节</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>又到了一年一度写“新年首博”的时候！很高兴，本博客依然坚挺，正努力向着【三周年】庆典一天天地迈进。</p>
-<h2 id="关于俺近期的静默"><a href="#关于俺近期的静默" class="headerlink" title="关于俺近期的静默"></a>关于俺近期的静默</h2><p>最近一个多月，俺确实比较忙（在前几篇博文中也多次提及这点），导致博客更新频率下降。在此，先向各位读者表示抱歉 :(</p>
-<p>为了避免大伙儿无谓的担心，俺尽量把静默的时间跨度控制在【14天】之内，以表明俺自己是安全的（这是前几年在博客中做的约定）。</p>
-<p>上一篇博文是在2017年最后几天发出的，昨天（1月31日）俺特地上博客回复了一些评论——所以这次静默的时间【没有】超过14天。</p>
-<h2 id="小土豆机器人课程又开课啦"><a href="#小土豆机器人课程又开课啦" class="headerlink" title="小土豆机器人课程又开课啦"></a>小土豆机器人课程又开课啦</h2><p>自从三个月前发出第一篇<a target="_blank" rel="noopener" href="https://dmesg.app/tgbot0.html">《[Telegram bot 系列]0：用 Python 写一个 Telegram Bot 简单的回话 bot》</a>，这一系列就好像是史上最不受待见的系列一样：没人看，也没有啥想写的欲望，更重要的是也没时间。</p>
-<p>于是乎，随着<a target="_blank" rel="noopener" href="https://t.me/bennyblog_bot">ExpressBot</a>越来越好玩，趁着这几天有时间，我决定给这一系列注入新鲜的血液，再次开课水贴，说不定本系列就这么短命的被我在此篇中终结啦♪(^∇^*)。</p>
-<h2 id="机器人"><a href="#机器人" class="headerlink" title="机器人"></a>机器人</h2><p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/956079273835560960">几天前</a>被告知我的机器人上了少数派：<a target="_blank" rel="noopener" href="https://sspai.com/post/42967">《查快递、收邮件、订阅 RSS……除了聊天 Telegram 还有这些实用功能》</a>， 然后用户数量大增，导致<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/956264608561377280">被快递100封IP</a>，然后……这几天抽出来时间，悄悄的给机器人加了一些改进限制。</p>
-<h2 id="内联键盘（Inline-Keyboard）与回复键盘（Reply-Keyboard）"><a href="#内联键盘（Inline-Keyboard）与回复键盘（Reply-Keyboard）" class="headerlink" title="内联键盘（Inline Keyboard）与回复键盘（Reply Keyboard）"></a>内联键盘（Inline Keyboard）与回复键盘（Reply Keyboard）</h2><p>用过BotFather的人可能记得，创建机器人的时候我们能看到这样的按钮：</p>
-<p><img src="/images/2018020105133426.png"></p>
-<p>咱可以通过点击按钮来和服务器进行交互，有些按钮还可以是链接：</p>
-<p><img src="/images/2018020105133615.png" alt="https://core.telegram.org/file/811140999/1/2JSoUVlWKa0/4fad2e2743dc8eda04"></p>
-<p>上图这种方式我们称之为Inline Keyboard。点击Inline Keyboard的按钮不会造成客户端向机器人发送消息</p>
-<p>还有一种与Inline Keyboard比较接近的是custom Reply Keyboard，像下图这样：</p>
-<p><img src="/images/2018020105133792.jpeg" alt="https://core.telegram.org/file/811140880/1/jS-YSVkDCNQ/b397dfcefc6da0dc70"></p>
-<p>用户点击文本编辑框下面的按钮，客户端就会自动为我们发送对应的消息，实际上Reply Keyboard更像是快捷回复。</p>
-<p>这两种keyboard非常适合与用户进行交互（比如说游戏），并且用户不用一次性完整的输入命令、服务端一次性完成解析命令。</p>
-<p>观察仔细的小伙伴们可能发现，<a target="_blank" rel="noopener" href="https://t.me/bennyblog_bot">ExpressBot</a> 的查询美剧功能突然变得更好用一些了。</p>
-<p><img src="/images/2018020105133848.png"></p>
-<h2 id="Reply-Keyboard数据结构及简单示例"><a href="#Reply-Keyboard数据结构及简单示例" class="headerlink" title="Reply Keyboard数据结构及简单示例"></a>Reply Keyboard数据结构及简单示例</h2><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p><img src="/images/201802010513382.png"></p>
-<p>图片截图自<a target="_blank" rel="noopener" href="https://core.telegram.org/bots/api#replykeyboardmarkup">Telegram官网</a></p>
-<p>我觉得大家都能看懂这是什么意思，那么就写一个简单的Reply Keyboard吧。</p>
-<h3 id="简单示例1：Reply-Keyboard"><a href="#简单示例1：Reply-Keyboard" class="headerlink" title="简单示例1：Reply Keyboard"></a>简单示例1：Reply Keyboard</h3><p>为了应用Reply Keyboard，我们需要在send_xyz中给参数reply_markup传递我们自定义的键盘，其中reply_markup必须是ReplyKeyboardMarkup（自定义的键盘）、ReplyKeyboardRemove（移除键盘）或ForceReply（强制用户回复）的实例。</p>
-<p>首先我们需要引入types</p>
-<p>from telebot import types</p>
-<p>之后直接开始写对应命令的代码就可以了：</p>
-<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def send_welcome(message):<br>    markup &#x3D; types.ReplyKeyboardMarkup(row_width&#x3D;2)<br>    itembtn1 &#x3D; types.KeyboardButton(‘a’)<br>    itembtn2 &#x3D; types.KeyboardButton(‘v’)<br>    itembtn3 &#x3D; types.KeyboardButton(‘d’)<br>    markup.add(itembtn1, itembtn2, itembtn3)<br>    bot.send_message(message.chat.id, “Choose one letter:”, reply_markup&#x3D;markup)</p>
-<p>我们先定义了一个markup实例，设置行宽为2，然后添加avd三个按钮，之后在<code>send_message</code>的<code>reply_markup</code>中传递markup实例。如果需要点击一次就隐藏的键盘（但是依旧可以点击按钮显示），那么可以给markup构造时加入<code>one_time_keyboard=True</code>的参数。</p>
-<p>[v_blue]关于row_width的注意事项： 对于ReplyKeyboard和下面即将提到的InlineKeyboard来说，如果你的程序是通过循环动态生成的button，并且在循环中迭代调用<code>markup.add(btn)</code>，那么最终只会一个按钮一排。这是因为<code>markup.add(btn1,btn2,btn3)</code>这三个才会被认为一组放到一排，而<code>markup.add(btn)</code>迭代三次会被认为是三组。在这种情况下如果想要遵循row_width的设置，那么需要将按钮append到一个列表里，然后对列表按照row_width进行切片，之后判断执行N个参数的<code>markup.add()</code>。详细的代码可以<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot/commit/853b3cec9cc0aa1f2f3b9b362650a4c91fbb4ac3">参考这段commit</a>[&#x2F;v_blue]</p>
-<p><img src="/images/2018020105133948.png"></p>
-<p>如果我们需要点击按钮分享电话号码、地理位置，那么可以构造按钮的时候加入对应的参数，如 <code>itembtn1 = types.KeyboardButton(&#39;a&#39;, request_contact=True)</code>，此时点击按钮，会有类似如下的提示</p>
-<p><img src="/images/201802010513397.png"></p>
-<h3 id="简单示例2：ReplyKeyboardRemove"><a href="#简单示例2：ReplyKeyboardRemove" class="headerlink" title="简单示例2：ReplyKeyboardRemove"></a>简单示例2：ReplyKeyboardRemove</h3><p>markup &#x3D; types.ReplyKeyboardRemove(selective&#x3D;False)<br>tb.send_message(chat_id, message, reply_markup&#x3D;markup)</p>
-<p>发送这个markup会移除自定义键盘</p>
-<h3 id="简单示例3：ForceReply"><a href="#简单示例3：ForceReply" class="headerlink" title="简单示例3：ForceReply"></a>简单示例3：ForceReply</h3><p>ForceReply是强制回复，就好像用户回复机器人的消息一样，使用方法也很简单：</p>
-<p>markup &#x3D; types.ForceReply()<br>bot.send_message(message.chat.id, “Choose one letter:”, reply_markup&#x3D;markup)</p>
-<p><img src="/images/2018020105134043.png"></p>
-<h2 id="Inline-Keyboard之数据结构"><a href="#Inline-Keyboard之数据结构" class="headerlink" title="Inline Keyboard之数据结构"></a>Inline Keyboard之数据结构</h2><p><img src="/images/2018020105134013.png"></p>
-<p>我猜大家也都能看懂。InlineKeyboardMarkup的构造比较简单，InlineKeyboardButton的参数要稍微复杂一点，其中比较重要的有：</p>
-<ul>
-<li>text 按钮上显示的文字</li>
-<li>url 点击按钮时打开的url</li>
-<li>callback_data 回调数据，1-64字节。</li>
-</ul>
-<h2 id="Inline-Keyboard之CallbackQuery与answerCallbackQuery"><a href="#Inline-Keyboard之CallbackQuery与answerCallbackQuery" class="headerlink" title="Inline Keyboard之CallbackQuery与answerCallbackQuery"></a>Inline Keyboard之CallbackQuery与answerCallbackQuery</h2><p>由于点击InlineKeyboard时并不是发送常规的命令（&#x2F;start），所以我们需要处理Callback，Telegram使用CallbackQuery来处理此类请求，其数据结构如下：</p>
-<p><img src="/images/2018020105134137.png"></p>
-<p>其中比较重要的有：</p>
-<ul>
-<li>id 唯一标识此次按钮点击</li>
-<li>message 触发此次callback的消息，其数据结构为Message类型，因此可以使用message.chat.id等方法</li>
-<li>data callback_data中的字符串</li>
-</ul>
-<p>当用户点击按钮时，按钮旁边会显示一个加载中的图标，此时建议使用answerCallbackQuery来给用户提示信息，其数据结构如下所示：</p>
-<p><img src="/images/2018020105134239.png"></p>
-<h2 id="Inline-Keyboard-及回调简单示例"><a href="#Inline-Keyboard-及回调简单示例" class="headerlink" title="Inline Keyboard 及回调简单示例"></a>Inline Keyboard 及回调简单示例</h2><p>说了那么多数据结构可能会有点懵?，那么还是直接上代码更爽吧~</p>
-<p>首先，我们需要像往常一样，创建InlineKeyboard实例，创建键盘实例，然后在send_xyz中把markup发送过去：</p>
-<p>markup &#x3D; types.InlineKeyboardMarkup()<br>btn1 &#x3D; types.InlineKeyboardButton(‘Google’, url&#x3D;’<a target="_blank" rel="noopener" href="https://www.google.com/ncr">https://www.google.com/ncr</a>‘)<br>btn2 &#x3D; types.InlineKeyboardButton(‘Action’, callback_data&#x3D;’Act Now’)<br>markup.add(btn1,btn2)<br>bot.send_message(message.chat.id, “InlineKeyboard: “, reply_markup&#x3D;markup)</p>
-<p>按钮1是打开Google，按钮2需要我们处理回调，可以这么玩：</p>
-<p>@bot.callback_query_handler(func&#x3D;lambda call: True)<br>def callback_handle(call):<br>    bot.answer_callback_query(call.id, ‘哎哟’)<br>    bot.send_message(call.message.chat.id, ‘You clicked %s’ % call.data)</p>
-<p>把这两段结合起来，运行的话效果大概是酱紫的，我们可以看到回调函数中<code>call.data</code>就是我们在实例化InlineKeyboardButton中参数callback_data所设置的值：</p>
-<p><img src="/images/2018020105134342.png"></p>
-<p>如果AnswerCallbackQuery开始了showAlert的话，那么会如下弹窗：</p>
-<p><img src="/images/2018020105134339.png"></p>
-<h2 id="更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）"><a href="#更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）" class="headerlink" title="更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）"></a>更新消息：编辑消息（editMessageText）、删除消息（deleteMessage）与编辑markup（editMessageReplyMarkup）</h2><p>我们知道，Telegram的消息是可以编辑、删除的，机器人也同样可以做到。当然了，reply_markup其实也可以被编辑的，我们就来简单的做一个示例吧。</p>
-<p>说到编辑、删除消息，我们只需要chat_id和message_id就可以了，那么编辑、删除大概就可以这么写：</p>
-<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def edit_message(message):<br>    msg_id &#x3D; bot.send_message(message.chat.id, ‘这里是原始消息’).message_id<br>    time.sleep(2)<br>    # The below comment is wrong!!!<br>    # bot.edit_message_text(‘更新了耶’, chat_id&#x3D;message.chat.id, message_id&#x3D;message.message_id)<br>    bot.edit_message_text(‘更新了耶’, message.chat.id, msg_id)</p>
-<p>@bot.message_handler(commands&#x3D;[‘help’])<br>def delete_message(message):<br>    msg_id &#x3D; bot.send_message(message.chat.id, ‘这里是要被删除的消息’).message_id<br>    time.sleep(2)<br>    bot.delete_message(message.chat.id, msg_id)</p>
-<p>效果如下图：</p>
-<p><img src="/images/2018020105134469.png"></p>
-<p>需要注意的是，很多人最开始会想当然的给message_id传递message_id参数，实际上<strong>这是错误的</strong>！如果你这么做，那么你会收到<strong>Bad Request: message can’t be edited</strong>的异常。实际上，你所传递的<strong>message实例是用户发送过来的消息</strong>（包括&#x2F;start &#x2F;help等命令），所以获取到的message_id其实也是用户消息的id，机器人怎么可能编辑用户消息嘛！所以正确的姿势是去找send_message的返回值，通过返回值就可以获取到机器人发送的message_id了。</p>
-<p>当然了，另外一种hack可以这么做，只要你确定好你要编辑的消息相对于用户消息的偏移量：</p>
-<p>bot.edit_message_text(‘更新了耶’, message.chat.id, message.message_id + 1)</p>
-<p>还剩下一种editReplyMessageMarkup，这是用来更新reply_markup的，包括InlineKeyboard和ReplyKeyboard，基本逻辑就是构造新的markup，然后调用，以InlineKeyboard为例：</p>
-<p>def edit_reply_markup(message):<br>    markup &#x3D; types.InlineKeyboardMarkup()<br>    btn1 &#x3D; types.InlineKeyboardButton(‘Apple’, url&#x3D;’<a target="_blank" rel="noopener" href="https://www.apple.com/">https://www.apple.com</a>‘)<br>    btn2 &#x3D; types.InlineKeyboardButton(‘Microsoft’, url&#x3D;’<a target="_blank" rel="noopener" href="https://www.microsoft.com/">https://www.microsoft.com</a>‘)<br>    markup.add(btn1, btn2)<br>    # use hack<br>    bot.edit_message_reply_markup(message.chat.id, message.message_id - 1, reply_markup&#x3D;markup)</p>
-<p>这里引用了message_id计算偏移量，实际上我们有些时候会在callbackQuery中编辑InlineKeyboard，此时可以应用<code>call.message.message_id</code></p>
-<p><img src="/images/2018020105134455.png"></p>
-<p>详细的API可以<a target="_blank" rel="noopener" href="https://core.telegram.org/bots/api#updating-messages">参考这里</a></p>
-<h2 id="格式化与正在输入的特效"><a href="#格式化与正在输入的特效" class="headerlink" title="格式化与正在输入的特效"></a>格式化与正在输入的特效</h2><p>有些时候，我们想让消息有加粗、斜体等效果，其实这是非常简单的，只需要在send_message时指定parse_mode即可。Telegram支持Markdown与HTML两种模式，具体的信息就<a target="_blank" rel="noopener" href="https://core.telegram.org/bots/api#sendmessage">参考官方文档</a>吧。</p>
-<p>如果想加入“正在输入”的特效，那就更简单了，使用send_action就可以了。示例代码如下：</p>
-<p>bot.send_chat_action(message.chat.id, ‘typing’)<br>bot.send_message(message.chat.id, ‘这个是_斜体_哦’, parse_mode&#x3D;’Markdown’)<br>bot.send_chat_action(message.chat.id, ‘record_video’)<br>bot.send_message(message.chat.id, “`print(‘hello world’)`“, parse_mode&#x3D;’Markdown’)</p>
-<p><img src="/images/2018020105134580.png"></p>
-<h2 id="操作数据库"><a href="#操作数据库" class="headerlink" title="操作数据库"></a>操作数据库</h2><p>Python支持很多很多数据库，对于关系型数据库来说，大部分库的设计都是遵循<a target="_blank" rel="noopener" href="https://www.python.org/dev/peps/pep-0249/">PEP 249 Python Database API Specification</a>，所以咱的使用往往就是确定用哪种库，更改连接字符串，其他的基本不用改变太多。</p>
-<p>Python内建sqlite的支持，所以在机器人这类应用中，用sqlite是非常方便的。</p>
-<p>sqlite的使用方法也很简单，基本遵循如下步骤：</p>
-<p>import sqlite3</p>
-<h1 id="使用内存型数据库，实际应用时应该指定文件路径"><a href="#使用内存型数据库，实际应用时应该指定文件路径" class="headerlink" title="使用内存型数据库，实际应用时应该指定文件路径"></a>使用内存型数据库，实际应用时应该指定文件路径</h1><p>con &#x3D; sqlite3.connect(‘:memory:’)</p>
-<h1 id="创建游标"><a href="#创建游标" class="headerlink" title="创建游标"></a>创建游标</h1><p>cur &#x3D; con.cursor()<br>create_table &#x3D; ‘’’CREATE TABLE IF NOT EXISTS job(<br>date DATETIME,<br>done TINYINT)<br>‘’’</p>
-<h1 id="执行查询"><a href="#执行查询" class="headerlink" title="执行查询"></a>执行查询</h1><p>cur.execute(create_table)</p>
-<h1 id="提交事务，否则不会写入数据库"><a href="#提交事务，否则不会写入数据库" class="headerlink" title="提交事务，否则不会写入数据库"></a>提交事务，否则不会写入数据库</h1><p>con.commit()</p>
-<h1 id="关闭连接"><a href="#关闭连接" class="headerlink" title="关闭连接"></a>关闭连接</h1><p>con.close()</p>
-<h3 id="防止注入的正确姿势"><a href="#防止注入的正确姿势" class="headerlink" title="防止注入的正确姿势"></a>防止注入的正确姿势</h3><p>首先需要知道的是，拼接SQL命令是不可以的，这样很容易<a target="_blank" rel="noopener" href="https://dmesg.app/school-6.html#title-9">导致注入</a>。：Python不像PHP、Java等存在名为PreparedStatement这类用法，Python防止注入的方法比较奇特，很简单，给<code>cur.execute()</code>传入占位符和参数列表就可以了，具体来说（对于sqlite而言）：</p>
-<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; ?”, (lumberjack,))</p>
-<p>对于MySQL而言，使用%s作为占位符（管他啥类型的数据，数字还是什么的，用%s就对了）</p>
-<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; %s”, (lumberjack,))</p>
-<p>更多详细信息可以参考<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/7929364/python-best-practice-and-securest-to-connect-to-mysql-and-execute-queries">StackOverflow: Python best practice and securest to connect to MySQL and execute queries</a></p>
-<h2 id="集成requests库并解析json"><a href="#集成requests库并解析json" class="headerlink" title="集成requests库并解析json"></a>集成requests库并解析json</h2><p>Requests 唯一的一个非转基因的 Python HTTP 库，人类可以安全享用。</p>
-<p>[v_error]警告：非专业使用其他 HTTP 库会导致危险的副作用，包括：安全缺陷症、冗余代码症、重新发明轮子症、啃文档症、抑郁、头疼、甚至死亡。[&#x2F;v_error]</p>
-<p>现如今<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%85%B7%E8%B1%A1%E7%8A%B6%E6%80%81%E4%BC%A0%E8%BE%93">REST API</a>非常流行。REST API说白了就是使用各种HTTP请求（GET，POST，PUT啊什么的），返回某种资源（大部分情况下是json），所以用requests是非常好的选择。</p>
-<p>而<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/JSON">json</a>格式与Python的字典基本相同，简直是不要太方便。</p>
-<p>requests的使用方法非常简单，差不多就是三行代码的事：</p>
-<p>import requests<br>r &#x3D; requests.get(‘<a target="_blank" rel="noopener" href="https://www.google.com/ncr">https://www.google.com/ncr</a>‘)<br>print r.text</p>
-<p>如果需要POST方法，就把get换成post，如果需要更改headers等，就写作<code>r = requests.get(&#39;https://www.google.com/ncr&#39;, headers=&#123;&#39;User-Agent&#39;: &#39;Mozilla&#39;, &#125;)</code></p>
-<p>更多的高级用法还是参考<a target="_blank" rel="noopener" href="http://docs.python-requests.org/zh_CN/latest/index.html">requests的官方手册</a>吧</p>
-<p>不如试试接入淘宝IP库，实现一个查IP地址的机器人吧？（当然了，这只是一段示例代码，其实还是有些bug的啦……）</p>
-<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def edit_message(message):<br>    if len(message.text.split(‘ ‘)) !&#x3D; 2:<br>        bot.send_chat_action(message.chat.id, ‘typing’)<br>        bot.send_message(message.chat.id, ‘参数错误’)<br>    else:<br>        location &#x3D; get_location(message.text.split(‘ ‘)[1])<br>        bot.send_chat_action(message.chat.id, ‘typing’)<br>        bot.send_message(message.chat.id, u”你查询的IP地址：`%s`\n%s” % (message.text.split(‘ ‘)[1], location),parse_mode&#x3D;’Markdown’)</p>
-<p>def get_location(ip):<br>    r &#x3D; requests.get(‘<a target="_blank" rel="noopener" href="http://ip.taobao.com/service/getIpInfo.php?ip=">http://ip.taobao.com/service/getIpInfo.php?ip=</a>‘ + ip).text<br>    res &#x3D; json.loads(r)<br>    if res.get(‘code’) &#x3D;&#x3D; 0:<br>        return res.get(‘data’).get(‘region’) + res.get(‘data’).get(‘country’) + res.get(‘data’).get(‘isp’)<br>    else:<br>        return ‘请求失败’</p>
-<p><img src="/images/2018020105134576.png"></p>
-<p>大概就是这么几行……</p>
-<p>今天的教程就到这里了。本篇文章涉及到的代码可以在这里获取：</p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/tgbot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/tgbot&#39;\]开源地址\[/gt\]</a></p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>说太多也难以表达我的心情，可能已经彻底失去希望了吧。</p>
-<blockquote>
-<p>梁惠王曰：“寡人之于国也，尽心焉耳矣。河内凶，则移其民于河东，移其粟于河内。河东凶亦然。察邻国之政，无如寡人之用心者。邻国之民不加少，寡人之民不加多，何也？”</p>
-<p>孟子对曰：“王好战，请以战喻。填然鼓之，兵刃既接，弃甲曳兵而走。或百步而后止，或五十步而后止。以五十步笑百步，则何如？”</p>
-<p>曰：“不可，直不百步耳，是亦走也。”</p>
-<p>曰：“王如知此，则无望民之多于邻国也。不违农时，谷不可胜食也；数罟不入洿池，鱼鳖不可胜食也；斧斤以时入山林，材木不可胜用也。谷与鱼鳖不可胜食，材木不可胜用，是使民养生丧死无憾也。养生丧死无憾，王道之始也。五亩之宅，树之以桑，五十者可以衣帛矣；鸡豚狗彘之畜，无失其时，七十者可以食肉矣；百亩之田，勿夺其时，数口之家可以无饥矣；谨庠序之教，申之以孝悌之义，颁白者不负戴于道路矣。七十者衣帛食肉，黎民不饥不寒，然而不王者，未之有也。</p>
-<p>狗彘食人食而不知检，涂有饿莩而不知发；<strong>人死，则曰：‘非我也，岁也。’是何异于刺人而杀之，曰：‘非我也，兵也。’</strong>王无罪岁，斯天下之民至焉。”</p>
-</blockquote>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/02/01/tgbot1/index/" data-id="clhp7rtm3009os2qr2610gaqa" data-title="[Telegram bot 系列]1：requests库、Inline Keyboard、Reply Keyboard与其他细节" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1264,7 +1162,7 @@ return json.dumps(bulk\_dic)
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1275,6 +1173,10 @@ return json.dumps(bulk\_dic)
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
+          </li>
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
@@ -1290,10 +1192,6 @@ return json.dumps(bulk\_dic)
         
           <li>
             <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
       </ul>

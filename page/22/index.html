@@ -73,6 +73,85 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-remember-domain-name-change-controversy/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2015/11/25/remember-domain-name-change-controversy/index/" class="article-date">
+  <time class="dt-published" datetime="2015-11-25T00:00:00.000Z" itemprop="datePublished">2015-11-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2015/11/25/remember-domain-name-change-controversy/index/">记域名更换风波</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>本来这网站玩的好好的，昨天上课用手机访问的时候突然无法解析域名。瞬间的想法是，完了，是不是被墙污染了？立刻用手机SSH到服务器ping下域名，提示我unknown host，心想这不应该啊，域名出问题了？</p>
+<p>下课火速回到寝室，用联通网络访问，竟然也是无法解析。果断打开命令行用了下nslookup，没结果，指定用8.8.4.4解析，还是没结果，连到阿里云再nslookup还是没结果。于是乎一边打开域名服务商freenom的主页一边打开站长DNS，そうか!奶奶个爪的域名怎么被取消了？</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2015/11/0.jpg"><img src="/images/0.jpg" alt="0"></a></p>
+<p> </p>
+<p>好吧那我就再注册下呗，0美元，12个月，设置NS到CloudFlare的DNS，喜滋滋的发现网站复活了。</p>
+<p>几分钟之后，我滴妈呀怎么又停止解析了？再去freenom一看，你妹！Expired！过期？再注册，几分钟之后又被回收了。换账号换IP依旧如此。我一没违反ToS二没违反DMCA干毛回收我域名啊！同期注册的别的域名都一点事没有</p>
+<p>此刻我的心中无数只草泥马奔腾而过啊。无奈的我发出了ticket，差点把what the heck说成what the fuck。</p>
+<p><img src="/images/112515_0946_2.png"></p>
+<p>第二天醒来，这是什么效率，客户这么心急火燎还不回复ticket！于是果断打开老爹GoDaddy，com域名第一年2.99刀第二年大概15刀，折合人民币也就100多元。100多元两年，平均一天一毛五，也不贵！果断搜索bennythink，买了com域名回家。</p>
+<p>老爹真不错，立刻把ns改成CloudFlare，再去CloudFlare设置A记录的*和www到服务器的IP。Dala～看样子是复活了，可是后台、图片都不见了！总不能推倒重来吧！</p>
+<p><img src="/images/112515_0946_3.png"></p>
+<p>原来的博客是在二级目录wordpress下的，早就想给做成根目录了。值此良机，都给解决了吧！</p>
+<p>先把后台弄出来吧！</p>
+<p>打开phpmyadmin，找到wordpress的表，找到wp_options，先把siteurl和home从bennythink.cf&#x2F;wordpress&#x2F;换到bennythink.com&#x2F;，后台当然不会这么简单就正常的，因为我的环境比较特殊！</p>
+<p><img src="/images/112515_0946_4.png"></p>
+<p>原来网站的目录结构是&#x2F;wordpress&#x2F;下为博客，所以还需要用WinSCP连接到服务器对文件目录进行下移动，把原来的静态网页放到一个文件夹中，把wordpress中的全部内容移动到父目录下。</p>
+<p>这下子后台才正常了。</p>
+<p>下一步就要调整博客图片的链接。打开wordpress表，点击SQL，粘贴进入如下三条SQL语句，执行即可。</p>
+<p>UPDATE wp_options SET option_value &#x3D; replace( option_value, ‘<a target="_blank" rel="noopener" href="http://www.bennythink.cf/wordpress/">http://www.bennythink.cf/wordpress/</a>‘, ‘<a target="_blank" rel="noopener" href="http://dmesg.app/">http://dmesg.app/</a>‘ ) WHERE option_name &#x3D; ‘home’ OR option_name &#x3D; ‘siteurl’;<br>UPDATE wp_posts SET post_content &#x3D; replace( post_content, ‘<a target="_blank" rel="noopener" href="http://www.bennythink.cf/wordpress/">http://www.bennythink.cf/wordpress/</a>‘, ‘<a target="_blank" rel="noopener" href="http://dmesg.app/">http://dmesg.app/</a>‘ ) ;<br>UPDATE wp_posts SET guid &#x3D; replace( guid, ‘<a target="_blank" rel="noopener" href="http://www.bennythink.cf/wordpress/">http://www.bennythink.cf/wordpress/</a>‘, ‘<a target="_blank" rel="noopener" href="http://dmesg.app/">http://dmesg.app/</a>‘ ) ;</p>
+<p>注意：由于我这里原来博客是二级目录下的，所以原来的网址为<a target="_blank" rel="noopener" href="http://www.bennythink.cf/wordpress/">http://www.bennythink.cf/wordpress/</a></p>
+<p>一定要记得加http:&#x2F;&#x2F;，新域名后面也要加&#x2F;，提前做好数据库的备份。</p>
+<p><img src="/images/112515_0946_5.png"></p>
+<p>替换了二百多条。</p>
+<p>再刷新下网站，图片基本上正常了。随意点博文，下一页——500 Internal Server Error，啥情况！搜索了下，改755权限，并没有什么卵用。考虑到可能是因为伪静态的问题，于是就把WP Super Cache禁用了，一切都正常啦！</p>
+<p>那么剩下的问题就简单了！重新安装WP Super Cache，设置权限，.htaccess，把搜索加回去，界面的零碎问题修改了，生成站点地图，安装统计代码。去Google Webmaster提交新站点，一想这是com域名，也去百度和360提交下吧！管他妹的什么301跳转的！谁怕谁！cf域名太low！意外的发现点赞功能好了！</p>
+<p>然后顺手把服务器关掉，去DigitalOcean做个快照，再去CloudFlare purge all好让它重新抓取下。</p>
+<p>任务完成，上床睡觉。</p>
+<p>后记：</p>
+<p>后来我想了想，终于知道了为啥我的域名被收回了！天底下没有免费的午餐！便宜没好货！请允许我无耻的这样推断：freenom发现我这域名还有不少解析量，于是在恰好注册三个月之后收回域名，逼我一年10美刀买。这是真当我傻叉吗？一年10刀的cf域名和2年18刀的com域名，傻叉都知道该选择哪个！freenom真是的！</p>
+<p>天底下没有免费的午餐啊！现在我又要为服务器的钱犯愁了！我要Edu邮箱啊！GitHub的学生验证啊！真是心碎????</p>
+<p>刚刚收到了freenom的邮件，</p>
+<p>意思就是，你这域名啥也没干，站着茅坑不拉屎，于是我们就给你取消了！你或者是其他人都可以再注册！</p>
+<p>真是说瞎话……ticket依旧未回复。</p>
+<p>既然如此，我也就再注册一下，设置下301 Forwarding吧！</p>
+<p>结果这把不取消域名了，真好玩……</p>
+<p><img src="/images/112515_0946_7.png"></p>
+<p>哥哥很无奈，哥哥很伤心……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2015/11/25/remember-domain-name-change-controversy/index/" data-id="clhp7rtii007hs2qr3kuv08f0" data-title="记域名更换风波" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-dynamic-router/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2015/11/04/dynamic-router/index/" class="article-date">
@@ -813,67 +892,6 @@
 
 
   
-    <article id="post-series-station-number-three-configuring-the-host/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2015/08/23/series-station-number-three-configuring-the-host/index/" class="article-date">
-  <time class="dt-published" datetime="2015-08-23T00:00:00.000Z" itemprop="datePublished">2015-08-23</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2015/08/23/series-station-number-three-configuring-the-host/index/">[系列]建站之三：配置主机</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>你的域名解析好了，但是服务器不相应浏览器的请求，那算个啥~~所以呐，咱要给服务器装备上那些必备的工具呀！</p>
-<h2 id="服务器需要装备啥捏"><a href="#服务器需要装备啥捏" class="headerlink" title="服务器需要装备啥捏"></a>服务器需要装备啥捏</h2><p>当然是那些能够用户提供服务的软件啦！假如你要弄个WordPress，那你就得有数据库、PHP和Web服务器的支持；假如你想要Ghost，那你就需要Node.JS；假如你就想手写个Hello World的纯静态网页，那Nginx或者Apache或者LightHTTPD就够啦。</p>
-<p>在这里我们就假设大家是想要WordPress的啦！那么我们就需要把数据库、PHP、Web服务器这三者结合起来。常见的有这么两种架构：</p>
-<p> </p>
-<p>LAMP——Linux，Apache，MySQL，PHP</p>
-<p>LNMP——Linux，Nginx，MySQL，PHP</p>
-<p>Linux是操作系统，剩下几乎是搭建一个网站必备的工具。Apache&#x2F;Nginx作为web前端服务器，MySQL作为数据库（可被替换为 MariaDB等等），PHP作为动态网页的处理。</p>
-<p>哦对了，Windows下有个xampp，就是Apache、PHP、MySQL啦。</p>
-<p>Apache与Nginx有何区别？请自行搜索并确定自己要使用哪种。<strong>不过我强烈推荐Nginx哟！</strong>另外多说一句，LNMPA也并不是不可以的。</p>
-<h2 id="怎么装备LNMP-x2F-LAMP呢？"><a href="#怎么装备LNMP-x2F-LAMP呢？" class="headerlink" title="怎么装备LNMP&#x2F;LAMP呢？"></a>怎么装备LNMP&#x2F;LAMP呢？</h2><p>我这就给你们个链接，自己戳去看吧！</p>
-<p><a target="_blank" rel="noopener" href="https://lnmp.org/">戳我戳我</a></p>
-<p>假如你是使用的建站应用支持PHP7，那么强烈建议使用PHP7哟，据说有经验加成哟~</p>
-<h2 id="装备完了，然后呢"><a href="#装备完了，然后呢" class="headerlink" title="装备完了，然后呢"></a>装备完了，然后呢</h2><p>此时用WinSCP上传网页到默认目录&#x2F;home&#x2F;wwwroot&#x2F;default&#x2F;就可以了。或者是看WordPress、Typecho的安装文档，自己安装去吧~</p>
-<p>咱们怎么能看得起丑丑的default呢？</p>
-<p>lnmp vhost add之后添加你的域名，在&#x2F;home&#x2F;wwwroot&#x2F;你的域名下上传你的网站文件就好啦！你想解析exmaple.com, test.com到一个服务器，只需要lnmp vhost add添加对应的域名即可！</p>
-<h2 id="我该使用啥样的域名呐"><a href="#我该使用啥样的域名呐" class="headerlink" title="我该使用啥样的域名呐"></a>我该使用啥样的域名呐</h2><p>有童鞋可能会纠结，我是用exmaple.com，还是<a href="http://www.example.com呢？这个嘛，老司机告诉你，都行，你想要blog.example.com也是可以的，三个都要也是可以的……怎么选择，基本上都是个人心情说了算……">www.example.com呢？这个嘛，老司机告诉你，都行，你想要blog.example.com也是可以的，三个都要也是可以的……怎么选择，基本上都是个人心情说了算……</a></p>
-<p>但是我的建议是：</p>
-<p>假如你的网站只想要一个example.com，别的都不要，并且有开启HTTPS、HSTS的计划，那么就直接上裸域名吧；</p>
-<p>假如你不确定以后想干嘛，那<a target="_blank" rel="noopener" href="http://www.example.com可能会更加直观./">www.example.com可能会更加直观。</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2015/08/23/series-station-number-three-configuring-the-host/index/" data-id="clhp7rtjt008gs2qr159ghdio" data-title="[系列]建站之三：配置主机" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -918,7 +936,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -929,6 +947,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
+          </li>
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
@@ -944,10 +966,6 @@
         
           <li>
             <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
       </ul>

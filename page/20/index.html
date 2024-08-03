@@ -73,6 +73,133 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-rm-dd-chmod-sudoers-root/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/10/rm-dd-chmod-sudoers-root/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-10T00:00:00.000Z" itemprop="datePublished">2016-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/10/rm-dd-chmod-sudoers-root/index/">rm –rf /, dd, chmod, sudoers和root权限的一些小事</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>预先警告一下，这些命令都是<strong>十分危险</strong>的，请不要在自己的电脑上尝试！</p>
+<p>话说几个星期前，圈里爆出来这么一个事：一名Arch用户尝试使用rm –rf &#x2F;删除已有的arch然后重装，结果这条命令却成功的毁了他的固件。rm删掉了&#x2F;sys&#x2F;firmware&#x2F;efivars的内容……</p>
+<p>更详细的讨论可以看这里：</p>
+<p><a target="_blank" rel="noopener" href="https://www.reddit.com/r/linux/comments/43ls7j/no_post_after_rm_rf_systemd_uefi/">https://www.reddit.com/r/linux/comments/43ls7j/no_post_after_rm_rf_systemd_uefi&#x2F;</a></p>
+<hr>
+<p>传说中Linux是怎么自杀的，就是用的rm –rf &#x2F;，递归强制删除根目录下所有文件和目录。当然要root权限才能干这个事，Ubuntu还要加–no-preserve-root参数。</p>
+<p>sudo rm -rf –no-preserve-root &#x2F;</p>
+<p><img src="/images/021016_0304_rmrfdds1.png"></p>
+<p>可以看到左侧的dock没了，语言支持没了，ls、rm等在命令没了（因为&#x2F;usr&#x2F;bin,&#x2F;sbin都被删掉了）。唯一还在的是bash内建命令……关了此终端之后，就彻底game over了。</p>
+<hr>
+<p>除此之外还有dd，dd是一个很强大的命令，裸读写，把指定的输入文件拷贝到指定的输出文件中，而且可以无视文件系统。if（此处不是如果，而是infile）指定来源，of指定目的，常常用它来备份文件或者制作镜像。但是这个命令如果滥用下…</p>
+<p>dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;&#x2F;dev&#x2F;sda</p>
+<p>[v_blue]&#x2F;dev&#x2F;zero是啥？ &#x2F;dev&#x2F;zero是Linux的一个”伪文件”，它会提供连续不断的null，要多少有多少。比如说初始化文件的时候。 类似的有个&#x2F;dev&#x2F;null，这家伙外号”无底洞”、”黑洞”，什么东西放进去都没了，而且永远不会吃撑，比如说某些命令的输出结果就可以给它吃掉[&#x2F;v_blue]</p>
+<p>这句话的意思是，读取0放到sda里……直接抹掉硬盘的内容。</p>
+<p>而且更可怕的是，假想这种情况：某人双硬盘（sda，sdb），想把某个iso写到U盘上（sdc），结果一不小心就写成了of&#x3D;sdb，恰巧sda是Linux的&#x2F;所在磁盘，于是乎……和数据说拜拜，这里连root权限都没用上。</p>
+<p>dd前要三思啊！要把of看三遍啊！使劲用df看磁盘信息啊！</p>
+<hr>
+<p>还有一个神级蛋疼的命令，chmod，用于改变文件的权限。和rm类似以下，sudo chmod –R 777 &#x2F;，此命令会将递归的将&#x2F;下所有文件的权限都设置成777（设置成000会更酸爽）。乍一看好像没什么，文件都还在。但是，Linux是一个权限管理比较严格的系统，有些文件是需要正确权限才可以运行的，像ssh，sudo等。</p>
+<p>[v_blue]那三个数字是什么意思？ 4读 2写 1执行，第一个数字表示属主（文件的所有者，文件的主人，谁创建的），第二个数字表示同组用户，第三个数字表示其他用户。当然，这里的”其他用户”不包括root，因为root拥有一切权限。775的意思就是，属主可以读写执行（4+2+1&#x3D;7），同组可以读写执行，其他用户只可以读和执行。[&#x2F;v_blue]</p>
+<p><img src="/images/021016_0304_rmrfdds2.png"></p>
+<p>这是chmod –R 000&#x2F;的后果，<strong>失去了对一切文件的访问权限</strong>，当前的终端都没了，壁纸都没了！要远比777可怕的多。此时唯一的解救方法就是用liveCD重新改权限了。</p>
+<p>再次警告下，这些命令<strong>十分危险</strong>，如要尝试请在和宿主机<strong>完全隔离</strong>的虚拟机上进行。完全隔离的意思就是，别装VMTools那类工具！</p>
+<p>可是问题来了，这些命令这么危险，为什么还要存在呢？</p>
+<p>其实这只是一种滥用，或者说是一时疏忽大意造成的灾难性后果。</p>
+<p>rm –rf &#x2F;*（因为带了r参数，所以此时&#x2F;*和&#x2F;含义并无区别）更多情况下是对rm –rf .&#x2F;*的误打。注意后一个命令在&#x2F;之前 有个.，Linux中.&#x2F;表示当前目录，所以这句话的意思的删除当前目录下的所有文件和文件夹。很常见的一个操作了。</p>
+<p>chmod也是一样，chmod –R 777 .&#x2F;*改变当前目录下所有文件目录的权限为777。</p>
+<hr>
+<p>可是这些事情本不该发生的，哪怕少打了一个.也不至于如此（更何况Ubuntu在rm –rf &#x2F;时还要加上–no-preserve-root）。为什么我们却看到了如此多的惨案呢？那是因为他们使用了root权限！</p>
+<p>root权限就是上帝，无所不能。这也是很多书籍都<strong>强烈建议</strong>使用普通权限的用户，需要root时用sudo<strong>暂时提权</strong>到root的原因。</p>
+<p>提到sudo，也就要提到sudoers了。比如说你新添加了一个用户给别人用，但是他也需要使用到root权限，可是常使用root权限太危险了，那我就给他sudo吧！</p>
+<p>创建用户benny，设置密码</p>
+<p>sudo useradd benny<br>sudo passwd benny</p>
+<p>输入benny用户的密码。</p>
+<p><img src="/images/021016_0304_rmrfdds3.png"></p>
+<p>然后切换到benny，ls下&#x2F;root</p>
+<p>su benny<br>sudo ls &#x2F;root</p>
+<p>（root用户的家目录&#x2F;root只有root才可以访问，我们可以在此测试下是否提权到root了）</p>
+<p><img src="/images/021016_0304_rmrfdds4.png"></p>
+<p>天啊，好害怕，竟然还打小报告！</p>
+<p>这是为什么，因为你新建的用户名没在sudoers里，&#x2F;etc&#x2F;sudoers定义了用户的权限，当然包括是否可以提权了。sudoers为440权限，属主可以读，同组可以读，其他人无权限。这也就是说，只有root才可以编辑。编辑就是写，权限2）此文件。</p>
+<p>好学的小伙伴可能会上网搜索sudoers，其中很多文章建议先chmod成777权限，编辑，然后在改回440权限。但是我强烈建议<strong>不要这么做</strong>！为什么！一是因为对新手来说，很容易没办法改回权限；二是因为脱裤子放屁。</p>
+<p>sudo只有在440权限的时候才可以使用，如果你现在是普通用户，看到那篇文章可能修改sudoers权限为777，于是你的命令是</p>
+<p>sudo chmod 777 &#x2F;etc&#x2F;sudoers</p>
+<p>777权限你的用户就可以编辑了，编辑完，当你再想改回权限时</p>
+<p>sudo chmod 440 &#x2F;etc&#x2F;sudoers</p>
+<p>会发现这么提示：</p>
+<p><img src="/images/021016_0304_rmrfdds5.png"></p>
+<p>任何sudo都会这么提示！</p>
+<p>你再也没办法使用sudo了！如果你使用的是Ubuntu等系统，那就更悲剧了，因为Ubuntu默认的root用户默认是被禁用的。。这也就意味着当你输入su试图切换到root时永远也无法输入正确的密码。这也就是在说你需要liveCD才能当上帝了。</p>
+<p>正确的办法是_sudo –s永久切换到root_，然后再改权限……</p>
+<p>可是问题来了，既然都是root了，还改权限干嘛啊！直接nano得了呗！脱裤子放屁干嘛啊！</p>
+<p>可可是，用文本编辑器修改sudoers是<strong>不科学的</strong>，假如你写错了，编辑器又不会提示你任何错误。</p>
+<p>但是当你sudo的时候……</p>
+<p><img src="/images/021016_0304_rmrfdds6.png"></p>
+<p>一样的悲剧。</p>
+<p>如果你看了sudoers文件，注意到最上面的注释，会看到这么一句：</p>
+<p><img src="/images/021016_0304_rmrfdds7.png"></p>
+<p>此文件必须使用”visudo”命令以root身份编辑。</p>
+<p>用visudo的<strong>万无一失</strong>的，假如你不小心弄出了语法错误（此处的“万无一失”是指的不作死）：</p>
+<p><img src="/images/021016_0304_rmrfdds8.png"></p>
+<p>visudo提示有语法错误，并且依旧有重新编辑的机会！还有后悔药！</p>
+<p>如果没有语法错误，visudo会正常退出。</p>
+<p>当然请不要作死给Allow members of group sudo to excute any command注释了……</p>
+<p>因为visudo只会检查语法错误。</p>
+<hr>
+<p> </p>
+<p>说了这么多废话，正确创建一个用户benny、给它提权到root的方法如下：</p>
+<p>创建用户</p>
+<p>sudo useradd benny<br>sudo passwd benny</p>
+<p>两次确认给benny设置密码</p>
+<p>执行visudo</p>
+<p>sudo visudo</p>
+<p>在Allow members of group sudo to excute any command下仿造上面一行添加：</p>
+<p>benny ALL&#x3D;(ALL:ALL) ALL</p>
+<p>ctrl + x退出保存。</p>
+<p><img src="/images/021016_0304_rmrfdds9.png"></p>
+<p>其实仿造admin那个写也可以，我暂时还没搞懂少一个:ALL有何影响。</p>
+<p>切换到新创建的benny用户</p>
+<p>su benny</p>
+<p>测试权限</p>
+<p>sudo ls &#x2F;root</p>
+<p><img src="/images/021016_0304_rmrfdds10.png"></p>
+<p>没有提示Permission denied.</p>
+<p>如果没有权限，应该是这样提示的：</p>
+<p><img src="/images/021016_0304_rmrfdds11.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/10/rm-dd-chmod-sudoers-root/index/" data-id="clhp7rtil007rs2qrfmrdfp63" data-title="rm –rf /, dd, chmod, sudoers和root权限的一些小事" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-auto-backup-to-qiniu/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/02/06/auto-backup-to-qiniu/index/" class="article-date">
@@ -982,70 +1109,6 @@
 
 
   
-    <article id="post-the-best-animation-movie-inside-out/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/17/the-best-animation-movie-inside-out/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-17T00:00:00.000Z" itemprop="datePublished">2016-01-17</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/17/the-best-animation-movie-inside-out/index/">年度最佳动画电影《头脑特工队》</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>假如你想吐槽我，多大的人了还看动画片，你可能不知道我看的不是熊出没。我并不觉得一个成年人看动画电影是幼稚的、被人耻笑的。皮克斯的动画电影，有些的定位就不是小孩，它是给成年人看的；有些情节，只有到了一定年龄、有了一定阅历之后甚至是耄耋之年才会渐渐理解。皮克斯总能抓住生活、贴近生活的展示影片的精髓和动人之处，这也是皮克斯不一般的地方。</p>
-<p><img src="/images/011716_0336_1.jpg"></p>
-<p> </p>
-<blockquote>
-<p>烂番茄新鲜度98%，IMDB评分8.3，MetaCritic上44家媒体都给予好评、无一差评，综评高达93分。大家普遍认为这是皮克斯动画中质素最高的其中之一。</p>
-</blockquote>
-<hr>
-<p>昨天一天看了四部新电影，晚上的时候又看了遍《头脑特工队》，依旧产生了和以前一样类似的想法：假如2015年我只能看一部电影，那么一定会是Inside Out，不过……我现在的想法是，假如这辈子只能看一部电影，那么我一定会毫不犹豫的选择Inside Out。</p>
-<p>似乎我早就过了看动画片的年龄，可是我还是很喜欢看动画电影。我并不觉得一个成年人看动画电影有什么幼稚、或者会被人耻笑怎么的。有些动画电影，它本身的定位就不是小孩，它是给成年人看的。有些情节，只有到了一定年龄、有了一定阅历之后才会渐渐懂得其中的道理。</p>
-<p>在这个续集十分流行的时候，原创电影的难度就变得越来越高了。这部电影，并不是给小孩子看的，而是给成年人看的。动画电影要怎么分类呢？像梦工厂、迪士尼等，搞笑卖萌博人一笑；还有另一类，就像皮克斯这样，没有什么笑点，却总是抓住生活中、人性中的某一点。《头脑特工队》就是这样，《飞屋环游记》，《机器人总动员》也是如此。皮克斯的动画电影并不是为了儿童创造，而是为了成年人而创造。甚至某些是要到了耄耋之年才会渐渐懂得的道理。也真不愧为乔帮主手下的公司。</p>
-<p>《头脑特工队》的剧情其实很简单，搬家到新环境不适应，想回到以前的家。</p>
-<p>剧情似乎很简单，重点是主创团队们没有直接描绘这个不适应，而是从Inside开始，从Inside影响到Outside……在Inside中， Joy、Sadness和Core Memory的冲突也恰恰是Riley在搬新家之后所有行为的理由……</p>
-<p>整部电影不只是在说”回家”这个事情，更多是在叙述成长过程中的烦恼，还有家庭、父母对孩子的影响。</p>
-<p>最后悔的就是当初大陆上映的时候我没来得及去电影院看。</p>
-<p>另外，昨天看了精灵旅社，整整两部。给我的感觉…和里约大冒险相似，感觉第二部发力远远赶不上第一部。</p>
-<p>文末，给大家提供下载地址： [dltable file&#x3D;”头脑特工队 Inside Out” size&#x3D;”YYeTs-1.32G，深影2.18G”]<a href="ed2k://|file|Inside.Out.2015.%E5%A4%B4%E8%84%91%E7%89%B9%E5%B7%A5%E9%98%9F.720p.Chi_Eng.ZMZ-BD-MP4.mp4|1415893954|6585dc3ee50fa0ccef75803b97db7676|h=eoqmijh4qcylvnei4pglxs6nn3lhu23w|/">YYeTs电驴</a><a href="ed2k://|file|%E5%A4%B4%E8%84%91%E7%89%B9%E5%B7%A5%E9%98%9F.Inside.Out.2015.%E4%B8%AD%E8%8B%B1%E5%AD%97%E5%B9%95.720p.BluRay.x264.%E6%B7%B1%E5%BD%B1%E5%AD%97%E5%B9%95%E7%BB%84.mkv|2344293745|74B8904467BC963BD950C988A6FDEC18|h=YJEWNF4JLIOYQR5F2E5V2KFU7DYRWNL7|/">深影电驴</a><a target="_blank" rel="noopener" href="http://pan.baidu.com/s/1qWL2riG">深影百度云</a><a target="_blank" rel="noopener" href="http://yunpan.cn/cLIUjgxtqWmZ6">深影360云提取码5bfe</a>[&#x2F;dltable]</p>
-<hr>
-<p> </p>
-<p>[dltable file&#x3D;”精灵旅社 Hotel Transylvania” size&#x3D;”YYeTs-1.40G”]<a href="ed2k://|file|Hotel.Transylvania.2012.%E7%B2%BE%E7%81%B5%E6%97%85%E7%A4%BE.%E5%8F%8C%E8%AF%AD%E5%AD%97%E5%B9%95.HR-HDTV.AC3.1024X576.x264-%E4%BA%BA%E4%BA%BA%E5%BD%B1%E8%A7%86%E5%88%B6%E4%BD%9C.mkv|1500364054|2c2234fa8723f9233adaa44420a7ddb6|h=7nf4k2ijyzyxhldgxhr7mmiubgtvdwfc|/">YYeTs电驴链接</a>[&#x2F;dltable]</p>
-<hr>
-<p> </p>
-<p>[dltable file&#x3D;”精灵旅社2 Hotel Transylvania 2” size&#x3D;”YYeTs-1.24G，深影-2.46G”]<a href="ed2k://|file|Hotel.Transylvania.2.2015.%E7%B2%BE%E7%81%B5%E6%97%85%E7%A4%BE2.720p.Chi_Eng.ZMZ-BD-MP4.mp4|1335913284|6b4046ae91ffad84dce82d7d578b2907|h=vgnjm6vrlgoahjkphm35tcdgzdy4mhzq|/">YYeTs电驴</a><a href="ed2k://|file|%E7%B2%BE%E7%81%B5%E6%97%85%E7%A4%BE2.%E7%89%B9%E6%95%88%E4%B8%AD%E8%8B%B1%E5%AD%97%E5%B9%95.Hotel.Transylvania.2.2015.720p.BluRay.x264%E6%B7%B1%E5%BD%B1%E5%AD%97%E5%B9%95%E7%BB%84.mkv|2644393303|F68BEB145A0A806A50A49D8BFD4A3E0F|h=HOPXNKFY76HL4E2L5XDKJWDWQAJH3OTL|/">深影电驴</a>[&#x2F;dltable]</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/17/the-best-animation-movie-inside-out/index/" data-id="clhp7rtm9009us2qrhsqs8kch" data-title="年度最佳动画电影《头脑特工队》" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1090,7 +1153,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1101,6 +1164,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
+          </li>
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
@@ -1116,10 +1183,6 @@
         
           <li>
             <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
       </ul>

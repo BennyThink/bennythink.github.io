@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Stripe 如何安全收款并避免盗刷与测卡 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="[v_error]警告⚠️ 在大多数国家和地区，盗刷信用卡都是犯罪行为，数额巨大甚至是重罪。请不要以身试法 [&#x2F;v_error] 使用Stripe进行收款是一件非常简单的事情，用起来非常舒适，不想写代码就无代码，会写代码还想自己设计前后端可以用 Stripe Elements。 当你把事情做好了，把你的在线服务上线了，这个时候就一定要考虑一个问题：盗刷与测卡（卡号测试、银行卡测试）。 盗">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stripe 如何安全收款并避免盗刷与测卡">
+<meta property="og:url" content="http://example.com/2024/08/03/stripe-fraud/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="[v_error]警告⚠️ 在大多数国家和地区，盗刷信用卡都是犯罪行为，数额巨大甚至是重罪。请不要以身试法 [&#x2F;v_error] 使用Stripe进行收款是一件非常简单的事情，用起来非常舒适，不想写代码就无代码，会写代码还想自己设计前后端可以用 Stripe Elements。 当你把事情做好了，把你的在线服务上线了，这个时候就一定要考虑一个问题：盗刷与测卡（卡号测试、银行卡测试）。 盗">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2024072819003618.png">
+<meta property="og:image" content="http://example.com/images/2024072819003795.png">
+<meta property="og:image" content="http://example.com/images/2024072819003967.png">
+<meta property="og:image" content="http://example.com/images/2024072819004024.png">
+<meta property="og:image" content="http://example.com/images/2024072819004098.jpeg">
+<meta property="og:image" content="http://example.com/images/2024072819004111.png">
+<meta property="og:image" content="http://example.com/images/2024072819004129.png">
+<meta property="og:image" content="http://example.com/images/202407281900421.png">
+<meta property="og:image" content="http://example.com/images/2024072819004281.jpeg">
+<meta property="og:image" content="http://example.com/images/2024072819004317.png">
+<meta property="article:published_time" content="2024-08-03T00:00:00.000Z">
+<meta property="article:modified_time" content="2024-08-03T22:37:10.286Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2024072819003618.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-stripe-fraud/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/08/03/stripe-fraud/index/" class="article-date">
+  <time class="dt-published" datetime="2024-08-03T00:00:00.000Z" itemprop="datePublished">2024-08-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Stripe 如何安全收款并避免盗刷与测卡
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]警告⚠️ 在大多数国家和地区，盗刷信用卡都是犯罪行为，数额巨大甚至是重罪。请不要以身试法 [&#x2F;v_error] 使用Stripe进行收款是<a target="_blank" rel="noopener" href="https://dmesg.app/stripe-telegram.html">一件非常简单的事情</a>，用起来非常舒适，不想写代码就无代码，会写代码还想自己设计前后端可以用 Stripe Elements。</p>
+<p>当你把事情做好了，把你的在线服务上线了，这个时候就一定要考虑一个问题：盗刷与测卡（卡号测试、银行卡测试）。</p>
+<p>盗刷很好理解，用偷来的信用卡资料去你的网站上购物；测卡则是用小额交易或者其他方式来确定盗窃来的信用卡是可用的，然后后续再大额诈骗中使用这些信用卡。</p>
+<p>毫无疑问，只要是在线电子商务，就一定无法避免盗刷与测卡的。</p>
+<p>一个非常重要的事情是，<strong>商户、卡组织与Stripe都有责任与义务阻止盗刷和测卡。</strong></p>
+<p>也许有人不理解，为什么商户也有责任与义务阻止盗刷和测卡？我就是把 Stripe 的一个Payment Link放到了网上，某个不怀好意的人看到了去盗刷，主动给我送钱，我为什么要负责？</p>
+<p>切勿贪小便宜！真正的持卡人发现了异常的付款记录，他们会去找发卡行争议，发卡行就会找到 Stripe，商户就需要应对争议，这期间不仅要承担争议费，在争议比例过高时Stripe还会封号、甚至罚款。</p>
+<p><img src="/images/2024072819003618.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<p>所以，遇到来源不明的欺诈付款，一定要<strong>全额退款</strong>，可不能贪小便宜。</p>
+<p>不过如果对方是用支付宝、微信付款的那就不用管了，因为这俩应该是不支持争议的😂</p>
+<hr>
+<p>前不久，我“惹毛”了一个黑产论坛。这个黑产论坛的人就开始盗刷+测卡。</p>
+<p><img src="/images/2024072819003795.png" alt="图形用户界面, 应用程序, 网站 描述已自动生成"></p>
+<p>比如这种，人在新加坡用墨西哥的卡🤨，再考虑到我的用户的大部分都是中国人，所以看起来怎么都很像盗刷。</p>
+<p>后来他们盗刷不成还恼羞成怒<a target="_blank" rel="noopener" href="https://dmesg.app/hide-in-cf.html">开始DoS我了</a>，峰值竟然有5500万。</p>
+<p>至于我是怎么“惹毛”这群人的，以后也许可以写一篇来说说这件事，我觉得这其中的乐趣会比听相声还搞笑🤣，不笑我倒贴你100块。如果你还是想先了解一下，那么看<a target="_blank" rel="noopener" href="https://x.com/DerekNee/status/1783064415048491428">这个Twitter</a>就够了</p>
+<hr>
+<p>本文的主题是，已经使用了Stripe，如何防患于未然，避免盗刷与测卡？假如在遭遇盗刷，需要立刻做什么事情？</p>
+<h2 id="Radar"><a href="#Radar" class="headerlink" title="Radar"></a>Radar</h2><p>Stripe Radar 是Stripe提供的一个反欺诈工具，基于强大的机器学习实现，并且可以自定义许多规则。比如ChatGPT不允许中国的卡付款，类似这样的规则，就可以Radar的规则实现。</p>
+<p>Radar不收月费，而是从每笔交易里抽成，Stripe还是很良心而且很会赚钱的。</p>
+<p>在遭遇盗刷的时候，<strong>立刻要做的事情就是开启 Radar</strong>，并且根据自己的情况调整灵敏度。同时，审核所有已经通过的付款，如果怀疑是盗刷的，要<strong>立刻全额退款，全额退款无法争议</strong>。在处理完之后，联系 Stripe客户表明自己的情况，要求他们提供协助和建议。</p>
+<p>以新加坡为例，Radar风控团队版每笔交易 0.1新币，机器学习版每笔0.08新币。强烈建议开启团队版。</p>
+<p>开启了Radar之后，我们可以在 Risk Control里调整Radar的灵敏度</p>
+<p><img src="/images/2024072819003967.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<p>根据自己的情况调整即可，比如我在面临大量盗刷的时候，把灵敏度调到了50，意味着所有风险分数高于50的付款都会被拒绝。</p>
+<h2 id="3DS"><a href="#3DS" class="headerlink" title="3DS"></a>3DS</h2><p>在某些地方，你可能会看到 Stripe 2D 的说法。这里的2D指的是在线刷卡的时候只要输入卡号、有效期、CVV并且无需进行身份验证（通常是短信或者App推送）。对应的需要验证的则是3DS</p>
+<p>在开启了 Radar之后，就可以强制开启3DS了，这样对于盗刷的情况基本可以拦截一大部分，毕竟他们没有卡主的手机。</p>
+<p>Radar – Rules- Authenticate Rules，三个默认的3DS规则全部打开</p>
+<p><img src="/images/2024072819004024.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<h2 id="自定义阻止规则"><a href="#自定义阻止规则" class="headerlink" title="自定义阻止规则"></a>自定义阻止规则</h2><p>每个人的业务都不同，比如我的这个业务下，美国人不太可能来用，更别提那些非常小众东南亚、加勒比海和非洲国家了。因此对于我来说，我只要允许中国、最多再包含港澳台的银行卡就可以了。</p>
+<p>那么我们就可以添加一个这样的自定义阻止规则，表达式这么写，NOT要写最前面而不是写IN之前</p>
+<p>NOT (:card_country: IN (‘CN’,’HK’,’MO’,’TW’))</p>
+<p>不想接受预付费卡，那么可以这样写</p>
+<p>:card_funding: &#x3D; ‘prepaid’</p>
+<p>只想接受中港澳台，允许任何国家的Apple Pay、Google Pay（这俩安全系数很高，不太可能是盗刷），那就这么写</p>
+<p>Block if NOT (:card_country: IN (‘CN’,’HK’,’MO’,’TW’)) AND NOT(:digital_wallet: IN (‘android_pay’,’apple_pay’))</p>
+<p>3DS通过就接受，无所谓发卡国，可以这么写</p>
+<p>NOT :is_3d_secure_authenticated:</p>
+<blockquote>
+<p>某人在某黑产论坛：真不敢c cn的卡</p>
+</blockquote>
+<p>在Stripe平台上，我们能做的事情差不多只有这么多了。为了防止测卡，我们还需要在自己的集成方式上下点功夫。</p>
+<h2 id="测卡的方式"><a href="#测卡的方式" class="headerlink" title="测卡的方式"></a>测卡的方式</h2><p>测卡一般分两种，一种是授权，类似你在某些网站如Cloudflare绑定你的信用卡，并不会真正的扣款，App上一般能看到记录，但是每月账单上未必会有；另外一种则是付款，一般是小额付款，确认卡片有效准备来波大的。</p>
+<p><img src="/images/2024072819004098.jpeg" alt="图形用户界面, 文本, 应用程序 中度可信度描述已自动生成"></p>
+<h2 id="检测测卡"><a href="#检测测卡" class="headerlink" title="检测测卡"></a>检测测卡</h2><p>首先当然是要检测到测卡。显著增加的拒绝交易其实就可以用来识别测卡。</p>
+<ul>
+<li>尝试查看付款详情的时候，能看到Stripe会自动屏蔽测卡，如上面的这张截图</li>
+<li>Developers的overview页面图表能发现很多失败</li>
+</ul>
+<p><img src="/images/2024072819004111.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<ul>
+<li>在 Developers – Logs 里查找402，也会发现大量记录</li>
+</ul>
+<p>在发现被搞了之后，我们要赶紧采取措施。哪怕赶紧找到测卡的人的IP给屏蔽了也是办法。当然坏人没那么笨，简单的防火墙规则未必会管用的。</p>
+<h2 id="保护-API-Key"><a href="#保护-API-Key" class="headerlink" title="保护 API Key"></a>保护 API Key</h2><p>Stripe的API Key分为两种，一种是Publishable Key可以公开的；另一种是Secret Key，有这个Key就可以访问Stripe的系统和全球金融网络，所以万万不能泄漏</p>
+<p>遇到测卡建议无论是否泄漏 secret key，都去吊销生成一个新的，并且添加IP访问白名单</p>
+<p><img src="/images/2024072819004129.png" alt="图形用户界面, 文本, 应用程序, 聊天或短信 描述已自动生成"></p>
+<h2 id="优化集成方式"><a href="#优化集成方式" class="headerlink" title="优化集成方式"></a>优化集成方式</h2><p>使用 Stripe有很多集成方式，使用 Stripe Payment Link、Stripe Checkout、Stripe Elements是推荐的方式</p>
+<p><img src="/images/202407281900421.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<p>用这种集成方式， Radar能够自动捕获到更多的信息，更容易判断盗刷测卡。</p>
+<p>其他的方式可能就需要自己手动提供信息了。</p>
+<h2 id="添加captcha"><a href="#添加captcha" class="headerlink" title="添加captcha"></a>添加captcha</h2><p>在请求创建 PaymentIntent之前可以加上一个验证码，比如 Cloudflare的turnstile就是非常好的选择。 这样对于大部分的垃圾请求都可以过滤了。</p>
+<p>需要注意，turnstile是需要客户端+服务端实现的。只有客户端是不完整的。</p>
+<h2 id="频率限制"><a href="#频率限制" class="headerlink" title="频率限制"></a>频率限制</h2><p>一般来说，单个IP创建 PaymentIntent 不应该太频繁，可以加上频率限制降低被刷概率。</p>
+<h2 id="登录会话"><a href="#登录会话" class="headerlink" title="登录会话"></a>登录会话</h2><p>登录了才能购买，类似这种可以降低被刷成本</p>
+<h2 id="自定义规则"><a href="#自定义规则" class="headerlink" title="自定义规则"></a>自定义规则</h2><p>根据自己的业务情况，使用不同的规则来屏蔽测卡。甚至还可以根据IP地理位置和发卡国组合，就看想象力了</p>
+<h2 id="战果"><a href="#战果" class="headerlink" title="战果"></a>战果</h2><p>这是屏蔽的付款，看这个时间这么接近，人在美国用着泰国、甚至一些奇怪的小国家的卡，风险系数非常高</p>
+<p><img src="/images/2024072819004281.jpeg" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>大概拦截了3000欧，恐怖啊😂 最开始规则配置的不太正确，估计误杀了一部分</p>
+<p><img src="/images/2024072819004317.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>Stripe的文档还是挺不错的，SDK用起来也非常舒服。无论是stripe.js还是python bindings，写满了 type annotations，想用错都难</li>
+<li>Stripe的客服也很专业，响应非常迅速</li>
+<li>坏人太多啦</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/08/03/stripe-fraud/index/" data-id="clzepsaz30000epjfdd66d8v9" data-title="Stripe 如何安全收款并避免盗刷与测卡" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/07/27/hide-in-cf/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">隐藏于 Cloudflare 的全球网络之中</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
+          </li>
+        
+          <li>
+            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

