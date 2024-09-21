@@ -73,6 +73,135 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-compile-kernel/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/12/15/compile-kernel/index/" class="article-date">
+  <time class="dt-published" datetime="2016-12-15T00:00:00.000Z" itemprop="datePublished">2016-12-15</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/12/15/compile-kernel/index/">[备忘录]：Linux4.9内核的正确编译之路</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几天前脱袜子大叔放出了LTS版本的Linux Kernel 4.9,听说增加了一个新的TCP拥塞控制算法BBR，想着自己从来没有编译过内核，那就试试嘛，纯当积累经验了。</p>
+<p>在这个过程中遇到了一些比较可怕的问题，比如说build出了300M的initrd.img，这……好吧！</p>
+<p>我的环境是：Ubuntu 16.04 64位，主要参考教程<a target="_blank" rel="noopener" href="https://kernelnewbies.org/KernelBuild">戳我吧</a></p>
+<p>下面就备忘一下我编译过程的整个经过吧</p>
+<h2 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h2><p>用包管理器把你的系统升级到最新吧，另外，最好别玩跨越太大的升级啊。</p>
+<p>sudo apt update<br>sudo apt upgrade</p>
+<h2 id="解决依赖"><a href="#解决依赖" class="headerlink" title="解决依赖"></a>解决依赖</h2><p>老生常谈了，该装的都装好吧</p>
+<p>sudo apt install libncurses5-dev gcc make git exuberant-ctags bc libssl-dev</p>
+<h2 id="准备目录"><a href="#准备目录" class="headerlink" title="准备目录"></a>准备目录</h2><p>通常来说我们选择在&#x2F;usr&#x2F;src下存放内核源码。实际上这并不是必须的。请注意，编译内核的时候并不需要root权限，安装的时候才需要。为了方便管理、patch内核、保持一致性起见，我们还是老实地用这个目录吧。从现在起就切换到root啦</p>
+<h2 id="下载、准备内核源码"><a href="#下载、准备内核源码" class="headerlink" title="下载、准备内核源码"></a>下载、准备内核源码</h2><p>在kernel.org下载内核，如果你的速度太慢，可以试试阿里云的源。</p>
+<p>#官网<br>wget <a target="_blank" rel="noopener" href="https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.tar.xz">https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.tar.xz</a><br>#阿里云<br>wget <a target="_blank" rel="noopener" href="http://mirrors.aliyun.com/linux-kernel/v4.x/linux-4.9.tar.xz">http://mirrors.aliyun.com/linux-kernel/v4.x/linux-4.9.tar.xz</a><br>tar xvf linux-4.9.tar.xz<br>cd linux-4.9</p>
+<h2 id="配置内核"><a href="#配置内核" class="headerlink" title="配置内核"></a>配置内核</h2><p>编译内核之前，我们需要创建出来一个.config文件，由这个文件决定编译什么、编译进内核还是模块。通常来说我们有这么几种方式生成这个.config</p>
+<h3 id="使用你原来内核的config"><a href="#使用你原来内核的config" class="headerlink" title="使用你原来内核的config"></a>使用你原来内核的config</h3><p>cp &#x2F;boot&#x2F;config-`uname -r`* .config</p>
+<h3 id="使用默认的config（会覆盖已有的-config文件）"><a href="#使用默认的config（会覆盖已有的-config文件）" class="headerlink" title="使用默认的config（会覆盖已有的.config文件）"></a>使用默认的config（会覆盖已有的.config文件）</h3><p>make defconfig</p>
+<p>我们这里当然要使用原来的内核配置文件啦，所以来一句cp &#x2F;boot&#x2F;config-`uname -r`* .config即可。</p>
+<p>或者干脆来一句</p>
+<p>make localmodconfig</p>
+<p>就OK了。假如我们要对内核配置进行微调，那就执行</p>
+<p>make menuconfig</p>
+<p>会酱紫</p>
+<p><img src="/images/121516_1413_Linux491.png"></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>是不是很神奇能在终端里画出这么漂亮的界面？ncurses啦</p>
+<p>为了防止它没加载我们刚刚复制过来的旧内核配置文件，我们选择 Load - ok手动加载下。</p>
+<p>之后导航到Kernel Hacking - Compile-time checks and compiler options，按N取消对Compile the kernel with debug info的勾选</p>
+<p>剩下的一些配置就看个人需求啦，比如说我需要编译BBR并使它成为默认的TCP 拥塞算法，那就酱紫</p>
+<p><img src="/images/121516_1413_Linux492.png"></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p>你需要支持XFS，就自己去开启。</p>
+<p>全都配置完了之后，导航到save 保存。</p>
+<p>下面我们就要准备开始编译啦！</p>
+<p>[v_error]警告 如果你是第一次编译内核，那么就按照上文所述即可。如果你已经编译过了，那么请运行 make clean 来清除编译过程中产生的可能导致编译失败的各种文件 make mrproper 不但会执行make clean的所有操作，还会删除.config文件，请谨慎使用[&#x2F;v_error]</p>
+<h2 id="编译内核"><a href="#编译内核" class="headerlink" title="编译内核"></a>编译内核</h2><p>在编译内核之前，建议大家想想以下几个问题：你是给自己电脑编译？还是虚拟机？还是VPS？</p>
+<p>你电脑是啥处理器？几个核心几个线程的？</p>
+<p>多大物理内存，有没有Swap？</p>
+<p>如果是用的虚拟机，那么推荐在虚拟机的界面里开终端而不是通过OpenSSH服务；</p>
+<p>如果是VPS，请一定要这样screen -S kernel然后再开始编译，否则SSH连接断开编译也就终止了。</p>
+<p>你的内存比较小，比如说只有2G、4G，建议开个swap吧，免得内存耗尽编译失败</p>
+<p>如果你自觉内存比较大不会耗尽，那就大胆的进行吧；</p>
+<p>如果你不知道自己是啥CPU ，你就lscpu下，CPU(s)写了个4,那你就当成4核心的。（我这货是双核四线程）</p>
+<p> </p>
+<p>总之，这些以防万一的准备工作是要做好的，因为编译内核是个比较消耗时间的事情，万一因为些小问题失败了，再重新来太糟心。</p>
+<p>嗷对了，如果你是笔记本，请做好散热……</p>
+<p>说了这么多，我就当你已经准备好了！</p>
+<p>那么，果断的敲</p>
+<p>make</p>
+<p>编译内核吧！（make会包含make bzImage等操作，详见make help）</p>
+<p>但是……忘记了我们上面说的双核四核吗？并行编译不好吗？</p>
+<p>那么就</p>
+<p>make -jX</p>
+<p>X是一个整数，假如你是双核，2和3就是比较好的选择；4核那么4或6就会是比较好的选择。双核四线程请将其视作四核。千万不要尝试双核来个make -j10,这样你的电脑就得比狗还慢啦。</p>
+<p>我就make -j4啦</p>
+<p>该约妹子的约妹子，该睡觉的睡觉……</p>
+<p> </p>
+<p>[v_tips]小提示：开启Swap的方法（128M的Swap为例）</p>
+<p>sudo dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;test bs&#x3D;1M count&#x3D;128<br>sudo chmod 600 test<br>sudo mkswap test<br>sudo swapon test</p>
+<p>free确定swap已开启 为了避免出现权限的问题，就全是用root啦[&#x2F;v_tips]</p>
+<h2 id="安装内核和模块"><a href="#安装内核和模块" class="headerlink" title="安装内核和模块"></a>安装内核和模块</h2><p>进过了很长时间，终于编译完啦。那就安装吧，ls -lh一下就会发现vmlinuz其实很小的。</p>
+<p>sudo make modules_install install</p>
+<p>之后reboot体验新内核吧！ 重启之后uname -a即可查看新内核哦，如果旧的内核没有留下来的必要了，那就使用类似</p>
+<p>sudo apt remove linux-headers-版本号</p>
+<p>等移除旧版本的内核</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/12/2016121514232992.png"><img src="/images/2016121514232992-300x34.png" alt="qq%e6%88%aa%e5%9b%be20161215222225"></a></p>
+<p> </p>
+<p>服务器上的4.9<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/12/2016121514232992.png"></a></p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>Some of us get dipped in flat, some in satin, some in gloss. But every once in a while you find someone who’s iridescent, and when you do, nothing will ever compare.</p>
+<p>Nothing will ever compare. :oops:</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/12/15/compile-kernel/index/" data-id="clhp7rtew0019s2qr9tbbbeyj" data-title="[备忘录]：Linux4.9内核的正确编译之路" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-play-vps/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/11/25/play-vps/index/" class="article-date">
@@ -964,92 +1093,6 @@
 
 
   
-    <article id="post-two-and-two/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/08/11/two-and-two/index/" class="article-date">
-  <time class="dt-published" datetime="2016-08-11T00:00:00.000Z" itemprop="datePublished">2016-08-11</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/08/11/two-and-two/index/">所谓自由，就是可以说二加二等于四的自由——短片Two &amp;Two</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>Freedom is the freedom to say that two plus two make four. If that is granted, all else follows.</p>
-<p>George Orwell – 1984</p>
-</blockquote>
-<p>今天在社交网络上看到这么一个短片，名字叫做”Two &amp;Two”，<a target="_blank" rel="noopener" href="http://www.imdb.com/title/tt1701187">IMDB在此</a>，<a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=EHAuGA7gqFU">YouTube在此</a></p>
-<p>这部短片同样收录在了”双语短片”这个栏目里，准确的说，人家说的是波斯语，网上能搜到的一些要么不完整，要么波斯语字幕和中文字幕重叠，所以我就自己重新压制了下。</p>
-<p>我不得不吐槽一句，给这个定轴，差点累死我！ 想要直接观看就点下面的播放键啦！</p>
-<p>[video]<a target="_blank" rel="noopener" href="https://shemissed.me/video/2+2=5.mp4/[/video/]">https://shemissed.me/video/2+2=5.mp4\[/video\]</a></p>
-<h2 id="2-2-x3D-5的来源"><a href="#2-2-x3D-5的来源" class="headerlink" title="2+2&#x3D;5的来源"></a>2+2&#x3D;5的来源</h2><p>“2+2&#x3D;5”这个概念源自于被称作时代的良心的乔治·奥威尔的经典作品《1984》。（在”<a target="_blank" rel="noopener" href="https://dmesg.app/books">推荐书籍</a>“这个栏目可以下载到该书的PDF版本，当然，当当买一本也很便宜）</p>
-<p>温斯顿·史密斯在从事一些反对老大哥的活动时，被奥布赖恩算计，然后被抓到友爱部，受尽折磨并承认2+2&#x3D;5</p>
-<p>所谓自由，就是可以说二加二等于四的自由。承认这一点，其他一切就迎刃而解。</p>
-<h2 id="为什么2-2要等于5"><a href="#为什么2-2要等于5" class="headerlink" title="为什么2+2要等于5"></a>为什么2+2要等于5</h2><p>无论是《1984》的这个部分还是《Two &amp;Two》，都传达出一个主题：在极权、暴力、独裁的统治之下，人们会丧失良知，人们会因为害怕、恐惧而不敢表达思想，人们会对”出头鸟”的遭遇淡然漠视。</p>
-<p>站在金字塔顶层的统治者，可以利用国家机器来对民众进行洗脑、宣传，打压一些不同的声音。只要他们愿意，2+2可以等于5，等于6，等于任何他们想的东西。</p>
-<p>2+2&#x3D;5的终极含义是，统治者颠倒黑白的独裁。</p>
-<h2 id="你的2-2等于5了吗"><a href="#你的2-2等于5了吗" class="headerlink" title="你的2+2等于5了吗"></a>你的2+2等于5了吗</h2><p>这问题有些奇怪，请不要以1+1&#x3D;10（二进制）、1+1&#x3D;王（脑筋急转弯）、1+1&gt;2（管理学什么的）、1+1≠2等搪塞——如果这样说，那么这个短片是真的白看了，你只是看到了2+2这个表层，完全没有理解2+2的真正意义：自由。</p>
-<p>问题是，你的2+2，等于几？</p>
-<p>在有人质问邢台大水、毒奶粉、毒疫苗、捍卫自由的时候，你在充当着聋哑人吗？你是那些无所谓的、洒在墙上的鸡血的小粉红吗？想想“<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/2016%E5%B9%B4%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%E7%BD%91%E6%B0%91%E2%80%9C%E5%87%BA%E5%BE%81%E2%80%9DFacebook%E4%BA%8B%E4%BB%B6">出征Facebook</a>”和“出征霍顿”，事实再一次证明了，GFW存在的目的不是少国人出去丢脸。GFW的目的在于屏蔽信息，创造单一的信息来源使得洗脑变成可能（比如说媒体对孙杨禁药曾说的“14年突然列入禁药，没更新不幸被查。很快该药就被踢出禁药名单”，打脸请<a target="_blank" rel="noopener" href="http://list.wada-ama.org/prohibited-all-times/prohibited-substances/">点这Substances Prohibited At All Times</a>、<a target="_blank" rel="noopener" href="http://www.intjudo.eu/editor_up/up/WADA-Revised-2014-Prohibited-List-EN.pdf">PROHIBITED IN-COMPETITION</a> ）。</p>
-<p>你国媒体，真是可怕。</p>
-<h2 id="《Two-amp-Two》之别人的指责"><a href="#《Two-amp-Two》之别人的指责" class="headerlink" title="《Two &amp;Two》之别人的指责"></a>《Two &amp;Two》之别人的指责</h2><p>在老师出去叫“红卫兵”的时候，有另外一个男生批评2+2&#x3D;4的男生，说大家会受他连累。在面对扭曲的真相的时候，通常会有<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2011/06/politician-integrity.html">四种类型的人</a>。</p>
-<h4 id="无论环境多糟，都敢于坚持自己的立场"><a href="#无论环境多糟，都敢于坚持自己的立场" class="headerlink" title="无论环境多糟，都敢于坚持自己的立场"></a>无论环境多糟，都敢于坚持自己的立场</h4><h4 id="受环境所迫，不敢说真话，选择保持沉默"><a href="#受环境所迫，不敢说真话，选择保持沉默" class="headerlink" title="受环境所迫，不敢说真话，选择保持沉默"></a>受环境所迫，不敢说真话，选择保持沉默</h4><h4 id="受环境所迫，为了自保而不惜伤害他人"><a href="#受环境所迫，为了自保而不惜伤害他人" class="headerlink" title="受环境所迫，为了自保而不惜伤害他人"></a>受环境所迫，为了自保而不惜伤害他人</h4><h4 id="为了自己能飞黄腾达，主动迫害别人以获取自身利益。"><a href="#为了自己能飞黄腾达，主动迫害别人以获取自身利益。" class="headerlink" title="为了自己能飞黄腾达，主动迫害别人以获取自身利益。"></a>为了自己能飞黄腾达，主动迫害别人以获取自身利益。</h4><p>按照边沁功利主义的the greatest good for the greatest number（为了大多数人的福祉）来算，这种为了不让大多数人遭殃的选择似乎是正确的。核心在于，何为“福祉”？2+2&#x3D;5，是胆怯，而不是“good”。</p>
-<p>第一种人，一般来说是很罕见的，应该数的过来，如果见到了，那一定是牛逼级别的人物；</p>
-<p>第二种人，绝对不会被坑，能有这样的朋友，也算是不错了；</p>
-<p>第三种人，那就要提防下，说不定啥时候就被“落井下石”被坑；</p>
-<p>第四种人，那就一定要敬而远之，说不定啥时候就插你三刀，你说怕不怕！</p>
-<p>你是哪一种人？</p>
-<h2 id="《Two-amp-Two》之无形的枪"><a href="#《Two-amp-Two》之无形的枪" class="headerlink" title="《Two &amp;Two》之无形的枪"></a>《Two &amp;Two》之无形的枪</h2><p>影片最开始的基调就有点诡异，穿着相同的孩子们，带着红袖标的毫无表情的三个年轻人，老师的暴戾，无形的枪。</p>
-<p>这部短片中，有些”surreal”的是三个面无表情的拿着”无形的枪”的年轻人。或许”无形的枪”在暗指生活在某些极权国家的人们的自我审查以及无时无刻不存在的压制。何为自我审查？”自我审查”指的让人们在发表意见的时候有所顾忌，自我思考是否合乎当权者的想法，同时强迫他人进行审查。通俗的最简单的说，我这微博是否会被查水表。这也是审查制度的最高境界。</p>
-<h2 id="《Two-amp-Two》之改掉的5"><a href="#《Two-amp-Two》之改掉的5" class="headerlink" title="《Two &amp;Two》之改掉的5"></a>《Two &amp;Two》之改掉的5</h2><p>短片最后，我们可以看到，后排的一名男生划掉了等号之后的5，改成了4。这不仅仅意味着坚守真相，还意味着反对极权。</p>
-<p>这像极了1984里史密斯对老大哥、对英社思想上的反叛。按套路出牌的话，最终史密斯应该加入兄弟会，最终成功推翻了大洋国的英社政权；然而奥威尔的套路是，史密斯被改造成了”真人”， 他战胜了自己，他爱老大哥。</p>
-<p>思想罪不会带来死亡，思想罪本身就是死亡。</p>
-<p>2+2&#x3D;4的反抗会成功吗？</p>
-<h2 id="教育与洗脑"><a href="#教育与洗脑" class="headerlink" title="教育与洗脑"></a>教育与洗脑</h2><p>对于生活在天朝这个奇葩的国家的童鞋们，十几年的应试教育应该是再熟悉不过的了。在小学的时候你曾经学唱过各种”红色歌曲”，中国学的时候发现什么黄继光都是忽悠人的，大学的时候发现包子是这个世界上最好吃的食物。</p>
-<p>天朝教育的目的，并不是为了树人，天朝的教育是为了洗脑的灌输：从小学到大学，基本上都停留在 <a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2009/02/study-technology-in-three-steps.html">WHAT，而且大多数人是依靠死记硬背来记住 WHAT，而不是出于兴趣</a>。</p>
-<p>正常的教育，应该是训练人的思维能力。老头子爱因斯坦说过一句话，教育的价值在于训练思维，而不在于传授事实。简单的说，”教你用建材造房子”这个过程叫做训练思维，”给你提供建材”这个过程叫做传授事实。</p>
-<p>而不正常的教育呢？为了洗脑的灌输，直接把一大堆东西（尤其是价值观、意识形态、各种精神等等）教给你，告诉你这是对的，好的，终极的；那个是邪恶的、错误的、毁灭的。</p>
-<p>要达到洗脑，要做什么呢？</p>
-<p>首先就要屏蔽信息的来源，提供单一的信息来源，这也正是GFW的目的之一。</p>
-<p>其次要进行欺骗和忽悠，而为了让民众相信谎言而无法看到真相，屏蔽信息是最重要的。</p>
-<p>然后要进行打压，发动国家机器对那些不同的声音进行打压。</p>
-<p>还要培养双重思想、呼吁感性而不是理性。</p>
-<p>难道洗脑只涉及到教育吗？森破，艺术作品、出版物、学校、甚至是宗教，无处不在。引用某游戏主角的一句话，The Ceph have been around… forever, man. And they built everywhere. Everywhere.</p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>所谓自由，就是可以说二加二等于四的自由。你不用担心像影片中一样因为说2+2&#x3D;4而吃枪子，更不用怕因为批评奥巴马执政水平而”颠覆国家政权”坐牢子。</p>
-<p>这是最好的时代，也是最坏的时代：你愿意让自己的子孙后代，生活在大洋国那样的环境中吗？</p>
-<p>请不要忘记黑板上的血迹。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/08/11/two-and-two/index/" data-id="clhp7rtmi00a8s2qr1fd50fgk" data-title="所谓自由，就是可以说二加二等于四的自由——短片Two &amp;Two" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1094,7 +1137,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1105,6 +1148,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
+          </li>
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
@@ -1120,10 +1167,6 @@
         
           <li>
             <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
       </ul>

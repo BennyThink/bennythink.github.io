@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>one-api/new-api性能优化：使用 ClickHouse 作为日志系统 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="one-api&#x2F;new-api是一款开源的OpenAI 接口管理 &amp; 分发系统，支持OpenAI、Anthropic、Gemini等多种模型。 这套系统，从使用者的角度来看，用起来倒还好，UI很简洁；从开发者的角度来看，作者挺不容易的要用Go来处理各种奇奇怪怪的序列化问题，一旦请求数量过多并发就无法提升，除此之外也有很多奇奇怪怪的地方啦……  我的OpenAI接口转发站 「头顶冒">
+<meta property="og:type" content="article">
+<meta property="og:title" content="one-api&#x2F;new-api性能优化：使用 ClickHouse 作为日志系统">
+<meta property="og:url" content="http://example.com/2024/09/21/one-api-clickhouse/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="one-api&#x2F;new-api是一款开源的OpenAI 接口管理 &amp; 分发系统，支持OpenAI、Anthropic、Gemini等多种模型。 这套系统，从使用者的角度来看，用起来倒还好，UI很简洁；从开发者的角度来看，作者挺不容易的要用Go来处理各种奇奇怪怪的序列化问题，一旦请求数量过多并发就无法提升，除此之外也有很多奇奇怪怪的地方啦……  我的OpenAI接口转发站 「头顶冒">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2024092119325495.jpg">
+<meta property="og:image" content="http://example.com/images/202409212031366.png">
+<meta property="og:image" content="http://example.com/images/2024092119153889.png">
+<meta property="article:published_time" content="2024-09-21T00:00:00.000Z">
+<meta property="article:modified_time" content="2024-09-21T22:37:10.146Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2024092119325495.jpg">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-one-api-clickhouse/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/09/21/one-api-clickhouse/index/" class="article-date">
+  <time class="dt-published" datetime="2024-09-21T00:00:00.000Z" itemprop="datePublished">2024-09-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      one-api/new-api性能优化：使用 ClickHouse 作为日志系统
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>one-api&#x2F;new-api是一款开源的OpenAI 接口管理 &amp; 分发系统，支持OpenAI、Anthropic、Gemini等多种模型。</p>
+<p>这套系统，从使用者的角度来看，用起来倒还好，UI很简洁；从开发者的角度来看，作者挺不容易的要用Go来处理各种奇奇怪怪的序列化问题，一旦请求数量过多并发就无法提升，除此之外也有很多<a target="_blank" rel="noopener" href="https://t.me/mikuri520/2836">奇奇怪怪的地方啦</a>……</p>
+<hr>
+<p>我的<a target="_blank" rel="noopener" href="https://burn.hair/">OpenAI接口转发站 「头顶冒火」</a> 就是在这个基础之上搭建的。只不过经过了我的大量修改，比如加个数据看板这种前端的功能</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/09/2024092119325495.jpg"><img src="/images/2024092119325495.jpg"></a></p>
+<p>以及默默的看不见的后台优化。经过我的一番调教之后，目前在Hetzner 2C 2G的机器上已经能达到几百的QPS了。当然实际使用，还得看真正的API能够提供多少TPM和RPM。</p>
+<hr>
+<p>在高并发的情况下，本来数据库的压力就比较大，如果还开启了日志记录功能，那么数据库就会被大量的日志写入直接撑爆；另外，即使在非高负载的情况下，在日志条目比较多的时候，查看每一页日志的请求速度也会很慢。</p>
+<p>优化并发最简单、并且大概率好用的办法之一是用更高配置的机器。但是一般来说，<strong>提升到一定配置之后，再提升基本没帮助，也就是陷入边际效应递减</strong>。而且对于我这种穷人，自然只能靠变异优化了。</p>
+<p>本文将介绍如何使用 ClickHouse替换原有的日志系统，避免在高并发的时候清空恶化并降低性能。至于其他方面的优化，等以后再说～</p>
+<h2 id="one-api的数据库"><a href="#one-api的数据库" class="headerlink" title="one-api的数据库"></a>one-api的数据库</h2><p>one-api默认支持三种数据库，SQLite，MySQL和PostgreSQL。</p>
+<ul>
+<li>SQLite：嵌入式的数据库，只有一个文件。在高并发下，即使允许多线程读写，其性能也不会好到哪里去。</li>
+<li>MySQL：知名的RDBMS</li>
+<li>PostgreSQL：PostgreSQL应该有更丰富的功能和特性。</li>
+</ul>
+<p>如果你实在懒得自己优化，直接换成 PostgreSQL+高配置的机器吧，PostgreSQL的性能应该会好过MySQL一些。</p>
+<h2 id="one-api的日志系统：写入"><a href="#one-api的日志系统：写入" class="headerlink" title="one-api的日志系统：写入"></a>one-api的日志系统：写入</h2><p>One-api的普通数据和日志默认情况下均记录在同一个数据库之中，其Go Struct Model 如下</p>
+<p>type Log struct {<br>    Id               int    `json:”id”`<br>    UserId           int    `json:”user_id” gorm:”index”`<br>    CreatedAt        int64  `json:”created_at” gorm:”bigint;index:idx_created_at_type”`<br>    Type             int    `json:”type” gorm:”index:idx_created_at_type”`<br>    Content          string `json:”content”`<br>    Username         string `json:”username” gorm:”index:index_username_model_name,priority:2;default:’’”`<br>    TokenName        string `json:”token_name” gorm:”index;default:’’”`<br>    ModelName        string `json:”model_name” gorm:”index;index:index_username_model_name,priority:1;default:’’”`<br>    Quota            int    `json:”quota” gorm:”default:0”`<br>    PromptTokens     int    `json:”prompt_tokens” gorm:”default:0”`<br>    CompletionTokens int    `json:”completion_tokens” gorm:”default:0”`<br>    ChannelId        int    `json:”channel” gorm:”index”`<br>}</p>
+<p>默认配置下，每一次请求，都会调用 <code>RecordConsumeLog</code> 写入日志，其代码非常简单</p>
+<p>log :&#x3D; &amp;Log{<br>    UserId:           userId,<br>    Username:         GetUsernameById(userId),<br>    CreatedAt:        helper.GetTimestamp(),<br>    Type:             LogTypeConsume,<br>    Content:          content,<br>    PromptTokens:     promptTokens,<br>    CompletionTokens: completionTokens,<br>    TokenName:        tokenName,<br>    ModelName:        modelName,<br>    Quota:            int(quota),<br>    ChannelId:        channelId,<br>}<br>err :&#x3D; LOG_DB.Create(log).Error</p>
+<h3 id="逐条写入日志"><a href="#逐条写入日志" class="headerlink" title="逐条写入日志"></a>逐条写入日志</h3><p>在请求数量比较多的情况下，这相当于是一条一条的执行 insert 语句。这种情况下主要有以下缺点：</p>
+<ol>
+<li>网络延迟：每次操作都有往返的RTT、通信开销</li>
+<li>事务开销：每次操作都要开启和关闭事务</li>
+<li>负载：频繁插入会导致CPU和IO负载增加</li>
+</ol>
+<p>即使你很有钱，用到了每个月几百几千美元配置和价格奇高的Managed database，1和2的问题还是无法避免</p>
+<h3 id="insert-many优化"><a href="#insert-many优化" class="headerlink" title="insert_many优化"></a>insert_many优化</h3><p>使用 insert_many，积攒一定的数据之后一起插入，这是一种非常简单的优化思路。这种办法也有些缺点：</p>
+<ol>
+<li>要等数据积攒到一定程度，会有一定的延迟</li>
+<li>积攒数据到时候可能会有内存消耗过多的风险</li>
+<li>可能会有更高的失败概率，一次性插入数据过多，可能会有 <code>max_allowed_packet</code> 之类的问题</li>
+</ol>
+<p>优点很明显，一次性写入数据可比一条一条写要快上很多倍了。</p>
+<p>one-api自带了一个类似的功能，环境变量<code>BATCH_UPDATE_ENABLED</code> 和 <code>BATCH_UPDATE_INTERVAL</code> 。不过截止到我写本文的时候，写日志的这部分功能不包含在<code>batchUpdate</code>内…而是在一个go routine内执行的…</p>
+<p>更要命的是，这个<code>batchUpdate</code>从设计上来看，只能聚合数值类型的数据😂</p>
+<p>func addNewRecord(type_ int, id int, value int64) {<br>    batchUpdateLocks[type_].Lock()<br>    defer batchUpdateLocks[type_].Unlock()<br>    if _, ok :&#x3D; batchUpdateStores[type_][id]; !ok {<br>        batchUpdateStores[type_][id] &#x3D; value<br>    } else {<br>        batchUpdateStores[type_][id] +&#x3D; value<br>    }<br>}</p>
+<p>改造一下当然可行，攒够1000条或到一定时间间隔一起写入数据库，难度不高，ChatGPT可以帮忙。</p>
+<h2 id="one-api的日志系统：读取"><a href="#one-api的日志系统：读取" class="headerlink" title="one-api的日志系统：读取"></a>one-api的日志系统：读取</h2><p>假如日志很少，那么读取日志并不会造成什么大问题。</p>
+<p>但是如果数据量很大，并且还用户点击了下一页，甚至是最后一页进行了分页操作，那么 <code>OFFSET</code>和<code>LIMIT</code> 会显著影响数据库的性能。</p>
+<p>MySQL 在执行 <code>OFFSET</code> 时，必须从头开始扫描并丢弃前 <code>OFFSET</code> 条记录，然后返回 <code>LIMIT</code> 条记录，导致较大的时间开销，尤其是 <code>OFFSET</code> 数值较大时。</p>
+<p>优化方法应该是有一些的，比如通过主键而不是<code>OFFSET</code> ，具体可以问问ChatGPT，我不是很愿意进行这个方向的研究😂</p>
+<h2 id="ClickHouse介绍"><a href="#ClickHouse介绍" class="headerlink" title="ClickHouse介绍"></a>ClickHouse介绍</h2><p>ClickHouse是yandex开发的一个开源列式数据库管理系统，专门为高性能的分析查询而设计，在处理大量数据时有出色的表现。</p>
+<p>ClickHouse采用列式存储，不像MySQL等是行式存储，特别适合存储日志。在 WebP Cloud Services 中我们的统计信息来源便是 ClickHouse</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/09/202409212031366.png"><img src="/images/202409212031366.png"></a></p>
+<p>更重要的是，ClickHouse的查询语句和MySQL、PostgreSQL等几乎没什么差别，基本上改改就能用，学习曲线很平缓。</p>
+<h2 id="ClickHouse创建数据库表"><a href="#ClickHouse创建数据库表" class="headerlink" title="ClickHouse创建数据库表"></a>ClickHouse创建数据库表</h2><p>根据上面的Go Struct和已有的数据结构，改改基本上就可以了。为了保持一致，<code>created_at</code> 就用数字时间戳了，虽然使用 <code>datetime</code>是更好的办法。</p>
+<p>CREATE TABLE logs<br>(<br>    user_id           Nullable(Int64),<br>    created_at        Int64  DEFAULT toUnixTimestamp(now()),<br>    type              Nullable(Int64),<br>    content           Nullable(String),<br>    username          String DEFAULT ‘’,<br>    token_name        String DEFAULT ‘’,<br>    model_name        String DEFAULT ‘’,<br>    quota             Int64  DEFAULT 0,<br>    prompt_tokens     Int64  DEFAULT 0,<br>    completion_tokens Int64  DEFAULT 0,<br>    ip                Nullable(String),<br>    user_agent        Nullable(String)<br>) ENGINE &#x3D; MergeTree()<br>      ORDER BY (created_at, username, token_name, model_name);</p>
+<h2 id="连接到ClickHouse"><a href="#连接到ClickHouse" class="headerlink" title="连接到ClickHouse"></a>连接到ClickHouse</h2><p>使用官方的 github.com&#x2F;ClickHouse&#x2F;clickhouse-go</p>
+<p>var ch, err &#x3D; clickhouse.Open(&amp;clickhouse.Options{<br>    Addr: []string{“clickhouse:9000”},<br>    Auth: clickhouse.Auth{<br>        Database: “openai”,<br>        Username: “default”,<br>        Password: “”,<br>    },<br>})</p>
+<h2 id="写入数据"><a href="#写入数据" class="headerlink" title="写入数据"></a>写入数据</h2><p>query :&#x3D; `INSERT INTO logs ( user_id, created_at, type, content, username, token_name, model_name,quota, prompt_tokens, completion_tokens, ip, user_agent)`<br>ch.Exec(ctx, query, 1, timestamp, …)</p>
+<h2 id="批量写入数据"><a href="#批量写入数据" class="headerlink" title="批量写入数据"></a>批量写入数据</h2><p>Clickhouse最厉害的地方之一是可以批量写入数据，官网上<a target="_blank" rel="noopener" href="https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts">是这么说的</a>：</p>
+<blockquote>
+<p>Generally, we recommend inserting data in fairly large batches of at least 1,000 rows at a time, and ideally between 10,000 to 100,000 rows.</p>
+</blockquote>
+<p>你看他们多自信，让你攒够了再写，一次写几万没问题</p>
+<h3 id="创建batch"><a href="#创建batch" class="headerlink" title="创建batch"></a>创建batch</h3><p>在Go里批量写入，要先创建batch</p>
+<p>var batch, err &#x3D; ch.PrepareBatch(ctx, `INSERT INTO logs ( user_id, created_at, type, content, username, token_name, model_name,<br>    quota, prompt_tokens, completion_tokens, ip, user_agent)<br>VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)</p>
+<h3 id="追加数据"><a href="#追加数据" class="headerlink" title="追加数据"></a>追加数据</h3><p>然后往这个 batch里疯狂<code>append</code>数据，也就是在原来的<code>RecordConsumeLog</code> 中追加数据到这个batch</p>
+<p>batch.Append(userId, helper.GetTimestamp(),<br>    LogTypeConsume, content, username, tokenName, modelName, quota, promptTokens, completionTokens, ip, ua,<br>)</p>
+<h3 id="提交"><a href="#提交" class="headerlink" title="提交"></a>提交</h3><p>时间差不多了，或者数据足够了，提交</p>
+<p>batch.Send()</p>
+<h3 id="定时器"><a href="#定时器" class="headerlink" title="定时器"></a>定时器</h3><p>定时器可以用<code>ticker</code></p>
+<p>func ClickHouseTicker() {<br>    var ticker &#x3D; time.NewTicker(time.Second * 60)<br>    for {<br>        select {<br>        case &lt;-ticker.C:<br>            FlushLog()<br>        }<br>    }<br>}</p>
+<p>在 main里 <code>go ClickHouseTicker()</code>即可</p>
+<h3 id="清空batch"><a href="#清空batch" class="headerlink" title="清空batch"></a>清空batch</h3><p>写完数据之后，然后清空batch，不能越写越多</p>
+<p>batch&#x3D;createBatch()</p>
+<h3 id="程序退出清理工作"><a href="#程序退出清理工作" class="headerlink" title="程序退出清理工作"></a>程序退出清理工作</h3><p>最后，要捕获 SIGINT和SIGTERM信号，不能重启程序的丢日志啊，这个时候就要用到IIFE+goroutine了</p>
+<p>sigChan :&#x3D; make(chan os.Signal, 1)<br>signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)<br>go func() {<br>    for {<br>        sig :&#x3D; &lt;-sigChan<br>        switch sig {<br>        case syscall.SIGINT, syscall.SIGTERM:<br>            logger.SysLog(“Cleaning up…”)<br>            model.FlushLog()<br>            model.ConsolidateConsumeQuota()<br>            time.Sleep(time.Second * 2)<br>            syscall.Exit(0)<br>        }<br>    }<br>}()</p>
+<h2 id="读数据"><a href="#读数据" class="headerlink" title="读数据"></a>读数据</h2><p>查询语法基本和MySQL一样，<code>ch.Query(ctx, query, params…)</code>就行，order by，offset，limit，count等都有</p>
+<h2 id="删除日志"><a href="#删除日志" class="headerlink" title="删除日志"></a>删除日志</h2><p>日志总得删掉，要不然磁盘早晚会被撑爆。用类似如下语句就行，最后的 <code>max_execution_time</code> 可选，避免日志真的太多删除也很费时间</p>
+<p>DELETE FROM logs WHERE type &#x3D; 2 AND created_at &lt; timestamp SETTINGS max_execution_time&#x3D;3600</p>
+<h2 id="数据分析"><a href="#数据分析" class="headerlink" title="数据分析"></a>数据分析</h2><p>通过 Grafana + Clickhouse作为数据源，可以直接画图表。之前 QPS 的数据是写入到 influxdb的，一旦超过7天查询就很慢，现在我单独把本应写到 influxdb的数据写到了一个名为 stats 的ClickHouse表，只保存关键的信息，如请求时间，模型名称等。</p>
+<p>比如看看大家用得最多的模型，最多的竟然是mini，然后是4o；但是消费是反过来的，因为4o的价格比较贵，mini比较便宜</p>
+<p><img src="/images/2024092119153889.png" alt="图形用户界面, 饼图 中度可信度描述已自动生成"></p>
+<h2 id="查询性能能提升"><a href="#查询性能能提升" class="headerlink" title="查询性能能提升"></a>查询性能能提升</h2><p>简单的执行三个查询，一共有354万的数据。主要测一下大量翻页，可以看出即使最差的<code>select *</code> 的情况下，ClickHouse大概也有4-5倍的性能提升。</p>
+<table><tbody><tr><td>查询</td><td>MySQL</td><td>ClickHouse</td><td>比率</td></tr><tr><td>select count(*) from openai.logs;</td><td>2.73</td><td>0.002</td><td>1365.00</td></tr><tr><td>select user_id from openai.logs limit 3 offset 3000000;</td><td>4.19</td><td>0.022</td><td>190.45</td></tr><tr><td>select * from openai.logs limit 3 offset 3000000;</td><td>12.16</td><td>2.778</td><td>4.38</td></tr></tbody></table>
+
+<p>mysql&gt; select count(*) from openai.logs;<br>+———-+<br>| count(*) |<br>+———-+<br>|  3540771 |<br>+———-+<br>1 row in set (2.73 sec)</p>
+<p>mysql&gt; select user_id from openai.logs limit 3 offset 3000000;<br>….<br>3 rows in set (4.19 sec)</p>
+<p>mysql&gt; select * from openai.logs limit 3 offset 3000000;<br>….                                                                                                                                                                                                                                                   |<br>3 rows in set (12.16 sec)</p>
+<p>c387e15ec5c6 :) select count(*) from openai.logs;</p>
+<p>SELECT count(*)<br>FROM openai.logs</p>
+<p>Query id: 9382c843-927d-471f-8f6c-85a049d58294</p>
+<p>   ┌─count()─┐</p>
+<ol>
+<li>│ 3540771 │ – 3.54 million<br>└─────────┘</li>
+</ol>
+<p>1 row in set. Elapsed: 0.002 sec.</p>
+<p>c387e15ec5c6 :) select user_id from openai.logs limit 3 offset 3000000;</p>
+<p>SELECT user_id<br>FROM openai.logs<br>LIMIT 3000000, 3</p>
+<p>Query id: 66d0ea52-6b30-4a73-b313-fc45bdcbaaf2<br>….</p>
+<p>3 rows in set. Elapsed: 0.022 sec. Processed 3.29 million rows, 29.64 MB (146.90 million rows&#x2F;s., 1.32 GB&#x2F;s.)<br>Peak memory usage: 4.26 MiB.</p>
+<p>c387e15ec5c6 :) select * from openai.logs limit 3 offset 3000000;</p>
+<p>SELECT *<br>FROM openai.logs<br>LIMIT 3000000, 3</p>
+<p>Query id: 0faf62f4-5203-434a-8b3d-d1bcf032a8d0<br>….<br>3 rows in set. Elapsed: 2.778 sec. Processed 3.01 million rows, 9.26 GB (1.08 million rows&#x2F;s., 3.33 GB&#x2F;s.)<br>Peak memory usage: 258.79 MiB.</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>那当然是要自我宣传一下啦！</p>
+<p>🌟🌟🌟欢迎注册并使用 <a target="_blank" rel="noopener" href="https://burn.hair/?lang=zh-CN&utm_source=dmesg">头顶冒火 OpenAI 接口转发站</a>，稳定、快速、高并发，注册即赠送 $0.5 测试额度 🌟🌟🌟</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/09/21/one-api-clickhouse/index/" data-id="cm1cqczkf0000ymjf4qnmejvy" data-title="one-api/new-api性能优化：使用 ClickHouse 作为日志系统" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/08/03/stripe-fraud/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Stripe 如何安全收款并避免盗刷与测卡</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
+          </li>
+        
+          <li>
+            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
+          </li>
+        
+          <li>
+            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

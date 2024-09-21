@@ -73,6 +73,57 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-traceroute-location/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/01/18/traceroute-location/index/" class="article-date">
+  <time class="dt-published" datetime="2016-01-18T00:00:00.000Z" itemprop="datePublished">2016-01-18</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/01/18/traceroute-location/index/">地图化的traceroute，可以查看路由跟踪的具体地理位置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>地图化的traceroute</p>
+<p>可以查看路由跟踪的具体地理位置</p>
+<p><img src="/images/011816_0604_traceroute1.png"></p>
+<p>可以把traceroute的IP地址在地图上标示出来，这样就知道自己访问某个域名、某个IP的时候是怎样中转、有没有绕圈了。</p>
+<p>对于经常购买海外VPS的用户来说，这个小东西是个比较不错的测评工具！</p>
+<p>PS，由于某些IP地址变化略大，绘制出来的tracert仅供参考。</p>
+<p>使用方法，打开软件，点击右侧的”路由跟踪”即可。</p>
+<p><img src="/images/011816_0604_traceroute2.png"></p>
+<h2 id="下载地址"><a href="#下载地址" class="headerlink" title="下载地址"></a>下载地址</h2><p>[dl href&#x3D;”<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/17MONIPDB.rar?t=1453096918584%22%5C%5D%E6%9C%AC%E5%9C%B0%E4%B8%8B%E8%BD%BD%5C%5B/dl%5C%5D">http://bennydownload.file.alimmdn.com/17MONIPDB.rar?t=1453096918584&quot;\]本地下载\[/dl\]</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/01/18/traceroute-location/index/" data-id="clhp7rtmg00a4s2qr1ddx7aeo" data-title="地图化的traceroute，可以查看路由跟踪的具体地理位置" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-the-best-animation-movie-inside-out/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/01/17/the-best-animation-movie-inside-out/index/" class="article-date">
@@ -772,154 +823,6 @@
 
 
   
-    <article id="post-softether-vpnserver/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2015/11/27/softether-vpnserver/index/" class="article-date">
-  <time class="dt-published" datetime="2015-11-27T00:00:00.000Z" itemprop="datePublished">2015-11-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2015/11/27/softether-vpnserver/index/">SoftEther VPN Server安装笔记</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_notice]关于在网站上，和443端口冲突无法设置密码的，请看此篇： <a target="_blank" rel="noopener" href="https://dmesg.app/softether-443-conflicts-with-web-server.html">《SoftEther 443端口与web服务器冲突解决方案》</a> [&#x2F;v_notice] 不知道该说什么好，还是老实的回归老本行吧！</p>
-<p>在阿里云上搭建好VPN已经略有时日了，大部分能搜索到的教程都是手动安装、修改配置文件的，对于新手来说尽管有很详尽的教程，可是真正搭建成功还是略复杂的。那有没有更简单的办法呢？图形化的方式？答案当然是，有的！还记得日本筑波大学研发的分布式VPN吗？”分布式”就是，服务器是由广大网友搭建的，这也等同于宣告”IP封锁”的失效，不过应用而来的就是深度包检测。既然官方提供了VPNGate客户端，那么按理说也应该同样提供一个易于使用的服务端！没错的！下面就跟着我的教程来吧！</p>
-<hr>
-<p>[v_error]更新：有的时候设置完成会发现在OpenVPN中一直是waiting for server，如果确定设置没错，配置文件正确，IP端口等也正确的话，那么就严格按照教程再来一遍，说不定是你丢了某一步。不过，更有可能的是，是不是你的网络环境稍微有点特殊，不如你换个OpenVPN的端口？（比如我家的路由器是会劫持UDP 53的通信的，所以自然就是一直waiting for server啦）[&#x2F;v_error]</p>
-<h1 id="☆介绍"><a href="#☆介绍" class="headerlink" title="☆介绍"></a><strong>☆介绍</strong></h1><p>在说事情之前，先顺路提一下，VPN（虚拟专用网）的本身意图并不是翻墙的，翻墙只是一种用途。</p>
-<p>这个神奇的软件叫做SoftEther VPN Server，以下介绍Linux版本的安装使用方法。</p>
-<p>SoftEther VPN Server官网，包含多种平台架构的下载地址（需翻墙）：</p>
-<p><a target="_blank" rel="noopener" href="http://www.softether-download.com/cn.aspx?product=softether">http://www.softether-download.com/cn.aspx?product=softether</a></p>
-<p>需要的工具：</p>
-<p>Linux VPS（以Debian&#x2F;Ubuntu为例，是Linux就可以）、Windows也可以（而且更简单）。</p>
-<hr>
-<p> </p>
-<h1 id="☆安装SoftEther-VPN-Server"><a href="#☆安装SoftEther-VPN-Server" class="headerlink" title="☆安装SoftEther VPN Server"></a><strong>☆安装SoftEther VPN Server</strong></h1><p>SSH连到VPS，先更新下并安装gcc等工具</p>
-<p>sudo apt-get update<br>sudo apt-get install build-essential</p>
-<p>[v_error]2016年8月1日更新 实践表明，SecureNAT和Local Bridge（本地桥）<strong>不可以</strong>同时开启！否则会造成链路层死循环占用大量CPU 参考歪果仁的<a target="_blank" rel="noopener" href="http://blog.lincoln.hk/blog/2013/03/19/softether-on-vps/">这篇博文</a>以及<a target="_blank" rel="noopener" href="https://dmesg.app/highload-softether.html">我的最新博文</a> 我会唠叨三次的[&#x2F;v_error]</p>
-<p>假设当前目录为&#x2F;root</p>
-<p>32位执行这个：</p>
-<p>wget <a target="_blank" rel="noopener" href="https://github.com/SoftEtherVPN/SoftEtherVPN/_Stable/releases/download/v4.29-9680-rtm/softether-vpnserver-v4.29-9680-rtm-2019.02.28-linux-x86-32bit.tar.gz">https://github.com/SoftEtherVPN/SoftEtherVPN\_Stable/releases/download/v4.29-9680-rtm/softether-vpnserver-v4.29-9680-rtm-2019.02.28-linux-x86-32bit.tar.gz</a></p>
-<p>64位执行这个：</p>
-<p>wget <a target="_blank" rel="noopener" href="https://github.com/SoftEtherVPN/SoftEtherVPN/_Stable/releases/download/v4.29-9680-rtm/softether-vpnserver-v4.29-9680-rtm-2019.02.28-linux-x64-64bit.tar.gz">https://github.com/SoftEtherVPN/SoftEtherVPN\_Stable/releases/download/v4.29-9680-rtm/softether-vpnserver-v4.29-9680-rtm-2019.02.28-linux-x64-64bit.tar.gz</a></p>
-<p>解压缩</p>
-<p>tar xvf 文件名来解压缩</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2015/11/77.png"><img src="/images/77.png" alt="77"></a></p>
-<p>切换到解压出来的目录中</p>
-<p>cd vpnserver<br>make</p>
-<p>连续输入三个1</p>
-<p><img src="/images/112715_0834_SoftEtherVP2.png"></p>
-<p>安装完成，请不要删除此目录</p>
-<p>终端继续输入</p>
-<p>.&#x2F;vpnserver start</p>
-<p>开启服务</p>
-<hr>
-<p> </p>
-<h1 id="☆设置SoftEther-VPN-服务"><a href="#☆设置SoftEther-VPN-服务" class="headerlink" title="☆设置SoftEther VPN 服务"></a><strong>☆设置SoftEther VPN 服务</strong></h1><p>开启服务：</p>
-<p>.&#x2F;vpnserver start</p>
-<p>关闭服务：</p>
-<p>.&#x2F;vpnserver stop</p>
-<p>服务开启了之后，先进行简单的设置吧。（<strong>这里直接用下面介绍的客户端去连接也是可以的</strong>）</p>
-<p>终端执行</p>
-<p>.&#x2F;vpncmd</p>
-<p>依次1，回车，回车，之后如图所示：</p>
-<p><img src="/images/112715_0834_SoftEtherVP3.png"></p>
-<p>在提示符下输入</p>
-<p>ServerPasswordSet</p>
-<p>输入管理服务器的密码。</p>
-<p>两次确定之后，按ctrl+C退出管理。</p>
-<p>之后最好将服务器加入到开机启动项中，这样服务器重启了就不用每次都手动到SSH里开启了。当然了最好的办法还是用systemd啦！</p>
-<p>终端里依次输入：</p>
-<p>vi &#x2F;etc&#x2F;rc.local</p>
-<p>在exit 0之前写入</p>
-<p>&#x2F;root&#x2F;vpnserver&#x2F;vpnserver start</p>
-<p>保存退出即可</p>
-<p><img src="/images/112715_0834_SoftEtherVP4.png"></p>
-<p>[v_blue]Tips：vi使用方法： 按Esc回到command模式，i进入插入模式，command下:wq!为保存并退出。[&#x2F;v_blue]</p>
-<hr>
-<p> </p>
-<h1 id="☆管理SoftEther-VPN-Server服务"><a href="#☆管理SoftEther-VPN-Server服务" class="headerlink" title="☆管理SoftEther VPN Server服务"></a><strong>☆管理SoftEther VPN Server服务</strong></h1><p>设置好账号密码之后，我们就可以切换到带有图形界面的设备上配置服务器啦！考虑到Windows用户居多，在此我们就以Window为例进行讲解（其他版本官网也有下载）。</p>
-<p>下载<a target="_blank" rel="noopener" href="http://oks2t4o68.bkt.clouddn.com/softether-vpn_admin_tools-v4.22-9634-beta-2016.11.27-win32.zip">SoftEner VPN Management</a>（不好意思前段时间丢错了链接）</p>
-<p> </p>
-<p>安装时注意选择这个</p>
-<p><img src="/images/112715_0834_SoftEtherVP5.png"></p>
-<p>点击新设置，</p>
-<p>设置名称、主机名（Linux服务器的IP，此处我用虚拟机做实验所以是内网IP）、管理密码，点确定。</p>
-<p><img src="/images/112715_0834_SoftEtherVP6.png"></p>
-<p>之后选择刚刚新建的设置，点击连接按钮。</p>
-<p>关闭两个窗口来到主要的管理界面：</p>
-<p><img src="/images/112715_0834_SoftEtherVP7.png"> [v_error]</p>
-<p>警告</p>
-<p>请一定要注意，SecureNAT和Local Bridge（本地桥）<strong>不可以</strong>同时开启！ [&#x2F;v_error]</p>
-<h2 id="◇1-新建Hub"><a href="#◇1-新建Hub" class="headerlink" title="◇1.新建Hub"></a><strong>◇1.新建Hub</strong></h2><p>原来的Hub名字比较难听，为了体验一把，我们就把原来的DEFAULT这个hub删掉，然后点击创建虚拟Hub</p>
-<p><img src="/images/112715_0834_SoftEtherVP8.png"></p>
-<p>密码可选。</p>
-<h2 id="◇2-创建用户"><a href="#◇2-创建用户" class="headerlink" title="◇2.创建用户"></a><strong>◇2.创建用户</strong></h2><p>点击管理虚拟Hub-管理用户，左下角的新建。输入用户名，可以使用匿名的方式认证、也可以使用账号密码、甚至是证书认证也可以。</p>
-<p><img src="/images/112715_0834_SoftEtherVP9.png"></p>
-<p>安全策略那里可以设置此用户的最大下载速度、最大上传速度，简直是为了商用而准备的！</p>
-<h2 id="◇3-配置SecureNAT"><a href="#◇3-配置SecureNAT" class="headerlink" title="◇3.配置SecureNAT"></a><strong>◇3.配置SecureNAT</strong></h2><p>在”虚拟Hub”界面点击”虚拟NAT和虚拟DHCP服务器”</p>
-<p><img src="/images/112715_0834_SoftEtherVP10.png"></p>
-<p>[v_error]请一定要注意，SecureNAT和Local Bridge（本地桥）<strong>不可以</strong>同时开启！否则会造成链路层死循环占用大量CPU [&#x2F;v_error]</p>
-<h2 id="◇4-L2TP-Over-IPSec-x2F-PSK搭建方法："><a href="#◇4-L2TP-Over-IPSec-x2F-PSK搭建方法：" class="headerlink" title="◇4.L2TP Over IPSec&#x2F;PSK搭建方法："></a><strong>◇4.L2TP Over IPSec&#x2F;PSK搭建方法：</strong></h2><p>主界面点击L2TP，勾选全部选项，设置一个预共享密钥（当成WiFi密码随意设置）。</p>
-<p><img src="/images/112715_0834_SoftEtherVP13.png"></p>
-<p><strong>连接方法（Windows）</strong>，首先按照常理设置好一个VPN连接，连接属性，协议选择L2TP&#x2F;IPSec，高级设置里选择”预共享密钥”，输入密钥确定即可。</p>
-<p><img src="/images/112715_0834_SoftEtherVP14.png"></p>
-<p> </p>
-<h2 id="◇5-OpenVPN搭建方法："><a href="#◇5-OpenVPN搭建方法：" class="headerlink" title="◇5.OpenVPN搭建方法："></a><strong>◇5.OpenVPN搭建方法：</strong></h2><p>(ios及Mac、Linux使用方式参考此文章<a target="_blank" rel="noopener" href="http://www.vpngate.net/cn/howto_openvpn.aspx">http://www.vpngate.net/cn/howto_openvpn.aspx</a>)</p>
-<p>OpenVPN官网下载地址：<a target="_blank" rel="noopener" href="https://openvpn.net/index.php/open-source/downloads.html">https://openvpn.net/index.php/open-source/downloads.html</a></p>
-<p>OpenVPN的配置涉及到证书的生成，但是SoftEther同样提供了比较方便的服务器、客户端配置方法。</p>
-<p><strong>服务器配置方法：</strong></p>
-<p>管理主界面点击右下角的OpenVPN&#x2F;MS-SSTP，设置一个UDP端口，然后点击”为OpenVPN生成配置文件”，之后将弹出的zip文档保存，确定。</p>
-<p><img src="/images/112715_0834_SoftEtherVP15.png"></p>
-<p><strong>客户端配置方法：</strong></p>
-<p> </p>
-<p>下载并安装OpenVPN客户端，</p>
-<p>将刚刚下载的zip文档中l3结尾的文件复制到安装目录下的config文件夹下。</p>
-<p><img src="/images/112715_0834_SoftEtherVP16.png"></p>
-<p> </p>
-<p>打开openVPN，右下角右键选择Connect，然后输入虚拟Hub里设置的一对账号密码即可。</p>
-<p><img src="/images/112715_0834_SoftEtherVP17.png"></p>
-<p> </p>
-<p>Android：安装客户端程序，右上角菜单依次选择Import-Import Profile from SD Card，选择保存的l3的ovpn文件，输入账号密码点击connect，信任即可。</p>
-<p>iOS：APP store搜索下载OpenVPN，需要使用美区账号，我直接提供一组美国地址吧</p>
-<p>5200 Zoo Dr，Los Angeles, CA 90027</p>
-<p>(323) 668-0104</p>
-<p>简单方便搭建完VPN服务器，甚至是SSTP也顺手完成了。应该要比网上手动安装方便得多。</p>
-<p> </p>
-<p> </p>
-<p>最后送上福利，DNS的默认协议、端口是UDP 53，嘿嘿嘿<br> <img src="/images/112715_0834_SoftEtherVP18.gif"><img src="/images/112715_0834_SoftEtherVP19.gif"><img src="/images/112715_0834_SoftEtherVP20.gif"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2015/11/27/softether-vpnserver/index/" data-id="clhp7rtk0008us2qrff8c7c9f" data-title="SoftEther VPN Server安装笔记" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -964,7 +867,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -975,6 +878,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
+          </li>
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
@@ -990,10 +897,6 @@
         
           <li>
             <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
       </ul>

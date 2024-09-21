@@ -73,6 +73,60 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-x1c-hdmi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/08/09/x1c-hdmi/index/" class="article-date">
+  <time class="dt-published" datetime="2018-08-09T00:00:00.000Z" itemprop="datePublished">2018-08-09</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/08/09/x1c-hdmi/index/">X1 Carbon的HDMI不好用了怎么办</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>X1C的HDMI不好用了怎么办，捅屁股啊</p>
+<p>Lenovo X1 Carbon 6th 是一款非常优(áng)秀(guì)、轻薄的商务本。某天，我照常连接显示器的时候，发现竟然没有输出了。考虑到Windows 10是一个日常抽风的操作系统，第一反应当然是重启啦。</p>
+<p>当然是不好用的啦。</p>
+<p>那么就替换法，依次替换转接头、用同事电脑测试，得出的结论是：HDMI转接头没坏、VGA线没坏，显示器没坏，是我电脑炸了。至于是软件还是硬件……要不我先做个Ubuntu Live Disk试试？</p>
+<p>后来再联想官网搜到了解决方案，如果你的设备管理器中System Device下没有看到ThunderBolt字样的设备，那么就可以跟着这个方法来一遍。</p>
+<p><img src="/images/2018080904481293.png"></p>
+<p>关机，拔掉电源，把电脑翻过来，找到背面的小孔，用一个回形针捅大概5秒。然后，开机，设备管理器里是不是就有了，是不是就好用了</p>
+<p><img src="/images/201808090448151.png"></p>
+<p><strong>喂(#`O′)我说，你要是用百度，下辈子也搜不到这个结果。李彦宏你就别出来丢人现眼了</strong></p>
+<p>参考资料：</p>
+<p><a target="_blank" rel="noopener" href="https://forums.lenovo.com/t5/ThinkPad-X-Series-Laptops/X1-Carbon-6th-gen-HDMI-not-working/td-p/4091511">X1 Carbon 6th gen HDMI not working</a></p>
+<p><a target="_blank" rel="noopener" href="https://is.wfu.edu/help-articles/hard-reset-for-lenovo-x1-carbon/">Hard Reset for Lenovo X1 Carbon</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/08/09/x1c-hdmi/index/" data-id="clhp7rtnm00bks2qr30sc2jf9" data-title="X1 Carbon的HDMI不好用了怎么办" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ntpdate-problem/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/07/12/ntpdate-problem/index/" class="article-date">
@@ -1016,108 +1070,6 @@ return json.dumps(bulk\_dic)
 
 
   
-    <article id="post-jbls/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/02/06/jbls/index/" class="article-date">
-  <time class="dt-published" datetime="2018-02-06T00:00:00.000Z" itemprop="datePublished">2018-02-06</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>►<a class="article-category-link" href="/categories/program/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/02/06/jbls/index/">JetBrains License Server原理及40行Python代码的实现</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>Repository: [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://coding.net/u/BennyThink/p/pyJetBrains/_license/_server'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://coding.net/u/BennyThink/p/pyJetBrains\_license\_server&#39;\]开源地址\[/gt\]</a></p>
-<p>[v_error]警告： 本文仅供学习参考，请勿用于其他用途。如果你喜欢JetBrains的产品，请购买正版授权。[&#x2F;v_error] [v_blue]近期license server升级，可以阅读官方的<a target="_blank" rel="noopener" href="https://www.jetbrains.com/license-server/outdated-ls/">这篇文章</a>，在2018.2.1（2018年第三季度左右发布）之后旧版服务器将无法使用，所以先别升级到2018.2.1，留在2018.2吧。关于新的激活服务器，似乎有点难度，欢迎各位提供任何可能会有帮助的资料和工具（包括但不限于本地激活器，license server，以及相关介绍文章和抓包记录等），更多详情请参考文末记录[&#x2F;v_blue]</p>
-<p>估计是个程序员都应该使用过<a target="_blank" rel="noopener" href="https://www.jetbrains.com/">JetBrains</a>的IDE（尤其是Python程序员吧）。JetBrains的产品线非常丰富，PHP的PHPStorm，前端的Webstorm，Python的Pycharm，Java的IntelliJ，Ruby的RubyMine，Go的Goland，数据库的DataGrip……</p>
-<p>几个月之前，我曾经尝试着把Java版本的License Server 移植到Python，但是失败了。但是今天我就成功了……好了不废话了，咱来一步一步的学习下怎么用40行代码写一个JetBrains License Server</p>
-<h2 id="JetBrains-License-Server激活流程"><a href="#JetBrains-License-Server激活流程" class="headerlink" title="JetBrains License Server激活流程"></a>JetBrains License Server激活流程</h2><p>打开IDE，依次点击Help-Register，输入服务器地址，点击Activate</p>
-<p><img src="/images/2018020602360796.png"></p>
-<p>这时就会从 License Server取得一个Ticket了。</p>
-<p>[v_blue]友情提示：</p>
-<p>如果你有edu邮箱的话，那快去申请免费正版授权吧，哪怕你没有edu邮箱，也可以试试什么注册edu邮箱的，比如说<a target="_blank" rel="noopener" href="https://free.kirito.edu.rs/">这个</a>[&#x2F;v_blue]</p>
-<h2 id="抓包与分析"><a href="#抓包与分析" class="headerlink" title="抓包与分析"></a>抓包与分析</h2><p>网上已经有人写好了几个版本的授权服务器，我参考了<a target="_blank" rel="noopener" href="https://coding.net/u/chenq_/p/license/git">Java版</a>的、<a target="_blank" rel="noopener" href="https://github.com/xczh/jetserver">golang版</a>的还有<a target="_blank" rel="noopener" href="https://github.com/springhack/JetBrains-License-Server">JavaScript版</a>的。</p>
-<p>于是我找了那个能用的Java版本的，自己搭建，然后尝试激活、抓包并过滤http，进行分析。</p>
-<p>通过追踪HTTP流我们能发现，IDE向指定服务器发起了一个GET请求，请求中包含很多参数，之后服务器返回了一个像是散列值，还有一小串XML</p>
-<p><img src="/images/201802060236083.png"></p>
-<p>IDE请求：</p>
-<p>GET &#x2F;rpc&#x2F;obtainTicket.action?buildDate&#x3D;20170719&amp;buildNumber&#x3D;2017.2.2+Build+CL-172.3968.17&amp;clientVersion&#x3D;4&amp;hostName&#x3D;xxxxxxm&amp;machineId&#x3D;51xxxxx20a-14d259f1fc94&amp;productCode&#x3D;cfc7xxxx978-a2a2-46fxxxx405&amp;productFamilyId&#x3D;cfxxxx-ae43-4978-a2a2-46feb1679405&amp;salt&#x3D;1506491409302&amp;secure&#x3D;false&amp;userName&#x3D;xxxx&amp;version&#x3D;2017200&amp;versionNumber&#x3D;2017200</p>
-<p>服务器返回：</p>
-<!-- 61b3a2f53ffxxxxxxxxx6b132e0270275d12434f217ba3231b5 -->
-
-<p><ObtainTicketResponse><message></message><prolongationPeriod>607875500</prolongationPeriod><responseCode>OK</responseCode><salt>1506491409302</salt><ticketId>1</ticketId><ticketProperties>licensee&#x3D;xxxxx licenseType&#x3D;0 </ticketProperties></ObtainTicketResponse></p>
-<p>由此我们可以很清楚的了解到激活的步骤：请求+相应+验证，那么大体猜测一下应该是服务端持有一个私钥，对请求字符串进行加密，然后返回，客户端使用公钥验证。</p>
-<h2 id="验证猜想"><a href="#验证猜想" class="headerlink" title="验证猜想"></a>验证猜想</h2><p>为了验证我们的猜想，咱其实是要去读其他版本的源代码的……鉴于这个流程挺复杂，要求你会多门语言，所以咱就不演示了……总之，经过我的研读，我发现的细节是这样的：</p>
-<p>服务端构造如下的字符串：</p>
-<p><ObtainTicketResponse><message></message><prolongationPeriod>607875500</prolongationPeriod><responseCode>OK</responseCode><salt>1506491409302</salt><ticketId>1</ticketId><ticketProperties>licensee&#x3D;xxxxx licenseType&#x3D;0 </ticketProperties></ObtainTicketResponse></p>
-<p>其中salt是发起请求时的时间戳（单位毫秒），licensee是发起请求的用户名（其实这个用户名是随便的，在代码里写死也是可以的）。</p>
-<p>然后服务器使用RSA with MD5 and PKCS1v15进行加密，把加密后的内容转换为十六进制，加上HTML注释<!-- hex -->（注意前后的两个空格），把十六进制HTML注释和构造的字符串一起返回，客户端使用hex和返回的字符串（以及公钥）进行验证。</p>
-<p>其实验证猜想的这一步才是最复杂的，需要参考很多源代码做出适当的实验。</p>
-<p>既然猜想已经得到了证实，那么剩下来就开始写了。基础的结构很简单，用flask搭建一个简易的服务器，用cryptography完成密码学相关的操作。</p>
-<h2 id="cryptography完成RSA签名与十六进制转换"><a href="#cryptography完成RSA签名与十六进制转换" class="headerlink" title="cryptography完成RSA签名与十六进制转换"></a>cryptography完成RSA签名与十六进制转换</h2><p>Python中比较安全好用的密码学库是<a target="_blank" rel="noopener" href="https://cryptography.io/en/latest/">cryptography</a>（唉 好吧）、<a target="_blank" rel="noopener" href="https://www.dlitz.net/software/pycrypto/">pycrypto</a>（这货很久不更新了，不敢用），顺便说一句，进行安全随机盐散列函数的有<a target="_blank" rel="noopener" href="https://passlib.readthedocs.io/en/stable/index.html">passlib</a>。</p>
-<p>首先需要引入对应的库</p>
-<p>from cryptography.hazmat.backends import default_backend<br>from cryptography.hazmat.primitives import hashes<br>from cryptography.hazmat.primitives import serialization<br>from cryptography.hazmat.primitives.asymmetric import padding</p>
-<p>然后载入key（文件形式）</p>
-<p>with open(‘jbls_private_key.pem’) as f:<br>    private_key &#x3D; serialization.load_pem_private_key(f.read(), password&#x3D;None, backend&#x3D;default_backend())</p>
-<p>执行加密</p>
-<p>i &#x3D; bytes(content)<br>signature &#x3D; private_key.sign(i, padding.PKCS1v15(), hashes.MD5())</p>
-<p>转换二进制为十六进制表达</p>
-<p>binascii.hexlify(signature)</p>
-<p>大概这么五行，我们就完成了加密与转换操作，剩下我们只要在Flask端做一下逻辑处理就好了。</p>
-<h2 id="Flask进行逻辑处理"><a href="#Flask进行逻辑处理" class="headerlink" title="Flask进行逻辑处理"></a>Flask进行逻辑处理</h2><p>这一步也很简单，用<code>@app.route()</code>装饰器确定路由，构造字符串与返回。真的是很简单，大概就是如下这么十几行：</p>
-<p>@app.route(“&#x2F;rpc&#x2F;obtainTicket.action”)<br>def obtain():<br>    salt &#x3D; request.args.get(‘salt’)<br>    user_name &#x3D; request.args.get(‘userName’)<br>    content &#x3D; “<ObtainTicketResponse><message></message>“ + \<br>        “<prolongationPeriod>607875500</prolongationPeriod><responseCode>OK</responseCode>“ + \<br>        “<salt>“ + salt + “</salt><ticketId>1</ticketId>“ \<br>        “<ticketProperties>licensee&#x3D;” + user_name + “\tlicenseType&#x3D;0\t</ticketProperties>“ \<br>        “</ObtainTicketResponse>“<br>    verification_hex &#x3D; hex_signature(content)<br>    return “<!-- " + verification\_hex + " -->\n” + content</p>
-<p>通过Flask的requests拿到salt和username，构造XML，调用函数，返回hex以及XML。</p>
-<p>所以加起来，整体代码真的只有不到40行。就算把KEY嵌入到源代码中，也只是43行而已……</p>
-<h2 id="最终结果"><a href="#最终结果" class="headerlink" title="最终结果"></a>最终结果</h2><h3 id="服务端的请求日志"><a href="#服务端的请求日志" class="headerlink" title="服务端的请求日志"></a>服务端的请求日志</h3><p><img src="/images/201802060236112.png"></p>
-<h3 id="客户端显示激活成功"><a href="#客户端显示激活成功" class="headerlink" title="客户端显示激活成功"></a>客户端显示激活成功</h3><p><img src="/images/2018020602361187.png"></p>
-<h2 id="附录与FAQ"><a href="#附录与FAQ" class="headerlink" title="附录与FAQ"></a>附录与FAQ</h2><h3 id="监听0-0-0-0"><a href="#监听0-0-0-0" class="headerlink" title="监听0.0.0.0"></a>监听0.0.0.0</h3><p>如果想要把这个服务部署在服务器上，那么最好就监听0.0.0.0，只需要把app.run()写成 app.run(host&#x3D;’0.0.0.0’)即可。</p>
-<h3 id="持久运行"><a href="#持久运行" class="headerlink" title="持久运行"></a>持久运行</h3><p>当然我们希望这个Flask程序能够长期运行而不退出，此时我们最好使用supervisor或者systemd啦，详细参考此篇<a target="_blank" rel="noopener" href="https://dmesg.app/linux-keep-running.html">《Linux 怎么让程序持续运行：简单说说几种好玩的办法》</a></p>
-<h3 id="示例源代码"><a href="#示例源代码" class="headerlink" title="示例源代码"></a>示例源代码</h3><p>本示例源代码可以到下面的地址查看： [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://coding.net/u/BennyThink/p/pyJetBrains/_license/_server'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://coding.net/u/BennyThink/p/pyJetBrains\_license\_server&#39;\]开源地址\[/gt\]</a></p>
-<p>为啥不放到GitHub呢？被DMCA Takedown啦ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛</p>
-<p>需要注意的是，需要使用pip安装cryptography、flask，并且jbls.py同时支持Python 2和Python 3.</p>
-<h3 id="可否提供一个有效的私钥"><a href="#可否提供一个有效的私钥" class="headerlink" title="可否提供一个有效的私钥"></a>可否提供一个有效的私钥</h3><p>不好意思，不提供……至于我这个测试的私钥是在哪找的……你们猜呀。</p>
-<h3 id="如何生成exe文件"><a href="#如何生成exe文件" class="headerlink" title="如何生成exe文件"></a>如何生成exe文件</h3><p>使用<a target="_blank" rel="noopener" href="http://www.pyinstaller.org/">pyinstaller</a>就可以了。</p>
-<p>pyinstaller -F demo.py</p>
-<h3 id="travis-ci"><a href="#travis-ci" class="headerlink" title="travis-ci"></a>travis-ci</h3><p>我们用travis-ci做持续集成测试，但是travis-ci并不是为了运行程序而准备的。但是我们这个Flask应用还必须得运行才能测试。那咋办呢？<code>subprocess.Popen()</code>？反正各种奇技淫巧都试过了，不好用的。劝大家还是试试<code>app.test_client().get(url).data</code>吧，这样就能获取到响应然后assert了。</p>
-<p> </p>
-<h2 id="新版JetBrains-License-Server备注"><a href="#新版JetBrains-License-Server备注" class="headerlink" title="新版JetBrains License Server备注"></a>新版JetBrains License Server备注</h2><p>以下内容全文引用自<a target="_blank" rel="noopener" href="http://blog.lanyus.com/archives/174.html/comment-page-21#comments">lanyus</a>评论</p>
-<blockquote>
-<p>贵站居然没有过滤html的特殊字符？重新发一下吧，以下是原文：</p>
-<p>Jetbrains家产品线激活服务器认证从2018.2开始使用两个handler来处理，第一个handler会对老的签名方式进行认证（<!-- abcdef1234567890 --><ObtainTicketResponse></ObtainTicketResponse>类样式），该handler会判断签名是否包含hex之外的字符。如果没有，按老版本方式来验证签名，如果存在hex之外字符则抛异常由自己接住后进入第二个handler来验证。 从版本2018.2.1开始便去掉了第一个handler，改为只由第二个handler来验证，由此老的验证服务器全面失效。 来说说第二个handler的验证逻辑吧： 新的报文返回还是形同：<!-- sign\_body --><xxxResponse></xxxResponse>，其中<xxxResponse></xxxResponse>这样的响应正文中相比较老版本添加<serveruid>xyz</serveruid>配置，这个xyz后文中有用到，不可缺少。 sign_body格式较老版本的hex字符串变动很大，其示例格式如下：SHA1withRSA-xxxxxxxxxxxxxx-yyyyyyyyyyyyyyy，以-符号分隔，SHA1withRSA对应java中签名所使用的算法（可换为MD5withRSA等），xxxxxxxxxxxxxx部分是使用该算法以私钥签名的bin -&gt; base64字符串，yyyyyyyyyyyyyyy部分则是pem格式的证书字符串（可直接放证书正文，不换行）。 其中yyyyyyyyyyyyyyy证书必须由Jetbrains产品内置的一个CN为License Server CA的CA证书签发才有效，而且yyyyyyyyyyyyyyy证书中必须包含CN&#x3D;xyz.lsrv.jetbrains.com(其中xyz对应前文<serveruid>xyz</serveruid>部分所填)。 证书验证通过后才会取出证书中所包含的公钥来验证签名<xxxResponse></xxxResponse>响应正文（和base64Decode(xxxxxxxxxxxxxx)比对），验证通过后继续完成服务器认证（解析正文内容，逻辑同旧版）。 啰啰嗦嗦这么多，总结一下：如果我们想要自己造验证服务器，则需要拿到一张License Server CA签发的证书（包括私钥），而且这个证书被Jetbrains发现可能会被吊销！所以这个恐怕有些痴人说梦了。 对了License Server CA证书的内容由另一张Jetprofile签发的叫prod3y的证书公钥定时校验（数据格式同上文所述，不过正文部分是CA证书字符串），应该是防止被替换吧。 还有类似idea.lanyus.com这样的认证服务器域名黑名单也由这张prod3y证书公钥定时校验，也是怕被篡改吧。如果要替换CA要从替换prod3y证书开始，但那是破解的内容了，不如注册服务器优雅。 就这么多。</p>
-</blockquote>
-<p> </p>
-<p>所以估计License Server这条路可能走不通了，只能通过javaagent这种方法修改客户端（IDE）代码然后达到目的了。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/02/06/jbls/index/" data-id="clhp7rtgw0046s2qrch5q8bdo" data-title="JetBrains License Server原理及40行Python代码的实现" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1162,7 +1114,7 @@ return json.dumps(bulk\_dic)
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1173,6 +1125,10 @@ return json.dumps(bulk\_dic)
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
+          </li>
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
@@ -1188,10 +1144,6 @@ return json.dumps(bulk\_dic)
         
           <li>
             <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
       </ul>

@@ -73,6 +73,103 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-y1s/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/07/21/y1s/index/" class="article-date">
+  <time class="dt-published" datetime="2017-07-21T00:00:00.000Z" itemprop="datePublished">2017-07-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/07/21/y1s/index/">体验下大内存的联想y1s路由器吧</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>买了个联想y1s路由器回来玩玩.</p>
+<h2 id="啥，怎么又买路由器了？"><a href="#啥，怎么又买路由器了？" class="headerlink" title="啥，怎么又买路由器了？"></a>啥，怎么又买路由器了？</h2><p>是这样的，今早翻东西找不到了以前的TP路由器，想着十几天之后自己工作了，住处不能没有路由器啊，还不能把家里的路由器拿走（坑爹的斐讯K1），那只好买个新的给自己用啦:-D</p>
+<h2 id="为啥要买这款呐"><a href="#为啥要买这款呐" class="headerlink" title="为啥要买这款呐"></a>为啥要买这款呐</h2><p>其实我搜索综合了很多因素：</p>
+<h3 id="MTK-7620"><a href="#MTK-7620" class="headerlink" title="MTK 7620"></a>MTK 7620</h3><p>首先我需要MTK 7620芯片的路由器，为啥呐？有一款Padavan固件<strong>比较好用</strong>；</p>
+<h3 id="2-4G与5G"><a href="#2-4G与5G" class="headerlink" title="2.4G与5G"></a>2.4G与5G</h3><p>其次我需要支持5G，为啥呐？因为考虑到我住处白领居多可能全都是2.4G的信号，怕是信道被挤爆了那就影响到网络质量了，所以搞个5G的巧妙避开这些（可惜我的笔记本不支持5G但是实在不行有网线啊）；</p>
+<h3 id="USB接口"><a href="#USB接口" class="headerlink" title="USB接口"></a>USB接口</h3><p>再有我需要带USB的……实现我一直以来把路由器当成下载机的梦想啊！</p>
+<p>于是乎，选来选去我就买了”美帝良心想”的这款路由器，<strong>256MB的RAM、16MB的Flash，三个USB</strong>，嗯……256M的大内存哦，是我的翻墙小鸡服务器的四倍哦！</p>
+<p> </p>
+<h2 id="拆箱啦！"><a href="#拆箱啦！" class="headerlink" title="拆箱啦！"></a>拆箱啦！</h2><p><img src="/images/072117_1354_y1s1.png"></p>
+<p>包装盒正面，好古朴的！</p>
+<p><img src="/images/072117_1354_y1s2.png"></p>
+<p>啥？2015年生产的？两年前啦？</p>
+<p><img src="/images/072117_1354_y1s3.png"></p>
+<p>包装还是很简洁的</p>
+<p><img src="/images/072117_1354_y1s4.png"></p>
+<p>一个巨大无比的AC电源适配器，10V2A，毕竟三个USB呢是吧</p>
+<p><img src="/images/072117_1354_y1s5.png"></p>
+<p>来给电！中间蓝色的U还是∩，效果很不错啊，外形比图片好看。</p>
+<h2 id="来瞅瞅官方固件的样子"><a href="#来瞅瞅官方固件的样子" class="headerlink" title="来瞅瞅官方固件的样子"></a>来瞅瞅官方固件的样子</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072117_1354_y1s6.png"><img src="/images/072117_1354_y1s6.png"></a></p>
+<p>呃这个…要多弱智有多弱智，反正是OpenWRT套了个壳子。</p>
+<p>算了咱们开始刷吧！大概就是参考很久之前的<a target="_blank" rel="noopener" href="https://dmesg.app/psg1208-noads.html">《斐讯PSG1208刷第三方固件、去广告备忘》</a>啦</p>
+<p>咦？咱们以前给Android手机刷机的时候是怎么办的？</p>
+<p>一般来说如果需要解锁就先解锁，然后<strong>刷入一个第三方的recovery</strong>，再<strong>刷入zip格式的卡刷包</strong>，其实路由器也是这个原理的。所以……</p>
+<h2 id="准备工作…"><a href="#准备工作…" class="headerlink" title="准备工作…"></a>准备工作…</h2><p>先下载好Breed和固件，再准备一条网线和电脑</p>
+<h3 id="Breed-bootloader"><a href="#Breed-bootloader" class="headerlink" title="Breed bootloader"></a>Breed bootloader</h3><p><a target="_blank" rel="noopener" href="http://www.right.com.cn/forum/thread-161906-1-1.html">http://www.right.com.cn/forum/thread-161906-1-1.html</a></p>
+<p>搜索下，找y1s的Breed，下载回来，其实就是<a target="_blank" rel="noopener" href="https://breed.hackpascal.net/Breed-mt7620-lenovo-y1s.bin">https://Breed.hackpascal.net/Breed-mt7620-lenovo-y1s.bin</a></p>
+<p> </p>
+<h3 id="Padavan固件"><a href="#Padavan固件" class="headerlink" title="Padavan固件"></a>Padavan固件</h3><p><a target="_blank" rel="noopener" href="http://www.right.com.cn/forum/thread-161324-1-1.html">http://www.right.com.cn/forum/thread-161324-1-1.html</a></p>
+<p>还是继续搜索y1s，在这里我看到有两个，一个是接口反转（LAN1和WAN反转，1Gbps），一个是接口正常（100Mbps）。</p>
+<p>[v_notice]博主知道大家懒，那么就戳下面的链接下载吧[&#x2F;v_notice] [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/y1s.zip'/]%E6%88%B3%E6%88%B3%E6%88%B3%E4%B8%8D%E5%8A%A8/[/dl/]">http://bennydownload.file.alimmdn.com/y1s.zip&#39;\]戳戳戳不动\[/dl\]</a></p>
+<h3 id="刷Breed"><a href="#刷Breed" class="headerlink" title="刷Breed"></a>刷Breed</h3><p>电脑IP地址设置成<code>192.168.1.2</code>，子网掩码<code>255.255.255.0</code>，网关不用填，用网线连接到路由器的LAN.</p>
+<p>然后路由器断电，按住后面的RST，给电，等待几个指示灯闪烁几次（大概五秒左右），然后松开RST，此时应该已经能够ping通<code>192.168.1.1</code>了，打开浏览器….</p>
+<p>哇！</p>
+<p><img src="/images/072117_1354_y1s7.png"></p>
+<p>这就好像进入了手机的BootLoader一样……</p>
+<p>还等什么，选择<code>Breed-mt7620-lenovo-y1s.bin</code>，刷呀！</p>
+<p><img src="/images/072117_1354_y1s8.png"></p>
+<p>倒计时时间请静静等待…</p>
+<p>倒计时走完之后，我们会异常惊奇的发现，路由器现在的系统还是官方的那个什么小云啊……哎我问你，你给你的手机刷了个第三方recovery，OS还是原来的OS对吧？</p>
+<p>咱再继续按照断电-RST办法再进一次恢复模式，哈哈，就会发现变成这个样子的啦！</p>
+<p><img src="/images/072117_1354_y1s9.png"></p>
+<p>先备份下编程器和EEPROM吧，以防万一！</p>
+<h2 id="刷入Padavan固件"><a href="#刷入Padavan固件" class="headerlink" title="刷入Padavan固件"></a>刷入Padavan固件</h2><p>很简单，就是下图这样子的</p>
+<p><img src="/images/072117_1354_y1s10.png"></p>
+<p>选择你的固件确认刷入，静静等待可以了。</p>
+<p>那么问题来了，咱该选择哪个呢？反转的？100M的？自己看着办吧！</p>
+<p>然后把电脑的IP设置成自动就可以啦！</p>
+<h2 id="Padavan的主界面"><a href="#Padavan的主界面" class="headerlink" title="Padavan的主界面"></a>Padavan的主界面</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072117_1354_y1s11.jpg"><img src="/images/072117_1354_y1s11.jpg"></a></p>
+<p>大内存就是好…</p>
+<h2 id="中继热点"><a href="#中继热点" class="headerlink" title="中继热点"></a>中继热点</h2><p><img src="/images/072117_1354_y1s12.jpg"></p>
+<p>fork炸弹哟</p>
+<h2 id="Shadowsocks"><a href="#Shadowsocks" class="headerlink" title="Shadowsocks"></a>Shadowsocks</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/07/072117_1354_y1s13.jpg"><img src="/images/072117_1354_y1s13-401x1024.jpg"></a></p>
+<p>左侧那列输入自己的shadowsocks服务器信息，下面的高级功能按照我的来就可以~然后在家就可以体验墙外一样的感觉啦( ⊙ o ⊙ )</p>
+<h2 id="广告屏蔽"><a href="#广告屏蔽" class="headerlink" title="广告屏蔽"></a>广告屏蔽</h2><p><img src="/images/072117_1354_y1s14.jpg"></p>
+<p>其他的功能……没试。</p>
+<h1 id="对，就是这么又水了一贴……"><a href="#对，就是这么又水了一贴……" class="headerlink" title="对，就是这么又水了一贴……"></a>对，就是这么又水了一贴……</h1>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/07/21/y1s/index/" data-id="clhp7rtns00bss2qrgsh01scs" data-title="体验下大内存的联想y1s路由器吧" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-net-neutrality/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/07/13/net-neutrality/index/" class="article-date">
@@ -938,77 +1035,6 @@
 
 
   
-    <article id="post-git-password/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/04/28/git-password/index/" class="article-date">
-  <time class="dt-published" datetime="2017-04-28T00:00:00.000Z" itemprop="datePublished">2017-04-28</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/security/">security</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/04/28/git-password/index/">不小心把密码上传到GitHub了，怎么办</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>辛辛苦苦写了个脚本，一个兴奋就给推送到GitHub了，然后才反应过来脚本里好像硬编码了帐号密码；根据某某SDK写了个客户端，一下子推送上去发现API Key忘了抹；更有甚者直接把SSHKey推送上去了……</p>
-</blockquote>
-<p>总之就是一不小心把敏感信息推到了版本控制的Git上，可能会马上反应过来，可能过了好几个月才反应过来，那该怎么办呢？本文就将讨论一下已经推送到GitHub之后几种比较可行的方式，希望大家伙都不会有必要读到此文，唉！（如果没推的话，amend啥的就好了）</p>
-<p>天啊我真是太喜欢这首歌了，快来听听吧<del>irony, ironical, ironic，为了防止正在上课的小伙伴被抓到，我把主题的自动播放干掉了哈哈哈</del> :mrgreen: [netmusic id&#x3D;”31421442”]</p>
-<h2 id="必须要做的后备措施"><a href="#必须要做的后备措施" class="headerlink" title="必须要做的后备措施"></a>必须要做的后备措施</h2><p>如果反应过来自己把敏感信息（尤其是帐号密码）推送到了GitHub上，尤其是很长时间之后才发现的，第一件要做的事情是更改掉对应的密码、尽可能的开启两步验证、作废API Key等必要的预备措施。因为我们无法得知究竟有多少人看过、克隆、复刻过仓库，也就无法评估危险等级，只能亡羊补牢了。</p>
-<p>在说正确的方法之前，咱先说一说一个大错特错的方法</p>
-<h2 id="错误方法一：修改代码中的敏感信息"><a href="#错误方法一：修改代码中的敏感信息" class="headerlink" title="错误方法一：修改代码中的敏感信息"></a>错误方法一：修改代码中的敏感信息</h2><p>很多人第一想法可能会是修改代码中的敏感信息，然后commit &amp; push。看似这样是解决了问题，但实际上问题依旧存在，这样做是大错特错的！为何？Git作为一个优秀的版本控制系统，其核心能力就是能够穿梭于每次历史记录（也就是commit），这样做实际上只是在最新的版本库中不存在敏感信息，只要咱checkout下自然就能看到有着敏感信息的那次commit，还有毛用嘛！ 类似的办法还有revert啥的，没用的！ <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/201704281441265.png"><img src="/images/201704281441265.png"></a></p>
-<h2 id="错误的方法二：置之不理"><a href="#错误的方法二：置之不理" class="headerlink" title="错误的方法二：置之不理"></a>错误的方法二：置之不理</h2><p>实际上这不算是一种方法，而是一种态度吧。如果你想成为一名优秀的程序员，那么注重细节、注重安全自然是比较珍贵的素质；同时我敢说大部分人都是一两个密码走天下、没有开启两步验证的，这样暴露密码极大地提高了撞库的机率，渗透的第一步搜集信息就得到了密码。 也许有人会反驳，谁没事干看我仓库读代码？或许真的没有人会无聊到这样，或许有了你也很难发现，但是请允许我介绍一种名为Gitrob的工具。人可能没那么无聊，但是机器可不怕无聊的工作，是吧。</p>
-<p>下面咱来说说几个比较可行的方式吧！</p>
-<h2 id="方法一：删库"><a href="#方法一：删库" class="headerlink" title="方法一：删库"></a>方法一：删库</h2><p>最简单的办法就是删库。确实简单粗暴，对于一些可有可无的仓库来说这应该是最好的处理方法了。对于那些比较珍贵的仓库，这个办法很显然是行不通的。</p>
-<h2 id="方法二：通过临时仓库覆盖敏感信息"><a href="#方法二：通过临时仓库覆盖敏感信息" class="headerlink" title="方法二：通过临时仓库覆盖敏感信息"></a>方法二：通过临时仓库覆盖敏感信息</h2><p>思路很简单，备份仓库，在敏感信息之前的一次提交创建临时分支，删除有着敏感信息的分支，从临时分支创建新的默认分支，然后再push修改过的代码。如果使用GitHub，可能还需要把默认分支设置成临时分支。如果你使用的是比较方便的图形化Git客户端如Source Tree、GitKraken，那么这一步应该很容易，就不放图了…… 这个方法只适用于发现的比较快的、敏感信息之后commit不太多的仓库。如果敏感信息之后commit &amp; push了很多，这就不太方便了。</p>
-<h2 id="方法三：使用git-filter-branch"><a href="#方法三：使用git-filter-branch" class="headerlink" title="方法三：使用git filter-branch"></a>方法三：使用<code>git filter-branch</code></h2><p><code>git filter-branch</code>的方法其实挺复杂的，而且不是那么方便，推荐大家还是用方法4吧，这个看看就够了。假如咱要从所有的历史记录中删除某个文件，其实就大概这么一句就差不多了</p>
-<p>git filter-branch –force –index-filter ‘git rm –cached –ignore-unmatch sensitive-data.py’ –prune-empty –tag-name-filter cat – –all</p>
-<p>这样那个文件的记录就没啦。咱再force push下，远程仓库的就和本地的一样啦。</p>
-<p>git push origin –force –all</p>
-<p>当然了，如果有必要的话，记得不带敏感信息的代码再推上去。</p>
-<h2 id="方法四：使用专用工具BFG-Repo-Cleaner"><a href="#方法四：使用专用工具BFG-Repo-Cleaner" class="headerlink" title="方法四：使用专用工具BFG Repo-Cleaner"></a>方法四：使用专用工具BFG Repo-Cleaner</h2><p>咱能看出来上面的命令听复杂，参数很多，于是就有个兄弟写了个工具来一键解决咱们的问题。主页<a target="_blank" rel="noopener" href="https://rtyley.github.io/bfg-repo-cleaner/">在这</a>，估计大家都能看懂吧？我再简述一下，假如我的仓库名字为<code>python_test_code</code>，敏感文件的名字为<code>ygmail_test.py</code>的话，</p>
-<p>java -jar bfg.jar  –delete-files ygmail_test.py python_test_code</p>
-<p>大然后再看下，那么敏感文件就没了，然后再force push就行了~基本上不会有其他问题。</p>
-<p>可是这样删除文件好像不太友好呢，有没有办法直接把敏感信息替换成其他内容啊？有啊！</p>
-<p>先创建一个名为<code>password.txt</code>的文件，在其中一行一个输入你的敏感信息，比如说密码啦，邮箱啦，等等啦，然后运行这么一句(（如果要清除的内容带中文，记得编码为UTF-8哟）：</p>
-<p>java -jar bfg.jar –replace-text password.txt python_test_code</p>
-<p>话说这作者，嗯……我很喜欢，我运行完竟然给我来了一句：</p>
-<blockquote>
-<p>You can rewrite history in Git - don’t let Trump do it for real! Trump’s administration has lied consistently, to make people give up on ever being told the truth. Don’t give up: <a target="_blank" rel="noopener" href="https://www.aclu.org/">https://www.aclu.org/</a></p>
-</blockquote>
-<p>当然了，bfg的还可以删除那些仓库历史里的大文件。比如说咱以前上传了几个二进制大文件，然后又删掉再也不需要了，如果clone的话，那么这几个大文件也会跟着一起clone下来的其实。</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>俺才疏学浅，只能想到这么几种办法了，唉~！不要说我为啥要写这么一篇博文，泪啊！这事我都干了三次了，真是受不了自己的愚蠢了，也亲眼看着其他人干过……<strong>某个可爱的小童鞋，抽时间解决了这个安全问题吧。</strong></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/04/28/git-password/index/" data-id="clhp7rtgd0031s2qr5ssr3d6f" data-title="不小心把密码上传到GitHub了，怎么办" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1053,7 +1079,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1064,6 +1090,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
+          </li>
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
@@ -1079,10 +1109,6 @@
         
           <li>
             <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
       </ul>

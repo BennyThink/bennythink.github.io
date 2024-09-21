@@ -73,6 +73,86 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-change-git-user/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/06/13/change-git-user/index/" class="article-date">
+  <time class="dt-published" datetime="2022-06-13T00:00:00.000Z" itemprop="datePublished">2022-06-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/06/13/change-git-user/index/">如何更改git commit user？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>乔治·奥威尔有言</p>
+<blockquote>
+<p>历史不是一面镜子，而是黑板上的记号，可以随时擦去，随时填补。更为可怕的是，一旦涂改了，你找不到证据去证明这是篡改历史的行为。</p>
+</blockquote>
+<p>Git会追踪每一次commit的历史记录，如果之前不小心配置错了用户名，那么有办法改掉吗？</p>
+<p>当然了办法是有的，改掉commit username和email是很容易的，不就是这么几行嘛？</p>
+<p>git rebase -i f25f719f7c2333d310696c3ed41e5a90ed078e55</p>
+<p>弹出的交互式窗口，把要改的commit从<code>pick</code>改成<code>edit</code></p>
+<p><img src="/images/2022061322415582.png"></p>
+<p>然后不停地</p>
+<p>git commit –amend –author&#x3D;”Cool <a href="mailto:&#x63;&#111;&#x6f;&#108;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;">&#x63;&#111;&#x6f;&#108;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;</a>“ –no-edit &amp;&amp; git rebase –continue</p>
+<p>就可以了</p>
+<p><img src="/images/2022061322415653.png"></p>
+<p>事实果真如此吗？<code>git push -fv</code>试试看？</p>
+<p><img src="/images/2022061322415838.png"> <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/06/2022061322453057.jpg"><img src="/images/2022061322453057.jpg"></a></p>
+<hr>
+<p>妈勒个巴子，时间不对啊，明明是Feb的怎么就变成了现在的时间了。这不就露馅了吗！</p>
+<p>千辛万苦找到一个名字叫<a target="_blank" rel="noopener" href="https://github.com/newren/git-filter-repo">git-filter-repo</a>的东西，试了一下是可以的。</p>
+<p>先安装，比如说 <code>apt install git-filter-repo</code></p>
+<p>然后创建一个<code>mailmap</code>文件，格式如下</p>
+<p>New <a href="mailto:&#x6e;&#101;&#x77;&#64;&#x67;&#109;&#x61;&#105;&#108;&#46;&#x63;&#111;&#x6d;">&#x6e;&#101;&#x77;&#64;&#x67;&#109;&#x61;&#105;&#108;&#46;&#x63;&#111;&#x6d;</a> BennyThink <a href="mailto:&#x62;&#x65;&#110;&#110;&#121;&#46;&#116;&#104;&#x69;&#110;&#107;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#x62;&#x65;&#110;&#110;&#121;&#46;&#116;&#104;&#x69;&#110;&#107;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
+<p>如有需要可以写多行</p>
+<p>然后</p>
+<p>git filter-repo –mailmap &#x2F;etc&#x2F;mailmap</p>
+<p>然后再push，如果遇到缺失remote的问题，重新添加一下</p>
+<p>git remote add origin <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/history">https://github.com/tgbot-collection/history</a><br>git push –set-upstream origin master -fv</p>
+<p>优秀吧！全变成对应的名字和邮箱了，并且commit的时间也没有改变。<code>git log</code>和GitHub是一致的。</p>
+<p><img src="/images/2022061322420811.png"></p>
+<p>如果想要只改几个commit的邮箱，那怎么办呢？</p>
+<p>比如说只想改前两个</p>
+<p>git filter-repo –refs master~2..master –mailmap &#x2F;etc&#x2F;mailmap</p>
+<p><img src="/images/2022061322420927.png"></p>
+<p>如果想改某个中间的一些commit的邮箱为某个人、并且还不改变GitHub上显示的时间呢？甚至不敢确定这种是否可行😂</p>
+<p>emmm这个我还不太知道，其实不太知道refs是什么意思，尝试了很久也不行</p>
+<p>看到git-filter-repo里写着</p>
+<p>git filter-repo … –refs C..H<br>git filter-repo … –refs C..H ^D<br>git filter-repo … –refs D..H ^C</p>
+<p>H应该指的是HEAD？</p>
+<p>总之，暂时够用了😂</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/06/13/change-git-user/index/" data-id="clhp7rtek000qs2qrhtvr4bqs" data-title="如何更改git commit user？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-rssbot-down-again/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/05/27/rssbot-down-again/index/" class="article-date">
@@ -960,150 +1040,6 @@ psutil.Process().kill()
 
 
   
-    <article id="post-docker-windows-container/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/12/25/docker-windows-container/index/" class="article-date">
-  <time class="dt-published" datetime="2021-12-25T00:00:00.000Z" itemprop="datePublished">2021-12-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/12/25/docker-windows-container/index/">使用Docker跑Windows！</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><strong>本精神病人又来闹妖啦！</strong></p>
-<hr>
-<p>自从有了这种容器化技术之后，想要做测试，构建点什么，或者简单的体验下某个Linux Distros的cli就变的无比简单：</p>
-<p>-&lt;255:%&gt;- docker run –rm -it ubuntu:20.04 bash<br>Unable to find image ‘ubuntu:20.04’ locally<br>20.04: Pulling from library&#x2F;ubuntu<br>7b1a6ab2e44d: Already exists<br>Digest: sha256:626ffe58f6e7566e00254b638eb7e0f3b11d4da9675088f4781a50ae288f3322<br>Status: Downloaded newer image for ubuntu:20.04</p>
-<p>root@aa28b038528e:&#x2F;# lscpu<br>Architecture: x86_64<br>CPU op-mode(s): 32-bit, 64-bit<br>Byte Order: Little Endian</p>
-<p>我们也可以在容器里一顿操作，然后构建出来一个东西拿来用，比如之前在<a target="_blank" rel="noopener" href="https://dmesg.app/fix-ax3600.html">编译LEDE固件</a>时，我就是这么玩的。</p>
-<p>某一天，我突然接到这样一个需求：使用pyinstaller把Python脚本编译成不同平台的二进制文件，并且要尽可能跑在容器内。这怎么做？</p>
-<ul>
-<li>准备Windows macOS和Linux的机器，编译然后拿文件。太麻烦了</li>
-<li>pyinstaller 交叉编译？不好意思pyinstaller不支持交叉编译，更准确的说是1.5版本移除了这个功能</li>
-<li>Linux container跑一个wine，wine里跑Windows版本的Python？逆向工程真的靠谱嘛？会出现很多奇奇怪怪的bug吧</li>
-<li>在docker里想办法跑个Windows？哎嘿？</li>
-</ul>
-<p>当你兴致勃勃的打开Docker Hub，搜索windows发现竟然有Windows的image，Windows base OS images，Windows Server Core，不管了先跑为敬：</p>
-<p>-&lt;130:%&gt;- docker run mcr.microsoft.com&#x2F;windows:20H2<br>Unable to find image ‘mcr.microsoft.com&#x2F;windows:20H2’ locally<br>20H2: Pulling from windows<br>docker: no matching manifest for linux&#x2F;amd64 in the manifest list entries.<br>See ‘docker run –help’.</p>
-<p><img src="/images/2021122518122870.jpeg" alt="ooc"></p>
-<p>docker其实是使用了Linux内核的cgroup等技术来实现的，容器还是使用的宿主机内核，容器的进程其实就是跑在宿主机上的，宿主机还能看见只不过有一定隔离。Windows并不用Linux Kernel，那跑个什么嘛。上面这些image的OS Arch其实也是windows&#x2F;amd64的。</p>
-<p>可能更需要的是这个,确实可以跑Windows container，只不过需要Windows host啦。并且1709的Windows只能跑1709的image</p>
-<p><img src="/images/2021122518122994.jpeg"></p>
-<p>这不就又回到了开头嘛。</p>
-<p>突然想起来有一个很神奇的项目<a target="_blank" rel="noopener" href="https://github.com/sickcodes/Docker-OSX">Docker-OSX</a>，其实现，简单说是用KVM跑了个macOS的虚拟机，就像黑苹果一样。那么理论上Windows也一定能找到办法做到。那么就上qemu！不行我们就软件模拟！</p>
-<p>[v_blue] 还有一个有趣的东西叫dind – Docker In Docker。 [&#x2F;v_blue] 套娃嘛，我最强。</p>
-<h2 id="运行环境检查"><a href="#运行环境检查" class="headerlink" title="运行环境检查"></a>运行环境检查</h2><p>无论是VM，还是物理机其实都可以。</p>
-<h2 id="KVM支持"><a href="#KVM支持" class="headerlink" title="KVM支持"></a>KVM支持</h2><p>如果能有KVM支持的话，虚拟机应该会跑的更流畅。</p>
-<p>如果你是VM，CPU支持Intel VT-x&#x2F; AMD-v等，那么在虚拟化软件的设置中就可以看到</p>
-<p>ESXi是这样的</p>
-<p><img src="/images/2021122518123126.png"></p>
-<p>Fusion是这样的</p>
-<p><img src="/images/2021122518123260.png"></p>
-<p>勾选之后， <code>ls /dev/kvm</code> 就应该有结果啦</p>
-<h2 id="容器启用-privileged-mode"><a href="#容器启用-privileged-mode" class="headerlink" title="容器启用 privileged mode"></a>容器启用 privileged mode</h2><p><code>docker run --privileged xxx</code>即可，主要是为了能够在容器内访问宿主机的<code>/dev/kvm</code>。当然也可以用<code>--device</code></p>
-<h2 id="在容器内准备qemu一箩筐"><a href="#在容器内准备qemu一箩筐" class="headerlink" title="在容器内准备qemu一箩筐"></a>在容器内准备qemu一箩筐</h2><p>以Ubuntu 20.04为例</p>
-<p>apt update &amp;&amp; apt install qemu-kvm</p>
-<h2 id="准备ISO"><a href="#准备ISO" class="headerlink" title="准备ISO"></a>准备ISO</h2><p>以alpine为例，方便测试</p>
-<p>wget <a target="_blank" rel="noopener" href="https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/x86/_64/alpine-virt-3.15.0-x86/_64.iso">https://dl-cdn.alpinelinux.org/alpine/v3.15/releases/x86\_64/alpine-virt-3.15.0-x86\_64.iso</a></p>
-<h2 id="创建vm并启动"><a href="#创建vm并启动" class="headerlink" title="创建vm并启动"></a>创建vm并启动</h2><p>为了PoC，我们直接创建vm然后启动试试看，<code>-nographic</code>因为我们在CLI下，所以不启用图形界面，<code>-enable-kvm</code>因为宿主机有kvm支持，<code>-cdrom</code>指定光驱</p>
-<p>qemu-system-x86_64 -nographic -enable-kvm -cdrom &#x2F;root&#x2F;alpine-virt-3.15.0-x86_64.iso</p>
-<p>意料之中，出现了Alpine的启动画面</p>
-<p><img src="/images/2021122518123522.png"></p>
-<p>并且能看到qemu默认配置的内存和CPU。这个QEMU Virtual CPU是不是在某些VPS中看到过呢？</p>
-<p><img src="/images/2021122518123780.png"></p>
-<p>想要退出qemu，先按ctrl a，然后松开，迅速按x</p>
-<h2 id="使用VNC"><a href="#使用VNC" class="headerlink" title="使用VNC"></a>使用VNC</h2><p>既然无图形界面的alpine可以，那么安装个Ubuntu Desktop也一定可以。</p>
-<p>这种情况下就需要我们使用VNC啦。</p>
-<p>VNC的默认端口是5900，我们要在启动容器的时候同时publish这个端口，方便我们使用VNC客户端</p>
-<p>docker run –rm –privileged -p 5900:5900 -it -v $(pwd):&#x2F;root&#x2F; bennythink&#x2F;vmid bash</p>
-<p>由于Ubuntu Desktop需要比较多的内存和CPU，因此我们这里也多加几个参数</p>
-<p>qemu-system-x86_64 -nographic -enable-kvm -m 4096 -cpu host -smp 2 -cdrom &#x2F;root&#x2F;ubuntu-20.04.3-desktop-amd64.iso.iso -vnc 0.0.0.0:0</p>
-<p><code>-m</code>表示内存大小，单位是MiB，也可以 <code>-m 2g</code>表示2GiB的内存</p>
-<p><code>-cpu</code>表示CPU类型，之前上面我们看到CPU是QEMU Virtual CPU，在这里我们可以指定CPU，比如 <code>-cpu EPYC</code> 表示虚拟机看到的CPU是AMD EPYC，当然也要审时度势，你一个x86-64的image，就别想着用486了。有几个特殊的值：<code>host</code>表示使用和宿主机一样的CPU，base的话比较鸡肋顾名思义就是基础的什么指令集都没有，max会把所有的支持的指令集和kvm能提供的指令集都加上。</p>
-<p><code>-smp</code>就是几核心的CPU啦，这要看宿主机量力而行。就像make时要量力而行一样</p>
-<p><code>-vnc</code>表示使用VNC，0.0.0.0表示监听0.0.0.0，冒号后的0表示5900，如果用<code>0.0.0.0:1</code>，那么监听的端口就是5901啦，要注意哦。这种情况下开启的VNC是没有密码的，如果想要密码那就 <code>-vnc 0.0.0.0:0,password</code> 然后设置密码…… 比较复杂，建议放弃。</p>
-<p>然后使用VNC客户端连接即可，要注意macOS自带的VNC客户端需要密码，但是我们并没有设置密码，因此是用不了的。使用VNC viewer可破</p>
-<p>brew install –cask vnc-viewer</p>
-<p>[v_blue]辣鸡macOS自带的VNC Client也连不上127.0.0.1的，辣鸡。 [&#x2F;v_blue] <img src="/images/2021122518124036.png"></p>
-<p>我们已经能够看到Ubuntu的安装界面啦，并且在这台VM中，网络也是通的，QEMU分配了一个10段IP.如果你发现不能ping，那么在host中 <code>sysctl -w net.ipv4.ping_group_range=&#39;0 2147483647&#39;</code>就可以啦。</p>
-<p><img src="/images/2021122518124692.png"></p>
-<h2 id="分配磁盘"><a href="#分配磁盘" class="headerlink" title="分配磁盘"></a>分配磁盘</h2><p>像往常使用虚拟机一样，我们也需要为虚拟机分配一个虚拟磁盘，这样才能够安装操作系统。总不能每次都从光盘启动吧。分配虚拟磁盘也有很多讲究，比如10G是一下子都分配了，还是用多少分配多少？</p>
-<p>qemu-img create -f qcow2 &#x2F;root&#x2F;test.qcow2 16G</p>
-<p>-f 表示虚拟磁盘的格式，支持raw和qcow2，raw顾名思义就是原始的，对vm来说就是一个块设备。如果vm文件系统支持空洞，那么raw是一点点填满的，raw性能较好。qcow2是qemu推荐的格式，支持加密快照等等，别想了就这个吧。当然qemu还支持vmdk、vdi之类的。</p>
-<p>需要注意的是，别给磁盘撑爆了。</p>
-<h2 id="安装Ubuntu-Desktop"><a href="#安装Ubuntu-Desktop" class="headerlink" title="安装Ubuntu Desktop"></a>安装Ubuntu Desktop</h2><p>创建好磁盘之后，使用如下命令即可开始开vm安装Ubuntu</p>
-<p>qemu-system-x86_64 -nographic -enable-kvm -m 4096 -cpu host -smp 4 -drive file&#x3D;&#x2F;root&#x2F;test.qcow2 -cdrom &#x2F;root&#x2F;ubuntu-20.04.3-desktop-amd64.iso -vnc 0.0.0.0:0</p>
-<p>安装过程和普通VM没什么差别，就是…… 慢了点。</p>
-<h2 id="启动VM"><a href="#启动VM" class="headerlink" title="启动VM"></a>启动VM</h2><p>安装好之后，下次我们可以直接启动VM了，可以删掉-cdrom参数</p>
-<p>qemu-system-x86_64 -nographic -enable-kvm -m 4096 -cpu host -smp 4 -drive file&#x3D;&#x2F;root&#x2F;test.qcow2 -vnc 0.0.0.0:0</p>
-<h2 id="跑arm……"><a href="#跑arm……" class="headerlink" title="跑arm……"></a>跑arm……</h2><p>都知道qemu是个模拟神器，想要跑arm也不是不可能，比如跑个liveCD做个测试什么的：</p>
-<p>apt install qemu-system-arm</p>
-<p>dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;flash0.img bs&#x3D;1M count&#x3D;64<br>dd if&#x3D;&#x2F;usr&#x2F;share&#x2F;qemu-efi&#x2F;QEMU_EFI.fd of&#x3D;flash0.img conv&#x3D;notrunc<br>dd if&#x3D;&#x2F;dev&#x2F;zero of&#x3D;flash1.img bs&#x3D;1M count&#x3D;64</p>
-<p>qemu-system-aarch64 -m 1024 -cpu cortex-a57 -M virt -nographic -pflash flash0.img -pflash flash1.img -drive if&#x3D;none,file&#x3D;alpine-virt-3.15.0-aarch64.iso,id&#x3D;hd0 -device virtio-blk-device,drive&#x3D;hd0 -net nic -net user</p>
-<p>这次启动的速度就会非常慢了，如果启动成功之后没有网络，那么要开下dhcp，以alpine为例</p>
-<p>vi &#x2F;etc&#x2F;network&#x2F;interfaces</p>
-<p>auto lo<br>iface lo inet loopback<br>auto eth0<br>iface eth0 inet dhcp</p>
-<p>然后<code>ifup eth0</code>即可</p>
-<p>如果想要安装到某个磁盘中，拿Ubuntu为例</p>
-<p>qemu-img create -f qcow2 ubuntu.qcow2 8G</p>
-<p>mount -o loop ubuntu-20.04.3-live-server-arm64.iso &#x2F;mnt</p>
-<p>cp &#x2F;mnt&#x2F;casper&#x2F;vmlinuz .&#x2F;<br>cp &#x2F;mnt&#x2F;casper&#x2F;initrd .&#x2F;</p>
-<p>qemu-system-aarch64 -m 1024 -cpu cortex-a57 -smp cpus&#x3D;4 -M virt -nographic \<br>-kernel .&#x2F;vmlinuz -initrd .&#x2F;initrd \<br>-drive file&#x3D;ubuntu.qcow2,if&#x3D;none,format&#x3D;qcow2,id&#x3D;hd0 -device virtio-blk-device,drive&#x3D;hd0 \<br>-drive file&#x3D;ubuntu-20.04.3-live-server-arm64.iso,if&#x3D;none,format&#x3D;raw,id&#x3D;hd1 -device virtio-blk-device,drive&#x3D;hd1 \<br>-net nic -net user</p>
-<p>之后开始正常的安装步骤，会比较慢，而且电脑起飞。</p>
-<p><img src="/images/2021122518124721.png"></p>
-<p>安装好就可以去掉iso那行单独启动了。</p>
-<p>实际上，Docker 的Multi Arch build也是恰巧利用了QEMU啦。</p>
-<h2 id="binfmt"><a href="#binfmt" class="headerlink" title="binfmt"></a>binfmt</h2><p>如果只是简单的想要跑下异构的image的话，可以试试<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Binfmt_misc">binfmt</a>，Windows和Mac的Docker Desktop直接支持，Linux需要先这样：</p>
-<p>docker run –rm –privileged docker&#x2F;binfmt:66f9012c56a8316f9244ffd7622d7c21c1f6f28d</p>
-<p>然后跑吧</p>
-<p>docker run -it –platform linux&#x2F;arm64 alpine sh</p>
-<h2 id="使用已有的cloud-image"><a href="#使用已有的cloud-image" class="headerlink" title="使用已有的cloud image"></a>使用已有的cloud image</h2><p>我们当然可以选择把OS安装到虚拟磁盘中，但是这样要麻烦一些，安装过程比较繁琐而且很慢。有没有办法用别人已经准备好的qcow2呢？</p>
-<p>当然有啦。对于Ubuntu来说，可以去下载cloud image，img结尾的就是 <a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/focal/current/">https://cloud-images.ubuntu.com/focal/current/</a></p>
-<p>然后我们需要创建一个user data来初始化我们的密码</p>
-<p>cat &gt;user-data &lt;&lt;EOF<br>#cloud-config<br>password: 123456<br>chpasswd: { expire: False }<br>ssh_pwauth: True<br>EOF</p>
-<p>cloud-localds user-data.img user-data</p>
-<p>qemu-system-x86_64 -nographic -enable-kvm -m 2048 -cpu host -smp 4 -drive file&#x3D;&#x2F;root&#x2F;focal-server-cloudimg-amd64.img -drive file&#x3D;user-data.img,format&#x3D;raw</p>
-<p>等待启动，用户名ubuntu密码123456</p>
-<p>之后你的所有更改实际上都会写入到这个img文件中，下次启动的时候就不用user-data啦。</p>
-<p>那这个img只有2G，不够用怎么办？<code>qemu-img</code>扩容！</p>
-<p>root@e769eaf9e4ab:~# qemu-img resize focal-server-cloudimg-amd64.img +5G<br>Image resized.</p>
-<p>root@e769eaf9e4ab:~# qemu-img info focal-server-cloudimg-amd64.img<br>image: focal-server-cloudimg-amd64.img<br>file format: qcow2<br>virtual size: 7.2 GiB (7730102272 bytes)<br>disk size: 601 MiB<br>cluster_size: 65536<br>Format specific information:<br>compat: 0.10<br>refcount bits: 16</p>
-<p>然后…… 如果有LVM，那就好办了，如果没LVM，那就liveCD扩容吧。所以建议一开始就<code>qemu-img resize</code>好。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/kholia/OSX-KVM">https://github.com/kholia/OSX-KVM</a></p>
-<p><a target="_blank" rel="noopener" href="https://blog.ihomura.cn/2020/11/12/%E5%9C%A8qemu-system%E4%B8%8A%E8%B7%91arm-Debian/">https://blog.ihomura.cn/2020/11/12/%E5%9C%A8qemu-system%E4%B8%8A%E8%B7%91arm-Debian/</a></p>
-<p><a target="_blank" rel="noopener" href="https://hub.docker.com/repository/docker/bennythink/vmid">https://hub.docker.com/repository/docker/bennythink/vmid</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/12/25/docker-windows-container/index/" data-id="clhp7rtfy002ds2qr20ke2194" data-title="使用Docker跑Windows！" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1148,7 +1084,7 @@ psutil.Process().kill()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1159,6 +1095,10 @@ psutil.Process().kill()
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
+          </li>
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
@@ -1174,10 +1114,6 @@ psutil.Process().kill()
         
           <li>
             <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
       </ul>

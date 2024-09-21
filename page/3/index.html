@@ -73,6 +73,119 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-graylog-geo-ip/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/03/25/graylog-geo-ip/index/" class="article-date">
+  <time class="dt-published" datetime="2023-03-25T00:00:00.000Z" itemprop="datePublished">2023-03-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/03/25/graylog-geo-ip/index/">Graylog 显示Geo IP</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几周前不知道为什么，yyets的内存使用率暴涨，直接给我机器弄没了。</p>
+<p><img src="/images/2023032503200423.png" alt="图表 描述已自动生成"></p>
+<p>内核的OOM机制都没起作用，猜测可能是<code>dockerd</code>的默认的OOM score是-500，导致没人敢杀吧。最近这几天配置上了Graylog来收集日志，下次再出现问题可以看日志了，大概这样：</p>
+<p><img src="/images/2023032503200476.jpeg" alt="图片包含 人, 男人, 汽车, 前 描述已自动生成"></p>
+<h2 id="Graylog基础配置、收集docker日志"><a href="#Graylog基础配置、收集docker日志" class="headerlink" title="Graylog基础配置、收集docker日志"></a>Graylog基础配置、收集docker日志</h2><p>配置Graylog倒是很容易，<code>docker-compose</code>一把梭，docker也恰巧支持GELF协议。Graylog装好之后，配置一个GELF的input，如下图所示</p>
+<p><img src="/images/2023032503200540.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>小提示，如果你的Graylog是用docker起的，那么在publish port时要额外注意，docker默认只publish TCP，所以要 <code>-p 127.0.0.1:12201:12201/udp</code></p>
+<p>确认运行起来之后，可以开一个容器试试看，注意这里要写<code>127.0.0.1</code>，写<code>localhost</code>的话，dockerd可能会给搞很多幺蛾子(解析到IPv6给你颜色看看）。</p>
+<p>docker run –log-driver gelf –log-opt gelf-address&#x3D;udp:&#x2F;&#x2F;127.0.0.1:12201 alpine echo hello world</p>
+<p>也可以选择用<code>nc</code>发一条消息看看</p>
+<p>echo -n ‘{ “version”: “1.1”, “host”: “example.org”, “short_message”: “A short message again”, “level”: 5, “_some_info”: “foo” }’ | nc -w1 -u localhost 12201</p>
+<p>配置无误的话就应该已经能在搜索页面看到日志了</p>
+<p><img src="/images/2023032503200526.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h2 id="配置GeoIP"><a href="#配置GeoIP" class="headerlink" title="配置GeoIP"></a>配置GeoIP</h2><p>Graylog带有GeoIP的支持，可以自动通过MaxMind的数据库显示访客的IP地址。配置起来比较麻烦，并且文档非常模糊不清🤣</p>
+<h3 id="启用Geo-Location-Processor"><a href="#启用Geo-Location-Processor" class="headerlink" title="启用Geo-Location Processor"></a>启用Geo-Location Processor</h3><p>首先要启用这个模块，在System - Configurations最下面可以看到。需要自己去下载数据库</p>
+<p>懒得注册账号的可以去这里下载</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/P3TERX/GeoLite.mmdb">https://github.com/P3TERX/GeoLite.mmdb</a></p>
+<p>这里的City库比较新</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/wp-statistics/GeoLite2-City">https://github.com/wp-statistics/GeoLite2-City</a></p>
+<p>下载好之后放到某个目录，确保Graylog有权限访问，确认就行了，我就直接丢到了宿主机的volume的目录</p>
+<p><img src="/images/2023032503200693.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="调整处理顺序"><a href="#调整处理顺序" class="headerlink" title="调整处理顺序"></a>调整处理顺序</h3><p>System- Configurations，最上面看 Message Processors Configuration 确保GeoIP Resolve而已经启用，并且顺序正确，至少要放到pipeline后，我给放到最后了</p>
+<p><img src="/images/2023032503200764.png" alt="应用程序, Teams 描述已自动生成"></p>
+<h3 id="Lookup-Table-–-Adapters"><a href="#Lookup-Table-–-Adapters" class="headerlink" title="Lookup Table – Adapters"></a>Lookup Table – Adapters</h3><p>要创建Adapters，路径是 System- Lookup Tables- Data Adapters，Data Adapter Type选择 GeoIP的那个</p>
+<p><img src="/images/2023032503200763.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h3 id="Lookup-Table-–-Cache"><a href="#Lookup-Table-–-Cache" class="headerlink" title="Lookup Table – Cache"></a>Lookup Table – Cache</h3><p>中间的那个标签页，创建一个cache</p>
+<p><img src="/images/2023032503200910.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="Lookup-Tables"><a href="#Lookup-Tables" class="headerlink" title="Lookup Tables"></a>Lookup Tables</h3><p>终于可以创建Lookup Tables了，最左侧的标签页，选择刚刚创建好的adapter和cache。这个Name是唯一的，下一步要用，记下来哦。</p>
+<p><img src="/images/2023032503201012.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="创建Pipelines"><a href="#创建Pipelines" class="headerlink" title="创建Pipelines"></a>创建Pipelines</h2><p>😓还没完，还要创建<code>pipeline</code>去调用<code>Lookup Table</code></p>
+<h3 id="创建pipeline-rules"><a href="#创建pipeline-rules" class="headerlink" title="创建pipeline rules"></a>创建pipeline rules</h3><p>System - Pipelines - Manage rules - Create rule</p>
+<p>rule source是核心，定义了怎么取IP、解析后怎样呈现数据。拿我的一行log为例：</p>
+<p><img src="/images/2023032503201113.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>如果你的IP地址是单独的一个字段中，比如上面的<code>source</code>、<code>container_name</code>这种单独的一行，那么就很容易了，比如说你的字段叫 <code>src_ip</code></p>
+<p>rule “GeoIP lookup”<br>when<br>    has_field(“src_ip”)<br>then<br>    let geo &#x3D; lookup(“geoip”, $message.src_ip);<br>    set_field(“src_ip_geo_location”, geo[“coordinates”]);<br>    set_field(“src_ip_geo_country”, geo[“country”].iso_code);<br>    set_field(“src_ip_geo_city”, geo[“city”].names.en);<br>end</p>
+<p>很好理解，如果<code>src_ip</code> 字段存在，就用<code>geoip</code>这个Lookup Table查询，还记得吧，这个<code>geoip</code>是上一步Lookup Table的Name。</p>
+<p>如果你的日志是像我这种，IP记录在message中，那就这样，先用<code>grok</code>去提取IP地址，然后再进行查询</p>
+<p>rule “GeoIP lookup”<br>when<br>    has_field(“message”)<br>then<br>    let ipObj &#x3D; grok(pattern: “(%{IP})”, value: to_string($message.message));<br>    &#x2F;&#x2F; ipObj.IP 就是真正的IP地址，可能是IPv4 也可能是IPv6<br>    let geo &#x3D; lookup(“geoip”, ipObj.IP);<br>    set_field(“src_ip_geo_location”, geo[“coordinates”]);<br>    set_field(“src_ip_geo_country”, geo[“country”].iso_code);<br>    set_field(“src_ip_geo_city”, geo[“city”].names.en);<br>end</p>
+<p>但是这样还不是很完美，仔细观察，我的log的IP是在<code>()</code>包围中的，有些时候我也会用<code>logging.info</code>去记录IP，那么这样子就会重复了。想当然的，这东西看起来是正则表达式的样子，那么<code>(\(%&#123;IP&#125;\))</code>😎辣鸡Graylog会直接给你报错，无法保存</p>
+<p>这个时候要做的事情是创建一个新的 Grok规则，然后去应用，如图所示，Pattern为 <code>\(%&#123;IP&#125;\)</code>名字随便起一个</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/03/2023032519363232.png"><img src="/images/2023032519363232.png"></a></p>
+<p>然后规则里用<code>(%&#123;Tornado&#125;)</code>就可以了</p>
+<p>遇到问题可以用<code>debug(ip)</code>这种去排错，Graylog的log🤪会显示这个变量的内容</p>
+<h3 id="创建pipeline"><a href="#创建pipeline" class="headerlink" title="创建pipeline"></a>创建pipeline</h3><p>还没完，在Manage rules旁边有一个Manage pipelines，创建一个pipeline</p>
+<p>名字随便起，创建好之后 Edit Connections – Default Stream</p>
+<p><img src="/images/202303250320135.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<p>然后创建stage，rules选择刚刚弄好的rule</p>
+<p><img src="/images/2023032503201479.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>Stage 0没用可以删掉</p>
+<p>保存好，回到主界面应该能看到IP和地理位置了</p>
+<p><img src="/images/2023032503201563.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h2 id="添加Geo-Location-Map"><a href="#添加Geo-Location-Map" class="headerlink" title="添加Geo Location Map"></a>添加Geo Location Map</h2><p>Graylog有一个有点有趣的功能，可以根据log来做聚合查询，包括GeoIP的信息。在主界面的侧边可以看到aggregation</p>
+<p><img src="/images/2023032503201596.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>点进去这样配置</p>
+<p><img src="/images/202303250320151.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>Update widget 就有了，大概这样</p>
+<p><img src="/images/2023032503201693.png" alt="截图里有图片 描述已自动生成"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>log服务器和应用服务器不要在同一台机器上，否则到时候一起挂了，都没得看</li>
+<li>😏 <a target="_blank" rel="noopener" href="https://dmesg.app/yyets-hack.html">自从被打之后</a>，我再也不监听<code>0.0.0.0</code>了，一切全靠 Cloudflare Argo Tunnel 解决，连nginx都不需要</li>
+<li>新版本的docker（20.10起）也可以看GELF的log，但是<code>docker-compose</code>不可以</li>
+<li>这<a target="_blank" rel="noopener" href="https://www.graylog.org/post/how-to-set-up-graylog-geoip-configuration/">Graylog的文档</a>是真的绝，说得不明不白的，甚至还有全角引号</li>
+</ol>
+<p><img src="/images/2023032503201789.png" alt="文本, 信件 描述已自动生成"></p>
+<ol start="8">
+<li><p>没太多有用的资料，搜到的就是他们官方的论坛</p>
+</li>
+<li><p>🤡还有undefined的bug，后来到MongoDB里手动删除的</p>
+</li>
+</ol>
+<p><img src="/images/2023032503201861.jpeg" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/03/25/graylog-geo-ip/index/" data-id="clhp7rtgh003ds2qr2coj3mro" data-title="Graylog 显示Geo IP" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-argo-real-ip/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/03/14/argo-real-ip/index/" class="article-date">
@@ -932,86 +1045,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
 
 
   
-    <article id="post-change-git-user/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/06/13/change-git-user/index/" class="article-date">
-  <time class="dt-published" datetime="2022-06-13T00:00:00.000Z" itemprop="datePublished">2022-06-13</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/06/13/change-git-user/index/">如何更改git commit user？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>乔治·奥威尔有言</p>
-<blockquote>
-<p>历史不是一面镜子，而是黑板上的记号，可以随时擦去，随时填补。更为可怕的是，一旦涂改了，你找不到证据去证明这是篡改历史的行为。</p>
-</blockquote>
-<p>Git会追踪每一次commit的历史记录，如果之前不小心配置错了用户名，那么有办法改掉吗？</p>
-<p>当然了办法是有的，改掉commit username和email是很容易的，不就是这么几行嘛？</p>
-<p>git rebase -i f25f719f7c2333d310696c3ed41e5a90ed078e55</p>
-<p>弹出的交互式窗口，把要改的commit从<code>pick</code>改成<code>edit</code></p>
-<p><img src="/images/2022061322415582.png"></p>
-<p>然后不停地</p>
-<p>git commit –amend –author&#x3D;”Cool <a href="mailto:&#x63;&#111;&#x6f;&#108;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;">&#x63;&#111;&#x6f;&#108;&#x40;&#103;&#x6d;&#x61;&#x69;&#x6c;&#46;&#99;&#x6f;&#x6d;</a>“ –no-edit &amp;&amp; git rebase –continue</p>
-<p>就可以了</p>
-<p><img src="/images/2022061322415653.png"></p>
-<p>事实果真如此吗？<code>git push -fv</code>试试看？</p>
-<p><img src="/images/2022061322415838.png"> <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/06/2022061322453057.jpg"><img src="/images/2022061322453057.jpg"></a></p>
-<hr>
-<p>妈勒个巴子，时间不对啊，明明是Feb的怎么就变成了现在的时间了。这不就露馅了吗！</p>
-<p>千辛万苦找到一个名字叫<a target="_blank" rel="noopener" href="https://github.com/newren/git-filter-repo">git-filter-repo</a>的东西，试了一下是可以的。</p>
-<p>先安装，比如说 <code>apt install git-filter-repo</code></p>
-<p>然后创建一个<code>mailmap</code>文件，格式如下</p>
-<p>New <a href="mailto:&#x6e;&#101;&#x77;&#64;&#x67;&#109;&#x61;&#105;&#108;&#46;&#x63;&#111;&#x6d;">&#x6e;&#101;&#x77;&#64;&#x67;&#109;&#x61;&#105;&#108;&#46;&#x63;&#111;&#x6d;</a> BennyThink <a href="mailto:&#x62;&#x65;&#110;&#110;&#121;&#46;&#116;&#104;&#x69;&#110;&#107;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;">&#x62;&#x65;&#110;&#110;&#121;&#46;&#116;&#104;&#x69;&#110;&#107;&#x40;&#103;&#x6d;&#x61;&#x69;&#108;&#x2e;&#x63;&#x6f;&#x6d;</a></p>
-<p>如有需要可以写多行</p>
-<p>然后</p>
-<p>git filter-repo –mailmap &#x2F;etc&#x2F;mailmap</p>
-<p>然后再push，如果遇到缺失remote的问题，重新添加一下</p>
-<p>git remote add origin <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/history">https://github.com/tgbot-collection/history</a><br>git push –set-upstream origin master -fv</p>
-<p>优秀吧！全变成对应的名字和邮箱了，并且commit的时间也没有改变。<code>git log</code>和GitHub是一致的。</p>
-<p><img src="/images/2022061322420811.png"></p>
-<p>如果想要只改几个commit的邮箱，那怎么办呢？</p>
-<p>比如说只想改前两个</p>
-<p>git filter-repo –refs master~2..master –mailmap &#x2F;etc&#x2F;mailmap</p>
-<p><img src="/images/2022061322420927.png"></p>
-<p>如果想改某个中间的一些commit的邮箱为某个人、并且还不改变GitHub上显示的时间呢？甚至不敢确定这种是否可行😂</p>
-<p>emmm这个我还不太知道，其实不太知道refs是什么意思，尝试了很久也不行</p>
-<p>看到git-filter-repo里写着</p>
-<p>git filter-repo … –refs C..H<br>git filter-repo … –refs C..H ^D<br>git filter-repo … –refs D..H ^C</p>
-<p>H应该指的是HEAD？</p>
-<p>总之，暂时够用了😂</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/06/13/change-git-user/index/" data-id="clhp7rtek000qs2qrhtvr4bqs" data-title="如何更改git commit user？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1056,7 +1089,7 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1067,6 +1100,10 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
+          </li>
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
@@ -1082,10 +1119,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
         
           <li>
             <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
-          </li>
-        
-          <li>
-            <a href="/2024/04/30/usdt-trc20-scam/index/">警惕USDT-TRC20 数字货币诈骗</a>
           </li>
         
       </ul>
