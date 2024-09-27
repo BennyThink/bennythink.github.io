@@ -73,6 +73,80 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ubuntu16-04-wifi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/23/ubuntu16-04-wifi/index/" class="article-date">
+  <time class="dt-published" datetime="2016-04-23T00:00:00.000Z" itemprop="datePublished">2016-04-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/23/ubuntu16-04-wifi/index/">Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天Canonical放出了Ubuntu 16.04，代号Xenial Xerus。究竟改了啥我是不清楚，反正装着玩嘛，作为小白的我今天就测试了一下下，发现了一个从14.04开始就存在的bug——<strong>无法开启无线</strong>。</p>
+<p>具体症状就是，Ubuntu认得我的网卡，但是开启无线的时候，却毫无反应；设置里开启可以看到开了立刻又关了。 [v_blue]请注意，如果是Ubuntu没你无线网卡的驱动，自己下载make去吧。[&#x2F;v_blue]</p>
+<p>通过研究可以发现，Ubuntu是认得我的无线网卡<strong>AR9485</strong>，是一些设置上的问题导致无法使用。通过Ubuntu Community、forum和自己的探索，终于找到了解决方案！各位看官就跟我来看我是怎么解决这个问题的。</p>
+<p>首先按照当初14.04的办法，打开终端执行</p>
+<p>sudo rmmod acer-wmi</p>
+<p>之后注销下</p>
+<p>理论上来说就应该可以了，我们来看个图：</p>
+<p><img src="/images/042316_1056_Ubuntu16041.png"></p>
+<p>提示设备未就绪，什么鬼！</p>
+<p>继续打</p>
+<p>rfkill list all</p>
+<p><img src="/images/042316_1056_Ubuntu16042.png"></p>
+<p>发现无线网卡0的 Soft blocked是yes，也就是产生了软阻塞。</p>
+<p>下面还有个Hard blocked，这都是什么意思呢？</p>
+<p>大家可能有注意到，大部分笔记本都是有一个组合键控制WiFi开关的（比如说我的是Fn+F2），有一些甚至是硬件开关。这里的 Hard blocked指的就是这个硬件开关，如果是yes，那就是无线网卡关闭啦。而Soft blocked指的是系统层面的”开关”</p>
+<p>注意：这里有些人可能都会是yes，请用组合键打开自己的无线网卡！</p>
+<p>那我们就把第一个的yes改成no不就成了……</p>
+<p>没错就是这样</p>
+<p>rfkill unblock all</p>
+<p>正常来说你的无线网卡就正常了，可以搜索到无线信号了；不正常你就注销&#x2F;重启下<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/04/2016042312445854.png"><img src="/images/2016042312445854-638x1024.png" alt="21"></a></p>
+<p>难道一个unblock就解决问题了吗？不信我再block给你看</p>
+<p><img src="/images/042316_1056_Ubuntu16044.png"></p>
+<p>可是每次开机都这么执行一遍，很痛苦的哎，还得注销呢……</p>
+<p>那就跟我来！</p>
+<p>sudo nano &#x2F;etc&#x2F;modprobe.d&#x2F;blacklist.conf</p>
+<p>最后一行加入</p>
+<p>blacklist acer-wmi</p>
+<p>如图所示</p>
+<p><img src="/images/042316_1056_Ubuntu16045.png"></p>
+<p>Ctrl + X保存退出。之后就万事大吉什么都不用你管啦！</p>
+<p>好像这Ubuntu 16.04也没感觉到有啥长进……但是Bug 10却有很多长进……就不说进入桌面右下角不是少音量就是少网络连接要不就是没有IME了 :mad:  :mad:</p>
+<p><img src="/images/042316_1056_Ubuntu16046.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/04/23/ubuntu16-04-wifi/index/" data-id="clhp7rtmq00ags2qrhvf4ejkr" data-title="Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-encryption-gpg-veracrypt/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/04/03/encryption-gpg-veracrypt/index/" class="article-date">
@@ -911,108 +985,6 @@
 
 
   
-    <article id="post-ssh-welcome-funny-command/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/16/ssh-welcome-funny-command/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-16T00:00:00.000Z" itemprop="datePublished">2016-02-16</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/16/ssh-welcome-funny-command/index/">草泥马SSH登录信息、几个好玩的Linux命令</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h1 id="分享个好玩的Ubuntu-Server-SSH登录欢迎信息"><a href="#分享个好玩的Ubuntu-Server-SSH登录欢迎信息" class="headerlink" title="分享个好玩的Ubuntu Server SSH登录欢迎信息"></a>分享个好玩的Ubuntu Server SSH登录欢迎信息</h1><p>还有几个好玩的Linux软件</p>
-<p>先萌妹镇着！</p>
-<p><img src="/images/021516_0518_SSH1.jpg"></p>
-<p>Ubuntu登录欢迎信息保存在&#x2F;etc&#x2F;update-motd.d下</p>
-<p>其中的文件可以自己修改。我就修改帮助信息10-help-text啦！</p>
-<p>按道理说，直接在那个文件里echo “欢迎信息”就可以了，但是不知道为啥总报错。所以之后创建一个文件，然后在那里执行下啦。</p>
-<p>由于Windows和Linux对于回车、换行的处理不同，所以我直接把我的欢迎信息放出来下载吧！</p>
-<p>cd &#x2F;etc&#x2F;update-motd.d<br>wget <a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/cnm.sh">http://7xljcn.com1.z0.glb.clouddn.com/cnm.sh</a><br>nano 10-help-text</p>
-<p>注释掉全部内容，添加如下内容</p>
-<p>sh &#x2F;etc&#x2F;update-motd.d&#x2F;cnm.sh</p>
-<p>看效果图！</p>
-<p><img src="/images/021516_0518_SSH2.png"></p>
-<p>另外，有个工具叫jp2a，可以把图片转成ASCII字符画。</p>
-<p>sudo apt-get install jp2a<br>jp2a test.jpg</p>
-<p>好好的一个萌妹变成什么样子了。其实这里用Photoshop处理下，去掉复杂的背景，改成铅笔画这类的，出来的字符画效果会更好。</p>
-<p><img src="/images/021516_0518_SSH3.png"></p>
-<p>顺便写个脚本， 可以把jp2a的输出结果制作成可以执行的脚本文件。 如果想看到彩色的字符画，就加上–colors 再把这个文件在10-help-text添加执行就可以了</p>
-<p>#&#x2F;bin&#x2F;sh<br>echo ‘echo “ ‘ &gt; welcome.sh<br>jp2a test.jpg &gt;&gt; welcome.sh<br>echo ‘“‘ &gt;&gt; welcome.sh</p>
-<p>注意，当前SSH窗口多大，jp2a就会生成多大的字符画；默认图片文件名是test.jpg，生成的欢迎脚本叫做welcome.sh</p>
-<p>不需要图形化界面的</p>
-<h1 id="几个好玩的软件"><a href="#几个好玩的软件" class="headerlink" title="几个好玩的软件"></a>几个好玩的软件</h1><h2 id="toilet-字符画"><a href="#toilet-字符画" class="headerlink" title="toilet 字符画"></a>toilet 字符画</h2><p>sudo apt-get install toilet</p>
-<p><img src="/images/021616_0218_1.png"></p>
-<h2 id="cowsay-牛说"><a href="#cowsay-牛说" class="headerlink" title="cowsay 牛说"></a>cowsay 牛说</h2><p>sudo apt-get install cowsay</p>
-<p><img src="/images/021616_0218_2.png"></p>
-<h2 id="lolcat-彩色的cat"><a href="#lolcat-彩色的cat" class="headerlink" title="lolcat 彩色的cat"></a>lolcat 彩色的cat</h2><p>可以和fortune、screenfetch等搭配使用</p>
-<p>sudo apt-get install lolcat</p>
-<p><img src="/images/021616_0218_3.png"></p>
-<h2 id="fortune随机显示名言什么的。"><a href="#fortune随机显示名言什么的。" class="headerlink" title="fortune随机显示名言什么的。"></a>fortune随机显示名言什么的。</h2><p>sudo apt-get install fortune</p>
-<p>fortune-zh可以显示中文</p>
-<p><img src="/images/021616_0218_4.png"></p>
-<p> </p>
-<h2 id="linuxlogo显示系统信息"><a href="#linuxlogo显示系统信息" class="headerlink" title="linuxlogo显示系统信息"></a>linuxlogo显示系统信息</h2><p>可以配合lolcat</p>
-<p>sudo apt-get install screenfetch linuxlogo<br>linuxlogo|lolcat</p>
-<p><img src="/images/021616_0218_5.png"></p>
-<h2 id="the-fuck"><a href="#the-fuck" class="headerlink" title="the fuck"></a>the fuck</h2><p>这家伙挺好玩的！</p>
-<p>先放上GitHub页<a target="_blank" rel="noopener" href="https://github.com/nvbn/thefuck">https://github.com/nvbn/thefuck</a></p>
-<p>GitHub上已经写了很明确的安装方法了，这里搬运一下：</p>
-<h3 id="方法一。一键安装脚本（Ubuntu-amp-Mac）"><a href="#方法一。一键安装脚本（Ubuntu-amp-Mac）" class="headerlink" title="方法一。一键安装脚本（Ubuntu &amp; Mac）"></a>方法一。一键安装脚本（Ubuntu &amp; Mac）</h3><p>wget -O - <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/nvbn/thefuck/master/install.sh">https://raw.githubusercontent.com/nvbn/thefuck/master/install.sh</a> | sh - &amp;&amp; $0</p>
-<h3 id="方法二。包管理器安装（Ubuntu-amp-Debian）"><a href="#方法二。包管理器安装（Ubuntu-amp-Debian）" class="headerlink" title="方法二。包管理器安装（Ubuntu &amp; Debian）"></a>方法二。包管理器安装（Ubuntu &amp; Debian）</h3><p>sudo apt-get install python-pip python-dev<br>sudo pip install psutil thefuck</p>
-<p>安装后的配置（一键安装脚本无需配置）</p>
-<p>nano ~&#x2F;.bashrc</p>
-<p>最后一行添加</p>
-<p>eval $(thefuck –alias)</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016021602324086.jpg"><img src="/images/2016021602324086.jpg" alt="QQ截图20160216102753"></a></p>
-<p>自动纠错了哈哈哈~</p>
-<h2 id="还有个，放到终端里试试哈。"><a href="#还有个，放到终端里试试哈。" class="headerlink" title="还有个，放到终端里试试哈。"></a>还有个，放到终端里试试哈。</h2><p>echo ‘</p>
-<p>..XXX. .XXX..</p>
-<p>.XXXXY.TXXXX.</p>
-<p>XXXXXYXTXXXXX</p>
-<p>.VXXVYXTVXXX.</p>
-<p>`.TYXTXYXTV .</p>
-<p>` ,YVTXYYV .,</p>
-<p>`…XXXXX`..,</p>
-<p>.`…XXX…,.</p>
-<p>..`   V   ,.’ | tr ‘.\`, VYTX’ ‘ ()__() ‘</p>
-<h2 id="需要x-org的"><a href="#需要x-org的" class="headerlink" title="需要x.org的"></a>需要x.org的</h2><p>oneko</p>
-<p>一只跟着光标走的小猫</p>
-<p>xeyes一双盯着光标的眼睛</p>
-<p>xcowsay 图形化的cowsay</p>
-<p>sudo apt-get install oneko等等即可。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/16/ssh-welcome-funny-command/index/" data-id="clhp7rtkd0092s2qr035ve222" data-title="草泥马SSH登录信息、几个好玩的Linux命令" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1028,7 +1000,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1070,6 +1042,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1083,10 +1059,6 @@
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

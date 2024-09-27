@@ -73,6 +73,177 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-celery-bot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/01/03/celery-bot/index/" class="article-date">
+  <time class="dt-published" datetime="2022-01-03T00:00:00.000Z" itemprop="datePublished">2022-01-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/01/03/celery-bot/index/">分布式Telegram Bot</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>自己写一个Telegram Bot是非常简单的，无论是使用HTTP API还是MTProto协议。</p>
+<p>最简单的echo bot大概是下面的这种样子</p>
+<p>import logging<br>import time</p>
+<p>from telebot import apihelper<br>import telebot</p>
+<p>logging.basicConfig(level&#x3D;logging.INFO)</p>
+<p>bot &#x3D; telebot.TeleBot(“3XI”)<br>apihelper.proxy &#x3D; {‘https’: ‘socks5h:&#x2F;&#x2F;127.0.0.1:1086’}</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’, ‘help’])<br>def send_welcome(message):<br>    logging.info(“Received message”)<br>    bot.reply_to(message, “Howdy, how are you doing?”)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    bot.polling()</p>
+<p><img src="/images/2022010320464319.png"></p>
+<p>很棒是不是！</p>
+<p>当你的bot开始有更多的业务，比如说查询数据库，去访问其他网站然后解析，你就会发现这个bot似乎有点力不从心，所有的响应都慢了一拍。</p>
+<p>比如这样，这个bot每次都要去访问另外一个网站，然后返回，可惜的是这个网站响应太慢了，要5秒才能返回</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def send_welcome(message):<br>    logging.info(“Received start message”)<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000/%22).text">http://127.0.0.1:5000/&quot;).text</a><br>    bot.reply_to(message, text)</p>
+<p>@bot.message_handler(commands&#x3D;[‘help’])<br>def send_help(message):<br>    logging.info(“Received help message”)<br>    bot.reply_to(message, “help”)</p>
+<p>此时你就会惊奇地发现，所有其他的操作都被阻塞了，直到start结束。</p>
+<p><img src="/images/2022010320470988.png"></p>
+<p>这要怎么办呢？一定是有办法的对吧</p>
+<h2 id="增大thread数量"><a href="#增大thread数量" class="headerlink" title="增大thread数量"></a>增大thread数量</h2><p>无论是pyrogram还是pytelegrambotapi，都有一个额外的参数用来设置线程数量。</p>
+<p>对于pytelegrambotapi来说，参数是<code>num_threads=2</code>，构造bot的时候就可以指定；</p>
+<p>对于pyrogram来说，参数是<code>workers: int = Scaffold.WORKERS</code>，更准确的说是<code>min(32, os.cpu_count() + 4)</code>。</p>
+<p>那么只要我们在一定范围内增加这个数字，那么就应该在一定程度内不会反应迟钝太多。比如说：</p>
+<p>bot &#x3D; telebot.TeleBot(“token”, num_threads&#x3D;100)</p>
+<p>是这个道理的！</p>
+<h2 id="使用async"><a href="#使用async" class="headerlink" title="使用async"></a>使用async</h2><p>使用async也可以恰到好处的解决我们以上阻塞的问题，此时我们需要用<code>AsyncTeleBot</code></p>
+<p>from telebot.async_telebot import AsyncTeleBot<br>bot &#x3D; AsyncTeleBot(“TOKEN”)</p>
+<p>但是这个时候我们就不能直接用requests了，因为requests是sync的，简单起见我们这用aiohttp作为演示例子</p>
+<p>@bot.message_handler(commands&#x3D;[‘start’])<br>async def send_welcome(message):<br>    logging.info(“Received start message”)<br>    async with aiohttp.ClientSession() as session:<br>        async with session.get(‘<a target="_blank" rel="noopener" href="http://127.0.0.1:5000/">http://127.0.0.1:5000/</a>‘) as response:<br>            html &#x3D; await response.text()<br>    await bot.reply_to(message, html)</p>
+<p>@bot.message_handler(commands&#x3D;[‘help’])<br>async def send_help(message):<br>    logging.info(“Received help message”)<br>    await bot.reply_to(message, “help”)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    asyncio.run(bot.polling())</p>
+<p>嗯，不会阻塞的。</p>
+<p><img src="/images/2022010320471782.png"></p>
+<p>这种做法也是一种很流行的办法，但是我个人不是很喜欢。一个是因为菜，还有一个是因为很多库都是非async的，切换过去难度可能比较大。尽管也有些monkey patch可以使用，但是总感觉这种做法太过于魔法。</p>
+<h2 id="更复杂的场景"><a href="#更复杂的场景" class="headerlink" title="更复杂的场景"></a>更复杂的场景</h2><p>通常来说，简单加大线程数量或者用async即可解决我们的问题。</p>
+<p>但是比如你的场景比较复杂，比如说是从YouTube上下载视频，需要占用大量的带宽，即使线程数量足够，那么并发量高的时候，下载速度也会被限制于本机的带宽。</p>
+<p>既然MTProto协议最高允许10个客户端同时在线，那么有没有办法同时在多台机器上登录，然后分发任务，每个机器接收到任务之后只负责处理自己的任务，这样整体的吞吐量就可以非常容易的水平扩展。</p>
+<h2 id="Celery-分布式任务队列"><a href="#Celery-分布式任务队列" class="headerlink" title="Celery - 分布式任务队列"></a>Celery - 分布式任务队列</h2><p>Celery 是一个简单、灵活且可靠的，处理大量消息的分布式系统，并且提供维护这样一个系统的必需工具。</p>
+<p>没错的，我们可以在多台机器之间通过<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">WireGuard组一个大内网</a>，然后通过celery分发任务。</p>
+<p>使用Celery非常简单，我们需要先准备好broker，比如说使用redis吧！</p>
+<p>from celery import Celery<br>app &#x3D; Celery(‘hello’, broker&#x3D;’redis:&#x2F;&#x2F;localhost:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”</p>
+<p>@app.task<br>def hello():<br>    return ‘hello world’</p>
+<p>然后运行worker</p>
+<p>celery -A tasks worker –loglevel&#x3D;info</p>
+<p>这里我们可以看到，celery连接到了redis，<code>concurrency</code>是8，使用<code>prefork</code></p>
+<p><img src="/images/2022010320471965.png"></p>
+<p>之后我们只要使用delay方法提交任务就可以了</p>
+<p>&gt; python3 master [bd0f485] deleted untracked<br>Python 3.9.9 (main, Nov 21 2021, 03:22:47)<br>[Clang 12.0.0 (clang-1200.0.32.29)] on darwin<br>Type “help”, “copyright”, “credits” or “license” for more information.</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>from tasks import add<br>add.delay(8,1)<br>&lt;AsyncResult: cf06f416-bdf7-4ea9-99bc-7ba136329b7f&gt;</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>celery worker会拿到任务，然后进行处理。如果有多个worker并且全部空闲，那么大家拿到任务的几率是均等的，也就是round robin。</p>
+<h2 id="celery-pyrogram"><a href="#celery-pyrogram" class="headerlink" title="celery+pyrogram"></a>celery+pyrogram</h2><p>好极了，那就这么搞，用pyrogram只要确保session名字不同，那么就是不同的客户端。</p>
+<p>于是你兴致勃勃的写好了代码</p>
+<p># bot.py<br>from pyrogram import filters<br>from client_init import create_app<br>from tasks import send_hello</p>
+<p>app &#x3D; create_app()</p>
+<p>@app.on_message(filters.command([“&#x2F;start”]))<br>def hello(client, message):<br>    send_hello.delay(message.chat.id)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    app.run()</p>
+<h1 id="tasks-py"><a href="#tasks-py" class="headerlink" title="tasks.py"></a>tasks.py</h1><p>from celery import Celery<br>from client_init import create_app</p>
+<p>app &#x3D; Celery(‘tasks’, broker&#x3D;’redis:&#x2F;&#x2F;localhost:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”)<br>tg_client &#x3D; create_app(“development”)<br>tg_client.start()</p>
+<p>@app.task<br>def send_hello(user_id):<br>    tg_client.send_message(user_id, “Hello”)</p>
+<p>然后发送了一个<code>/start</code>，奇迹并没有发生。事实就像社会主义铁拳一样，总会把你的脸打得啪啪作响。</p>
+<p><img src="/images/2022010320472117.jpeg"></p>
+<p>行吧，这是macOS&#x2F;Python.org&#x2F;Celery的锅，猜测是和subprocess在不同平台上的实现有关。因为我们用的是prefork模式。</p>
+<p>那既然这样，我们换到Linux试一下看看</p>
+<p>虽然没有报错了，但是为何收到了消息却没有执行？或者说执行卡住了？多打点log试试看？</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    print(tg_client.get_me())<br>    tg_client.send_message(user_id, “Hello”)<br>    logging.info(“finish tasks”)</p>
+<p><img src="/images/2022010320472226.png"></p>
+<p>为什么？</p>
+<h2 id="为什么client卡住了？"><a href="#为什么client卡住了？" class="headerlink" title="为什么client卡住了？"></a>为什么client卡住了？</h2><p>celery默认是prefork模式，意味celery会fork出来一堆子进程来干活，然后自己成为包工头。这也是我们在日志中看到 ForkPoolWorker-x的执行日志的原因。</p>
+<p>但是我们是在file-level定义的<code>tg_client</code>，而执行任务的worker在收到下载请求时要去访问<code>tg_client</code>，这是一个大问题。再加上pyrogram是异步库。所以问题就更严重了</p>
+<p>解决方案之一是，我们在tasks中使用<code>with</code>，这样相当于每次tasks执行都要经历完成的连接步骤，就好像开机-干活-关机一样。</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    with create_app(“development”) as tg_client:<br>        print(tg_client.get_me())<br>        tg_client.send_message(user_id, “Hello”)<br>    logging.info(“finish tasks”)</p>
+<p>第一次会比较慢，后续会使用到session文件，能稍微快一点。</p>
+<p>如果突然来了10个并发的任务……💣那这就完蛋啦</p>
+<h2 id="solo模式"><a href="#solo模式" class="headerlink" title="solo模式"></a>solo模式</h2><p>celery worker除了prefork模式，还有gevent、eventlet、threads和solo这四种。<a target="_blank" rel="noopener" href="https://blog.csdn.net/cnweike/article/details/105840936">它们的区别</a>大致如下：</p>
+<p>1. prefork（默认）：worker会开启多个进程来执行具体的任务实例（task instance），适合于CPU密集型应用；这会开启一个worker主进程，和一组工作进程（如果并行度设置为2，当使用ps -ef | grep celery的时候，会看到3个进程，多出来的一个就是主进程）。</p>
+<p>celery -A djangogo worker -P prefork -c 2</p>
+<p>2. eventlet：适用于I&#x2F;O密集型应用；底层使用epoll或者libevent来驱动多路复用。要注意不要在这样的worker中运行CPU密集型的任务实例。</p>
+<p>celery -A djangogo worker -P eventlet -c 20000</p>
+<p>3. gevent：类似于eventlet，基于libev或者libuv事件循环。</p>
+<p>celery -A djangogo worker -P gevent -c 20000</p>
+<p>4.solo：接收控制指令同运行任务实例在同一个进程里执行，如果任务实例执行时间较长会阻塞控制指令请求的响应，客户端需要适度增加超时时间设置。（一般不使用）</p>
+<p>5. threads：任务实例在线程中执行。这里的线程就是我们通常认知上的线程，线程维护通常要明显大于协程，所以并行度的设置也需要考虑到维护的代价。</p>
+<p>那么用solo模式似乎可行</p>
+<p>tg_client &#x3D; create_app(“development”)<br>tg_client.start()</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<h1 id="run-celery"><a href="#run-celery" class="headerlink" title="run celery"></a>run celery</h1><p>celery -A tasks worker –loglevel&#x3D;info –pool&#x3D;solo</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/01/202201032109099.jpeg"><img src="/images/202201032109099.jpeg"></a></p>
+<p>这样当然也行，但是一个很严肃的问题就是，solo情况下如果函数执行时间过长，会使得后续tasks被阻塞，也就是说solo下concurrency是没有用的。这……</p>
+<h2 id="threads模式"><a href="#threads模式" class="headerlink" title="threads模式"></a>threads模式</h2><p>那么用threads模式如何？反正大部分情况下也只是网络相关的操作，不太涉及到计算。</p>
+<p>celery -A tasks worker –loglevel&#x3D;info –pool&#x3D;threads –concurrency&#x3D;20</p>
+<p>此时你会发现，虽然可以并发，但是似乎又像prefork模式一样，卡住了……</p>
+<p>根本原因是celery tasks是阻塞主线程的，而pyrogram作为异步库<strong>是要依赖主线程的</strong>。</p>
+<p>但是改改还能抢救一下</p>
+<h3 id="如果你使用的是pyrogram-1-x版本的话"><a href="#如果你使用的是pyrogram-1-x版本的话" class="headerlink" title="如果你使用的是pyrogram 1.x版本的话"></a>如果你使用的是pyrogram 1.x版本的话</h3><p>from pyrogram import idle</p>
+<p>logging.basicConfig(level&#x3D;logging.INFO)<br>app &#x3D; Celery(‘tasks’, broker&#x3D;’redis:&#x2F;&#x2F;host.docker.internal:6379&#x2F;0’, timezone&#x3D;”Asia&#x2F;Shanghai”)<br>tg_client &#x3D; create_app(“development”)</p>
+<p>@app.task<br>def send_hello(user_id):<br>    logging.info(“receive tasks”)<br>    # with create_app(“development”) as tg_client:<br>    text &#x3D; requests.get(“<a target="_blank" rel="noopener" href="http://127.0.0.1:5000" ).text">http://127.0.0.1:5000&quot;).text</a><br>    tg_client.send_message(user_id, text)<br>    logging.info(“finish tasks”)</p>
+<p>def run_celery():<br>    argv &#x3D; [“-A”, “tasks”, ‘worker’, ‘–loglevel&#x3D;info’, “–pool&#x3D;threads”, “–concurrency&#x3D;200”]<br>    app.worker_main(argv)</p>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    tg_client.start()<br>    threading.Thread(target&#x3D;run_celery, daemon&#x3D;True).start()<br>    idle()<br>    tg_client.stop()</p>
+<h1 id="run-celery-1"><a href="#run-celery-1" class="headerlink" title="run celery"></a>run celery</h1><p>python3 tasks.py</p>
+<p>这样就可以顺利收发消息啦😄</p>
+<h2 id="其他模式"><a href="#其他模式" class="headerlink" title="其他模式"></a>其他模式</h2><p>至于gevent、eventlet，反正我是没搞出来……</p>
+<h2 id="其他配置"><a href="#其他配置" class="headerlink" title="其他配置"></a>其他配置</h2><h3 id="监控worker"><a href="#监控worker" class="headerlink" title="监控worker"></a>监控worker</h3><p>在有了worker后，总想做一些监控什么的，celery flower正好是干这件事情的</p>
+<p>celery -A tasks worker –loglevel&#x3D;info</p>
+<p>由于我们的tg_client是file-level，并且由于flower和最新版本的celery似乎有些兼容性问题，没办法不用-A喧嚣。因此为了避免浪费一个client并加快启动速度，我们可以弄一个dummy tasks</p>
+<p># flower_tasks.py<br>app &#x3D; Celery(‘tasks’, broker&#x3D;BROKER, timezone&#x3D;”Asia&#x2F;Shanghai”)</p>
+<p>然后</p>
+<p>celery -A flower_tasks flower</p>
+<p>甚至可以根据个人情况使用<code>--persistent</code>、<code>basic auth</code>之类的。看看这效果（</p>
+<p><img src="/images/2022010320472376.jpeg" alt="图像"></p>
+<p>还可以看到哪些任务是失败的，修复了好几个bug</p>
+<p><img src="/images/2022010320472569.jpeg" alt="图像"></p>
+<h3 id="持续部署"><a href="#持续部署" class="headerlink" title="持续部署"></a>持续部署</h3><p>worker这么多，每次更新都要ssh上去很麻烦，即使是用了<code>docker-compose</code>也一样。方法之一是用ansible，方法之二是用GitHub Actions。</p>
+<p>我的用法是在Github Actions上ssh到机器，然后执行我写好的<code>Makefile</code>。<code>Makefile</code>的内容大概就是<code>docker pull docker-compose up -d</code>之类的啦。</p>
+<p>可以参考这里 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/upgrade.yml">https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/upgrade.yml</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总结一下，大概有三种可行的方法，以<code>tg_client.get_me()</code>和我的慢速梯子为例：</p>
+<ol>
+<li>prefork+with，每次都要开机-干活-关机。第一次会比较慢大概15-20秒，后续会快一点。参考时间2-3s</li>
+<li>solo模式，只能处理一个，每次处理参考时间0.5s或更低</li>
+<li>threads模式，只要不涉及到大量计算那么问题就不大，那么每次处理参考时间为0.5s或更低</li>
+</ol>
+<h2 id="最后……"><a href="#最后……" class="headerlink" title="最后……"></a>最后……</h2><p>欢迎流量太多的盆友来跟我一起做worker！名额有限速来！</p>
+<p>也希望有人能够帮我解决prefork下的那个问题……🌚 🌚</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://github.com/pyrogram/pyrogram/issues/480">https://github.com/pyrogram/pyrogram/issues/480</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/cnweike/article/details/105840936">https://blog.csdn.net/cnweike/article/details/105840936</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot">https://github.com/tgbot-collection/ytdlbot</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/01/03/celery-bot/index/" data-id="clhp7rtev0015s2qraooceimd" data-title="分布式Telegram Bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-docker-windows-container/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/12/25/docker-windows-container/index/" class="article-date">
@@ -1057,80 +1228,6 @@
 
 
   
-    <article id="post-riseup-alias-email/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/07/29/riseup-alias-email/index/" class="article-date">
-  <time class="dt-published" datetime="2021-07-29T00:00:00.000Z" itemprop="datePublished">2021-07-29</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/07/29/riseup-alias-email/index/">riseup如何使用自己域名邮箱发邮件</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>先说说一些收邮件的方法吧</p>
-<h2 id="收邮件-–-Email-Forwarding"><a href="#收邮件-–-Email-Forwarding" class="headerlink" title="收邮件 – Email Forwarding"></a>收邮件 – Email Forwarding</h2><p>收邮件的话，最简单的办法就是去注册商哪里设置一个Email Forwarding，比如namesilo中可以这样设置：</p>
-<p><img src="/images/2021072919313862.png"></p>
-<p>等几分钟生效，发给 <a href="mailto:benny@dmesg.app">benny@dmesg.app</a> 的邮件就会被转发给我的Gmail啦。</p>
-<h2 id="收邮件-–-自建"><a href="#收邮件-–-自建" class="headerlink" title="收邮件 – 自建"></a>收邮件 – 自建</h2><p>也可以选择自建，比如说用iRedMail。配置起来是挺麻烦的，但是会让人很有成就感。同时也可以发邮件了。缺点就是有很多时候会被当成SPAM，需要进一步设置DKIM呀什么的。</p>
-<h2 id="收邮件-–-企业邮箱"><a href="#收邮件-–-企业邮箱" class="headerlink" title="收邮件 – 企业邮箱"></a>收邮件 – 企业邮箱</h2><p>比如用Gsuite啦，腾讯企业邮箱啦，都很容易，改个MX就行。</p>
-<h2 id="发邮件"><a href="#发邮件" class="headerlink" title="发邮件"></a>发邮件</h2><p>发邮件相比之下就要麻烦点了，可选的方案有自建、企业邮箱。还有就是可以让riseup帮忙发！当然啦，用Gmail也是可以的。</p>
-<p>用riseup发邮件的话，需要先让你的邮箱能够收到邮件，无论你是通过Email Forwarding还是企业邮箱，总之要能收到邮件。</p>
-<p>然后设置alias，在这个页面中 <a target="_blank" rel="noopener" href="https://account.riseup.net/mail/aliases">https://account.riseup.net/mail/aliases</a></p>
-<p><img src="/images/2021072919314134.png"></p>
-<p>确认邮箱并且已经生效之后，之后去邮箱的identities里添加一下这个邮箱</p>
-<p><img src="/images/2021072919314274.png"></p>
-<p>然后在riseup的web页面就可以用这个邮箱发邮件啦</p>
-<p><img src="/images/2021072919314467.png"></p>
-<p>想要用代码来解决的话，也很简单，Python的话直接用自带的smtplib就可以了</p>
-<p><code>from_addr</code>就是加的那个alias，别想着加一个 <a href="mailto:&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>，不行的（这种情况倒是可以用mailhog自娱自乐）。</p>
-<p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
-<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; os.getenv(“email_user”)<br>    password &#x3D; os.getenv(“email_password”)<br>    host &#x3D; os.getenv(“email_host”) or “localhost”<br>    port &#x3D; os.getenv(“email_port”) or “1025”  # mailhog<br>    from_addr &#x3D; os.getenv(“from_addr”) or “<a href="mailto:&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;">&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;</a>“</p>
-<pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
-msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
-msg\[&#39;To&#39;\] = \_format\_addr(to)
-msg\[&#39;Subject&#39;\] = Header(subject, &#39;utf-8&#39;).encode()
-
-if port == &quot;1025&quot;:
-    server = smtplib.SMTP(host, port)
-else:
-    server = smtplib.SMTP\_SSL(host, port)
-server.login(user, password)
-server.sendmail(from\_addr, \[to\], msg.as\_string())
-server.quit()
-</code></pre>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a>“, “subj”, ‘aaaa<br>bbb’)</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/07/29/riseup-alias-email/index/" data-id="clhp7rtik007ps2qrfb710m85" data-title="riseup如何使用自己域名邮箱发邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1146,7 +1243,7 @@ server.quit()
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1188,6 +1285,10 @@ server.quit()
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1201,10 +1302,6 @@ server.quit()
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

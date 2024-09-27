@@ -73,6 +73,187 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-2023-end/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/12/31/2023-end/index/" class="article-date">
+  <time class="dt-published" datetime="2023-12-31T00:00:00.000Z" itemprop="datePublished">2023-12-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/12/31/2023-end/index/">2023 年终总结</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>很多年没有写年终总结了。有很多事情都是2022年年底的发生的，四舍五入也算2023年的吧！</p>
+<h2 id="博客"><a href="#博客" class="headerlink" title="博客"></a>博客</h2><p>2023年一共写了16篇博文，从数量上看起来比较少，从质量上看则更是堪忧🙃️</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023122902195115.png"><img src="/images/2023122902195115.png"></a></p>
+<p>这一年学习到了很多有用没用的知识。</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/stripe-telegram.html">如何使用 Stripe API</a> ，应用到了 WebP Cloud Services 上</p>
+</li>
+<li><p>meilisearch，<a target="_blank" rel="noopener" href="https://dmesg.app/meilisearch.html">一个轻量级的全文搜索引擎</a>，支持CJK，正好拿来给 <a target="_blank" rel="noopener" href="https://dmesg.app/telegram-cjk-search.html">SearchGram</a> 用</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/graylog-geo-ip.html">学习配置了一下 Graylog</a>。是挺炫酷，但是从来不看，现在已经被我删掉了</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/cloudflare">学习使用 Cloudflare Zero Trust</a>中的一些组件。其实我是一周左右就弄懂了，但是故意隔开几天发博客</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/lede-shadowtls.html">在 LEDE&#x2F;OpenWRT 上使用ShadowTLS</a>，由于我用的是cnroute，所以打环了需要额外配置一下</p>
+</li>
+</ul>
+<p>在这之后，我的博客就停更了差不多半年左右。这半年里我和 <a target="_blank" rel="noopener" href="https://github.com/n0vad3v">Nova</a> 还有 <a target="_blank" rel="noopener" href="https://github.com/tukideng">Tuki</a> 开发并运营了 **<a target="_blank" rel="noopener" href="https://webp.se/">WebP Cloud Services</a>**。这个想法来自于3年前的WebP Server Go，区别是Cloud Services功能更多更强大，而且是托管的SaaS服务。</p>
+<p>这半年里我也写了博文，只不过放在了 <a target="_blank" rel="noopener" href="https://blog.webp.se/">WebP Cloud Services Blog</a> 上。为了增加受众，并且我们的目标是出海，我们还用 ChatGPT 翻译了英文版本的。</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/golang-libvips-cgo-zh/">libvips, cgo, purego</a> 切换到 libvips 之后我们一直希望能够实现交叉编译（静态链接就别想了，这永远只是一个梦），然而，即便交叉编译，那也是梦里才有的事情……</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/govips-filter-zh/">使用 libvips 实现CSS滤镜</a>，看了 W3C的文档，学会了如何做渐变，甚至还学习了一些高等数学的知识</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/cve-2023-4863-fix-zh/">手动编译了一下 libwebp</a>，啥也没学会，只听见电表起飞的声音</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/change-loglevel-runtime-zh/">在运行时通过UNIX 信号 修改loglevel</a>，UNIX哲学。不过，这个过程中我写出来了一个 bug，会<a target="_blank" rel="noopener" href="https://blog.webp.se/goroutine-leak-zh/">导致goroutine泄漏</a>，然后CPU使用率缓慢升高。哎，有时还是不能太相信AI啊。</p>
+</li>
+</ul>
+<p>然后，我就又回到了🥔不好吃</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/es-ee-se-unicode.html">西班牙、爱沙尼亚吞并了瑞典的故事</a>，unicode真是太神奇且深奥啦</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/steam-deck-stuck.html">steam deck 游戏卡logo</a>，从 steam community翻到了然后抄过来的🤣</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/nodejs-dual-stack.html">Nodejs 双栈协议踩坑</a>，nodejs 真™️™️的草台班子。和JavaScript一样草台</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/tron-trx.html">Tron（TRX）收款</a>，本王终于进入币圈了，学习了 HD钱包的原理，给 go <a target="_blank" rel="noopener" href="https://github.com/ranjbar-dev/tron-wallet">tron-wallet</a> 贡献了代码。 WebP Cloud Services 也支持通过 TRX 付款啦💰</p>
+</li>
+</ul>
+<p>这一年的写作到这里就结束了。</p>
+<h2 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h2><p>换了一份工作，薪水比上份工作多一些。然而我觉得这份工作并没有上一份工作那么令我满意，主要集中在以下这几点吧：</p>
+<ul>
+<li><p>工作流程：上一份工作的公司刚刚被某芯片大厂收购，工作流程非常规范（因此也很慢），任何变更要通过 PR来，需要2个 review，Test Coverage大概有个70-80%左右</p>
+</li>
+<li><p>技术栈的变化：前司是Python + Clarity + PostgreSQL，我还接手了一个 Java的Play framework 的东西，感谢老板对我的信任，我都没想到能弄明白🤣 现在则是 Nodejs + Angular+ Elm 。JavaScript 懂得都懂黑点无数，大家也乐此不疲的黑JS，但是无论怎么说JS还是发展非常迅速的一门语言，生态也挺不错。Elm那我只能😄啦，只提一点：标准库上次更新是2021年2月。</p>
+</li>
+<li><p>氛围和企业文化：这个没什么可说的，都很棒，同事们都挺好的。也没有什么996的事，到点就走。但是不知为何我还是更喜欢前司😂</p>
+</li>
+</ul>
+<p>别的倒也没什么，俗话说钱难挣嘛，这个道理都懂……</p>
+<h2 id="旅游"><a href="#旅游" class="headerlink" title="旅游"></a>旅游</h2><p>从来不爱旅游的我，今年竟然破天荒的去了5个城市旅游。收获了什么忘记了，无论是「这个楼也太他妈牛逼了」还是「落霞与孤鹜齐飞」都不记得了。 我也没写xxx游记，只记得买了很多明信片😓</p>
+<h2 id="开源项目"><a href="#开源项目" class="headerlink" title="开源项目"></a>开源项目</h2><ul>
+<li><p>YYeTs：基本没什么太大的变化，dependabot的commit比我还多。前段时间转手给别人之后我更是不管了</p>
+</li>
+<li><p>WebP Server Go：虽然有持续的更新，并且有一些 issue，但是主要都是 Nova 大佬在处理，我基本打酱油了</p>
+</li>
+<li><p>ytdlbot：更新了一大堆东西，每天跑 200G 流量。收获0.</p>
+</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/202312290332433.png"><img src="/images/202312290332433.png"></a></p>
+<p>总体来看，基本上可以说还是那些，没什么新的变化，“僵尸”状态可能是一个比较恰当的形容词。</p>
+<h2 id="游戏"><a href="#游戏" class="headerlink" title="游戏"></a>游戏</h2><p>电子阳痿。</p>
+<p>等了很久的《往日之影》发布了，熬夜两天玩完，后劲太大直接让我郁闷的好几天。假如我是V，我会怎样做出选择？接受治疗活下去，然后失去一切。真的是一切都变了，物是人非，曾经的V震天甚至还会被街边的小混混揍，而这只是短短的两年。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023122903214866.png"><img src="/images/2023122903214866.png"></a></p>
+<p>曾经的V可是这样的啊（这套服装是往日之影里那个法国黑客奥罗尔的复刻，还蛮好看的，我好喜欢。这把刀好像叫爪磨？）</p>
+<p>与其这样生活，真的不如再活半年，或者把身体留给强尼。甚至，不如信了荒坂。</p>
+<p>人呐难免会把艺术作品中的事情联想到自己身上，这个高塔结局说的不就是现在的我吗？</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023123001413713-scaled.jpeg"><img src="/images/2023123001413713-scaled.jpeg"></a></p>
+<h3 id="Steam-Deck"><a href="#Steam-Deck" class="headerlink" title="Steam Deck"></a>Steam Deck</h3><p>买了个 Steam Deck，淘了个显示器键盘和1 TB SSD，然后装了个双系统。这玩意就是一个标准的x86机器，所以装双系统甚至三系统这种事情对于我来说自然不在话下。惊叹于 Windows 11，和Windows 10比起来还是变化了很多的。</p>
+<p>装完系统我也没怎么用，看起来也电子阳痿了。</p>
+<h2 id="影视作品"><a href="#影视作品" class="headerlink" title="影视作品"></a>影视作品</h2><p>看了挺多，大部分都是 Netflix上的</p>
+<ul>
+<li><p>VIVANT： 堺雅人主演的电视剧，前几集挺好看，后面略差。堺雅人的英文不太好，可能不如中文吧</p>
+</li>
+<li><p>石子和羽男 ：有村架纯真的是太可爱了，我好爱她😍</p>
+</li>
+<li><p>V世代：黑袍纠察队的衍生电视剧，很不错</p>
+</li>
+<li><p>上载新生第三季：略差了，但是比第二季好多了</p>
+</li>
+<li><p>最后生还者：改编于同名游戏，那个被魔山捏爆脑子的王子还真是挺忙</p>
+</li>
+<li><p>曼达洛人第三季：电视剧总体水平还不错，但是不知道为何我不太喜欢了，可能毕竟不是星战粉吧。主演还是上面那个王子</p>
+</li>
+<li><p>阿妮亚传奇啊不，间谍过家家：我很少看动漫，但是这部动漫竟然坚持下来了</p>
+</li>
+<li><p>赛博朋克 边缘行者：听说看完这部动漫的人都打开游戏锤爆亚当·重锤，我也不例外😂</p>
+</li>
+<li><p>噬亡村：柳乐优弥和吉冈里帆主演的电视剧。吉冈妹子真的好美，不知道第二季什么时候，这都快一年了</p>
+</li>
+<li><p>弥留之国的爱丽丝：第二季不太行……</p>
+</li>
+<li><p>甜蜜家园第二季：更不行</p>
+</li>
+<li><p>谁是被害者：台剧，还不错嗷</p>
+</li>
+<li><p>模仿犯：也是台剧，不错</p>
+</li>
+<li><p>罪后真相：台湾电影，还好，看预告片不错</p>
+</li>
+<li><p>黑暗荣耀：宋慧乔主演的，不错</p>
+</li>
+<li><p>黑镜第六季：琼糟透了、海之彼岸还不错，其他的一般般</p>
+</li>
+<li><p>关注者：不知道讲了什么，全程被池田 エライザ吸引🤩</p>
+</li>
+<li><p>初恋：这年头的纯爱剧，还真的能看进去（其中有一点点18🈲️镜头哈哈哈），主题曲和灵感均是宇多田光的 First Love，光妹真的浑身发光啊</p>
+</li>
+<li><p>重启人生：假如我能重启人生，那么我要做的事情会不会是，在高考结束之后的那天，把上交的志愿改掉？</p>
+</li>
+</ul>
+<p>还有一堆乱七八糟的，不记得了想不起来了</p>
+<h2 id="音乐"><a href="#音乐" class="headerlink" title="音乐"></a>音乐</h2><p>新增了很多 OST，都是赛博朋克的，最喜欢的还是 <a target="_blank" rel="noopener" href="https://music.163.com/song?id=2083630443">Gate K9</a>（往日之影）和 <a target="_blank" rel="noopener" href="https://music.163.com/song?id=1804292550">The Rebel Path</a>（单挑荒坂塔）</p>
+<p>剩下的歌曲基本都是日本流行乐，基本全是 uru，我最喜欢的可能是 「ドライフラワー 」吧，这种小小伤感的歌曲最让我喜欢了：</p>
+<ul>
+<li><p>なんでもないよ</p>
+</li>
+<li><p>ドライフラワー</p>
+</li>
+<li><p>無機質</p>
+</li>
+<li><p>恋</p>
+</li>
+<li><p>再会</p>
+</li>
+<li><p>ポジティ部入部</p>
+</li>
+<li><p>ランドマーク</p>
+</li>
+<li><p>紙一重</p>
+</li>
+<li><p>君の幸せを</p>
+</li>
+<li><p>セレナーデ</p>
+</li>
+</ul>
+<h2 id="猫"><a href="#猫" class="headerlink" title="猫"></a>猫</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023122903434288.jpg"><img src="/images/2023122903434288.jpg"></a></p>
+<p>还是挺恩爱的。但是酸奶后背脱毛了😫，并且从昨天开始呕吐腹泻😫😫😫</p>
+<h2 id="期待"><a href="#期待" class="headerlink" title="期待"></a>期待</h2><p>希望酸奶早日好起来，猫咪身体健康。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/12/31/2023-end/index/" data-id="clqxhsve30000w1qr2oac5v4z" data-title="2023 年终总结" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-tron-trx/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/12/09/tron-trx/index/" class="article-date">
@@ -864,137 +1045,6 @@ def verify\_payment(self):
 
 
   
-    <article id="post-cf-zero-trust/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/04/01/cf-zero-trust/index/" class="article-date">
-  <time class="dt-published" datetime="2023-04-01T00:00:00.000Z" itemprop="datePublished">2023-04-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/04/01/cf-zero-trust/index/">使用Cloudflare Zero Trust创建大内网</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>创建大内网是一件非常重要的事情。一旦有了安全的内网环境之后，我的服务器之间就可以使用私有IP进行通信，不用再考虑这个协议是否适合暴露在公网上、是否会被MITM等问题了。管他什么协议的，telnet我都照样跑🤪！</p>
-<p>通常来说，我是<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">使用WireGuard来创建内网</a>的。选择一个机器作为“服务器”，其他的节点作为客户端加进来就好了。这也是业界最为成熟的方案了</p>
-<p>但是这样做仍有一些限制和缺陷，比如说：</p>
-<ul>
-<li>如何暴露整个家庭内网，如<code>192.168.7.0/24</code> 给出门在外的我，家里的每一个设备都要通过WireGuard加进来吗，或者写奇奇怪怪的iptables规则？</li>
-<li>所有的数据要通过“服务器”中转，两个美国的服务器明明直接就能沟通，50ms解决，如果WG服务器在亚洲，那么就基本上300ms左右了</li>
-<li>穷到买不起服务器，没有公网IP</li>
-</ul>
-<p>在这种情况下，最好的办法就是用Cloudflare Zero Trust中的tunnel啦！</p>
-<p>之前简单的提过我已经把<a target="_blank" rel="noopener" href="https://dmesg.app/argo-real-ip.html">所有的web服务都通过argo tunnel 暴露了</a>，拓扑图大概是这样，从Cloudflare那边偷过来的：</p>
-<p><img src="/images/2023040101321423.png"></p>
-<p>在我的服务器上安装<code>cloudflared</code>，然后添加Public Hostname，所有的访问直接从Cloudflare的网络来。安全且环保！</p>
-<p>那么Cloudflare tunnel还有那些有趣的用法呢？先从暴露整个家庭内网来说吧！同样的道理，我们需要在家里运行一个cloudflared connector，然后其他终端设备通过WARP连接到Cloudflare，然后把整个网络暴露给终端设备，拓扑图如下：</p>
-<p><img src="/images/2023040101323051.png"></p>
-<hr>
-<h1 id="暴露家庭内网"><a href="#暴露家庭内网" class="headerlink" title="暴露家庭内网"></a>暴露家庭内网</h1><h2 id="获取team-domain"><a href="#获取team-domain" class="headerlink" title="获取team domain"></a>获取team domain</h2><p>打开Cloudflare Zero Trust，设置里就可以看到你的team name，我这里就是<code>bennythink</code>啦</p>
-<p><img src="/images/202304010132311.png"></p>
-<h2 id="配置网络协议"><a href="#配置网络协议" class="headerlink" title="配置网络协议"></a>配置网络协议</h2><p>Settings-network，找到proxy，把TCP、UDP、ICMP和WARP to WARP都打开（这个后续要用）</p>
-<p><img src="/images/2023040101323257.png"></p>
-<h2 id="创建WARP-设备注册权限"><a href="#创建WARP-设备注册权限" class="headerlink" title="创建WARP 设备注册权限"></a>创建WARP 设备注册权限</h2><p>首先要定义如何注册设备，简单的来说通过邮箱就好了。比如说一个公司的人，用公司后缀的邮箱连接到同一个内网。在Zero Trust的面板中，Settings - WARP client - Dvice enrollment permission</p>
-<p><img src="/images/2023040101323341.png"></p>
-<p><img src="/images/2023040101323478.png"></p>
-<h2 id="创建-WARP-Profile"><a href="#创建-WARP-Profile" class="headerlink" title="创建 WARP Profile"></a>创建 WARP Profile</h2><p>所谓Profile，就是定义什么用户使用什么样的WARP的规则，规则包括用户能否断开，自动重连等，其中最重要的是路由规则。</p>
-<p>如图，在此我配置的<code>home@dmesg.app</code> 这个用户的规则</p>
-<p><img src="/images/2023040101323579.png"></p>
-<p>Split tunnel用来配置如何分发流量，分为两种模式，<strong>include和exclude</strong>，有点像黑名单白名单的概念。</p>
-<p><img src="/images/2023040101323644.png"></p>
-<ul>
-<li>Include，就像WireGuard <code>allowIP</code>配置为<code>192.168.6.0/24</code>一样，只有这个网段的流量会走WireGuard，其他流量会直接出去，不走cloudflare</li>
-<li>Exclude，就是所有流量都要走cloudflare，因此<code>192.168.7.0/24</code>走了cloudflare所以可以访问，列表中的直接连接</li>
-</ul>
-<p>说人话的话，比如你在外面，要访问家里<code>192.168.7.0/24</code>，并且<strong>所有其他流量要走cloudflare</strong>，那么你要用exclude模式；</p>
-<p>你在外面，要访问家里的<code>192.168.7.0/24</code>，<strong>其他流量直接出</strong> 以方便真人快打，那么就要用include模式。</p>
-<p>这里我就选择include模式，因此上图切换到include，然后添加IP段，CIDR表示法</p>
-<p><img src="/images/2023040101323785.png"></p>
-<p>同时在tunnel的Private Network也要创建一样的CIDR</p>
-<p><img src="/images/2023040101323865.png"></p>
-<p>看cloudflared日志可以看到已经自动更新了配置</p>
-<p><img src="/images/2023040101323951.png"></p>
-<h2 id="配置客户端连接"><a href="#配置客户端连接" class="headerlink" title="配置客户端连接"></a>配置客户端连接</h2><p>客户端需要下载WARP，然后  Login to Cloudflare Zero Trust，输入team name</p>
-<p><img src="/images/2023040101323984.png"></p>
-<p>进行邮件验证</p>
-<p><img src="/images/2023040101324032.png"></p>
-<p>然后你的warp就会接收到新的配置，连接起来，就会发现<code>192.168.7.0/24</code>已经通啦</p>
-<p><img src="/images/2023040101324165.png"></p>
-<p>并且路由器的管理界面是打得开的</p>
-<p><img src="/images/2023040101325018.png"></p>
-<hr>
-<h1 id="创建大内网"><a href="#创建大内网" class="headerlink" title="创建大内网"></a>创建大内网</h1><p>拓扑图如下，所有同一个organization（team）的WARP都有一个独立的内网，可以安全进行数据交换。还记得上面开的TCP、UDP、WARP to WRAP吗？这里用到的就是WARP to WARP</p>
-<p><img src="/images/2023040101325762.png" alt="图示 描述已自动生成"></p>
-<h2 id="创建profile"><a href="#创建profile" class="headerlink" title="创建profile"></a>创建profile</h2><p>同样创建一个新的profile</p>
-<p><img src="/images/2023040101330798.png"></p>
-<p>Split tunnel的原理相信大家已经懂了，简单起见，同样选择include，只不过IP段写<code>100.64.0.0/10</code>，这个是Cloudflare 默认的Virtual Network，使用了WARP的设备会被分配到这个IP段里。这里一共有400多万个可用的IP，沃尔玛员工人手2个WARP，或者克罗地亚人一人一个都足够🤣</p>
-<p><img src="/images/2023040101331898.png"></p>
-<h2 id="注册设备"><a href="#注册设备" class="headerlink" title="注册设备"></a>注册设备</h2><p>安装warp-cli，然后</p>
-<p>warp-cli teams-enroll bennythink</p>
-<p>在你的浏览器上打开链接，输入邮箱<code>wg@dmesg.app</code>验证，但是并没有任何信息告诉你怎么打开终端里的warp-cli，那怎么办呢？别怕，打开F12，找到Open Cloudflare WARP那个按钮的元素，找到<code>onclick</code>事件，复制从<code>com.cloudflare.warp</code>开始的信息到结尾的单引号</p>
-<p><img src="/images/2023040101333518.png"></p>
-<p>然后在终端中：</p>
-<p>warp-cli teams-enroll-token com.cloudflare.warp:&#x2F;&#x2F;bennythink.cloudflareaccess.com&#x2F;auth?token&#x3D;</p>
-<p>[v_error]警告： 如果你使用的是zsh，记得给那段token上用引号包起来 “your-token-with?weird&#x2F;&#x3D;+stuff”或者切换到bash[&#x2F;v_error]</p>
-<h2 id="连接设备"><a href="#连接设备" class="headerlink" title="连接设备"></a>连接设备</h2><p>λ maria-pl ~ → warp-cli status<br>Status update: Disconnected. Reason: Manual Disconnection<br>Success</p>
-<p>λ maria-pl ~ → warp-cli connect<br>Success</p>
-<p>在Zero Trust - My team - Devices中就可以看到你的这个设备的IP地址了！</p>
-<p><img src="/images/2023040101352637.png"></p>
-<p>同理，连接另外一个设备，同样的邮箱就可以。</p>
-<h2 id="测试内网互联"><a href="#测试内网互联" class="headerlink" title="测试内网互联"></a>测试内网互联</h2><p>直接ssh过去试试看</p>
-<p>λ maria-pl ~ → nc -v 100.96.0.14 22<br>Connection to 100.96.0.14 22 port [tcp&#x2F;ssh] succeeded!<br>SSH-2.0-OpenSSH_8.9p1 Ubuntu-3<br>^C</p>
-<p>λ maria-pl ~ → ssh 100.96.0.14<br>The authenticity of host ‘100.96.0.14 (100.96.0.14)’ can’t be established.<br>ED25519 key fingerprint is SHA256:Gffeu3+72Z9pwZDawOHGSN7M2JxrbBub1hZoueKGJ1o.<br>This key is not known by any other names<br>Are you sure you want to continue connecting (yes&#x2F;no&#x2F;[fingerprint])?</p>
-<p><img src="/images/2023040101352719.png"></p>
-<p>iperf3测试</p>
-<p>速度也还不错，本来带宽也是100Mbps</p>
-<p><img src="/images/2023040101352925.png"></p>
-<h2 id="延迟测试"><a href="#延迟测试" class="headerlink" title="延迟测试"></a>延迟测试</h2><p>延迟略有增大，可能是peer连接到了不同的数据中心导致的。但是肯定不会出现美国-日本-美国这种绕圈圈的模式了。</p>
-<p><img src="/images/202304010135315.png"></p>
-<h2 id="如何使用自定义的网段"><a href="#如何使用自定义的网段" class="headerlink" title="如何使用自定义的网段"></a>如何使用自定义的网段</h2><p>如果不喜欢上面的<code>100.96.0.0/10</code>网段，怎么切换到自己的网段呢，比如<code>192.168.6.0/24</code>？</p>
-<p>根据文档来说，似乎是可以通过创建自己的Virtual network（还不能在网页上创建），然后WARP连接的时候选择这个network，然后IP就应该是你定义的而不是<code>100.96</code>之类的了</p>
-<p>cloudflared tunnel vnet add private<br>cloudflared tunnel route ip add –vnet private 192.168.89.0&#x2F;24 home</p>
-<p>warp-cli get-virtual-networks<br>warp-cli set-virtual-network UUID<br>warp-cli connect</p>
-<p>但是我测试的时候，无论是CLI还是macOS WARP，即使选择了新建的网络，网页上看到的IP也始终是<code>100.96</code>，不知道为何，可能是他们的bug</p>
-<p><img src="/images/2023040101354065.png" alt="图形用户界面, 文本, 应用程序, 聊天或短信 描述已自动生成"></p>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>Zero Trust还有很多好玩的玩法，比如可以给不同用户配置不同的网络访问规则，私有DNS，可控网络（就是在家里连到VPN，在公司直接走内网，不是根据SSID判断），以及大家都爱的中转梯子等等玩法。有空可以再探索探索。</p>
-<p>Cloudflare 的WARP直接用起来也不错，比如在公司、外面的公共Wi-Fi，我都是直接打开的，体验非常好，在不需要换IP的情况下，可比买的那个Surfshark VPN好多了🥸</p>
-<p>再次感叹，Cloudflare真是一家伟大的公司。<strong>Cloudflare 的使命是帮助建立一个更好的互联网</strong>👍</p>
-<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/private-net/create-private-networks/">https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/private-net/create-private-networks/</a></p>
-<p><a target="_blank" rel="noopener" href="https://help.teams.cloudflare.com/">https://help.teams.cloudflare.com/</a></p>
-<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/">https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/</a></p>
-<p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/tutorials/warp-to-tunnel/">https://developers.cloudflare.com/cloudflare-one/tutorials/warp-to-tunnel/</a></p>
-<p><a target="_blank" rel="noopener" href="https://dash.cloudflare.com/argotunnel">https://dash.cloudflare.com/argotunnel</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/04/01/cf-zero-trust/index/" data-id="clhp7rteu0012s2qr1z5k1pho" data-title="使用Cloudflare Zero Trust创建大内网" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1010,7 +1060,7 @@ def verify\_payment(self):
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1052,6 +1102,10 @@ def verify\_payment(self):
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1065,10 +1119,6 @@ def verify\_payment(self):
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

@@ -73,6 +73,108 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ssh-welcome-funny-command/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/16/ssh-welcome-funny-command/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-16T00:00:00.000Z" itemprop="datePublished">2016-02-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/16/ssh-welcome-funny-command/index/">草泥马SSH登录信息、几个好玩的Linux命令</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="分享个好玩的Ubuntu-Server-SSH登录欢迎信息"><a href="#分享个好玩的Ubuntu-Server-SSH登录欢迎信息" class="headerlink" title="分享个好玩的Ubuntu Server SSH登录欢迎信息"></a>分享个好玩的Ubuntu Server SSH登录欢迎信息</h1><p>还有几个好玩的Linux软件</p>
+<p>先萌妹镇着！</p>
+<p><img src="/images/021516_0518_SSH1.jpg"></p>
+<p>Ubuntu登录欢迎信息保存在&#x2F;etc&#x2F;update-motd.d下</p>
+<p>其中的文件可以自己修改。我就修改帮助信息10-help-text啦！</p>
+<p>按道理说，直接在那个文件里echo “欢迎信息”就可以了，但是不知道为啥总报错。所以之后创建一个文件，然后在那里执行下啦。</p>
+<p>由于Windows和Linux对于回车、换行的处理不同，所以我直接把我的欢迎信息放出来下载吧！</p>
+<p>cd &#x2F;etc&#x2F;update-motd.d<br>wget <a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/cnm.sh">http://7xljcn.com1.z0.glb.clouddn.com/cnm.sh</a><br>nano 10-help-text</p>
+<p>注释掉全部内容，添加如下内容</p>
+<p>sh &#x2F;etc&#x2F;update-motd.d&#x2F;cnm.sh</p>
+<p>看效果图！</p>
+<p><img src="/images/021516_0518_SSH2.png"></p>
+<p>另外，有个工具叫jp2a，可以把图片转成ASCII字符画。</p>
+<p>sudo apt-get install jp2a<br>jp2a test.jpg</p>
+<p>好好的一个萌妹变成什么样子了。其实这里用Photoshop处理下，去掉复杂的背景，改成铅笔画这类的，出来的字符画效果会更好。</p>
+<p><img src="/images/021516_0518_SSH3.png"></p>
+<p>顺便写个脚本， 可以把jp2a的输出结果制作成可以执行的脚本文件。 如果想看到彩色的字符画，就加上–colors 再把这个文件在10-help-text添加执行就可以了</p>
+<p>#&#x2F;bin&#x2F;sh<br>echo ‘echo “ ‘ &gt; welcome.sh<br>jp2a test.jpg &gt;&gt; welcome.sh<br>echo ‘“‘ &gt;&gt; welcome.sh</p>
+<p>注意，当前SSH窗口多大，jp2a就会生成多大的字符画；默认图片文件名是test.jpg，生成的欢迎脚本叫做welcome.sh</p>
+<p>不需要图形化界面的</p>
+<h1 id="几个好玩的软件"><a href="#几个好玩的软件" class="headerlink" title="几个好玩的软件"></a>几个好玩的软件</h1><h2 id="toilet-字符画"><a href="#toilet-字符画" class="headerlink" title="toilet 字符画"></a>toilet 字符画</h2><p>sudo apt-get install toilet</p>
+<p><img src="/images/021616_0218_1.png"></p>
+<h2 id="cowsay-牛说"><a href="#cowsay-牛说" class="headerlink" title="cowsay 牛说"></a>cowsay 牛说</h2><p>sudo apt-get install cowsay</p>
+<p><img src="/images/021616_0218_2.png"></p>
+<h2 id="lolcat-彩色的cat"><a href="#lolcat-彩色的cat" class="headerlink" title="lolcat 彩色的cat"></a>lolcat 彩色的cat</h2><p>可以和fortune、screenfetch等搭配使用</p>
+<p>sudo apt-get install lolcat</p>
+<p><img src="/images/021616_0218_3.png"></p>
+<h2 id="fortune随机显示名言什么的。"><a href="#fortune随机显示名言什么的。" class="headerlink" title="fortune随机显示名言什么的。"></a>fortune随机显示名言什么的。</h2><p>sudo apt-get install fortune</p>
+<p>fortune-zh可以显示中文</p>
+<p><img src="/images/021616_0218_4.png"></p>
+<p> </p>
+<h2 id="linuxlogo显示系统信息"><a href="#linuxlogo显示系统信息" class="headerlink" title="linuxlogo显示系统信息"></a>linuxlogo显示系统信息</h2><p>可以配合lolcat</p>
+<p>sudo apt-get install screenfetch linuxlogo<br>linuxlogo|lolcat</p>
+<p><img src="/images/021616_0218_5.png"></p>
+<h2 id="the-fuck"><a href="#the-fuck" class="headerlink" title="the fuck"></a>the fuck</h2><p>这家伙挺好玩的！</p>
+<p>先放上GitHub页<a target="_blank" rel="noopener" href="https://github.com/nvbn/thefuck">https://github.com/nvbn/thefuck</a></p>
+<p>GitHub上已经写了很明确的安装方法了，这里搬运一下：</p>
+<h3 id="方法一。一键安装脚本（Ubuntu-amp-Mac）"><a href="#方法一。一键安装脚本（Ubuntu-amp-Mac）" class="headerlink" title="方法一。一键安装脚本（Ubuntu &amp; Mac）"></a>方法一。一键安装脚本（Ubuntu &amp; Mac）</h3><p>wget -O - <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/nvbn/thefuck/master/install.sh">https://raw.githubusercontent.com/nvbn/thefuck/master/install.sh</a> | sh - &amp;&amp; $0</p>
+<h3 id="方法二。包管理器安装（Ubuntu-amp-Debian）"><a href="#方法二。包管理器安装（Ubuntu-amp-Debian）" class="headerlink" title="方法二。包管理器安装（Ubuntu &amp; Debian）"></a>方法二。包管理器安装（Ubuntu &amp; Debian）</h3><p>sudo apt-get install python-pip python-dev<br>sudo pip install psutil thefuck</p>
+<p>安装后的配置（一键安装脚本无需配置）</p>
+<p>nano ~&#x2F;.bashrc</p>
+<p>最后一行添加</p>
+<p>eval $(thefuck –alias)</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016021602324086.jpg"><img src="/images/2016021602324086.jpg" alt="QQ截图20160216102753"></a></p>
+<p>自动纠错了哈哈哈~</p>
+<h2 id="还有个，放到终端里试试哈。"><a href="#还有个，放到终端里试试哈。" class="headerlink" title="还有个，放到终端里试试哈。"></a>还有个，放到终端里试试哈。</h2><p>echo ‘</p>
+<p>..XXX. .XXX..</p>
+<p>.XXXXY.TXXXX.</p>
+<p>XXXXXYXTXXXXX</p>
+<p>.VXXVYXTVXXX.</p>
+<p>`.TYXTXYXTV .</p>
+<p>` ,YVTXYYV .,</p>
+<p>`…XXXXX`..,</p>
+<p>.`…XXX…,.</p>
+<p>..`   V   ,.’ | tr ‘.\`, VYTX’ ‘ ()__() ‘</p>
+<h2 id="需要x-org的"><a href="#需要x-org的" class="headerlink" title="需要x.org的"></a>需要x.org的</h2><p>oneko</p>
+<p>一只跟着光标走的小猫</p>
+<p>xeyes一双盯着光标的眼睛</p>
+<p>xcowsay 图形化的cowsay</p>
+<p>sudo apt-get install oneko等等即可。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/16/ssh-welcome-funny-command/index/" data-id="clhp7rtkd0092s2qr035ve222" data-title="草泥马SSH登录信息、几个好玩的Linux命令" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-cron-mysql-autorestart/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/02/15/cron-mysql-autorestart/index/" class="article-date">
@@ -1063,65 +1165,6 @@
 
 
   
-    <article id="post-bluray-bdmv/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/19/bluray-bdmv/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-19T00:00:00.000Z" itemprop="datePublished">2016-01-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/19/bluray-bdmv/index/">如何播放蓝光原盘、bdmv文件</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p><img src="/images/011916_1213_bdmv1.jpg"></p>
-<p>昨天一时兴起，就顺手把《头脑特工队》的蓝光原盘下载了。下载回来之后才发现傻眼了，那么多个文件夹，bdmv格式唉。搜索一番之后知道怎么做了。</p>
-<p><img src="/images/011916_1213_bdmv2.png"></p>
-<p>需要下载安装ArcSoft TotalMedia Theatre，左上角选择打开，打开光碟文件夹。</p>
-<p><img src="/images/011916_1213_bdmv3.png"></p>
-<p>选择到带有bdmv、certificate的那一层目录，确定就可以。</p>
-<p><img src="/images/011916_1213_bdmv4.png"></p>
-<p>基本上就和DVD光碟一个样子了！</p>
-<p>这蓝光的效果是真赞啊…</p>
-<p>另外，可以用ImgBurn将这些文件夹封装成ISO文件，要看的时候用虚拟光驱挂载。当然不封装也是可以的。</p>
-<hr>
-<p> </p>
-<p>附：</p>
-<p>下载片源的网站（包括Remux、原盘等等哦）：<a target="_blank" rel="noopener" href="http://pianyuan.net/">http://pianyuan.net/</a></p>
-<p> </p>
-<p>让我来试试弹窗下载</p>
-<p>[fanctdl filename&#x3D;’ArcSoft TotalMedia Theatre’ filesize&#x3D;’106.79’ filedate&#x3D;’2016-01-19’ href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/ArcSoft+TotalMedia+Theatre+6.7.1.199.7z?t=1453204432523">http://bennydownload.file.alimmdn.com/ArcSoft+TotalMedia+Theatre+6.7.1.199.7z?t=1453204432523</a>‘ filedown&#x3D;’阿里百川’][&#x2F;fanctdl]</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/19/bluray-bdmv/index/" data-id="clhp7rted000fs2qr89wi9yid" data-title="如何播放蓝光原盘、bdmv文件" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1137,7 +1180,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1179,6 +1222,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1192,10 +1239,6 @@
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

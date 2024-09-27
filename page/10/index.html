@@ -73,6 +73,106 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-list-dict-performance/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/04/13/list-dict-performance/index/" class="article-date">
+  <time class="dt-published" datetime="2019-04-13T00:00:00.000Z" itemprop="datePublished">2019-04-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/04/13/list-dict-performance/index/">列表与字典的查找、Cython在Windows下的使用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨天在工作时遇到一个小问题，同事的某API返回太慢了，我帮他优化下。简单的探究了下需求，发现了一点得优化的地方。</p>
+<h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>需求很简单，就是对数据结构进行初步的整理。a.json内容大致如下：</p>
+<p><img src="/images/2019041306310451.png"></p>
+<p>b.json内容大致如下（大概16M的一个大文件）：</p>
+<p><img src="/images/2019041306310575.png"></p>
+<p>想要的结果如下：</p>
+<p><img src="/images/2019041306310511.png"></p>
+<p>就是把sent_id和received_id的值去b.json里查找对应的itemid，然后在原始的a.json的结构中增加一项data列，记录b中的值。</p>
+<p>在开始鼓捣之前，我们需要先了解下，在Python中，列表是一种非常重要的数据结构，特性有点像数据结构中的链表。列表结构简单，容易扩展，但是却有一个比较致命的弱点——查找元素比较慢。完全就是看命的操作，查找的元素是第一个还好，万一是最后一个，那就要全部遍历完才知道是否有对应的元素。</p>
+<p>还有另外一种同样重要的数据结构，被称作字典。字典的特点就是查找很快，很快很快的那种。</p>
+<h2 id="原始实现"><a href="#原始实现" class="headerlink" title="原始实现"></a>原始实现</h2><p>实现起来其实很容易，就是循环判断嘛，按照常规的思路，可能会这样实现：</p>
+<p>for item_dict in a_list:<br>    re_data &#x3D; []<br>    se_data &#x3D; []<br>    for value_dict in b_list:<br>        if item_dict.get(‘received_id’) &#x3D;&#x3D; value_dict[‘itemid’]:<br>            re_data.append(value_dict)<br>        elif item_dict.get(‘sent_id’) &#x3D;&#x3D; value_dict[‘itemid’]:<br>            se_data.append(value_dict)</p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><p>老夫掐指一算，看出来几个这段代码中制约性能的因素：</p>
+<ol>
+<li>双循环增加时间复杂度</li>
+<li>b_list非常大，查找它恐怕不会是比较理想的解决方案。再加上它外面还有个循环，简直就是雪上加霜了</li>
+</ol>
+<p>由于b.json是个大列表，列表里还有字典，因此不仅导致多了一层循环，还增大了列表不适合查找的特性。因此正确的解决思路是，将b.json的格式转换成字典，key对应item_id，值是一个列表，列表中的每个元素为字典。</p>
+<p>由于我们并不预先知道字典的key是什么，因此只能动态的创建字典，使得它的值为空列表，然后追加数据。</p>
+<p>完成这个操作大概有三个方法：</p>
+<h3 id="方法1：跑两个循环"><a href="#方法1：跑两个循环" class="headerlink" title="方法1：跑两个循环"></a>方法1：跑两个循环</h3><p>result &#x3D; {}<br>for item in item_list:<br>    result[item[‘itemid’]] &#x3D; []<br>for item in item_list:<br>    result[item[‘itemid’]].append(item)</p>
+<p>思路很简单，时间复杂度也是线性的，可以接受</p>
+<h3 id="方法2：使用defaultDict"><a href="#方法2：使用defaultDict" class="headerlink" title="方法2：使用defaultDict"></a>方法2：使用defaultDict</h3><p>我们使用defaultDict定义字典，这样当访问不存在的key时返回列表，直接append就可以了。当然了要从collections里import这个好东西</p>
+<p>from collections import defaultdict</p>
+<p>d &#x3D; defaultdict(list)<br>for item in item_list:<br>    d[item[‘itemid’]].append(item)</p>
+<h3 id="方法3：利用setdefault"><a href="#方法3：利用setdefault" class="headerlink" title="方法3：利用setdefault"></a>方法3：利用setdefault</h3><p>利用字典的setdefault方法，如果key不存在，我们可以让他返回个空列表，然后append呗~</p>
+<p>result &#x3D; {}<br>for item in item_list:<br>    result.setdefault(item[‘itemid’], []).append(item)</p>
+<p>这三者性能上，肯定是方法1稍微差一点啦，至于2和3，2比3稍好一点的。</p>
+<p>这样的字典创造出来之后，后面的事情就很好处理了</p>
+<p>for item in a_list:<br>    item.setdefault(“data”, []).extend(d.get(item.get(‘received_id’), []))<br>    item.setdefault(“data”, []).extend(d.get(item.get(‘sent_id’), []))</p>
+<p>由于a.json的数据不纯，有些元素没有received_id，因此只能用get方法了。要不用[]直接取数据速度应该会再快点的。</p>
+<p>优化结构之前：</p>
+<p><img src="/images/2019041306310625-1.png"></p>
+<p>优化之后：</p>
+<p><img src="/images/2019041306310781.png"></p>
+<p>大概提升了30倍吧。</p>
+<h2 id="还需要更快？"><a href="#还需要更快？" class="headerlink" title="还需要更快？"></a>还需要更快？</h2><p>这个时候除了换个解释器（如PyPy），提升配置，其实还有一个办法！那就是Cython。如果你用的是Anaconda或者是Linux，那就好办多了，那可真是太幸福了。但是Windows……</p>
+<h3 id="安装编译环境"><a href="#安装编译环境" class="headerlink" title="安装编译环境"></a>安装编译环境</h3><p>要么就用mingw，要么就用visual c++ build tools，以后者为例……</p>
+<p>根据你的Python 版本选择不同的build tools版本，</p>
+<p>Python 3.6 对应 VS2015</p>
+<p>Python 3.7 对应 VS2017</p>
+<p>我就直接安装Visual Studio Build Tools 2017</p>
+<p>安装时选择如下组件就可以了</p>
+<ol>
+<li>Visual C++ Build tools core features.</li>
+<li>VC++ 2017 v141 toolset (x86,x64)</li>
+<li>Visual C++ 2017 Redistributable Update</li>
+<li>Windows 10 SDK (10.0.16299.0) for Desktop C++</li>
+</ol>
+<p><img src="/images/2019041306310851.png"></p>
+<h3 id="安装Cython"><a href="#安装Cython" class="headerlink" title="安装Cython"></a>安装Cython</h3><p><code>pip install cython</code></p>
+<p>然后新建一个pyx文件，写代码……</p>
+<p>再新建一个setup.py</p>
+<p>from distutils.core import setup<br>from Cython.Build import cythonize<br>setup(<br>name&#x3D;’Hello pyx’,<br>ext_modules&#x3D;cythonize(‘hello.pyx’)<br>)</p>
+<p>然后运行 <code>python setup.py build</code></p>
+<p>之后把build&#x2F;lib下的那个pyd（Linux为so）拷贝走，就可以import了……</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://matthew-brett.github.io/pydagogue/python_msvc.html">https://matthew-brett.github.io/pydagogue/python_msvc.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/freeweb/p/6548208.html">https://www.cnblogs.com/freeweb/p/6548208.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/04/13/list-dict-performance/index/" data-id="clhp7rthh004qs2qr5e3ve4ty" data-title="列表与字典的查找、Cython在Windows下的使用" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-pixel3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2019/03/03/pixel3/index/" class="article-date">
@@ -949,137 +1049,6 @@ elif len(left\_char) == 2 and len(right\_char) == 2:
 
 
   
-    <article id="post-pyweathercn/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/08/18/pyweathercn/index/" class="article-date">
-  <time class="dt-published" datetime="2018-08-18T00:00:00.000Z" itemprop="datePublished">2018-08-18</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/08/18/pyweathercn/index/">一个简单强大的Python天气预报库pyweathercn</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天向大家介绍一款可以用来查询国内绝大部分城市天气预报的Python库pyweathercn，网上搜到的基本都不能用啦……</p>
-<p>pyweathercn的作者正是大名鼎鼎的本人。</p>
-<p>好吧，其实这个库我早在5月份的时候就写好了，但是由于太忙一直忘了这回事……</p>
-<p>demo: <a target="_blank" rel="noopener" href="https://weather.bennythink.com/">https://weather.bennythink.com</a></p>
-<h2 id="特色"><a href="#特色" class="headerlink" title="特色"></a>特色</h2><p>用法简洁</p>
-<p>支持开启REST API风格的服务器，一库多用，异步非阻塞支持高并发，支持https</p>
-<h2 id="为啥要开发这个"><a href="#为啥要开发这个" class="headerlink" title="为啥要开发这个"></a>为啥要开发这个</h2><p>因为我需要啊！上网搜罗了一波，各种天气预报API基本上都得注册，可能还得要钱，或者限制访问频率，这就让我非常不开心了。那么既然没人写过，那咱就只好自己写一个了啊。</p>
-<p>不过需要注意的是，这个原理是爬虫并解析<a target="_blank" rel="noopener" href="http://www.weather.com.cn/">www.weather.com.cn</a>，所以如果某天不好用了，很有可能就是人家网站改版了……</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>需要注意的是，这个库并不支持Python 2，所以请使用Python 3</p>
-<p>pip install pyweathercn</p>
-<p>如果需要请自行替换为<code>pip3</code></p>
-<p>另外，如果你使用国内的PyPi源，可能现在还没更新到1.0.3呢……</p>
-<p>其实这个库本应该是支持Python 2的，因为也没用什么Python 3才有的特性和语法用了一些的，但是我就是不想支持Python 2，不爽你来打我啊。不过非得想支持Python 2 的话，你可以下载tar包解压缩到site-packages啊</p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><h3 id="普通模式"><a href="#普通模式" class="headerlink" title="普通模式"></a>普通模式</h3><p>非常简单，支持chain call和实例模式，来几个例子：</p>
-<p>&gt;&gt;&gt; import pyweathercn</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>pyweathercn.Weather(‘重庆’).temp()</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>‘重庆：20’</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>w &#x3D; pyweathercn.Weather(‘北京’)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>w.data</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>{‘data’: {‘city’: ‘北京’, ‘aqi’: ‘159’, ‘tip’: ‘紫外线指数很强涂擦SPF20以上，PA++护肤品，避强光。穿衣指数热适合穿T恤、短薄外套等夏季服装。’, ‘temp’: ‘20’, ‘forecast’: [{‘date’: ‘23日（今天）’, ‘type’: ‘晴’, ‘temp’: ‘15℃’, ‘wind’: ‘西南风 3-4级’}, {‘date’: ‘24日（明天）’, ‘type’: ‘晴’, ‘temp’: ‘31℃&#x2F;17℃’, ‘wind’: ‘南风 3-4级’}, {‘date’: ‘25日（后天）’, ‘type’: ‘晴转多云’, ‘temp’: ‘31℃&#x2F;19℃’, ‘wind’: ‘西南风 &lt;3级’}, {‘date’: ‘26日（周六）’, ‘type’: ‘阴转多云’, ‘temp’: ‘30℃&#x2F;16℃’, ‘wind’: ‘西风 &lt;3级’}, {‘date’: ‘27日（周日）’, ‘type’: ‘多云’, ‘temp’: ‘29℃&#x2F;15℃’, ‘wind’: ‘南风 &lt;3级’}, {‘date’: ‘28日（周一）’, ‘type’: ‘多云’, ‘temp’: ‘25℃&#x2F;15℃’, ‘wind’: ‘东北风 &lt;3级’}, {‘date’: ‘29日（周二）’, ‘type’: ‘晴’, ‘temp’: ‘29℃&#x2F;15℃’, ‘wind’: ‘西南风 &lt;3级’}]}, ‘status’: 0, ‘message’: ‘success’}</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>w.today()</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>‘北京：23日（今天）晴15℃西南风 3-4级’</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>w.tomorrow(True)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>{‘date’: ‘24日（明天）’, ‘type’: ‘晴’, ‘temp’: ‘31℃&#x2F;17℃’, ‘wind’: ‘南风 3-4级’}</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>w.tip()</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>‘北京温馨提示：紫外线指数很强涂擦SPF20以上，PA++护肤品，避强光。穿衣指数热适合穿T恤、短薄外套等夏季服装。’</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>w.forecast(False,5)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>‘北京：28日（周一）多云25℃&#x2F;15℃东北风 &lt;3级’</p>
-<p>其中tomorrow 等类方法的参数如果传布尔真值的话，将会显示原始json响应，不传或者传布尔假值会显示易于阅读的字符串。</p>
-<p>其他的一些类方法，咱的IDE都有提示，我注释写的还算简单易懂，这里就不细说了</p>
-<h3 id="服务器模式"><a href="#服务器模式" class="headerlink" title="服务器模式"></a>服务器模式</h3><p>import pyweather</p>
-<h1 id="running-on-http-127-0-0-1-8888"><a href="#running-on-http-127-0-0-1-8888" class="headerlink" title="running on http://127.0.0.1:8888"></a>running on <a target="_blank" rel="noopener" href="http://127.0.0.1:8888/">http://127.0.0.1:8888</a></h1><p>pyweathercn.server(host&#x3D;’127.0.0.1’)</p>
-<h1 id="running-on-http-0-0-0-0-3333"><a href="#running-on-http-0-0-0-0-3333" class="headerlink" title="running on http://0.0.0.0:3333"></a>running on <a target="_blank" rel="noopener" href="http://0.0.0.0:3333/">http://0.0.0.0:3333</a></h1><p>pyweathercn.server(3333)</p>
-<h1 id="support-ssl-https-www-example-com-8888"><a href="#support-ssl-https-www-example-com-8888" class="headerlink" title="support ssl: https://www.example.com:8888"></a>support ssl: <a target="_blank" rel="noopener" href="https://www.example.com:8888/">https://www.example.com:8888</a></h1><p>pyweathercn.server(‘8888’, ‘<a target="_blank" rel="noopener" href="http://www.example.com/">www.example.com</a>‘, ssl_options&#x3D;{<br>“certfile”: “fullchain.pem”,<br>“keyfile”: “privkey.pem”})</p>
-<p>哪位好心人我啊可以开放一个<a target="_blank" rel="noopener" href="https://weather.bennythink.com/">公开的API</a>给大家用，哈哈。</p>
-<p>在服务器模式下的调用方法，需要请求<code>/weather</code>路由，必须参数为city，可选参数为day，使用get方法的url参数或者post方法的url-encode form，目前还不支持post json。</p>
-<p> </p>
-<h4 id="Nginx-反向代理"><a href="#Nginx-反向代理" class="headerlink" title="Nginx 反向代理"></a>Nginx 反向代理</h4><p>服务器用systemd等运行一个监听127.0.0.1的服务器模式python脚本，server块如下配置：</p>
-<p>server {<br>listen 80;<br>server_name <a target="_blank" rel="noopener" href="http://www.siteone.com/">www.siteone.com</a>; # 你的域名<br>location &#x2F; {<br>proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:8888/">http://127.0.0.1:8888</a>;<br>}</p>
-<p>如果需要https支持，可以参考<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/blob/master/weather.conf">这个配置文件</a></p>
-<h4 id="例子1-GET：呃请原谅我的pangu把url搞成了带空格的……"><a href="#例子1-GET：呃请原谅我的pangu把url搞成了带空格的……" class="headerlink" title="例子1 GET：呃请原谅我的pangu把url搞成了带空格的……"></a>例子1 GET：呃请原谅我的pangu把url搞成了带空格的……</h4><p><a target="_blank" rel="noopener" href="http://127.0.0.1:8888/weather?city=%E4%B8%8A%E6%B5%B7">http://127.0.0.1:8888/weather?city=上海</a></p>
-<p><img src="/images/2018081808175847.png"></p>
-<h4 id="例子2-GET："><a href="#例子2-GET：" class="headerlink" title="例子2 GET："></a>例子2 GET：</h4><p><a target="_blank" rel="noopener" href="http://127.0.0.1:8888/weather?city=%E4%B8%8A%E6%B5%B7&day=3">http://127.0.0.1:8888/weather?city=上海&amp;day=3</a></p>
-<p><img src="/images/2018081808175971.png"></p>
-<h4 id="例子3-POST："><a href="#例子3-POST：" class="headerlink" title="例子3 POST："></a>例子3 POST：</h4><p><img src="/images/2018081808180288.png"></p>
-<h2 id="PyPi仓库地址"><a href="#PyPi仓库地址" class="headerlink" title="PyPi仓库地址"></a>PyPi仓库地址</h2><p><a target="_blank" rel="noopener" href="https://pypi.org/project/pyweathercn/">https://pypi.org/project/pyweathercn/</a></p>
-<h2 id="GitHub源代码"><a href="#GitHub源代码" class="headerlink" title="GitHub源代码"></a>GitHub源代码</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/pyweathercn'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/pyweathercn&#39;\]开源地址\[/gt\]</a> 欢迎star、fork、PR</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/08/18/pyweathercn/index/" data-id="clhp7rtif0075s2qr7l5c31yj" data-title="一个简单强大的Python天气预报库pyweathercn" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1095,7 +1064,7 @@ elif len(left\_char) == 2 and len(right\_char) == 2:
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1137,6 +1106,10 @@ elif len(left\_char) == 2 and len(right\_char) == 2:
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1150,10 +1123,6 @@ elif len(left\_char) == 2 and len(right\_char) == 2:
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

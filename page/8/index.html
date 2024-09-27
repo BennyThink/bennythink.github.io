@@ -73,6 +73,155 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-home-cam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/07/16/home-cam/index/" class="article-date">
+  <time class="dt-published" datetime="2020-07-16T00:00:00.000Z" itemprop="datePublished">2020-07-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/07/16/home-cam/index/">家用简单监控系统</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>可盐可甜的小土豆终于出现啦！?????</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近几天，<a target="_blank" rel="noopener" href="https://github.com/DIYgod/RSSHub">RSSHub</a>作者<a target="_blank" rel="noopener" href="https://twitter.com/DIYgod">DIYGod</a>控诉<a target="_blank" rel="noopener" href="https://twitter.com/DIYgod/status/1282159796578250752?s=20">自如管家非法入侵</a>。听到这个消息时我感到非常的震惊。事后自如的反应更是像极了某些有关部门：避重就轻，混淆事实，毫无悔改之意。感觉自如就仿佛在说：你的控诉充满了对自如的偏见，和所谓的不知从什么地方来的傲慢，我是完全不能接受的。</p>
+<p>尽管和DIYGod在生活中并不认识，甚至在网络上也基本没有交集，但是这件事情却依旧让我感到很愤怒。就像DIYGod的控诉一样，凭什么我合法租住的房子要被自如强行入侵？</p>
+<p><img src="/images/2020071622285859.jpeg"></p>
+<p>图片来源<a target="_blank" rel="noopener" href="https://twitter.com/DIYgod/status/1282365434344304643?s=20">DIYGod的Twitter</a></p>
+<p>尽管我没什么人气，也不认识什么大人物，尽管我只是无名之辈，但是我依旧认为我应该为他发声，哪怕只是微不足道的一个转推，哪怕只是一段无力的声讨与支持。如果今天我不为他发声，那么下次，类似的事情发生在我的身上时，谁又会为我发声？起初，他们追杀共产主义者……</p>
+<p><img src="/images/2020071622290278.jpeg"></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/silence-is-harmful.html">沉默，是最大的伤害</a>。</p>
+<h2 id="又一背景"><a href="#又一背景" class="headerlink" title="又一背景"></a>又一背景</h2><p>目前，我所租住的地方，也是类似的单人公寓，同样是密码锁。密码锁说起来就很让人害怕，如果被黑了，被劫持了，电量耗尽，或者是像DIYGod一样，被所谓的管家以“担心你安全“的理由非法入侵，那么该怎么办？</p>
+<p>当我人在家里等时候，使用一些物理措施，比如防盗链、顶门器等是一种预防措施；如果不在家，那么这些操作就不太好搞了。使用摄像头监控是一种马后炮的方案，但是如果有必要，视频也可以作为证据。防患于未然吧。</p>
+<h2 id="要求"><a href="#要求" class="headerlink" title="要求"></a>要求</h2><p>既然要做到防患于未然，再加上个人空间的视频属于极度隐私的数据，那么这样一套简单的监控系统就要达到以下要求：</p>
+<ul>
+<li>廉价：不能太贵了，我一个普通的社畜承担不起高昂的费用，包括设备购置费用和后续维护费用</li>
+<li>简单：摆在那就行了，不需要人工干预</li>
+<li>安全：录像不可以丢给任何国内的毒瘤厂商，即使的国外的云厂商也要谨慎考虑</li>
+<li>可靠：即使入侵者迅速发现了我有监控，在几分钟之内把我的摄像头和存储设备砸了，我也能尽可能的恢复捕捉到的录像</li>
+<li>稳定：需要7*24小时运行，或者至少也要做到7*12小时运行</li>
+<li>小巧：设备本身不会占用太大空间，毕竟房子本身就不大</li>
+<li>清晰：2020年了，不能480P吧，编码怎么也得H264吧，能H265最好</li>
+</ul>
+<p>根据以上要求，淘宝上也进行了一些搜索，目前基本上有这么几种选择?：</p>
+<ul>
+<li>监控+录像机，录像机太贵了，后续费用也很高，放弃，数据可能不安全</li>
+<li>普通USB摄像头：Linux兼容性可能会有问题，可能无法7*24工作，清晰度不够。但是非常安全，数据全部都是我的。</li>
+<li>网络摄像头：部分可能需要买毒瘤厂商的存储，可能会偷偷上传数据，或者被黑，但是基本都支持RTSP之类的流媒体传输协议</li>
+</ul>
+<p>所谓网络摄像头，基本上是通过Wi-Fi，或者以太网连接，供电一般是DC直流，有些可能还可以PoE（但是我并没有PoE交换机）</p>
+<p>普通USB摄像头存在一个难点，很难通过ESXi直通给虚拟机，直通之后虚拟机可能采集图像会比较困难。因此只能选择支持RTSP等串流的网络摄像头。至于安全问题？作为曾经的Network Engineer，怎么能被这种问题难倒？VLAN隔离走起?。</p>
+<h2 id="摄像头安装配置"><a href="#摄像头安装配置" class="headerlink" title="摄像头安装配置"></a>摄像头安装配置</h2><p>这部分就不用多说了。?</p>
+<h2 id="配置VM"><a href="#配置VM" class="headerlink" title="配置VM"></a>配置VM</h2><p>在家里的ESXi上开一个虚拟机，打开自动启动，装好Ubuntu，配置好LVM。这也不多说了。?</p>
+<h2 id="捕获视频"><a href="#捕获视频" class="headerlink" title="捕获视频"></a>捕获视频</h2><p>既然要捕获视频，当然要选择ffmpeg了。使用apt安装也可以，大概需要占用500-600M的空间，或者直接官网下载static build也行，在这个场景下没什么太大区别。</p>
+<p>使用ffmpeg捕获，方法大致如下</p>
+<p>ffmpeg -rtsp_transport tcp -i $RTSP -vcodec copy -r 1 -t 600 -y &#x2F;video&#x2F;1.mp4</p>
+<p>参数t表示捕获时间，r表示帧数，RSTP表示设备的URL格式，比如说我这里就是<code>rtsp://192.168.7.234:554/user=admin&amp;password=admin&amp;channel=Channel&amp;stream=Stream.sdp?real_stream</code> [v_notice] 奇怪的是，这里我用r参数限制帧数，并没有起作用，反而是摄像头设置的帧数永远是录制的帧数。 [&#x2F;v_notice] 题外话：</p>
+<p>如果想捕获比如说IPTV的视频流，直接用<code>ffmpeg -i URL</code>就可以了</p>
+<h2 id="同步视频"><a href="#同步视频" class="headerlink" title="同步视频"></a>同步视频</h2><p>考虑到视频存储在本机，万一被一窝端了，那就白搞了。因此需要想办法把视频同步到其他地方，比较好的方法是同步到VPS上，所以这里应用了rsync，命令也很简单</p>
+<p>rsync -avz –delete &#x2F;video&#x2F; user@host:&#x2F;video&#x2F;</p>
+<p>差分同步怕什么。如果是海外的机器，建议上个proxychains之类的</p>
+<p>哦对了，如果用proxychains，并且每次连接的时候都报key differ的警告，可以<code>~/.ssh/config</code> 加这么一行</p>
+<p>Host *<br>  StrictHostKeyChecking no</p>
+<h2 id="Housekeeper"><a href="#Housekeeper" class="headerlink" title="Housekeeper"></a>Housekeeper</h2><p>毕竟咱也不是大户人家，盘子还是有限的。那我们就要一种house keeper的机制，不仅要删除本机的旧视频，也要删除VPS上的。这个时候，当然要用到find了，高手还可以搭配exec和xargs哦！</p>
+<p>find &#x2F;video -mindepth 1 -mtime +30 -delete</p>
+<p>此命令会删除创建时间在30天之前到文件</p>
+<h2 id="搓搓搓"><a href="#搓搓搓" class="headerlink" title="搓搓搓"></a>搓搓搓</h2><p>这样一套下来，其实就差不多了，更近一步来说：</p>
+<ol>
+<li>ffmpeg 从早上8点开始捕获视频</li>
+<li>rsync每分钟同步视频到VPS</li>
+<li>housekeeper清理过期文件</li>
+</ol>
+<p>这样的话，最长也就是一分钟左右的空档，比较稳妥</p>
+<h2 id="安全加固之网络优化"><a href="#安全加固之网络优化" class="headerlink" title="安全加固之网络优化"></a>安全加固之网络优化</h2><p>我们必须要把摄像头隔离起来。要做的事情就是无法让它访问公网，所有流量只能在192.169.4.0&#x2F;24这个网段里走，同时内网其他机器能够任意访问摄像头。IPv6也同理</p>
+<p>作为一名优秀的网络工程师?，使用VLAN确实是一种…反正我搞不明白的方法，谁会搞谁搞吧…?</p>
+<p>如果您的路由器特别厉害，一个就要好几千几万的一堆口，上面印着八九条竖线，大概是这样的.ılı.ılı.，建议您拨打400 810 8886进行咨询或<a target="_blank" rel="noopener" href="https://www.cisco.com/c/en/us/support/index.html">使用这个网站</a>提交您的问题???</p>
+<p>如果你的路由器的比较厉害，也是个Linux Kernel的话，并且kernel version&gt;&#x3D;2.6，那么可以直接上iptables；</p>
+<p>如果你的路由器一点都不厉害，可能就是个塑料盒上面写着LINK什么Mecu什么，那么????本少侠束手无策，软路由可破。</p>
+<p>想要用iptables阻止某设备访问外网，只需要在filter操作就可以了，如果以IP作为条件过滤</p>
+<p>iptables -t filter -I FORWARD 1 -s 192.168.7.183 -j DROP</p>
+<p>一定要记得用I插入到开头</p>
+<p>如果想要根据Mac地址过滤，那么就用<code>-m mac</code>匹配原地址就好了</p>
+<p>iptables -t filter -I FORWARD 1 -m mac –mac-source 00:0c:29:0c:0d:46 -j DROP</p>
+<p>如果你有IPv6的话，根据IP过滤时也要记得使用<code>ip6tables</code>。不过这就很惨了，因为ISP分配的IPv6的地址经常可能会变</p>
+<p>同理，如果有IPv6，根据mac过滤就是下图这样</p>
+<p>ip6tables -t filter -I FORWARD 1 -m mac –mac-source 00:0c:29:0c:0d:46 -j DROP</p>
+<p>其他相关命令：</p>
+<p># 显示iptables行号<br>iptables -L –line-numbers</p>
+<p>删除iptabless行号为1的规则<br>iptables -D FORWARD 1</p>
+<p>具体效果可以看如下视频</p>
+<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=vNtng-vSCZ0">https://www.youtube.com/watch?v=vNtng-vSCZ0</a></p>
+<p>当然了，如果你的固件比较智能，可能也许有这样的设置</p>
+<p><img src="/images/2020071622290372.png"></p>
+<h2 id="安全加固之存储设备加密"><a href="#安全加固之存储设备加密" class="headerlink" title="安全加固之存储设备加密"></a>安全加固之存储设备加密</h2><p>ESXi上的VM存储加密就很好玩了，LUKS on LVM，LVM on LUKS，LVM on VC，VC on LVM，只要您开心，还可以VC+LUKS on LVM，只要一份钱，却能够得到双份的快乐哦，这么好的事情，上哪里找去?</p>
+<p>各种姿势，各种加密，包您满意包您开心?，不满意还可以<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2020/06/Linux-Logical-Volume-Manager.html">点击这里咨询退款的哦</a>。</p>
+<p>简单起见，我们就用LUKS了，基本上所有发行版都自带。</p>
+<p>如果你的CPU支持AES指令集，那简直更好了，可以通过<code>lscpu</code>进行确认</p>
+<p><code>cryptsetup benchmark</code> 可以进行benchmark</p>
+<p>简单的说，如果想要对设备加密，包括逻辑卷、物理设备，那么可以这样用</p>
+<p>cryptsetup luksFormat &#x2F;dev&#x2F;sdb1<br>cryptsetup luksFormat &#x2F;dev&#x2F;mapper&#x2F;vg-lv1</p>
+<p>之后我们需要把这个卷挂载起来，命令也非常简单</p>
+<p>cryptsetup luksOpen &#x2F;dev&#x2F;dev&#x2F;sdb1 data1</p>
+<p>这样操作之后，我们就能在<code>/dev/mapper</code>下看到一个名为<code>data1</code>的设备了，此时就可以mkfs、mount了</p>
+<p>mkfs.ext4 &#x2F;dev&#x2F;mapper&#x2F;data1<br>mount &#x2F;dev&#x2F;mapper&#x2F;data1 &#x2F;mnt&#x2F;data1</p>
+<p>用完了之后想要卸载，可以先<code>umount</code>，然后<code>cryptsetup luksClose data1</code></p>
+<p>查看状态 可以用<code>cryptsetup status data1</code></p>
+<p>如果是文件型加密卷，那么操作也基本一致</p>
+<p>cryptsetup luksFormat &#x2F;path&#x2F;to&#x2F;luks.vol</p>
+<p>后续就一样了。</p>
+<p>但是我们更想要的操作是，在OS启动的时候自动解密、自动挂载。这是否能够做到呢？</p>
+<p>实际上，这就有点纠结了。就像“操作系统也是一个程序，是谁启动的它啊”</p>
+<p>对于我的需求来说，只需要在boot的时候，能够在console让我输入密码就够了</p>
+<p>那么此时需要配置<code>/etc/fstab</code> 和<code>/etc/crypttab</code></p>
+<p># 查看UUID<br>cryptsetup luksUUID &#x2F;dev&#x2F;mapper&#x2F;data1</p>
+<h1 id="然后更改crypttab"><a href="#然后更改crypttab" class="headerlink" title="然后更改crypttab"></a>然后更改crypttab</h1><p>data1 &#x2F;dev&#x2F;disk&#x2F;by-uuid&#x2F;36aa7b97-f773-4fcb-8031-f40e42facc4b none luks</p>
+<p>#然后加fstab<br>&#x2F;dev&#x2F;mapper&#x2F;data1 &#x2F;video&#x2F; ext4 defaults 0 0</p>
+<p>重启之后就可以了</p>
+<p><img src="/images/2020071622290512.jpeg"></p>
+<p>如果是文件型的加密卷，那么也同样有办法，<code>crypttab</code>中</p>
+<p>data1 &#x2F;home&#x2F;data.vol none luks</p>
+<p>LVM怎么用就不多说了，pv、vg、lv这都很简单了。重点说下LUKS和VeraCrypt在CLI下操作</p>
+<h2 id="参考配置"><a href="#参考配置" class="headerlink" title="参考配置"></a>参考配置</h2><p>crontab配置</p>
+<p>*&#x2F;15 8-20 * * * bash &#x2F;root&#x2F;scripts&#x2F;record.sh<br>* 8-20 * * * bash &#x2F;root&#x2F;scripts&#x2F;sync.sh</p>
+<p>Shell脚本参考链接 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/cam'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/cam&#39;\]开源地址\[/gt\]</a></p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>有一件事情需要注意的就是，录制的视频往往都比较大，咱又不是看高清影片?，所以没有必要录制太高的帧数。10帧基本上就足够了。当然?多的人随意啦</p>
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>有时候，在网上，我能感觉到一点点自由，能够感受到一丁点世界人权宣言中我本应该拥有的一丁点自由的权利。这也是我坚决拒绝某些公司软硬件产品的原因。本来现实已经足够让我绝望了，如果在数字世界中，都要感受到一模一样的氛围，那还不如抵制到底。</p>
+<p>岁月一点都不静好。</p>
+<p>对于有技术手段的人来说，通过各种各样的技术也许可以缓解社会问题。但是，对于那些不懂的人呢？当社会出现问题之后，如果用技术手段去解决，那么也无法根治。更何况，总有人认为，杀光天下的公鸡就好了。</p>
+<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://blog.k8s.li/ffmepg-rtsp.html">使用 FFmpeg 远程读取 rtsp 监控视频流</a></p>
+<p><a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2020/06/Linux-Logical-Volume-Manager.html">扫盲 Linux 逻辑卷管理（LVM）——兼谈 RAID 以及“磁盘加密工具的整合”</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/07/16/home-cam/index/" data-id="clhp7rtgq003ts2qrhmx3bmsc" data-title="家用简单监控系统" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-new-domain-life/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2020/04/25/new-domain-life/index/" class="article-date">
@@ -1268,103 +1417,6 @@
 
 
   
-    <article id="post-first-mbp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/11/08/first-mbp/index/" class="article-date">
-  <time class="dt-published" datetime="2019-11-08T00:00:00.000Z" itemprop="datePublished">2019-11-08</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/11/08/first-mbp/index/">还是早日享乐吧——年轻人的第一台MacBook</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>小时候的梦想是能有一个游戏机，能够开心的玩魂斗罗，大概就像下图这种。</p>
-<p><img src="https://pbs.twimg.com/media/EIfnoJdUcAEEL4i?format=png&name=360x360" alt="图像"></p>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1191175312043720709?s=20">两年前我实现了这个梦想，买了个Xbox</a>。</p>
-<p>上大学的时候呢，希望自己能够有个MacBook……</p>
-<p>但是MacBook很贵呀，那时我又没有收入，学费还那么贵，不能花父母的钱呀。</p>
-<h2 id="为什么呢？"><a href="#为什么呢？" class="headerlink" title="为什么呢？"></a>为什么呢？</h2><p>工作之后，开始有了收入，周末还会出去做兼职，开始渐渐有了一些积蓄。对于现在的我来说，买房？首付的一半都还没攒到，连个厕所都买不起。我是小有成就，我是有点积蓄，但是这有什么用。</p>
-<p>生于穷人家的孩子总是在体验同龄人都在毕业游而我却要<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1011895319100051456?s=20">为生活而奔波的落差感</a>。</p>
-<p>与其这么辛苦，不如早日享受。无论我再怎么勤俭节约，努力工作赚外快，我也买不起房。</p>
-<p>全款是别想了，贷款还需要家里的大力支持。但是我既不想贷款，又不想要家里的钱。</p>
-<p>我不想牺牲快乐和自由去换一套房。</p>
-<p>原本生活中的必需品，此时却变成奢侈品。</p>
-<p>反正既然也买不起房，那就不如享受，人生就是这样，在自己的承受范围内，买一些自己喜欢的东西。</p>
-<h2 id="怎么买？"><a href="#怎么买？" class="headerlink" title="怎么买？"></a>怎么买？</h2><p>考虑再三，甚至都做了Excel分析哪家卖的便宜，我得出了以下几个结论</p>
-<ul>
-<li>闲鱼二手不太靠谱，这么贵重的东西，买二手怕是后患无穷吧</li>
-<li>13.3寸的MacBook Pro，京东上只有8G内存版的，15.5寸的才有16G</li>
-<li>区域版本，国行12967 CNY，港版12073 CNY，日版11789（税前） 12970（税后），美版11864 CNY，台版12785 CNY，</li>
-<li>国行教育，12021 CNY</li>
-</ul>
-<p>所以这么一看，如果能国行教育优惠，其实是非常划算的。日版退税要求短期出入日本的，那只能麻烦出差的同事了，还要等……</p>
-<p>那教育优惠，我又不是学生……但是我认识好多学弟学妹们，这真太简单啦！</p>
-<h2 id="开箱"><a href="#开箱" class="headerlink" title="开箱?"></a>开箱?</h2><p>周一买，周三审核通过，周五EMS竟然就给送到了，不错不错。</p>
-<p>从快递上看，是从成都发货的，我原以为是北京或者上海呢。</p>
-<p>送过来的时候，一个纸箱子，拆开就是MacBook的包装啦！</p>
-<p><img src="/images/201911081507474.png"></p>
-<p>拆开之后，emmm这个包装还很小的嘛，比ThinkPad X1 Carbon的包装小多了</p>
-<p><img src="/images/2019110815075314.jpeg"></p>
-<p>拆箱～～</p>
-<p><img src="/images/201911081507561.jpeg"></p>
-<p>开机设置网络</p>
-<p><img src="/images/2019110815080168.png"></p>
-<h2 id="第N件事……"><a href="#第N件事……" class="headerlink" title="第N件事……"></a>第N件事……</h2><p>第一件事情，毫无疑问，当然是进行科学上网啦！shadowsocks-ng你懂的！</p>
-<p>第二件事情，那就是登录一些账号啦，Google GitHub什么的；</p>
-<p>第三件事情，把Python和PyCharm、golang、GoLand什么的都请回来，然后把字号调大点；</p>
-<p>第四件事情，你看哦！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2019/11/2019110815131870.png"><img src="/images/2019110815131870.png"></a></p>
-<p>第五件事情，ohmyzsh，然后就是配置下iTerm2、用上zsh以及ohmyzsh，咦；</p>
-<p>第六件事情，dropbox、telegram等等一大堆工具；</p>
-<p>第七件事情，改个壁纸啦～吼吼吼</p>
-<h2 id="总体感受"><a href="#总体感受" class="headerlink" title="总体感受"></a>总体感受</h2><p>真好看啊！真是太好看了！</p>
-<p>新的键盘有点不适应，目前看来可能得花一段时间去习惯了。</p>
-<p>操作系统有些不熟悉，好些快捷键都记不住，目前处于广场舞老大妈的电脑水平。</p>
-<p>这个快捷键和手势有点多，对于我这种只有三天记忆的高级的鱼来说，好难啊?</p>
-<p>回到家竟然自动连接上了家里的Wi-Fi，看来是因为iPad所以自来熟了嘛！</p>
-<p>Touch Bar有点意思呀，有的时候还是挺方便的，比如点确定的时候，再比如：</p>
-<p><img src="/images/2019110815081593.jpeg"></p>
-<p>Apple ?标志不亮，这个有点不开心。</p>
-<p>原彩显示这个功能有点懵哦，总感觉开了它之后，我的屏幕一片黄。</p>
-<p>什么，竟然没有电源按钮。好吧，开盖就开机……呃？是不是有这种情况，我在屏幕和键盘之间夹了一张纸，想要拿出来看?</p>
-<p>用力按压触摸板好像有个什么功能哎，还没有学会。</p>
-<h2 id="与ThinkPad-X1-Carbon的对比"><a href="#与ThinkPad-X1-Carbon的对比" class="headerlink" title="与ThinkPad X1 Carbon的对比"></a>与ThinkPad X1 Carbon的对比</h2><p>明显能感受出来比X1要沉一些，因为是金属的外壳吧，密度要比X1 Carbon的碳纤维低一些?哎呀终于知道为什么叫Carbon了，原来是因为外壳的碳哦！（据说X1的这个碳纤维还是高科技的？）</p>
-<p>屏幕不能180度平躺，这是一个遗憾。</p>
-<p>显示效果比X1细腻太多啦，因为屏幕尺寸小、分辨率更高，因此像素密度也更高了。</p>
-<p>既然分辨率这么高，那字自然也是小一点咯！由于俺眼神不太好，所以开了第二大的缩放，吼吼吼。</p>
-<p>我有点困了，以后再说吧?</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/11/08/first-mbp/index/" data-id="clhp7rtht005xs2qrdu3ke1fa" data-title="还是早日享乐吧——年轻人的第一台MacBook" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1380,7 +1432,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1422,6 +1474,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1435,10 +1491,6 @@
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

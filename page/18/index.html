@@ -73,6 +73,81 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-lfs/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/08/24/lfs/index/" class="article-date">
+  <time class="dt-published" datetime="2016-08-24T00:00:00.000Z" itemprop="datePublished">2016-08-24</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/08/24/lfs/index/">Linux From Scratch 7.7 systemd 勘误、国内软件源</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近心头一热，开始搞起了LFS，我使用的手册是由linux中国翻译的LFS-BOOK-7.7-systemd，发现其中略有错误，顺便把一路过来自己纠结的地方都记下来备忘。</p>
+<p>Linux中国LFS页面：<a target="_blank" rel="noopener" href="https://linux.cn/article-5865-1.html">https://linux.cn/article-5865-1.html</a></p>
+<p>[v_blue]顺便说下，那三四百兆的源码挺难下的，我中转回来了。<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/lfs.tgz?t=1471399485564">下载点这里</a> 或者使用中科大的镜像，<a target="_blank" rel="noopener" href="https://github.com/LCTT/LFS-BOOK-7.7-systemd/blob/master/wget-list-LFS7.7-systemd-USTC">看这里</a>[&#x2F;v_blue]</p>
+<p> </p>
+<h2 id="勘误"><a href="#勘误" class="headerlink" title="勘误"></a>勘误</h2><p> </p>
+<h3 id="100页-跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）"><a href="#100页-跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）" class="headerlink" title="100页 跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）"></a>100页 跨页复制的时候会导致多出左侧目录的内容（有些会有这个问题，有些则没有）</h3><p>for file in \<br>$(find gcc&#x2F;config -name linux64.h -o -name linux.h -o -name sysv4.h)<br>do<br>cp -uv $file{,.orig}<br>sed -e ‘s@&#x2F;lib\(64\)\?\(32\)\?&#x2F;ld@&#x2F;tools&amp;@g’ \<br>-e ‘s@&#x2F;usr@&#x2F;tools@g’ $file.orig &gt; $file<br>echo ‘<br>#undef STANDARD_STARTFILE_PREFIX_1<br>#undef STANDARD_STARTFILE_PREFIX_2<br>#define STANDARD_STARTFILE_PREFIX_1 “&#x2F;tools&#x2F;lib&#x2F;“<br>#define STANDARD_STARTFILE_PREFIX_2 “”‘ &gt;&gt; $file<br>touch $file.orig<br>done</p>
+<h3 id="113页-include-fixed少了个-（pdf中有，但是复制的时候就没了）"><a href="#113页-include-fixed少了个-（pdf中有，但是复制的时候就没了）" class="headerlink" title="113页 include-fixed少了个-（pdf中有，但是复制的时候就没了）"></a>113页 include-fixed少了个-（pdf中有，但是复制的时候就没了）</h3><p>cat gcc&#x2F;limitx.h gcc&#x2F;glimits.h gcc&#x2F;limity.h &gt; \<br>`dirname $($LFS_TGT-gcc -print-libgcc-file-name)`&#x2F;include-fixed&#x2F;limits.h</p>
+<h3 id="113页-跨页复制的时候会导致多出左侧目录的内容"><a href="#113页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="113页 跨页复制的时候会导致多出左侧目录的内容"></a>113页 跨页复制的时候会导致多出左侧目录的内容</h3><p>for file in \<br>$(find gcc&#x2F;config -name linux64.h -o -name linux.h -o -name sysv4.h)<br>do<br>cp -uv $file{,.orig}<br>sed -e ‘s@&#x2F;lib\(64\)\?\(32\)\?&#x2F;ld@&#x2F;tools&amp;@g’ \<br>-e ‘s@&#x2F;usr@&#x2F;tools@g’ $file.orig &gt; $file<br>echo ‘<br>#undef STANDARD_STARTFILE_PREFIX_1<br>#undef STANDARD_STARTFILE_PREFIX_2<br>#define STANDARD_STARTFILE_PREFIX_1 “&#x2F;tools&#x2F;lib&#x2F;“<br>#define STANDARD_STARTFILE_PREFIX_2 “”‘ &gt;&gt; $file<br>touch $file.orig<br>done</p>
+<h3 id="141页-跨页复制的时候会导致多出左侧目录的内容"><a href="#141页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="141页 跨页复制的时候会导致多出左侧目录的内容"></a>141页 跨页复制的时候会导致多出左侧目录的内容</h3><p>make -C gnulib-lib<br>make -C intl pluralx.c<br>make -C src msgfmt<br>make -C src msgmerge<br>make -C src xgettext</p>
+<p> </p>
+<h3 id="195页-应该为一行，或者行尾添加"><a href="#195页-应该为一行，或者行尾添加" class="headerlink" title="195页 应该为一行，或者行尾添加\"></a>195页 应该为一行，或者行尾添加\</h3><p>install -v -Dm644 ..&#x2F;glibc-2.21&#x2F;nscd&#x2F;nscd.tmpfiles \<br>&#x2F;usr&#x2F;lib&#x2F;tmpfiles.d&#x2F;nscd.conf<br>install -v -Dm644 ..&#x2F;glibc-2.21&#x2F;nscd&#x2F;nscd.service \<br>&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;nscd.service</p>
+<h3 id="223页-应该为一行，或者行尾添加"><a href="#223页-应该为一行，或者行尾添加" class="headerlink" title="223页 应该为一行，或者行尾添加\"></a>223页 应该为一行，或者行尾添加\</h3><p>ln -sfv ..&#x2F;..&#x2F;libexec&#x2F;gcc&#x2F;$(gcc -dumpmachine)&#x2F;4.9.2&#x2F;liblto_plugin.so \<br>&#x2F;usr&#x2F;lib&#x2F;bfd-plugins&#x2F;</p>
+<h3 id="234页-应该为一行，或者行尾添加"><a href="#234页-应该为一行，或者行尾添加" class="headerlink" title="234页 应该为一行，或者行尾添加\"></a>234页 应该为一行，或者行尾添加\</h3><p>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libncursesw.so) \<br>&#x2F;usr&#x2F;lib&#x2F;libncursesw.so</p>
+<h3 id="255页-跨页复制的时候会导致多出左侧目录的内容"><a href="#255页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="255页 跨页复制的时候会导致多出左侧目录的内容"></a>255页 跨页复制的时候会导致多出左侧目录的内容</h3><p>LIBS&#x3D;-L&#x2F;tools&#x2F;lib \<br>CFLAGS&#x3D;-I&#x2F;tools&#x2F;include \<br>PKG_CONFIG_PATH&#x3D;&#x2F;tools&#x2F;lib&#x2F;pkgconfig \<br>..&#x2F;configure –prefix&#x3D;&#x2F;usr \<br>–bindir&#x3D;&#x2F;bin \<br>–with-root-prefix&#x3D;”” \<br>–enable-elf-shlibs \<br>–disable-libblkid \<br>–disable-libuuid \<br>–disable-uuidd \<br>–disable-fsck</p>
+<h3 id="257页-应该为一行，或者行尾添加"><a href="#257页-应该为一行，或者行尾添加" class="headerlink" title="257页 应该为一行，或者行尾添加\"></a>257页 应该为一行，或者行尾添加\</h3><p>install-info –dir-file&#x3D;&#x2F;usr&#x2F;share&#x2F;info&#x2F;dir \<br>&#x2F;usr&#x2F;share&#x2F;info&#x2F;libext2fs.info</p>
+<h3 id="278页-应该为一行，或者行尾添加"><a href="#278页-应该为一行，或者行尾添加" class="headerlink" title="278页 应该为一行，或者行尾添加\"></a>278页 应该为一行，或者行尾添加\</h3><p>mv -v &#x2F;usr&#x2F;lib&#x2F;lib{readline,history}.so.* &#x2F;lib<br>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libreadline.so) \<br>&#x2F;usr&#x2F;lib&#x2F;libreadline.so<br>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libhistory.so ) \<br>&#x2F;usr&#x2F;lib&#x2F;libhistory.so</p>
+<h3 id="321页-全角括号"><a href="#321页-全角括号" class="headerlink" title="321页 全角括号"></a>321页 全角括号</h3><p>ln -svf ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;liblzma.so) &#x2F;usr&#x2F;lib&#x2F;liblzma.so</p>
+<h3 id="334页-全角括号"><a href="#334页-全角括号" class="headerlink" title="334页 全角括号"></a>334页 全角括号</h3><p>sed -i ‘s&#x2F;\(RESIZECONS_PROGS&#x3D;\)yes&#x2F;\1no&#x2F;g’ configure<br>sed -i ‘s&#x2F;resizecons.8 &#x2F;&#x2F;‘ docs&#x2F;man&#x2F;man8&#x2F;Makefile.in</p>
+<h3 id="334页-复制的时候disable-vlock就变成disablevlock了"><a href="#334页-复制的时候disable-vlock就变成disablevlock了" class="headerlink" title="334页 复制的时候disable-vlock就变成disablevlock了"></a>334页 复制的时候disable-vlock就变成disablevlock了</h3><p>PKG_CONFIG_PATH&#x3D;&#x2F;tools&#x2F;lib&#x2F;pkgconfig .&#x2F;configure –prefix&#x3D;&#x2F;usr –disable-vlock</p>
+<h3 id="347页-全角括号"><a href="#347页-全角括号" class="headerlink" title="347页 全角括号"></a>347页 全角括号</h3><p>sed -i “s:blkid&#x2F;::” $(grep -rl “blkid&#x2F;blkid.h”)</p>
+<h3 id="355页-全角括号"><a href="#355页-全角括号" class="headerlink" title="355页 全角括号"></a>355页 全角括号</h3><p>mv -v &#x2F;usr&#x2F;lib&#x2F;libdbus-1.so.* &#x2F;lib<br>ln -sfv ..&#x2F;..&#x2F;lib&#x2F;$(readlink &#x2F;usr&#x2F;lib&#x2F;libdbus-1.so) &#x2F;usr&#x2F;lib&#x2F;libdbus-1.so</p>
+<h3 id="415页-跨页复制的时候会导致多出左侧目录的内容"><a href="#415页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="415页 跨页复制的时候会导致多出左侧目录的内容"></a>415页 跨页复制的时候会导致多出左侧目录的内容</h3><p>cat &gt; &#x2F;etc&#x2F;fstab &lt;&lt; “EOF”</p>
+<h1 id="Begin-x2F-etc-x2F-fstab"><a href="#Begin-x2F-etc-x2F-fstab" class="headerlink" title="Begin &#x2F;etc&#x2F;fstab"></a>Begin &#x2F;etc&#x2F;fstab</h1><p>&#x2F;dev&#x2F;sda5 &#x2F; ext4 defaults 1 1</p>
+<h1 id="End-x2F-etc-x2F-fstab"><a href="#End-x2F-etc-x2F-fstab" class="headerlink" title="End &#x2F;etc&#x2F;fstab"></a>End &#x2F;etc&#x2F;fstab</h1><p>EOF</p>
+<h3 id="421页-跨页复制的时候会导致多出左侧目录的内容"><a href="#421页-跨页复制的时候会导致多出左侧目录的内容" class="headerlink" title="421页 跨页复制的时候会导致多出左侧目录的内容"></a>421页 跨页复制的时候会导致多出左侧目录的内容</h3><p>install -v -m755 -d &#x2F;etc&#x2F;modprobe.d<br>cat &gt; &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf &lt;&lt; “EOF”</p>
+<h1 id="Begin-x2F-etc-x2F-modprobe-d-x2F-usb-conf"><a href="#Begin-x2F-etc-x2F-modprobe-d-x2F-usb-conf" class="headerlink" title="Begin &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf"></a>Begin &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf</h1><p>install ohci_hcd &#x2F;sbin&#x2F;modprobe ehci_hcd ; &#x2F;sbin&#x2F;modprobe -i ohci_hcd ; true<br>install uhci_hcd &#x2F;sbin&#x2F;modprobe ehci_hcd ; &#x2F;sbin&#x2F;modprobe -i uhci_hcd ;<br>true</p>
+<h1 id="End-x2F-etc-x2F-modprobe-d-x2F-usb-conf"><a href="#End-x2F-etc-x2F-modprobe-d-x2F-usb-conf" class="headerlink" title="End &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf"></a>End &#x2F;etc&#x2F;modprobe.d&#x2F;usb.conf</h1><p>EOF</p>
+<h2 id="经验"><a href="#经验" class="headerlink" title="经验"></a>经验</h2><h3 id="VMWare"><a href="#VMWare" class="headerlink" title="VMWare"></a>VMWare</h3><p>如果使用VMWare做实验，建议配置的时候使用SATA硬盘（默认是SCSI），如果使用SCSI在配置Kernel的时候要记得编译进VMWare的SCSI与和SCSI有关的驱动</p>
+<h3 id="配置Kernel"><a href="#配置Kernel" class="headerlink" title="配置Kernel"></a>配置Kernel</h3><p>在选择Device Drivers的时候，可以按M选择编译成模块或者Y编译进内核。</p>
+<p>区别是模块是后加载的。</p>
+<h3 id="Grub"><a href="#Grub" class="headerlink" title="Grub"></a>Grub</h3><p>为了防止挂掉，可以修改”宿主机”的grub.cfg添加lfs的启动项，要不万一启动失败，还得回退快照</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/08/24/lfs/index/" data-id="clhp7rth8004is2qrdoqiec74" data-title="Linux From Scratch 7.7 systemd 勘误、国内软件源" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-two-and-two/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/08/11/two-and-two/index/" class="article-date">
@@ -1038,80 +1113,6 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
 
 
   
-    <article id="post-ubuntu16-04-wifi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/04/23/ubuntu16-04-wifi/index/" class="article-date">
-  <time class="dt-published" datetime="2016-04-23T00:00:00.000Z" itemprop="datePublished">2016-04-23</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/04/23/ubuntu16-04-wifi/index/">Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前几天Canonical放出了Ubuntu 16.04，代号Xenial Xerus。究竟改了啥我是不清楚，反正装着玩嘛，作为小白的我今天就测试了一下下，发现了一个从14.04开始就存在的bug——<strong>无法开启无线</strong>。</p>
-<p>具体症状就是，Ubuntu认得我的网卡，但是开启无线的时候，却毫无反应；设置里开启可以看到开了立刻又关了。 [v_blue]请注意，如果是Ubuntu没你无线网卡的驱动，自己下载make去吧。[&#x2F;v_blue]</p>
-<p>通过研究可以发现，Ubuntu是认得我的无线网卡<strong>AR9485</strong>，是一些设置上的问题导致无法使用。通过Ubuntu Community、forum和自己的探索，终于找到了解决方案！各位看官就跟我来看我是怎么解决这个问题的。</p>
-<p>首先按照当初14.04的办法，打开终端执行</p>
-<p>sudo rmmod acer-wmi</p>
-<p>之后注销下</p>
-<p>理论上来说就应该可以了，我们来看个图：</p>
-<p><img src="/images/042316_1056_Ubuntu16041.png"></p>
-<p>提示设备未就绪，什么鬼！</p>
-<p>继续打</p>
-<p>rfkill list all</p>
-<p><img src="/images/042316_1056_Ubuntu16042.png"></p>
-<p>发现无线网卡0的 Soft blocked是yes，也就是产生了软阻塞。</p>
-<p>下面还有个Hard blocked，这都是什么意思呢？</p>
-<p>大家可能有注意到，大部分笔记本都是有一个组合键控制WiFi开关的（比如说我的是Fn+F2），有一些甚至是硬件开关。这里的 Hard blocked指的就是这个硬件开关，如果是yes，那就是无线网卡关闭啦。而Soft blocked指的是系统层面的”开关”</p>
-<p>注意：这里有些人可能都会是yes，请用组合键打开自己的无线网卡！</p>
-<p>那我们就把第一个的yes改成no不就成了……</p>
-<p>没错就是这样</p>
-<p>rfkill unblock all</p>
-<p>正常来说你的无线网卡就正常了，可以搜索到无线信号了；不正常你就注销&#x2F;重启下<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/04/2016042312445854.png"><img src="/images/2016042312445854-638x1024.png" alt="21"></a></p>
-<p>难道一个unblock就解决问题了吗？不信我再block给你看</p>
-<p><img src="/images/042316_1056_Ubuntu16044.png"></p>
-<p>可是每次开机都这么执行一遍，很痛苦的哎，还得注销呢……</p>
-<p>那就跟我来！</p>
-<p>sudo nano &#x2F;etc&#x2F;modprobe.d&#x2F;blacklist.conf</p>
-<p>最后一行加入</p>
-<p>blacklist acer-wmi</p>
-<p>如图所示</p>
-<p><img src="/images/042316_1056_Ubuntu16045.png"></p>
-<p>Ctrl + X保存退出。之后就万事大吉什么都不用你管啦！</p>
-<p>好像这Ubuntu 16.04也没感觉到有啥长进……但是Bug 10却有很多长进……就不说进入桌面右下角不是少音量就是少网络连接要不就是没有IME了 :mad:  :mad:</p>
-<p><img src="/images/042316_1056_Ubuntu16046.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/04/23/ubuntu16-04-wifi/index/" data-id="clhp7rtmq00ags2qrhvf4ejkr" data-title="Ubuntu 16.04 无法开启无线、AR9485、Soft blocked解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1127,7 +1128,7 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1169,6 +1170,10 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1182,10 +1187,6 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

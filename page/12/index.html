@@ -73,6 +73,136 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-yyets/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/02/10/yyets/index/" class="article-date">
+  <time class="dt-published" datetime="2018-02-10T00:00:00.000Z" itemprop="datePublished">2018-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>►<a class="article-category-link" href="/categories/security/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/02/10/yyets/index/">解密人人影视客户端加密的视频文件：从C++ Port到Python的经过</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="https://dmesg.app/jbls.html">我可能走上了移植的不归路</a></p>
+<p>在几个月开始给ExpressBot加入人人影视的API的时候，发现有一个很神奇的API，对某个URL进行<code>curl url -C - -Lv -o xxx.mp4</code>，会下载回来一个和原始视频文件一样大小、内容却经过某种加密处理的文件。</p>
+<p>前几天经过<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot/issues/3">JasonKhew96</a>的分析，发现是人人影视对视频文件进行了加密。</p>
+<h2 id="加密原理"><a href="#加密原理" class="headerlink" title="加密原理"></a>加密原理</h2><p>一句话简单概括就是，每4096字节就加密16个字节，加密密钥是file_id+字符串zm+file_id进行一次md5</p>
+<h2 id="进一步的分析探讨"><a href="#进一步的分析探讨" class="headerlink" title="进一步的分析探讨"></a>进一步的分析探讨</h2><h3 id="分析相应JSON"><a href="#分析相应JSON" class="headerlink" title="分析相应JSON"></a>分析相应JSON</h3><p>首先，我们先看一下相应吧，大概如下所示：</p>
+<p>[<br>{<br>“file_name”: “天赋异禀.彩蛋合集.the.gifted.s01.extras.中英字幕.webrip.aac.720p.x264-人人影视.mp4”,<br>“file_size”: 61001062,<br>“fileid”: “fb755fd1b51c769bfed987e2a8c8b03ee7a8e7cc”,<br>“url”: “<a target="_blank" rel="noopener" href="https://www.zmzfile.com:9043/rt/route?fileid=fb755fd1b51c769bfed987e2a8c8b03ee7a8e7cc">https://www.zmzfile.com:9043/rt/route?fileid=fb755fd1b51c769bfed987e2a8c8b03ee7a8e7cc</a>“<br>},<br>{<br>“file_name”: “天赋异禀.the.gifted.s01e12-13.中英字幕.webrip.aac.720p.x264-人人影视.mp4”,<br>“file_size”: 995104165,<br>“fileid”: “a01975eda089190c7e43fcba5eb91371e54205a6”,<br>“url”: “<a target="_blank" rel="noopener" href="https://www.zmzfile.com:9043/rt/route?fileid=a01975eda089190c7e43fcba5eb91371e54205a6">https://www.zmzfile.com:9043/rt/route?fileid=a01975eda089190c7e43fcba5eb91371e54205a6</a>“<br>},<br>省略…………<br>]</p>
+<p>首先观察下这个fileid，40个字符，看样子应该是某个散列函数的摘要，那么应该是SHA1吧。SHA1摘要长度是160位，也就是20个字节，用十六进制表示法就是40个字符了。</p>
+<p>然而事实证明，可能并不是这样。我比对了所有已知的散列函数，都没有一样的散列值，猜测可能是加了点“作料”然后再运行的SHA1吧。不过这不重要。</p>
+<h3 id="十六进制分析"><a href="#十六进制分析" class="headerlink" title="十六进制分析"></a>十六进制分析</h3><p>为了验证文件究竟被做了怎样的修改，我们必须要准备两个版本的文件：原版的与被加密的。</p>
+<p>打开Hex Comparison比较两个文件的异同。</p>
+<p>第一处不同：</p>
+<p><img src="/images/2018021013220744.png"></p>
+<p>文件一开始就发现不同了。这个部分相当重要啦，file命令就是看这里区分文件类型的。</p>
+<p>第二处不同：</p>
+<p><img src="/images/2018021013221095.png"></p>
+<p>注意左侧的十六进制偏移，我们用计算器把它换算成十进制，发现刚好是4096.那么大胆的猜测一下，下一个不同的地方的十进制就应该是8192，对应十六进制就应该是2000，对吧？</p>
+<p><img src="/images/2018021013221251.png"></p>
+<p>没错哦，真的是这样。那么加密流程就可以这样详细描述了：</p>
+<p>将文件以4096字节进行分块，加密每一块中的前16个字节（也就是图上的一行）。如果遇到文件尾恰巧是该加密的块但是又不足16字节（这种概率真的很低），那么如何处理还暂时未知，不过按照常规的思路应该是先padding然后再走加密。</p>
+<p>有人可能要问，上面那一行不同明明是32个字符，那么就是32个字节，你怎么睁眼说瞎话呢？唉ε&#x3D;(´ο｀*)))十六进制表示法嘛，下面会细说的。</p>
+<h2 id="C-源代码的结构流程分析"><a href="#C-源代码的结构流程分析" class="headerlink" title="C++源代码的结构流程分析"></a>C++源代码的结构流程分析</h2><p>JasonKhew96提供了一个C++版本的可以成功解密文件的源代码，下载可以戳这里<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot/files/1710533/YYeTs.zip">https://github.com/BennyThink/ExpressBot/files/1710533/YYeTs.zip</a></p>
+<p>使用CLion打开进行分析，发现流程大概是这样的（我的C&#x2F;C++水平接近于0了，已经完全完蛋了(๑′ᴗ‵๑)）：</p>
+<p>主函数的里只有这两句关键代码，第一句猜测是拿到加密的Key，第二步是用Key解密文件。</p>
+<p>uint8_t *md5Test &#x3D; getMd5(argv[2]);<br>decrypt_file(md5Test, argv[1]);</p>
+<p>我们跳转到getMd5这个函数</p>
+<p>char zmzSecret[] &#x3D; “zm”;<br>char bfMd5[82] &#x3D; {};<br>strcat(bfMd5, file_id);<br>strcat(bfMd5, zmzSecret);<br>strcat(bfMd5, file_id);<br>char zmzKey[32];<br>strcpy(zmzKey, md5(bfMd5).c_str());</p>
+<p>我们发现思路很简单，就是</p>
+<p>fileid &#x3D; “d21a081cc6a32daa85310ca6aad81e378f0b736e” secret &#x3D; “zm” key &#x3D; fileid + secret + fileid</p>
+<p>也就是d21a081cc6a32daa85310ca6aad81e378f0b736ezmd21a081cc6a32daa85310ca6aad81e378f0b736e，然后对这个进行一次md5，通过跳转到<code>md5.cpp</code>中，查看对应代码，<code>return md5.hexdigest()</code>我们可以猜测到，这里返回的值是十六进制表示的md5值，也就是我们经常看到的32个字符的MD5值。</p>
+<p>小提示：</p>
+<p>[v_blue]小提示： 根据维基百科，MD5的摘要长度是128位，那么应该是128&#x2F;8&#x3D;16字节，为什么我们看到的摘要长度都是32呢？哦是这样的，MD5运算之后的结果是二进制，基本上是不可读的（无法正确显示出来），所以我们一般都会把结果转换成十六进制，这样就是可以看到的字符啦。只不过我们是4位转换一个，用两个“字符”表示， 所以128位（16字节）的摘要以16进制表示法显示是32个“字符”啦。[&#x2F;v_blue]</p>
+<p>接下来就是一段for循环，反正<strong>当时</strong>我是没太搞懂这段for循环的含义。好吧，就当我们拿到了真正的key，那么我们看下decrypt_file这个函数吧。</p>
+<p>逻辑就不细说了，基本上就是判断当前的文件指针位置，需要处理文件大小与文件尾，然后进行解密写入文件。</p>
+<h2 id="Port到Python之使用MD5计算AES-Key"><a href="#Port到Python之使用MD5计算AES-Key" class="headerlink" title="Port到Python之使用MD5计算AES Key"></a>Port到Python之使用MD5计算AES Key</h2><p>由于后面需要用到aes，所以这里就都使用<a target="_blank" rel="noopener" href="https://github.com/pyca/cryptography">cryptography</a>啦，要是只进行散列倒是可以用用自带的hashlib呢。</p>
+<p>生成摘要很简单，几行而已：</p>
+<p>from binascii import hexlify</p>
+<p>from cryptography.hazmat.backends import default_backend<br>from cryptography.hazmat.primitives import hashes</p>
+<p>digest &#x3D; hashes.Hash(hashes.MD5(), backend&#x3D;default_backend())<br>digest.update(‘hello world’)<br>print hexlify(digest.finalize())</p>
+<p>有两点需要注意：</p>
+<ol>
+<li>要记得MD5的摘要本质上是二进制，所以我们print一定是乱码的，所以我们此时要转换成十六进制表示出来；</li>
+<li>要记得<code>digest.update()</code>接受的参数是bytes类型，也就是二进制，所以如果你使用Python 2，那么直接引号包围的就是二进制了，如果你使用Python 3，那么要带b前缀，或者加上<code>encode(&#39;utf-8&#39;)</code>或者<code>bytes(your_str, encoding=&#39;utf-8&#39;)</code>。如果想要计算文件的散列值，那么直接把<code>f.read()</code>传递过去就好了。</li>
+</ol>
+<h2 id="Port到Python之使用AES-ECB"><a href="#Port到Python之使用AES-ECB" class="headerlink" title="Port到Python之使用AES-ECB"></a>Port到Python之使用AES-ECB</h2><h3 id="简单谈谈AES"><a href="#简单谈谈AES" class="headerlink" title="简单谈谈AES"></a>简单谈谈AES</h3><p>在开始之前，首先我要科普一下，AES是一种对称加密算法，所谓对称加密算法，就是指的加密解密用同一个密钥。在对称加密算法中，可以分成两种，一种是流密码，一种是分组密码（块密码），像AES就是典型的块密码，而RC4是典型的流密码。</p>
+<p>顾名思义，块密码就是将明文分成多个等长的模块（不足就padding），使用确定的算法和对称密钥对每组分别加密解密。比如说，AES的块长度固定为128比特，密钥长度则可以是128，192或256比特。也就是说，你的密钥，如果用肉眼可见的字符来说话的话，那么就必须是16字节、24字节、32字节。</p>
+<p>另外，块密码有<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F">分组模式</a>这种说法，即使是不同的分组模式、相同的密钥也会产生不同的密文。所以我们如果要精确的用AES描述加密，那么大概模式是这样的：</p>
+<p>AES-256-CFB，使用AES加密算法，密钥长度是256比特，分组模式是CFB。</p>
+<p>分组模式究竟是个啥啊，不同的分组模式之间有啥区别啊，能加密不就行了吗？</p>
+<p>不不不这样是远远不够的。由于块密码结构的特殊性，我们必须要定义每一个块与密钥之间的运算关系。像是最简单的电子密码本（Electronic codebook，ECB）模式，就是把每个块和相同的密钥进行加密运算，得到的密文再组合到一起；</p>
+<p><img src="/images/2018021013221440.png" alt="File:Ecb encryption.png"></p>
+<p>像是密码分组链接（CBC，Cipher-block chaining）模式，每个明文块先与前一个密文块进行异或后，再进行加密，第一个明文块与初始化向量进行异或再加密。</p>
+<p><img src="/images/201802101322163.png" alt="File:Cbc encryption.png"></p>
+<p>稍微思考一下下我们其实可以得出结论，ECB模式本质上是不安全的（实现最简单，没错）。为什么呢？只要明文块一样，那么得出来的密文也就一样了，无论使用多长的密钥长度都是这样的。有没有想起重放攻击，有没有想起那群<a target="_blank" rel="noopener" href="https://dmesg.app/school-6.html#title-8">自作聪明用HMAC保存密码</a>的人？</p>
+<p><img src="/images/2018021013222558.png"></p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%88%86%E7%BB%84%E5%AF%86%E7%A0%81%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F#%E7%94%B5%E5%AD%90%E5%AF%86%E7%A0%81%E6%9C%AC%EF%BC%88ECB%EF%BC%89">图片来自于维基百科</a></p>
+<p>另外，我在推特上保存了这么一张有趣的图，挺好玩的。</p>
+<p><img src="/images/2018021013222835.png"></p>
+<h3 id="在Cryptography中使用AES"><a href="#在Cryptography中使用AES" class="headerlink" title="在Cryptography中使用AES"></a>在Cryptography中使用AES</h3><p>非常简单，如下几行代码：</p>
+<p>from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes<br>from cryptography.hazmat.backends import default_backend</p>
+<p>key&#x3D;’1111111111111111’<br>cipher &#x3D; Cipher(algorithms.AES(key), modes.ECB(), backend&#x3D;default_backend())<br>encryptor &#x3D; cipher.encryptor()<br>decryptor &#x3D; cipher.decryptor()<br>ct &#x3D; encryptor.update(“a secret message”) + encryptor.finalize()<br>print ct<br>print decryptor.update(ct) + decryptor.finalize()</p>
+<p>有几点需要注意：</p>
+<ol>
+<li>Key需要16、24或者32字节，数据类型为二进制，也就是Python 2的str，Python 3带b前缀或者encode或者bytes一下；</li>
+<li><code>modes.ECB()</code>指定分组模式为ECB模式，如果使用CBC模式，那么还要提供一个初始化向量，如<code>modes.CBC(os.urandom(16))</code>；</li>
+<li>密文也是二进制类型的，同进行hash，如果要加密文件，那么直接f.read()传递过去就好了，加密之后的返回值也是二进制；</li>
+<li>加密密钥实际上就是MD5散列值，因为MD5散列值恰巧是128比特，恰巧符合需求。需要注意的是，密钥是二进制，所以我们直接把<code>digest.finalize()</code>传过去就好了，不要再hexlify啦。</li>
+<li>理论上来说，你用什么密钥都是可以解密确定的密文的，只是正确的密钥会解密出来有意义的东西（比如说写给你的情书），错误的密钥会解密出来无意义的东西（一堆胡乱的0和1）。</li>
+</ol>
+<h2 id="Port到Python之“按位”操作文件"><a href="#Port到Python之“按位”操作文件" class="headerlink" title="Port到Python之“按位”操作文件"></a>Port到Python之“按位”操作文件</h2><p>给人的感觉，Python似乎是一种“高级”的编程语言（我这里的高级指的是对应底层的那个意思），没有指针，也没有各种精灵古怪的概念。那Python怎么按照比特操纵文件呢？</p>
+<p>其实是有的，我们想一想，对文件句柄执行read的时候，read是要一个参数的啊，如果你参数是1，那么就是读一个字节啦。</p>
+<p>所以如果要读前16个字节，那么可以这么做：</p>
+<p>raw_file &#x3D; open(‘sample.mp4’, ‘rb’)<br>print hexlify(raw_file.read(16))</p>
+<p>转换成十六进制之后，看看结果是不是和hexcompare中第一行一样的？</p>
+<p><img src="/images/2018021013223069.png"></p>
+<p>那接下来的问题就好办了，继续读4080个字节，写入文件，然后读16个解密，读4080……那……文件尾怎么办？不要担心，当我们读到文件尾的时候，<code>read()</code>的返回值就会是布尔假，我们就会有终止条件了，不用我们操心判断这那的。</p>
+<p>所以操作文件这块我们可以这么写（注意要以rb、wb模式读写文件）：</p>
+<p>data &#x3D; 1<br>while data:<br>    data &#x3D; raw_file.read(16)<br>    final_file.write(decrypt(data, key))<br>    data &#x3D; raw_file.read(4080)<br>    final_file.write(data)</p>
+<p>其中decrypt是用于解密的函数，边处理边写入文件。</p>
+<p>所以糅合一下，加上单元测试。这个玩意基本上就写完了。总计52行，很精简吧。</p>
+<h2 id="通过dnspy反编译结果"><a href="#通过dnspy反编译结果" class="headerlink" title="通过dnspy反编译结果"></a>通过dnspy反编译结果</h2><p>大概只搜索到了这么一个有用的信息块，可以清楚看到，使用AES-ECB模式，不填充？？</p>
+<p><img src="/images/2018021013223279.png"></p>
+<h2 id="本项目的代码"><a href="#本项目的代码" class="headerlink" title="本项目的代码"></a>本项目的代码</h2><p>欢迎Star、PR、Fork，目前还差一个file_id生成的问题。 [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/yyets-restorer'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/yyets-restorer&#39;\]开源地址\[/gt\]</a></p>
+<h2 id="最后的一些点评"><a href="#最后的一些点评" class="headerlink" title="最后的一些点评"></a>最后的一些点评</h2><p>人人影视宣传语中有一句话我印象特别清楚：</p>
+<blockquote>
+<p>全程<strong>加密</strong>的P2P传输，保证安全，海外用户也不用担心被运营商起诉。</p>
+</blockquote>
+<p>是的就是<strong>加密</strong>这俩字，我特敏感。</p>
+<p>从开头用Postman咱能发现，是post的https地址（买了一年的泛域名证书），然后被跳转到了http的各路IP，下载回来面目全非的的文件，再进行解密。叫我怎么说呢……运营商应该不会像我这么无聊，也是个办法吧……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/02/10/yyets/index/" data-id="clhp7rtnu00bus2qr01dqfkmb" data-title="解密人人影视客户端加密的视频文件：从C++ Port到Python的经过" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-jbls/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/02/06/jbls/index/" class="article-date">
@@ -1185,60 +1315,6 @@ return e
 
 
   
-    <article id="post-expressbot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/10/18/expressbot/index/" class="article-date">
-  <time class="dt-published" datetime="2017-10-18T00:00:00.000Z" itemprop="datePublished">2017-10-18</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/10/18/expressbot/index/">ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>大家好，小土豆我又来水贴了。</p>
-<p>这是一个能够帮你查快递、追踪快递状态的Telegram机器人。当然，还能陪聊，你跟他说语音也能听懂，什么都能聊，查个天气什么的也不在话下~~</p>
-<h2 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h2><h3 id="查询快递"><a href="#查询快递" class="headerlink" title="查询快递"></a>查询快递</h3><p>接口来自于快递100，差不多能查个七八百家的样子？</p>
-<h3 id="查询历史"><a href="#查询历史" class="headerlink" title="查询历史"></a>查询历史</h3><p>反正是都能看到的啦，也可以删除的</p>
-<h3 id="追踪快递状态"><a href="#追踪快递状态" class="headerlink" title="追踪快递状态"></a>追踪快递状态</h3><p>只要是未妥投的，都会十分钟查询一次，如有更新会发消息给你~好像就这一个亮点了。</p>
-<h2 id="截图"><a href="#截图" class="headerlink" title="截图"></a>截图</h2><p>随意的截几个好了~</p>
-<p><img src="/images/101817_0558_ExpressBot1.png"></p>
-<p><img src="/images/101817_0558_ExpressBot2.png"></p>
-<p><img src="/images/101817_0558_ExpressBot3.png"></p>
-<p>估计bug多多，被<a target="_blank" rel="noopener" href="https://blog.yandere.moe/">Yandere@萌</a>调戏炸了好几次</p>
-<h2 id="以后打算干嘛"><a href="#以后打算干嘛" class="headerlink" title="以后打算干嘛"></a>以后打算干嘛</h2><p>让这个bot来跟人扯淡闲聊呗~</p>
-<h2 id="开源地址及部署方法"><a href="#开源地址及部署方法" class="headerlink" title="开源地址及部署方法"></a>开源地址及部署方法</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ExpressBot'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/ExpressBot&#39;\]开源地址\[/gt\]</a> 初学Python，还望多多指教；欢迎star、fork、PR；还望有能力的大神能够帮我进行安全审计和健壮性测试</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/10/18/expressbot/index/" data-id="clhp7rtg8002ks2qr7ss4htue" data-title="ExpressBot：一个可以帮你查快递、追踪快递状态、还能陪聊的Telegram bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1254,7 +1330,7 @@ return e
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1296,6 +1372,10 @@ return e
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1309,10 +1389,6 @@ return e
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

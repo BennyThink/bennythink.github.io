@@ -73,6 +73,88 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-vultr-change-plan/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/02/vultr-change-plan/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-02T00:00:00.000Z" itemprop="datePublished">2017-03-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/02/vultr-change-plan/index/">vultr大降价：论我是如何降配的</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>昨天<a target="_blank" rel="noopener" href="https://www.vultr.com/news/The-Vultr-Cloud-Is-More-Powerful-Than-Ever/">vultr降价</a>了，原来$5的768M、15G SSD变成了1024M、25G SSD，新增加了最低档的$2.5 512M、20G SSD，详情如下</p>
+<p><img src="/images/030217_0627_vultr1.png"></p>
+<p>作为一个穷人，咱自然是要选择最低档的啦，这样能省下来一半呢！遗憾的是vultr并<strong>不提供降配</strong>，而我又太喜欢目前的IP地址了，还懒得配置Nginx什么的，所以，咱要为了省钱而战斗！</p>
+<p>那些想选高档的，可以在Settings-Change plan中选择，多出来的硬盘和内存，不要白不要嘛。</p>
+<p>PS，如果想要注册vultr还不嫌弃我的ref的话，就戳这里吧<a target="_blank" rel="noopener" href="http://www.vultr.com/?ref=6864780">http://www.vultr.com/?ref=6864780</a></p>
+<h2 id="备份"><a href="#备份" class="headerlink" title="备份"></a>备份</h2><p>这一步不是必须的，但是，做一下备份又何妨，万一不小心弄错了数据丢了可就是哭爹也没用啦。</p>
+<p>我整理下我个人认为需要备份的东西，以Ubuntu为例：</p>
+<blockquote>
+<p>网站文件（我的存放在&#x2F;home下，使用tar –jcpvf保留权限）</p>
+<p>数据库备份</p>
+<p>Let’s Encrypt证书和配置</p>
+<p>Nginx配置文件</p>
+<p>crontab</p>
+<p>.bashrc</p>
+<p>update-motd.d（用于自定义SSH欢迎信息）</p>
+<p>authorized_keys（公钥）</p>
+</blockquote>
+<p>以及其他任何需要备份的文件。</p>
+<h2 id="做快照"><a href="#做快照" class="headerlink" title="做快照"></a>做快照</h2><p>咱要做个快照，因为在vultr上是可以用快照创建新实例的哦。</p>
+<h2 id="保留IP地址"><a href="#保留IP地址" class="headerlink" title="保留IP地址"></a>保留IP地址</h2><p>由于我对当前的IP地址情有独钟，于是就保留下。那些无所谓IP地址的人就不要管啦。</p>
+<p><a target="_blank" rel="noopener" href="https://my.vultr.com/ips/add/">https://my.vultr.com/ips/add/</a></p>
+<p>在页面下方点convert即可。</p>
+<p>好嘞，咱把旧的服务器destroy了吧，放心，快照还在的，哈哈。一定要确保备份都成功了哦，以防万一嘛。</p>
+<p>此刻，我的心有一种碎了的感觉。Blog is my life…</p>
+<h2 id="购买新实例"><a href="#购买新实例" class="headerlink" title="购买新实例"></a>购买新实例</h2><p>这部就不说了啊，去买个新的，对于我来说，也就是最便宜的那个。</p>
+<p>需要注意的是，在Server Type时记得选择你的快照，咱不能重新搭建各种环境吧，太费事啦。</p>
+<p><img src="/images/030217_0627_vultr2.png"></p>
+<p>之后Server Size选择最廉价的那款</p>
+<p>IP Address选择保留的那个。</p>
+<p>静静等待…这个过程有些漫长</p>
+<p>然后就可以了。好吧，完事了。复活了，就是这么简单。真是省心我还寻思着更改配置文件呢</p>
+<p>[v_error]注意： 如果你的快照特别大，大过了了你所选择的新实例的硬盘大小，可能会无法恢复。此时只能想办法把快照弄小点啦。[&#x2F;v_error]</p>
+<h2 id="后遗症"><a href="#后遗症" class="headerlink" title="后遗症"></a>后遗症</h2><h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><p>此时如果登录SSH，可能会有类似如下的警告：</p>
+<p><img src="/images/030217_0627_vultr3.png"></p>
+<p>都说了SSH把被中间人劫持的风险交给用户承担了嘛！</p>
+<h3 id="取消保留IP"><a href="#取消保留IP" class="headerlink" title="取消保留IP"></a>取消保留IP</h3><p>保留IP每个月要3块呢，这怎么行？</p>
+<p>咱点进去</p>
+<p><a target="_blank" rel="noopener" href="https://my.vultr.com/ips/">https://my.vultr.com/ips/</a></p>
+<p>点自己IP后面的铅笔，右上角的垃圾桶就可以啦。</p>
+<p>别急哦，24小时之后才能Un-reverse，所以咱就老老实实的花个7毛钱，设置个闹钟嘛，嘿嘿。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/02/vultr-change-plan/index/" data-id="clhp7rtn000azs2qrd6x4368h" data-title="vultr大降价：论我是如何降配的" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-school-5/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/02/26/school-5/index/" class="article-date">
@@ -969,59 +1051,6 @@
 
 
   
-    <article id="post-fear-without-rules/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/12/19/fear-without-rules/index/" class="article-date">
-  <time class="dt-published" datetime="2016-12-19T00:00:00.000Z" itemprop="datePublished">2016-12-19</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/12/19/fear-without-rules/index/">没有规则才是最可怕的</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>假如你是一位高校老师，有一名学生翘课被你点名发现了，按照二八分、平时成绩出勤占一半、三次缺勤取消考试资格的规定，你会怎么做？</p>
-<p>我猜大部分人应该选择根据规则来，扣掉该扣的那一次缺勤分，而不是看心情、想扣光就扣光、想怎样就怎样。</p>
-<p>但是假如那名学生说你是傻逼呢？有多少人会给他应该得到的出勤分、扣掉一部分课堂表现，而不是直接让他拜拜重修？</p>
-<p>假如后来你发现说你傻逼的那学生是省长他外甥呢？有多少人会“维持原判”，有多少人会贴脸给满分来“冰释前嫌”？</p>
-<p>你看，你是不是悄悄改变了自己的规则——或者直接说你根本就没有规则，你只是在跟着感觉来，你所谓的规则只是你的双重思想的一小部分而已。</p>
-<p>坚持的理由很简单，规则就是这样定的。对于理性的思考来说，应得的就是应得的，你不能以感性的愤怒、羞辱、面子等为由肆意妄为、违背规则。为人师表啊。没有规则才是最可怕的。</p>
-<p>想想那些没有规则的例子吧：GFW封某个网站的时候，有什么规则吗；纳粹追杀共产主义者、犹太人、工会成员，有什么规则吗；文革中被整死的人，有什么规则吗？</p>
-<p>我们需要规则，如果没有规则，或定了规则却无视、凌驾规则，甚至随意修改规则，这和历史的倒退有什么区别。好似你既是裁判又是球员，这样谁能玩的过你、谁愿意跟你玩嘛。如果规则只是当权者的随意操纵的把戏，规则又有何用。</p>
-<p>这就是个缩影，或许也就是无力改变的现实吧。</p>
-<p>最怕，没有规则。</p>
-<p>最后，盗用胡适他老人家的一句和本文没啥关系话来结束全文： 一个肮脏的国家，如果人人讲规则而不是空谈道德，最终会变成一个有人味儿的正常国家，道德自然会逐渐回归； 反之，一个干净的国家，如果人人都不讲规则却大谈道德、谈高尚，天天没事儿就谈道德规范，人人大公无私，最终这个国家会堕落成为一个伪君子遍布的肮脏国家。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/12/19/fear-without-rules/index/" data-id="clhp7rtg8002ms2qr512c9au5" data-title="没有规则才是最可怕的" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1037,7 +1066,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1079,6 +1108,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1092,10 +1125,6 @@
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

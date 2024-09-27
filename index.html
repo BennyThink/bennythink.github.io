@@ -73,6 +73,149 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-workers-function/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/09/27/workers-function/index/" class="article-date">
+  <time class="dt-published" datetime="2024-09-27T00:00:00.000Z" itemprop="datePublished">2024-09-27</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/azure/">azure</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>WebP Cloud Services<a target="_blank" rel="noopener" href="https://blog.webp.se/cloudflare-workers-origin-zh/">使用 Cloudflare Workers进行回源来保证原站服务器IP不泄漏</a>。本着降本增效的理念，我们这次准备将部分回源请求迁移到 Azure Function。</p>
+<p>Azure Function 同样也是由 Azure 提供的serverless服务，运行时可以使用 Python、NodeJS、Java和亲儿子 .NET、PowerShell，和 Cloudflare Workers一样，每个月前100万请求免费，具体信息可以参考价格表</p>
+<p>我们的回源代码是使用 JavaScript写的，虽然这个语言挺扭曲的，但是为了方便迁移，就不变啦！</p>
+<h1 id="创建-Azure-账号"><a href="#创建-Azure-账号" class="headerlink" title="创建 Azure 账号"></a>创建 Azure 账号</h1><p>你需要有一个活跃订阅的Azure账号……</p>
+<h1 id="创建-Function"><a href="#创建-Function" class="headerlink" title="创建 Function"></a>创建 Function</h1><p>搜索栏搜索 Function App，点击 Create 按钮，会发现 Azure 提供了五种选项。选择第一个 Consumption</p>
+<p><img src="/images/2024092621330760.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h3 id="基本信息"><a href="#基本信息" class="headerlink" title="基本信息"></a>基本信息</h3><p>进入配置页面，可以新建一个资源组，需要选择的是 Runtime，这里选择 nodejs，然后 Region选择离用户最接近的地方。这里和 Cloudflare Workers不一样，Cloudflare Workers是在全球部署的，会在离用户最近的节点执行；Azure 这里是在固定的节点执行，所以对于大陆用户来说，日韩港新是比较不错的位置。</p>
+<p><img src="/images/2024092621330965.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h3 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h3><p>默认就行，要是看默认的名字不喜欢，可以自己改掉</p>
+<h3 id="网络"><a href="#网络" class="headerlink" title="网络"></a>网络</h3><p>这里要选择Enable public access，要不然访问不了。</p>
+<p><img src="/images/2024092621331055.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<h3 id="其他选项"><a href="#其他选项" class="headerlink" title="其他选项"></a>其他选项</h3><p>Monitoring 想开就开，为了省钱可以关掉。当然后续也可以重新开启；</p>
+<p>Deployment是配置CD的地方，可以以后再配置</p>
+<h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><p>部署完成之后 Azure 会提供一个URL，打开之后应该是这样的</p>
+<p><img src="/images/2024092621331135.png" alt="图形用户界面, 应用程序, 网站 描述已自动生成"></p>
+<h2 id="准备开发环境"><a href="#准备开发环境" class="headerlink" title="准备开发环境"></a>准备开发环境</h2><p>不像 Cloudflare Workers 那么直接，开发 Azure Functions 最好用 VS Code。因为用 Azure Functions 扩展会很方便。</p>
+<p>然后按F1弹出窗口 Azure Functions – Create New Project，语言就选择 JavaScript，愿意做类型体操也可以选择 TypeScript，或者任何你熟悉的语言都可以。</p>
+<p><img src="/images/2024092621331236.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>Trigger为如何触发Functions，这个场景下选择HTTP Trigger就可以了</p>
+<p><img src="/images/202409262133137.png" alt="图形用户界面 描述已自动生成"></p>
+<h2 id="熟悉开发环境"><a href="#熟悉开发环境" class="headerlink" title="熟悉开发环境"></a>熟悉开发环境</h2><h3 id="目录与文件"><a href="#目录与文件" class="headerlink" title="目录与文件"></a>目录与文件</h3><ul>
+<li><code>src/functions/fetchImage.js</code> 这个就是你的代码</li>
+<li><code>host.json</code>：配置</li>
+</ul>
+<h3 id="部署-1"><a href="#部署-1" class="headerlink" title="部署"></a>部署</h3><p>F1 – Deploy to Function App，选择订阅-刚刚创建的function</p>
+<p>部署成功之后，浏览器访问：</p>
+<p><a target="_blank" rel="noopener" href="https://blog-fun-post.azurewebsites.net/api/fetchimage">https://blog-fun-post.azurewebsites.net/api/fetchimage</a></p>
+<p>就可以看到 Hello World信息了。其中：</p>
+<ul>
+<li><code>api</code>是路由前缀，可以自定义的</li>
+<li><code>fetchimage</code>是代码里写好的路由，当然也可以自定义，默认代码里定义的name</li>
+</ul>
+<p>Azure 上可以看到已经部署好的代码</p>
+<p><img src="/images/2024092621331341.png" alt="图片包含 图形用户界面 描述已自动生成"></p>
+<p>点进去终于有了和 Cloudflare Workers一样的在线编辑页面（不过可能是只读的，和选择的语言有关）</p>
+<p><img src="/images/2024092621331482.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h3 id="本地调试"><a href="#本地调试" class="headerlink" title="本地调试"></a>本地调试</h3><p>每次改代码都部署一次确实不是好办法。这个时候就要用本地调试啦，由于我们是用 HTTP trigger的，调试起来非常简单方便。哦对了，调试 JavaScript 应用得有nodejs</p>
+<p>打开 <code>fetchImage.js</code> 按下F5，这里选择 Connect Storage Account（其实选择 emulator绕过去也行，没关系）</p>
+<p><img src="/images/2024092621331673.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>如果是第一次运行，可能需要安装一些依赖，安装完成之后就会看到控制台输出了类似如下信息</p>
+<p>Azure Functions Core Tools<br>Core Tools Version: 4.0.6280 Commit hash: N&#x2F;A +421f0144b42047aa289ce691dc6db4fc8b6143e6 (64-bit)<br>Function Runtime Version: 4.834.3.22875<br>[2024-09-26T12:27:04.937Z] Debugger listening on ws:&#x2F;&#x2F;127.0.0.1:9229&#x2F;882fb0c8-1957-4070-a6be-9cfd3250d77b<br>[2024-09-26T12:27:04.938Z] For help, see: <a target="_blank" rel="noopener" href="https://nodejs.org/en/docs/inspector">https://nodejs.org/en/docs/inspector</a><br>[2024-09-26T12:27:05.003Z] Worker process started and initialized.<br>[2024-09-26T12:27:05.058Z] Debugger attached.<br>Functions:<br>fetchImage: [GET,POST] <a target="_blank" rel="noopener" href="http://localhost:7071/api/fetchImage">http://localhost:7071/api/fetchImage</a><br>For detailed output, run func with –verbose flag.</p>
+<p>浏览器访问<code>http://localhost:7071/api/fetchImag</code>e 就可以了，改了代码也会自动热加载，当然也可以打断点。</p>
+<h2 id="Functions"><a href="#Functions" class="headerlink" title="Functions"></a>Functions</h2><p>一个最简单的 Functions 代码是这样的</p>
+<p>const { app } &#x3D; require(‘@azure&#x2F;functions’);</p>
+<p>app.http(‘fetch’, {<br>    methods: [‘GET’, ‘POST’],<br>    authLevel: ‘anonymous’,<br>    handler: async (request, context) &#x3D;&gt; {<br>        context.log(`Http function processed request for url “${request.url}”`);<br>        return { body: `Hello hello hello` };<br>    },<br>});</p>
+<ul>
+<li><code>app.http</code> 的第一个参数是名字，要唯一，并且默认是路由</li>
+<li><code>methods</code>表示接受的请求方法</li>
+<li><code>handler</code>是处理请求的地方，第一个参数是<code>request</code>，可以用来获取请求体之类的信息，第二个是<code>context</code>，执行上下文，包括日志功能、绑定数据、环境信息等。</li>
+<li><code>return</code> 用于返回响应，<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-node?tabs=javascript,windows,azure-cli&pivots=nodejs-model-v4">按照文档</a> <code>context.res</code> 也应该可以，但是在我这里不行，可能<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/42548199/azure-function-not-returning-response-through-context-res">需要额外配置一下</a>。返回一个object，编辑器会自动补全，比如body, status,headers 等</li>
+</ul>
+<h2 id="定义路由"><a href="#定义路由" class="headerlink" title="定义路由"></a>定义路由</h2><h3 id="路由前缀"><a href="#路由前缀" class="headerlink" title="路由前缀"></a>路由前缀</h3><p>默认，functions的代码都是 在 <code>/api</code> 这个路由下的，在 <code>host.json</code> 里可以进行配置</p>
+<p>“extensions”: {<br>    “http”: {<br>      “routePrefix”: “”<br>    }<br>  }</p>
+<p>这样就没有 <code>api</code> 这个前缀了，当然你也可以随便改！</p>
+<h3 id="路由名称"><a href="#路由名称" class="headerlink" title="路由名称"></a>路由名称</h3><p>默认路由名称是<code>app.http</code> 的第一个参数，如</p>
+<p>app.http(‘fetch’, {<br>    methods: [‘GET’, ‘POST’],<br>    authLevel: ‘anonymous’,<br>    handler: handler,<br>});</p>
+<p>那么路由就是 <code>fetch</code> ，如果要自定义可以额外传入一个 <code>route</code>。需要注意不可以是空字符串，也不可以是<code>/</code>开头的</p>
+<p>app.http(‘fetch’, {<br>    methods: [‘GET’, ‘POST’],<br>    authLevel: ‘anonymous’,<br>    handler: handler,<br>    route: “something”<br>});</p>
+<h2 id="根访问"><a href="#根访问" class="headerlink" title="根访问"></a>根访问</h2><p>如果你希望应用在 <a href="https://example.com/">https://example.com</a> 直接访问，不需要<code>/api</code> 也不需要路由名称，那么就要综合以上两种方法，配置前缀，然后 <code>route: &quot;/&quot;</code>不能留空😂，如果留空就会出现azure默认的页面 [v_tips]又一个人生小技巧🫠[&#x2F;v_tips]</p>
+<h2 id="迁移代码"><a href="#迁移代码" class="headerlink" title="迁移代码"></a>迁移代码</h2><p>我们的Cloudflare Workers代码是这么写的，非常简单</p>
+<p>async function handleProxy(post_body) {<br>    const headers &#x3D; {<br>        “Accept”: post_body.accept,<br>        “User-Agent”: post_body.user_agent<br>    };</p>
+<pre><code>const response = await fetch(post\_body.origin\_url, &#123;
+    method: post\_body.request\_name,
+    headers: headers
+&#125;);
+
+if (response.ok) &#123;
+    const res = new Response(response.body, &#123;
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers
+    &#125;);
+    return res;
+&#125; else &#123;
+    return new Response(response.statusText || &quot;Unknown Error&quot;, &#123;
+        status: response.status,
+        statusText: response.statusText
+    &#125;);
+&#125;
+</code></pre>
+<p>}</p>
+<p>export default {<br>    async fetch(request, env, ctx) {<br>        try {<br>            const post_body &#x3D; await request.json();<br>            return handleProxy(post_body);<br>        } catch (error) {<br>            return new Response(“Invalid JSON data”, { status: 400 });<br>        }<br>    },<br>};</p>
+<p>基本上要改的地方如下：</p>
+<ol>
+<li>入口参数位置调换</li>
+<li>改改函数名字之类的</li>
+</ol>
+<p>也就是改一下那个<code>default</code></p>
+<p>async function handler(request, context) {<br>    try {<br>        const body &#x3D; await request.json();<br>        return handleProxy(body);<br>    } catch (error) {<br>        console.error(‘JSON parsing error:’, error);<br>        return new Response(‘Invalid JSON data’, { status: 400 });<br>    }<br>}</p>
+<p>好了你的函数写好了，可以部署了。就是这么简单，除了配置环境那里麻烦点，别的都很容易，毕竟大家都是nodejs 20,自带了<code>fetch</code>和<code>Response</code></p>
+<p>甚至可以通过运行时信息不同，使用不同的入口函数，进而做到用一套代码。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>Function提供的语言比Cloudflare Workers多</li>
+<li>大家都是JavaScript，迁移很简单。为了类型安全也可以使用 TypeScript</li>
+<li>Function是区域性部署；Workers是全球部署且就近执行</li>
+<li>Function 想要做到就近执行，可能得需要配合 FrontDoor + 多地部署，想想就头疼</li>
+<li>Function提供的计划挺多的</li>
+<li>Function也应该可以拿来做一些奇奇怪怪的事情</li>
+<li>Azure的线路很好，对大陆访问非常友好，而Cloudflare则是降速CDN了</li>
+<li>Azure的功能好多（价格也很美丽），还待以后慢慢学习尝试</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/09/27/workers-function/index/" data-id="cm1lb077g0000s4jfgb3g1yfv" data-title="将 Cloudflare Workers 迁移到 Azure Function" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-one-api-clickhouse/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/09/21/one-api-clickhouse/index/" class="article-date">
@@ -916,187 +1059,6 @@ return computed\_hash == data.get(&quot;hash&quot;)
 
 
   
-    <article id="post-2023-end/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/12/31/2023-end/index/" class="article-date">
-  <time class="dt-published" datetime="2023-12-31T00:00:00.000Z" itemprop="datePublished">2023-12-31</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/12/31/2023-end/index/">2023 年终总结</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>很多年没有写年终总结了。有很多事情都是2022年年底的发生的，四舍五入也算2023年的吧！</p>
-<h2 id="博客"><a href="#博客" class="headerlink" title="博客"></a>博客</h2><p>2023年一共写了16篇博文，从数量上看起来比较少，从质量上看则更是堪忧🙃️</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023122902195115.png"><img src="/images/2023122902195115.png"></a></p>
-<p>这一年学习到了很多有用没用的知识。</p>
-<ul>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/stripe-telegram.html">如何使用 Stripe API</a> ，应用到了 WebP Cloud Services 上</p>
-</li>
-<li><p>meilisearch，<a target="_blank" rel="noopener" href="https://dmesg.app/meilisearch.html">一个轻量级的全文搜索引擎</a>，支持CJK，正好拿来给 <a target="_blank" rel="noopener" href="https://dmesg.app/telegram-cjk-search.html">SearchGram</a> 用</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/graylog-geo-ip.html">学习配置了一下 Graylog</a>。是挺炫酷，但是从来不看，现在已经被我删掉了</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/cloudflare">学习使用 Cloudflare Zero Trust</a>中的一些组件。其实我是一周左右就弄懂了，但是故意隔开几天发博客</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/lede-shadowtls.html">在 LEDE&#x2F;OpenWRT 上使用ShadowTLS</a>，由于我用的是cnroute，所以打环了需要额外配置一下</p>
-</li>
-</ul>
-<p>在这之后，我的博客就停更了差不多半年左右。这半年里我和 <a target="_blank" rel="noopener" href="https://github.com/n0vad3v">Nova</a> 还有 <a target="_blank" rel="noopener" href="https://github.com/tukideng">Tuki</a> 开发并运营了 **<a target="_blank" rel="noopener" href="https://webp.se/">WebP Cloud Services</a>**。这个想法来自于3年前的WebP Server Go，区别是Cloud Services功能更多更强大，而且是托管的SaaS服务。</p>
-<p>这半年里我也写了博文，只不过放在了 <a target="_blank" rel="noopener" href="https://blog.webp.se/">WebP Cloud Services Blog</a> 上。为了增加受众，并且我们的目标是出海，我们还用 ChatGPT 翻译了英文版本的。</p>
-<ul>
-<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/golang-libvips-cgo-zh/">libvips, cgo, purego</a> 切换到 libvips 之后我们一直希望能够实现交叉编译（静态链接就别想了，这永远只是一个梦），然而，即便交叉编译，那也是梦里才有的事情……</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/govips-filter-zh/">使用 libvips 实现CSS滤镜</a>，看了 W3C的文档，学会了如何做渐变，甚至还学习了一些高等数学的知识</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/cve-2023-4863-fix-zh/">手动编译了一下 libwebp</a>，啥也没学会，只听见电表起飞的声音</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://blog.webp.se/change-loglevel-runtime-zh/">在运行时通过UNIX 信号 修改loglevel</a>，UNIX哲学。不过，这个过程中我写出来了一个 bug，会<a target="_blank" rel="noopener" href="https://blog.webp.se/goroutine-leak-zh/">导致goroutine泄漏</a>，然后CPU使用率缓慢升高。哎，有时还是不能太相信AI啊。</p>
-</li>
-</ul>
-<p>然后，我就又回到了🥔不好吃</p>
-<ul>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/es-ee-se-unicode.html">西班牙、爱沙尼亚吞并了瑞典的故事</a>，unicode真是太神奇且深奥啦</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/steam-deck-stuck.html">steam deck 游戏卡logo</a>，从 steam community翻到了然后抄过来的🤣</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/nodejs-dual-stack.html">Nodejs 双栈协议踩坑</a>，nodejs 真™️™️的草台班子。和JavaScript一样草台</p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://dmesg.app/tron-trx.html">Tron（TRX）收款</a>，本王终于进入币圈了，学习了 HD钱包的原理，给 go <a target="_blank" rel="noopener" href="https://github.com/ranjbar-dev/tron-wallet">tron-wallet</a> 贡献了代码。 WebP Cloud Services 也支持通过 TRX 付款啦💰</p>
-</li>
-</ul>
-<p>这一年的写作到这里就结束了。</p>
-<h2 id="工作"><a href="#工作" class="headerlink" title="工作"></a>工作</h2><p>换了一份工作，薪水比上份工作多一些。然而我觉得这份工作并没有上一份工作那么令我满意，主要集中在以下这几点吧：</p>
-<ul>
-<li><p>工作流程：上一份工作的公司刚刚被某芯片大厂收购，工作流程非常规范（因此也很慢），任何变更要通过 PR来，需要2个 review，Test Coverage大概有个70-80%左右</p>
-</li>
-<li><p>技术栈的变化：前司是Python + Clarity + PostgreSQL，我还接手了一个 Java的Play framework 的东西，感谢老板对我的信任，我都没想到能弄明白🤣 现在则是 Nodejs + Angular+ Elm 。JavaScript 懂得都懂黑点无数，大家也乐此不疲的黑JS，但是无论怎么说JS还是发展非常迅速的一门语言，生态也挺不错。Elm那我只能😄啦，只提一点：标准库上次更新是2021年2月。</p>
-</li>
-<li><p>氛围和企业文化：这个没什么可说的，都很棒，同事们都挺好的。也没有什么996的事，到点就走。但是不知为何我还是更喜欢前司😂</p>
-</li>
-</ul>
-<p>别的倒也没什么，俗话说钱难挣嘛，这个道理都懂……</p>
-<h2 id="旅游"><a href="#旅游" class="headerlink" title="旅游"></a>旅游</h2><p>从来不爱旅游的我，今年竟然破天荒的去了5个城市旅游。收获了什么忘记了，无论是「这个楼也太他妈牛逼了」还是「落霞与孤鹜齐飞」都不记得了。 我也没写xxx游记，只记得买了很多明信片😓</p>
-<h2 id="开源项目"><a href="#开源项目" class="headerlink" title="开源项目"></a>开源项目</h2><ul>
-<li><p>YYeTs：基本没什么太大的变化，dependabot的commit比我还多。前段时间转手给别人之后我更是不管了</p>
-</li>
-<li><p>WebP Server Go：虽然有持续的更新，并且有一些 issue，但是主要都是 Nova 大佬在处理，我基本打酱油了</p>
-</li>
-<li><p>ytdlbot：更新了一大堆东西，每天跑 200G 流量。收获0.</p>
-</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/202312290332433.png"><img src="/images/202312290332433.png"></a></p>
-<p>总体来看，基本上可以说还是那些，没什么新的变化，“僵尸”状态可能是一个比较恰当的形容词。</p>
-<h2 id="游戏"><a href="#游戏" class="headerlink" title="游戏"></a>游戏</h2><p>电子阳痿。</p>
-<p>等了很久的《往日之影》发布了，熬夜两天玩完，后劲太大直接让我郁闷的好几天。假如我是V，我会怎样做出选择？接受治疗活下去，然后失去一切。真的是一切都变了，物是人非，曾经的V震天甚至还会被街边的小混混揍，而这只是短短的两年。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023122903214866.png"><img src="/images/2023122903214866.png"></a></p>
-<p>曾经的V可是这样的啊（这套服装是往日之影里那个法国黑客奥罗尔的复刻，还蛮好看的，我好喜欢。这把刀好像叫爪磨？）</p>
-<p>与其这样生活，真的不如再活半年，或者把身体留给强尼。甚至，不如信了荒坂。</p>
-<p>人呐难免会把艺术作品中的事情联想到自己身上，这个高塔结局说的不就是现在的我吗？</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023123001413713-scaled.jpeg"><img src="/images/2023123001413713-scaled.jpeg"></a></p>
-<h3 id="Steam-Deck"><a href="#Steam-Deck" class="headerlink" title="Steam Deck"></a>Steam Deck</h3><p>买了个 Steam Deck，淘了个显示器键盘和1 TB SSD，然后装了个双系统。这玩意就是一个标准的x86机器，所以装双系统甚至三系统这种事情对于我来说自然不在话下。惊叹于 Windows 11，和Windows 10比起来还是变化了很多的。</p>
-<p>装完系统我也没怎么用，看起来也电子阳痿了。</p>
-<h2 id="影视作品"><a href="#影视作品" class="headerlink" title="影视作品"></a>影视作品</h2><p>看了挺多，大部分都是 Netflix上的</p>
-<ul>
-<li><p>VIVANT： 堺雅人主演的电视剧，前几集挺好看，后面略差。堺雅人的英文不太好，可能不如中文吧</p>
-</li>
-<li><p>石子和羽男 ：有村架纯真的是太可爱了，我好爱她😍</p>
-</li>
-<li><p>V世代：黑袍纠察队的衍生电视剧，很不错</p>
-</li>
-<li><p>上载新生第三季：略差了，但是比第二季好多了</p>
-</li>
-<li><p>最后生还者：改编于同名游戏，那个被魔山捏爆脑子的王子还真是挺忙</p>
-</li>
-<li><p>曼达洛人第三季：电视剧总体水平还不错，但是不知道为何我不太喜欢了，可能毕竟不是星战粉吧。主演还是上面那个王子</p>
-</li>
-<li><p>阿妮亚传奇啊不，间谍过家家：我很少看动漫，但是这部动漫竟然坚持下来了</p>
-</li>
-<li><p>赛博朋克 边缘行者：听说看完这部动漫的人都打开游戏锤爆亚当·重锤，我也不例外😂</p>
-</li>
-<li><p>噬亡村：柳乐优弥和吉冈里帆主演的电视剧。吉冈妹子真的好美，不知道第二季什么时候，这都快一年了</p>
-</li>
-<li><p>弥留之国的爱丽丝：第二季不太行……</p>
-</li>
-<li><p>甜蜜家园第二季：更不行</p>
-</li>
-<li><p>谁是被害者：台剧，还不错嗷</p>
-</li>
-<li><p>模仿犯：也是台剧，不错</p>
-</li>
-<li><p>罪后真相：台湾电影，还好，看预告片不错</p>
-</li>
-<li><p>黑暗荣耀：宋慧乔主演的，不错</p>
-</li>
-<li><p>黑镜第六季：琼糟透了、海之彼岸还不错，其他的一般般</p>
-</li>
-<li><p>关注者：不知道讲了什么，全程被池田 エライザ吸引🤩</p>
-</li>
-<li><p>初恋：这年头的纯爱剧，还真的能看进去（其中有一点点18🈲️镜头哈哈哈），主题曲和灵感均是宇多田光的 First Love，光妹真的浑身发光啊</p>
-</li>
-<li><p>重启人生：假如我能重启人生，那么我要做的事情会不会是，在高考结束之后的那天，把上交的志愿改掉？</p>
-</li>
-</ul>
-<p>还有一堆乱七八糟的，不记得了想不起来了</p>
-<h2 id="音乐"><a href="#音乐" class="headerlink" title="音乐"></a>音乐</h2><p>新增了很多 OST，都是赛博朋克的，最喜欢的还是 <a target="_blank" rel="noopener" href="https://music.163.com/song?id=2083630443">Gate K9</a>（往日之影）和 <a target="_blank" rel="noopener" href="https://music.163.com/song?id=1804292550">The Rebel Path</a>（单挑荒坂塔）</p>
-<p>剩下的歌曲基本都是日本流行乐，基本全是 uru，我最喜欢的可能是 「ドライフラワー 」吧，这种小小伤感的歌曲最让我喜欢了：</p>
-<ul>
-<li><p>なんでもないよ</p>
-</li>
-<li><p>ドライフラワー</p>
-</li>
-<li><p>無機質</p>
-</li>
-<li><p>恋</p>
-</li>
-<li><p>再会</p>
-</li>
-<li><p>ポジティ部入部</p>
-</li>
-<li><p>ランドマーク</p>
-</li>
-<li><p>紙一重</p>
-</li>
-<li><p>君の幸せを</p>
-</li>
-<li><p>セレナーデ</p>
-</li>
-</ul>
-<h2 id="猫"><a href="#猫" class="headerlink" title="猫"></a>猫</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/12/2023122903434288.jpg"><img src="/images/2023122903434288.jpg"></a></p>
-<p>还是挺恩爱的。但是酸奶后背脱毛了😫，并且从昨天开始呕吐腹泻😫😫😫</p>
-<h2 id="期待"><a href="#期待" class="headerlink" title="期待"></a>期待</h2><p>希望酸奶早日好起来，猫咪身体健康。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/12/31/2023-end/index/" data-id="clqxhsve30000w1qr2oac5v4z" data-title="2023 年终总结" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1112,7 +1074,7 @@ return computed\_hash == data.get(&quot;hash&quot;)
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1154,6 +1116,10 @@ return computed\_hash == data.get(&quot;hash&quot;)
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1167,10 +1133,6 @@ return computed\_hash == data.get(&quot;hash&quot;)
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>

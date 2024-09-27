@@ -73,6 +73,80 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-riseup-alias-email/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/07/29/riseup-alias-email/index/" class="article-date">
+  <time class="dt-published" datetime="2021-07-29T00:00:00.000Z" itemprop="datePublished">2021-07-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/07/29/riseup-alias-email/index/">riseup如何使用自己域名邮箱发邮件</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>先说说一些收邮件的方法吧</p>
+<h2 id="收邮件-–-Email-Forwarding"><a href="#收邮件-–-Email-Forwarding" class="headerlink" title="收邮件 – Email Forwarding"></a>收邮件 – Email Forwarding</h2><p>收邮件的话，最简单的办法就是去注册商哪里设置一个Email Forwarding，比如namesilo中可以这样设置：</p>
+<p><img src="/images/2021072919313862.png"></p>
+<p>等几分钟生效，发给 <a href="mailto:benny@dmesg.app">benny@dmesg.app</a> 的邮件就会被转发给我的Gmail啦。</p>
+<h2 id="收邮件-–-自建"><a href="#收邮件-–-自建" class="headerlink" title="收邮件 – 自建"></a>收邮件 – 自建</h2><p>也可以选择自建，比如说用iRedMail。配置起来是挺麻烦的，但是会让人很有成就感。同时也可以发邮件了。缺点就是有很多时候会被当成SPAM，需要进一步设置DKIM呀什么的。</p>
+<h2 id="收邮件-–-企业邮箱"><a href="#收邮件-–-企业邮箱" class="headerlink" title="收邮件 – 企业邮箱"></a>收邮件 – 企业邮箱</h2><p>比如用Gsuite啦，腾讯企业邮箱啦，都很容易，改个MX就行。</p>
+<h2 id="发邮件"><a href="#发邮件" class="headerlink" title="发邮件"></a>发邮件</h2><p>发邮件相比之下就要麻烦点了，可选的方案有自建、企业邮箱。还有就是可以让riseup帮忙发！当然啦，用Gmail也是可以的。</p>
+<p>用riseup发邮件的话，需要先让你的邮箱能够收到邮件，无论你是通过Email Forwarding还是企业邮箱，总之要能收到邮件。</p>
+<p>然后设置alias，在这个页面中 <a target="_blank" rel="noopener" href="https://account.riseup.net/mail/aliases">https://account.riseup.net/mail/aliases</a></p>
+<p><img src="/images/2021072919314134.png"></p>
+<p>确认邮箱并且已经生效之后，之后去邮箱的identities里添加一下这个邮箱</p>
+<p><img src="/images/2021072919314274.png"></p>
+<p>然后在riseup的web页面就可以用这个邮箱发邮件啦</p>
+<p><img src="/images/2021072919314467.png"></p>
+<p>想要用代码来解决的话，也很简单，Python的话直接用自带的smtplib就可以了</p>
+<p><code>from_addr</code>就是加的那个alias，别想着加一个 <a href="mailto:&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#x74;&#101;&#110;&#x63;&#101;&#x6e;&#116;&#x40;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;</a>，不行的（这种情况倒是可以用mailhog自娱自乐）。</p>
+<p>def _format_addr(s):<br>    name, addr &#x3D; parseaddr(s)<br>    return formataddr((Header(name, ‘utf-8’).encode(), addr))</p>
+<p>def send_mail(to: str, subject: str, body: str):<br>    user &#x3D; os.getenv(“email_user”)<br>    password &#x3D; os.getenv(“email_password”)<br>    host &#x3D; os.getenv(“email_host”) or “localhost”<br>    port &#x3D; os.getenv(“email_port”) or “1025”  # mailhog<br>    from_addr &#x3D; os.getenv(“from_addr”) or “<a href="mailto:&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;">&#121;&#x79;&#101;&#116;&#x73;&#x40;&#100;&#x6d;&#101;&#115;&#103;&#46;&#97;&#x70;&#x70;</a>“</p>
+<pre><code>msg = MIMEText(body, &#39;html&#39;, &#39;utf-8&#39;)
+msg\[&#39;From&#39;\] = \_format\_addr(&#39;YYeTs &lt;%s&gt;&#39; % from\_addr)
+msg\[&#39;To&#39;\] = \_format\_addr(to)
+msg\[&#39;Subject&#39;\] = Header(subject, &#39;utf-8&#39;).encode()
+
+if port == &quot;1025&quot;:
+    server = smtplib.SMTP(host, port)
+else:
+    server = smtplib.SMTP\_SSL(host, port)
+server.login(user, password)
+server.sendmail(from\_addr, \[to\], msg.as\_string())
+server.quit()
+</code></pre>
+<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    send_mail(“<a href="mailto:&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;">&#98;&#101;&#x6e;&#110;&#x79;&#46;&#116;&#x68;&#105;&#x6e;&#107;&#x40;&#x67;&#x6d;&#x61;&#105;&#x6c;&#x2e;&#x63;&#x6f;&#x6d;</a>“, “subj”, ‘aaaa<br>bbb’)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/07/29/riseup-alias-email/index/" data-id="clhp7rtik007ps2qrfb710m85" data-title="riseup如何使用自己域名邮箱发邮件" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-github-actions-docker-image/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/07/04/github-actions-docker-image/index/" class="article-date">
@@ -934,62 +1008,6 @@ fun()
 
 
   
-    <article id="post-container-no-network/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/01/26/container-no-network/index/" class="article-date">
-  <time class="dt-published" datetime="2021-01-26T00:00:00.000Z" itemprop="datePublished">2021-01-26</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/01/26/container-no-network/index/">什么鬼啊，我的容器怎么无法访问外网了</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>大概几个星期前，在把<a target="_blank" rel="noopener" href="https://t.me/yyets_bot">YYeTs Bot</a>迁移到香港时，发现在容器里竟然无法访问外部网络。</p>
-<p>由于之前看到有报道称香港的某些ISP对某域名进行了污染，因此此时就立刻想到了，是不是aws的上游也对 api.telegram.org 进行了污染？</p>
-<p>容器里没法<code>curl</code>。<code>apk update</code>了一下，发现竟然无法update，难道是alpine挂了吗？Ubuntu也是，这俩一起炸？概率太低了吧。新加坡的那台机器也是同样的问题，但是日本就没问题。同样都在亚洲，大家有什么差别吗？难道是整个东南亚的海底光缆全炸了？可是没见到有人说东南亚的机房炸了啊，况且就算炸了，那也应该会找别的路由出去啊，就算丢包也不会直接炸光啊。</p>
-<p><img src="/images/2021012415374384.jpeg"></p>
-<p>就算你是柯蒂斯·李梅，手里有着一百架B-2轰炸机，也不能炸的这么彻底啊。</p>
-<p>试了一下，宿主机能够访问啊，那就是没问题的。一定是某些配置不对。重新安装了docker engine，结果也还一样，香港和新加坡的机器就是不好用，但是日本可用。</p>
-<hr>
-<p>搜了一下，可能是没开<code>ipv4.forward</code>?但是我一般是开启这个的呀，而且我开了啊……</p>
-<p>后来在网上翻到这样一篇文章，<a target="_blank" rel="noopener" href="https://pytimer.github.io/2019/11/docker%E5%AE%B9%E5%99%A8%E6%97%A0%E6%B3%95%E8%BF%9E%E6%8E%A5%E5%A4%96%E9%83%A8%E7%BD%91%E7%BB%9C%E5%8E%9F%E5%9B%A0%E6%8E%92%E6%9F%A5/">《Docker容器无法连接外部网络原因排查》</a>，了解到bridge网络docker是通过iptables转发流量的。</p>
-<p>此时，我突然意识到，我的这两台服务器似乎都设置了大量的本地端口转发，恰巧也覆盖了80和443这两个端口……把这个规则删掉，重启docker engine。好的，村通网了。</p>
-<p>罪魁祸首的这条命令</p>
-<p>iptables -t nat -A PREROUTING -p tcp –dport 23:1000 -j REDIRECT –to-ports 16698</p>
-<p>事实证明，是我的想象力太丰富了。来一拳就好了。</p>
-<p><img src="/images/2021012415374219.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/01/26/container-no-network/index/" data-id="clhp7rtex001as2qr7bzu7of0" data-title="什么鬼啊，我的容器怎么无法访问外网了" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1005,7 +1023,7 @@ fun()
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1047,6 +1065,10 @@ fun()
       <ul>
         
           <li>
+            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
@@ -1060,10 +1082,6 @@ fun()
         
           <li>
             <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
           </li>
         
       </ul>
