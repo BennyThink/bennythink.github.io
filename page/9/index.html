@@ -73,6 +73,210 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-esxi-tutorial/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/11/16/esxi-tutorial/index/" class="article-date">
+  <time class="dt-published" datetime="2019-11-16T00:00:00.000Z" itemprop="datePublished">2019-11-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/11/16/esxi-tutorial/index/">ESXi入门指南</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是ESXi"><a href="#什么是ESXi" class="headerlink" title="什么是ESXi"></a>什么是ESXi</h2><blockquote>
+<p>VMware ESXi是由VMware开发的用于部署和服务虚拟计算机的企业级1类管理程序。作为Type-1虚拟机管理程序，ESXi不是操作系统上安装的软件应用程序；相反，它包括并集成了重要的OS组件，例如内核。在4.1版之后，VMware将ESX重命名为ESXi。</p>
+</blockquote>
+<p>摘自维基百科英文版翻译</p>
+<p>简单的说，ESXi就是一个虚拟机。但是与VMware Workstation、VirtualBox等工具却又有些不同。更具体的说，VMware Workstation等工具是运行在操作系统之上的一个软件，如果没有对应的操作系统（Windows、macOS、Linux）等，它自身是无法运行的，操作系统不让它做的事情它也做不了，这种虚拟机我们一般叫“Type 2”虚拟机。</p>
+<p>既然有Type 2，那也是有Type 1的，所谓Type 1虚拟机，就是它本身就是一个操作系统，直接运行在裸机上。ESXi就属于这种。</p>
+<p> </p>
+<p>“人傻钱多戴，美帝良心想”</p>
+<p>提到戴尔，我相信绝大部分人的印象都是这家伙不是卖笔记本、卖显示器，还卖服务器的吗？</p>
+<p>哦好吧，其实<strong>VMware是DELL的子公司</strong>。是这样的，VMware被EMC收购了，DELL又把EMC收购了。</p>
+<h2 id="ESXi硬件要求"><a href="#ESXi硬件要求" class="headerlink" title="ESXi硬件要求"></a>ESXi硬件要求</h2><p>ESXi的硬件要求很低，总结来说大概如下：</p>
+<ul>
+<li>至少双核CPU</li>
+<li>至少4G内存</li>
+<li>以太网控制器</li>
+</ul>
+<p>除此之外，最好再支持硬件虚拟化Intel VT-x 或 AMD RVI</p>
+<p>具体详细硬件配置可以查看官网的文档 <a target="_blank" rel="noopener" href="https://docs.vmware.com/cn/VMware-vSphere/6.5/com.vmware.vsphere.install.doc/GUID-DEB8086A-306B-4239-BF76-E354679202FC.html">ESXi硬件要求</a></p>
+<p>相信大家的配置绝对足够跑ESXi了，不过有几点需要注意的地方</p>
+<ul>
+<li>ESXi本身不支持无线网卡，但是我们可以把无线网卡直通给虚拟机</li>
+<li>“不支持”Realtek 螃蟹?️网卡，VMware因为商业化原因移除了对Realtek的支持，但是可以找办法添加回去的</li>
+</ul>
+<h2 id="使用什么设备运行ESXi"><a href="#使用什么设备运行ESXi" class="headerlink" title="使用什么设备运行ESXi"></a>使用什么设备运行ESXi</h2><p>很简单，用旧的笔记本，各种服务器……好吧，对于个人使用来说，服务器还是算了，那个耗电和噪音受不了的。</p>
+<p>对于个人使用来说， 淘汰的笔记本（配置足够的话）、各种迷你主机是比较好的选择。</p>
+<p>比如说<a target="_blank" rel="noopener" href="https://www.intel.cn/content/www/cn/zh/products/boards-kits/nuc.html">Intel NUC</a>就是很不错的选择，但是NUC价格又有些贵；所以最终我选择的是占美主机，便宜省电呀……如下图所示</p>
+<p><img src="/images/2019111607252622.jpeg" alt="https://gd2.alicdn.com/imgextra/i2/186209729/O1CN01MJP69n2LjvsAbH8Re_!!186209729.jpg"></p>
+<p>只不过这个无线网卡，被我拆了卖咸鱼了。</p>
+<p>由于NUC这类都是不带内存硬盘的，所以咱要自己买。推荐的话，既然都跑虚拟机了，起步16G为佳。存储的话，自然是M2 NVME或者mSATA的固态了。SATA接口建议还是别插固态，SATA接口留给普通的机械硬盘，做备份存储之类的用途。土豪直接上1T的固态那就不算啦！</p>
+<p><img src="/images/2019111607252949.png"></p>
+<p>这个功耗很低吧，一个月下来也就是三四块钱的电费</p>
+<h2 id="ESXi安装镜像调整（打补丁）"><a href="#ESXi安装镜像调整（打补丁）" class="headerlink" title="ESXi安装镜像调整（打补丁）"></a>ESXi安装镜像调整（打补丁）</h2><h3 id="判断网卡类型"><a href="#判断网卡类型" class="headerlink" title="判断网卡类型"></a>判断网卡类型</h3><p>前面说过，ESXi不支持?️网卡（有好些网卡都是不支持的，所以可以参考上面的硬件要求链接），所以这里需要先判断下自己的机器上什么网卡？如果是螃蟹卡的话，那么需要对安装镜像进行调整。具体判断方法，拆开看芯片，看产品介绍，Live CD下lspci什么的都可以</p>
+<h3 id="下载ESXi镜像"><a href="#下载ESXi镜像" class="headerlink" title="下载ESXi镜像"></a>下载ESXi镜像</h3><p>ESXi介绍页面</p>
+<p><a target="_blank" rel="noopener" href="https://www.vmware.com/products/vsphere.html">https://www.VMware.com/products/vsphere.html</a></p>
+<p>ESXi下载</p>
+<p><a target="_blank" rel="noopener" href="https://my.vmware.com/en/web/vmware/info/slug/datacenter_cloud_infrastructure/vmware_vsphere/6_7">https://my.VMware.com/en/web/VMware/info/slug/datacenter_cloud_infrastructure&#x2F;VMware_vsphere&#x2F;6_7</a></p>
+<p>我们就点击页面上的 VMware vSphere Hypervisor (ESXi) 6.7U3 下载就可以了。</p>
+<p>镜像有两种类型</p>
+<p><img src="/images/2019111607252958.png"></p>
+<p>第一种的ISO，直接能启动；第二种下载回来说一个zip包，我们可以用它来打补丁。如果你是?️卡，那就选第二种吧</p>
+<h3 id="ESXi打补丁"><a href="#ESXi打补丁" class="headerlink" title="ESXi打补丁"></a>ESXi打补丁</h3><p>这个网上文章真的是太多了，基本上就是用ESXi-customer-PS之类的把网卡驱动添加进去</p>
+<p>ESXi-customer-ps官网</p>
+<p><a target="_blank" rel="noopener" href="https://www.v-front.de/p/esxi-customizer-ps.html">https://www.v-front.de/p/ESXi-customizer-ps.html</a></p>
+<p>需要先安装powercli，下载页面</p>
+<p><a target="_blank" rel="noopener" href="https://code.vmware.com/web/tool/11.2.0/vmware-powercli">https://code.VMware.com/web/tool/11.2.0/VMware-powercli</a></p>
+<p>网卡补丁，根据自己的型号下载offline-bundle，避免网络问题</p>
+<p><a target="_blank" rel="noopener" href="https://vibsdepot.v-front.de/wiki/index.php/List_of_currently_available_ESXi_packages">https://vibsdepot.v-front.de/wiki/index.php/List_of_currently_available_ESXi_packages</a></p>
+<p>如何打补丁可以自己搜索下，我这里贴上来两篇</p>
+<p><a target="_blank" rel="noopener" href="https://www.smbinn.com/vmnetwork.html">https://www.smbinn.com/vmnetwork.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://rexzhang.com/post/cf06a796-44d5-11e4-9bb5-f23c9150b910">https://rexzhang.com/post/cf06a796-44d5-11e4-9bb5-f23c9150b910</a></p>
+<p>简单描述是这样的，打开powershell，切换到对应的目录</p>
+<p># 取消可能的系统限制<br>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned<br>Set-ExecutionPolicy Unrestricted</p>
+<h1 id="离线打补丁-official-zip是ESXi的offline-bundle，drivers目录包含了vib文件的目录"><a href="#离线打补丁-official-zip是ESXi的offline-bundle，drivers目录包含了vib文件的目录" class="headerlink" title="离线打补丁  official.zip是ESXi的offline bundle，drivers目录包含了vib文件的目录"></a>离线打补丁  official.zip是ESXi的offline bundle，drivers目录包含了vib文件的目录</h1><p>.\ESXi-Customizer-PS-v2.6.0.ps1 -izip .\official.zip -pkgDir C:\Users\abc\Dropbox\ESXi\drivers</p>
+<h1 id="在线打补丁，依赖比较好的网络环境"><a href="#在线打补丁，依赖比较好的网络环境" class="headerlink" title="在线打补丁，依赖比较好的网络环境"></a>在线打补丁，依赖比较好的网络环境</h1><p>.\ESXi-Customizer-PS-v2.6.0.ps1 -v67 -vft -load net55-r8168</p>
+<h3 id="支持Realtek-8168-x2F-8111-x2F-8411-x2F-8118的成品"><a href="#支持Realtek-8168-x2F-8111-x2F-8411-x2F-8118的成品" class="headerlink" title="支持Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的成品"></a>支持Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的成品</h3><p>如果你的网卡也是Realtek 8168&#x2F;8111&#x2F;8411&#x2F;8118的话，并且信任我，可以考虑用我的现成的，<a target="_blank" rel="noopener" href="https://www.dropbox.com/s/aly7y4nrhjdpdmr/ESXi-6.7.0-20190802001-standard-customized.iso?dl=0">戳这里去dropbox</a></p>
+<h2 id="ESXi安装"><a href="#ESXi安装" class="headerlink" title="ESXi安装"></a>ESXi安装</h2><p>把iso写到U盘中，比如说使用rufus这种，然后启动插U盘启动电脑，哦对了还要有个显示器和HDMI……</p>
+<p>安装过程很简单，接受，输入密码，下一步，下一步……</p>
+<p> </p>
+<p>小提示：没有显示器怎么办？</p>
+<p>靠着虚拟机、网卡指示灯、硬盘灯摸索着来吧。</p>
+<p>哦当然了，ESXi要插网线直接连到网络设备（如路由器）的，要不玩什么呀！</p>
+<h2 id="ESXi管理"><a href="#ESXi管理" class="headerlink" title="ESXi管理"></a>ESXi管理</h2><p>ESXi安装完成之后，想办法获取到它的IP地址，直接浏览器访问就可以了。</p>
+<h3 id="使用ESXi网页端管理虚拟机"><a href="#使用ESXi网页端管理虚拟机" class="headerlink" title="使用ESXi网页端管理虚拟机"></a>使用ESXi网页端管理虚拟机</h3><p>界面很简洁，看着就会用</p>
+<p><img src="/images/2019111607253217.png"></p>
+<h3 id="使用VMware-Workstation管理虚拟机"><a href="#使用VMware-Workstation管理虚拟机" class="headerlink" title="使用VMware Workstation管理虚拟机"></a>使用VMware Workstation管理虚拟机</h3><p>如果你的电脑上装有VMware Workstation的话，文件-连接到服务器，输入IP用户名（root）、密码也是可以进行简单的管理的</p>
+<h3 id="进一步的管理：Vcenter"><a href="#进一步的管理：Vcenter" class="headerlink" title="进一步的管理：Vcenter"></a>进一步的管理：Vcenter</h3><p>ESXi本身的管理功能比较基础，甚至连克隆、迁移等功能都没有。为了做到这点，可以开个虚拟机安装vcenter。</p>
+<p>什么是注册虚拟机</p>
+<h2 id="ESXi创建虚拟机方法"><a href="#ESXi创建虚拟机方法" class="headerlink" title="ESXi创建虚拟机方法"></a>ESXi创建虚拟机方法</h2><p>ESXi的使用非常简单，只要是用过虚拟机的人应该就是十分清楚的，傻瓜化操作</p>
+<h3 id="直接创建虚拟机"><a href="#直接创建虚拟机" class="headerlink" title="直接创建虚拟机"></a>直接创建虚拟机</h3><p><img src="/images/2019111607253436.png"></p>
+<h3 id="从ovf部署虚拟机"><a href="#从ovf部署虚拟机" class="headerlink" title="从ovf部署虚拟机"></a>从ovf部署虚拟机</h3><p>从VMware Workstation和virtualbox导出的文件都可以导入进来的</p>
+<p><img src="/images/2019111607253765.png"></p>
+<h3 id="注册虚拟机"><a href="#注册虚拟机" class="headerlink" title="注册虚拟机"></a>注册虚拟机</h3><p>假如已经有了虚拟机的vmdk文件，并且这个文件在datastore中，那么我们可以直接注册虚拟机的。方法太简单了，不说了。</p>
+<h3 id="使用cloud-image"><a href="#使用cloud-image" class="headerlink" title="使用cloud image"></a>使用cloud image</h3><p>作为非常爱惜硬盘的我，如果从Ubuntu Server安装一个服务器版Ubuntu的话，不仅浪费时间，需要手工干预安装，而且还很占用硬盘。所以ubuntu官方维护了一个云镜像，其中包含各种环境使用的镜像，可以直接导入。</p>
+<p>下面这个链接是每日构建的，点进去选一个日期，下载对应的ovf&#x2F;ova文件就可以了</p>
+<p><a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/bionic/">https://cloud-images.ubuntu.com/bionic/</a></p>
+<p>这个链接是发布版的，同样下载ovf&#x2F;ova文件</p>
+<p><a target="_blank" rel="noopener" href="https://cloud-images.ubuntu.com/releases/">https://cloud-images.ubuntu.com/releases/</a></p>
+<p><img src="/images/201911160725385.png"></p>
+<p>下载回来直接导入就可以了</p>
+<p>但是这个cloud image的root密码是什么呀！别怕，随机密码。开机按shift进grub，选择recovery mode破个密码就好了。然后再parted或者fdisk弄下分区，完美。Cloud image安装完占用硬盘不到1G哦～</p>
+<h2 id="ESXi-虚拟机设置"><a href="#ESXi-虚拟机设置" class="headerlink" title="ESXi 虚拟机设置"></a>ESXi 虚拟机设置</h2><h3 id="CPU资源限制"><a href="#CPU资源限制" class="headerlink" title="CPU资源限制"></a>CPU资源限制</h3><p>如下图所示，我们可以为此虚拟机预留一定的CPU资源、限制CPU资源（虚拟机不会使用超过这个频率的CPU）、份额，以及常见的硬件虚拟化、性能计数器等。</p>
+<p><img src="/images/2019111607253924.png"></p>
+<p>份额这个概念比较特殊，详细解释如下：</p>
+<blockquote>
+<p>份额指定虚拟机（或资源池）的相对重要性。如果某个虚拟机的资源份额是另一个虚拟机的两倍，则在这两个虚拟机争用资源时，第一个虚拟机有权消耗两倍于第二个虚拟机的资源。</p>
+<p>份额通常指定为高、正常或低，这些值将分别按 4:2:1 的比例指定份额值。还可以选择自定义为各虚拟机分配特定的份额值（表示比例权重）。</p>
+</blockquote>
+<p>举个例子，</p>
+<blockquote>
+<p>一台聚合 CPU 容量为 8 GHz 的主机上运行着两个受 CPU 约束的虚拟机。它们的 CPU 份额设置为正常，因此各得 4GHz。</p>
+<p>现在打开了第三个受 CPU 约束的虚拟机的电源。它的 CPU 份额设置为高，这意味着它拥有的份额值应该是设置为正常的虚拟机的两倍。新的虚拟机获得 4GHz，其他两个虚拟机各自仅获得 2GHz。如果用户为第三个虚拟机指定的自定义份额值为 2000，也会出现相同的结果。</p>
+</blockquote>
+<h3 id="内存资源限制"><a href="#内存资源限制" class="headerlink" title="内存资源限制"></a>内存资源限制</h3><p>与CPU资源限制类似，内存也是可以进行限制的，道理类似</p>
+<p><img src="/images/2019111607254012.png"></p>
+<h3 id="硬盘资源限制"><a href="#硬盘资源限制" class="headerlink" title="硬盘资源限制"></a>硬盘资源限制</h3><p>同理，可以限制硬盘写入，所以知道怎么做<strong>石头盘</strong>了吧！</p>
+<p><img src="/images/2019111607254134.png"></p>
+<h3 id="添加其他设备"><a href="#添加其他设备" class="headerlink" title="添加其他设备"></a>添加其他设备</h3><p>前面提过，ESXi不支持无线网卡，但是我们可以把无线网卡直接分配给虚拟机，那么就要用到网卡直通。具体方法就是编辑虚拟机设置，添加其他设备-PCI设备&#x2F;USB设备</p>
+<p><img src="/images/2019111607254256.png"></p>
+<h3 id="虚拟机引导选项"><a href="#虚拟机引导选项" class="headerlink" title="虚拟机引导选项"></a>虚拟机引导选项</h3><p>和VMware Workstation的设置基本差不多，一看就懂</p>
+<p><img src="/images/2019111607254455.png"></p>
+<h2 id="ESXi-控制台连接"><a href="#ESXi-控制台连接" class="headerlink" title="ESXi 控制台连接"></a>ESXi 控制台连接</h2><p>我们可以直接通过网页端访问控制台端口，也可以通过下载VMware Remote Console，或是VMware Workstation访问。</p>
+<h2 id="数据存储管理"><a href="#数据存储管理" class="headerlink" title="数据存储管理"></a>数据存储管理</h2><p>要装虚拟机，自然就要用ISO镜像，那ISO镜像自然就要上传到ESXi中……具体就是使用数据存储功能。</p>
+<p>左侧导航栏直接点进去存储</p>
+<p><img src="/images/2019111607254569.png"></p>
+<h3 id="数据存储管理器"><a href="#数据存储管理器" class="headerlink" title="数据存储管理器"></a>数据存储管理器</h3><p>点击数据存储管理器，太简明易懂了……上传就是了。</p>
+<p><img src="/images/2019111607254683.png"></p>
+<h3 id="添加存储"><a href="#添加存储" class="headerlink" title="添加存储"></a>添加存储</h3><p>ESXi默认会识别接驳的硬盘等设备，但是我们也可以添加网络存储，比如NFS，点击新建数据存储，选择NFS</p>
+<p><img src="/images/201911160725471.png"></p>
+<p>相应的添加就好了</p>
+<h2 id="ESXi网络设置之物理网卡"><a href="#ESXi网络设置之物理网卡" class="headerlink" title="ESXi网络设置之物理网卡"></a>ESXi网络设置之物理网卡</h2><p>熟悉VMware Workstation可能知道，VMware Workstation的网络可以分为桥接、NAT、host only等，那么ESXi呢……对不起，ESXi天生桥接。</p>
+<p>在ESXi的网络设置中……</p>
+<p>物理网卡的概念很好理解，就是真实接线的网卡，ESXi本身是支持多网卡的，利用多网卡可以玩出很多花样，比如软路由……</p>
+<p><img src="/images/2019111607254984.png"></p>
+<h2 id="ESXi网络设置之虚拟交换机"><a href="#ESXi网络设置之虚拟交换机" class="headerlink" title="ESXi网络设置之虚拟交换机"></a>ESXi网络设置之虚拟交换机</h2><p>交换机这个概念，对于不是搞网络的人来说，可能很生疏。路由器、交换机、集线器这三者究竟有啥区别啊？这不是本文讨论的重点。</p>
+<p>ESXi中的虚拟机交换机的概念很简单，简单的说就是连到虚拟机的那个“设备”，由ESXi的内核提供，只有二层桥接的功能，不像真实的交换机，又能配ACL又能配这配那的。比如我们看下下面的这个图</p>
+<p><img src="/images/2019111607255041.png"></p>
+<p>这么多台虚拟机都“连接”到了这一虚拟交换机上，然后这个虚拟交换机用两条真实的网线连接到了我的路由器上。</p>
+<p>虚拟交换机有啥意义呢？比如我有两块物理网卡，一块是192.168.1.0&#x2F;24，另一块是192.168.2.0&#x2F;24，那么我们就可以通过添加两个vSwitch，然后不同的虚拟机就可以属于不同的网段啦。</p>
+<h3 id="添加vSwitch"><a href="#添加vSwitch" class="headerlink" title="添加vSwitch"></a>添加vSwitch</h3><p>虚拟交换机这东西，由于是内核虚拟的，自然也可以自己添加。方法也很简单，直接点击添加，起个名字，选择绑定到哪块物理网卡，确定就可以了。如下图所示</p>
+<p><img src="/images/2019111607255231.png"></p>
+<p>当然了需要注意的是，一块网卡一旦属于某个虚拟交换机，那它就不能属于其他的虚拟交换机了。</p>
+<h3 id="虚拟交换机、添加上行链路"><a href="#虚拟交换机、添加上行链路" class="headerlink" title="虚拟交换机、添加上行链路"></a>虚拟交换机、添加上行链路</h3><p>俗话说，狡兔三窟。一个虚拟交换机，如果增加网线作为备份线路，那也是有备无患的。</p>
+<p>所以编辑vSwitch，添加另外一条上行链路作为冗余。这样当你拔掉一条网线，虚拟机们还能无缝切换（真的是无缝，可能连TCP丢包都没有），一点不受影响。</p>
+<p>添加方法很简单，直接编辑，添加另一条物理链路就好了</p>
+<p>另外，假如你的ESXi不接网线，那么属于同一个vSwitch之间的虚拟机还是能通信的，而且是万兆网卡哦！只是流量不能往外走，要不怎么叫上行链路呢。</p>
+<h2 id="虚拟交换机-网卡绑定"><a href="#虚拟交换机-网卡绑定" class="headerlink" title="虚拟交换机 网卡绑定"></a>虚拟交换机 网卡绑定</h2><p>所谓网卡绑定，就是当你为一个虚拟交换机添加多条上行链路的时候，想让ESXi怎么调度啊？类似链路聚合，你是想round-robin，还是active backup，还是load balance呢？网卡绑定就是干这个事情的。</p>
+<p><img src="/images/2019111607255418.png"></p>
+<p>ESXi的这四种模式，对应的意义如下：</p>
+<ul>
+<li>基于源端口 ID 的路由（默认）：则根据流量进入虚拟交换机的虚拟端口选择上行链接。</li>
+</ul>
+<p>基于 IP 哈希的路由：根据每个数据包的源和目标 IP 地址的 Hash 选择上行链接。对于非 IP 数据包，会使用位于这些偏移上的任何内容计算 Hash。</p>
+<ul>
+<li>基于源 MAC 哈希的路由：根据源以太网的 Hash 选择上行链接。</li>
+<li>使用明确故障切换顺序：始终使用“活动适配器”列表中位于最前列的符合故障切换检测标准的上行链路。（本图就是vmnic0）</li>
+</ul>
+<h3 id="虚拟交换机-流量调整"><a href="#虚拟交换机-流量调整" class="headerlink" title="虚拟交换机 流量调整"></a>虚拟交换机 流量调整</h3><p>买VPS的时候……你这个口不是独享的！好吧，ESXi也能针对虚拟交换机进行流量限制，如下图所示</p>
+<p><img src="/images/2019111607255593.png"></p>
+<h2 id="ESXi-网络设置-端口组"><a href="#ESXi-网络设置-端口组" class="headerlink" title="ESXi 网络设置 端口组"></a>ESXi 网络设置 端口组</h2><p>实际上呢，虚拟机并不是直接连到vSwitch的。虚拟机上直接连接到端口组上的。不同的虚拟机可以属于不同的端口组。</p>
+<p>端口组与虚拟机网络设置</p>
+<p><img src="/images/201911160725566.png"></p>
+<p>添加端口组</p>
+<p><img src="/images/2019111607255657.png"></p>
+<h2 id="ESXi-VMkernel网卡"><a href="#ESXi-VMkernel网卡" class="headerlink" title="ESXi VMkernel网卡"></a>ESXi VMkernel网卡</h2><p>ESXi本身是通过网络管理的，那么自然也要有一个对应的“网卡”，这里就是vmk网卡。可以把它理解成一个特殊的端口组，主要就是提供管理相关的访问。</p>
+<p><img src="/images/2019111607255838.png"></p>
+<p>有的时候，我们可能希望，所有虚拟机使用某一段的IP，但是管理使用另一段IP，这里就可以通过添加VMKernel网卡做到。</p>
+<p><img src="/images/2019111607255920.png"></p>
+<p>比如我们希望ESXi的管理IP能够有多个，做个备份，那么添加vmkernel也能做到</p>
+<p>添加之后的结果</p>
+<p><img src="/images/2019111607260117.png"></p>
+<p>此时Vmkernel的拓扑</p>
+<p><img src="/images/2019111607260113.png"></p>
+<h2 id="我的ESXi玩法"><a href="#我的ESXi玩法" class="headerlink" title="我的ESXi玩法"></a>我的ESXi玩法</h2><ul>
+<li>kali，还有一个XP，用途你懂的；</li>
+<li>Windows 7，用于下载电影电视剧什么的；</li>
+<li>Ubuntu Desktop，装了点GUI应用，开了samba服务，默认启动到multi-user。上面的Windows 7下载的文件直接存到了这里，然后电视iPad等直接就能看了；</li>
+<li>csr1000v，模拟Cisco IOS网络设备，其实并无卵用，放着吃灰的。</li>
+<li>TimeMachine，从Cloud Image导入的，用于macOS的时间机器备份，做了LVM，啥都不怕。</li>
+<li>Ubuntu Minimal，从Cloud Image导入的，我也不知道干啥的</li>
+<li>Tiny Core，不知道干啥的，玩的吧。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ESXi真是太强大了，开虚拟机随便玩，部分硬件可以直通到虚拟机中；甚至可以给ESXi主机开ssh，然后可以执行一些ssh命令，甚至可以运行Python，吼。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/11/16/esxi-tutorial/index/" data-id="clhp7rths005vs2qrc9339pvl" data-title="ESXi入门指南" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-first-mbp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2019/11/08/first-mbp/index/" class="article-date">
@@ -1020,83 +1224,6 @@
 
 
   
-    <article id="post-git-pi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2019/04/27/git-pi/index/" class="article-date">
-  <time class="dt-published" datetime="2019-04-27T00:00:00.000Z" itemprop="datePublished">2019-04-27</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2019/04/27/git-pi/index/">在树莓派上搭建一个git服务器</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>树莓派虽说小，但是性能……也差啊！</p>
-<p>开源的git实现有很多，gitlab community算是一种，但是对硬件要求有点高，这里我使用了<a target="_blank" rel="noopener" href="https://nova.moe/">nova</a>推荐的<a target="_blank" rel="noopener" href="https://gogs.io/">g</a><a target="_blank" rel="noopener" href="https://gogs.io/">ogs</a>，gogs是用golang写的，足够轻量级，足够让我瞎玩……</p>
-<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p>一只不可以吃的树莓派</p>
-<p>数据库：MySQL&gt;&#x3D;5.7，PosgreSQL、MSSQL、TiDB</p>
-<p>由于我选择了MySQL，而Raspbian的源里似乎只有5.5的，所以只能自己编译一个5.7的啦……耗时N小时……当然啦有预编译好的deb，当然啦非得用5.5也是没关系的！</p>
-<h2 id="下载配置gogs"><a href="#下载配置gogs" class="headerlink" title="下载配置gogs"></a>下载配置gogs</h2><p># 创建一个git用户，专门用于运行该服务<br>useradd git -s &#x2F;bin&#x2F;bash -m -d &#x2F;home&#x2F;GitServer</p>
-<h1 id="为了方便管理，切换到该目录"><a href="#为了方便管理，切换到该目录" class="headerlink" title="为了方便管理，切换到该目录"></a>为了方便管理，切换到该目录</h1><p>cd &#x2F;home&#x2F;GitServer</p>
-<h1 id="切换到该用户"><a href="#切换到该用户" class="headerlink" title="切换到该用户"></a>切换到该用户</h1><p>su git</p>
-<h1 id="下载二进制并解压缩"><a href="#下载二进制并解压缩" class="headerlink" title="下载二进制并解压缩"></a>下载二进制并解压缩</h1><p>wget –c <a target="_blank" rel="noopener" href="https://dl.gogs.io/0.11.86/gogs/_0.11.86/_raspi2/_armv6.zip">https://dl.gogs.io/0.11.86/gogs\_0.11.86\_raspi2\_armv6.zip</a><br>unzip gogs_0.11.86_raspi2_armv6.zip<br>cd gogs</p>
-<h1 id="运行服务"><a href="#运行服务" class="headerlink" title="运行服务"></a>运行服务</h1><p>.&#x2F;gogs web</p>
-<p>打开浏览器，http:&#x2F;&#x2F;树莓派IP:3000，会进入如下页面</p>
-<p><img src="/images/2019042713050674.png"></p>
-<p>此时如果你使用的是MySQL5.7以下版本，创建一个字符集是utf-8的数据库</p>
-<p>CREATE DATABASE gogs DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci</p>
-<p>5.7及以上直接创建就好了</p>
-<p>其中域名和应用url两项需要填写你的域名（或者是树莓派IP）</p>
-<p><img src="/images/2019042713050763.png"></p>
-<p>之后第一个注册的用户会是管理员用户。管你是screen还是nohup还是supervisor的。</p>
-<h2 id="监听本机"><a href="#监听本机" class="headerlink" title="监听本机"></a>监听本机</h2><p>vim &#x2F;home&#x2F;GitServer&#x2F;gogs&#x2F;custom&#x2F;conf&#x2F;app.ini</p>
-<p>在<code>HTTP_PORT</code>下添加一行</p>
-<p>HTTP_ADDR&#x3D;127.0.0.1</p>
-<h2 id="Nginx-反代配置"><a href="#Nginx-反代配置" class="headerlink" title="Nginx 反代配置"></a>Nginx 反代配置</h2><p>对应的server段添加如下信息就可以了</p>
-<p>location &#x2F; {<br>proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3000/">http://127.0.0.1:3000</a>; # 对应服务<br>}</p>
-<p>完整配置文件<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/blob/master/TLS/gitconfig.nginx">戳这里</a></p>
-<h2 id="systemd配置"><a href="#systemd配置" class="headerlink" title="systemd配置"></a>systemd配置</h2><p>接上，我们需要更改git用户的shell</p>
-<p>usermod git -s &#x2F;usr&#x2F;sbin&#x2F;nologin</p>
-<p>之后交给systemd启动就好了</p>
-<p>[Unit]<br>Description&#x3D;Benny’s Personal Git Server<br>After&#x3D;syslog.target<br>After&#x3D;network.target</p>
-<p>[Service]<br>Type&#x3D;simple<br>User&#x3D;git<br>Group&#x3D;git<br>WorkingDirectory&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs<br>ExecStart&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer&#x2F;gogs&#x2F;gogs web<br>Restart&#x3D;on-failure<br>Environment&#x3D;USER&#x3D;git HOME&#x3D;&#x2F;home&#x2F;benny&#x2F;GitServer</p>
-<p>ProtectSystem&#x3D;full<br>PrivateDevices&#x3D;yes<br>PrivateTmp&#x3D;yes<br>NoNewPrivileges&#x3D;true</p>
-<p>[Install]<br>WantedBy&#x3D;multi-user.target</p>
-<p><img src="/images/2019042713050811.png"></p>
-<p>Yeah~~</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service">https://github.com/gogs/gogs/blob/master/scripts/systemd/gogs.service</a></p>
-<p><a target="_blank" rel="noopener" href="https://gogs.io/docs/intro/faqs">https://gogs.io/docs/intro/faqs</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2019/04/27/git-pi/index/" data-id="clhp7rtgd0034s2qr02dgahza" data-title="在树莓派上搭建一个git服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1154,6 +1281,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1167,10 +1298,6 @@
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

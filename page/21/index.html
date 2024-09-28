@@ -73,6 +73,119 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-super-cheap-3-5-three-years-united-states-vps-science-internet-special/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/" class="article-date">
+  <time class="dt-published" datetime="2016-01-20T00:00:00.000Z" itemprop="datePublished">2016-01-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/gfw/">gfw</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/">3.5美元三年的超便宜美国VPS，科学上网专用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天在Google+上发现了有人分享了Sentris Network LLC超便宜的VPS，于是小小的折腾一下，就又剁手了下（如果3.5美元也算剁手的话）</p>
+<p>3.5刀三年付，折合每年约人民币7.5元</p>
+<p>配置：OpenVZ&#x2F;1vCPU&#x2F;64M内存 (16M SWAP) &#x2F;1G硬盘&#x2F; 250G&#x2F;月&#x2F;1 IPv4</p>
+<p>这配置基本上也就是搭建个shadowsocks，剩下估计啥也干不了。</p>
+<p>关于shadowsocks的使用方法，看这篇博文<a target="_blank" rel="noopener" href="https://dmesg.app/shadowsocks-displays-set-up-and-use-a-simple-tutorial.html">https://dmesg.app/shadowsocks-displays-set-up-and-use-a-simple-tutorial.html</a></p>
+<p>这是我搭建好ss之后的速度，感觉还可以的，我挺满足的。</p>
+<p><img src="/images/012016_1134_35VP1.png"></p>
+<p>购买地址：支持PayPal、信用卡、比特币支付，不能退款。</p>
+<p><a target="_blank" rel="noopener" href="https://www.sentris.net/billing/cart.php?a=confproduct&i=0">https://www.sentris.net/billing/cart.php?a=confproduct&i=0</a></p>
+<p>如果不是超低价的，请点击这个 <strong><a target="_blank" rel="noopener" href="http://t.cn/RbHpSj7">http://t.cn/RbHpSj7</a></strong></p>
+<p>注意：默认流量为500G每月，请手动改为<strong>250G每月</strong>才能享受最低价格，选择三年期可以用5折优惠券<strong>ISCVJZ0365</strong></p>
+<p>超低价主机商说不定要超售多少，也说不定啥时候就跑路了，建议谨慎购买。不过也就是3.5美元，23元谁心疼呢是不是，万一主机商良心了开了好几年呢。</p>
+<p>测试IP：63.216.14.61</p>
+<p>附：</p>
+<p>Top（本人心狠手辣卸载了httpd，sendmail等等，命令为yum remove httpd）</p>
+<p><img src="/images/012016_1134_35VP2.png"></p>
+<p>服务器网速测试，还不错哎！</p>
+<p><img src="/images/012016_1134_35VP3.png"></p>
+<p>内存这么小，就老老实实的安装32位的操作系统吧，我选择的是CentOS 6 x86</p>
+<p>Libev版本的shadowsocks比较省内存，如果只是自己用的话，那么用这个就可以了；否则可以考虑用Go或者Python版的。</p>
+<hr>
+<h2 id="三个版本的重启、停止等命令："><a href="#三个版本的重启、停止等命令：" class="headerlink" title="三个版本的重启、停止等命令："></a>三个版本的重启、停止等命令：</h2><p>启动：</p>
+<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks start</p>
+<p>停止：</p>
+<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks stop</p>
+<p>重启：</p>
+<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks restart</p>
+<p>查看状态：</p>
+<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks status</p>
+<h2 id="Shadowsocks-libev一键安装脚本（CentOS-6-x2F-7不支持多用户）"><a href="#Shadowsocks-libev一键安装脚本（CentOS-6-x2F-7不支持多用户）" class="headerlink" title="Shadowsocks-libev一键安装脚本（CentOS 6&#x2F;7不支持多用户）"></a>Shadowsocks-libev一键安装脚本（CentOS 6&#x2F;7不支持多用户）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks-libev.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks-libev.sh</a><br>chmod +x shadowsocks-libev.sh<br>.&#x2F;shadowsocks-libev.sh 2&gt;&amp;1 | tee shadowsocks-libev.log</p>
+<p>配置文件路径：</p>
+<p> <strong>&#x2F;etc&#x2F;shadowsocks-libev&#x2F;config.json</strong></p>
+<hr>
+<p> </p>
+<h2 id="Python版本（支持多用户CentOS-6-x2F-7，Debian，Ubuntu）"><a href="#Python版本（支持多用户CentOS-6-x2F-7，Debian，Ubuntu）" class="headerlink" title="Python版本（支持多用户CentOS 6&#x2F;7，Debian，Ubuntu）"></a>Python版本（支持多用户CentOS 6&#x2F;7，Debian，Ubuntu）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks.sh</a><br>chmod +x shadowsocks.sh<br>.&#x2F;shadowsocks.sh 2&gt;&amp;1 | tee shadowsocks.log</p>
+<p>多用户多端口配置文件 Sample</p>
+<p>配置文件路径：</p>
+<p><strong>&#x2F;etc&#x2F;shadowsocks.json</strong></p>
+<p>{</p>
+<p>“server”:”0.0.0.0”,</p>
+<p>“local_address”:”127.0.0.1”,</p>
+<p>“local_port”:1080,</p>
+<p>“port_password”:{</p>
+<p>“8989”:”password0”,</p>
+<p>“9001”:”password1”,</p>
+<p>“9002”:”password2”,</p>
+<p>“9003”:”password3”,</p>
+<p>“9004”:”password4”</p>
+<p>},</p>
+<p>“timeout”:300,</p>
+<p>“method”:”aes-256-cfb”,</p>
+<p>“fast_open”: false</p>
+<p>}</p>
+<p> </p>
+<hr>
+<h2 id="Go版（支持多用户，CentOS-6-x2F-7，Debian，Ubuntu）"><a href="#Go版（支持多用户，CentOS-6-x2F-7，Debian，Ubuntu）" class="headerlink" title="Go版（支持多用户，CentOS 6&#x2F;7，Debian，Ubuntu）"></a>Go版（支持多用户，CentOS 6&#x2F;7，Debian，Ubuntu）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks-go.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks-go.sh</a><br>chmod +x shadowsocks-go.sh<br>.&#x2F;shadowsocks-go.sh 2&gt;&amp;1 | tee shadowsocks-go.log</p>
+<p> </p>
+<p>多用户多端口配置文件 sample</p>
+<p>配置文件路径：</p>
+<p><strong>&#x2F;etc&#x2F;shadowsocks&#x2F;config.json</strong></p>
+<p>{</p>
+<p>“port_password”:{</p>
+<p>“8989”:”password0”,</p>
+<p>“9001”:”password1”,</p>
+<p>“9002”:”password2”,</p>
+<p>“9003”:”password3”,</p>
+<p>“9004”:”password4”</p>
+<p>},</p>
+<p>“method”:”aes-256-cfb”,</p>
+<p>“timeout”:600</p>
+<p>}</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/" data-id="clhp7rtki0098s2qr884yh28m" data-title="3.5美元三年的超便宜美国VPS，科学上网专用" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-bluray-bdmv/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/01/19/bluray-bdmv/index/" class="article-date">
@@ -733,98 +846,6 @@
 
 
   
-    <article id="post-mxplayer-dts-ac3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2015/12/24/mxplayer-dts-ac3/index/" class="article-date">
-  <time class="dt-published" datetime="2015-12-24T00:00:00.000Z" itemprop="datePublished">2015-12-24</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2015/12/24/mxplayer-dts-ac3/index/">[2017年1月15日更新]MXPlayer最新版、包含解码包，支持DTS/AC3</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_notice]2017年1月15日</p>
-<p>今日博主异常勤劳，就把这些都更新了，但是不保证以后会更新啊。所以，建议大家去官网下载，然后去xda论坛下载自定义解码包吧~[&#x2F;v_notice]</p>
-<p> </p>
-<p><a target="_blank" rel="noopener" href="http://dmesg.app/wp-content/uploads/2015/12/2015122411143999.jpg"><img src="/images/2015122411143999.jpg" alt="20130822032058485"></a></p>
-<p> </p>
-<p>MX player有多强大我就不说了，复制粘贴某百科的内容：</p>
-<p>MX视频播放器MX Video Player是近段时间出现的一款最优秀的媒体播放器软件，它能够播放几乎每一个影片档案，并且具备多核心的译码能力来处理你的影片档案和字幕。多核译码功能，MX Video Player是Android平台上的第一款能够支持多核译码功能额的媒体播放器软件，根据在双核Android装置上的测试结果表明，它能够取得比单核译码播放器高达70%的效能。处理器优化，这款播放器针对主要的处理器做了深度的优化，包括ARMR NEON和NVIDIAR Tegra 2的编码译码器和渲染引擎。字幕滑动功能，当您滑动字幕文字，影片播放的位置也随之发生变化的文字显示的位置；清除文字功能；影片回放功能；手势功能；其他多达上百项的功能。</p>
-<p> </p>
-<p>最重要的事情是，MX Player是免费的，Pro收费，和免费版唯一的区别是，Pro版本在暂停的时候没有广告（其实关掉网络，免费版也没了广告）。</p>
-<p>因为版权问题，MX移除了对DTS、AC3的支持，但其实MX是支持H264+DTS&#x2F;AC3的，只不过要使用第三方解码器。</p>
-<p>本文的食用方法是：下载主程序、下载第三方解码包（推荐）</p>
-<hr>
-<p> </p>
-<p>MX Player主页（需翻墙）：<a target="_blank" rel="noopener" href="https://sites.google.com/site/mxvpen/download">https://sites.google.com/site/mxvpen/download</a></p>
-<p>自定义解码包：<a target="_blank" rel="noopener" href="http://forum.xda-developers.com/apps/mx-player/mx-player-custom-codec-dts-support-t2156254">http://forum.xda-developers.com/apps/mx-player/mx-player-custom-codec-dts-support-t2156254</a></p>
-<hr>
-<p>我就来当一个勤劳的搬运工：以下均为普通而不是Pro版本、并且仅支持Android 4.0以上</p>
-<p>两个版本根据CPU不同自行选择（我的骁龙801是选择了NEON）。</p>
-<p>更多信息请参考<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/ARM%E8%99%95%E7%90%86%E5%99%A8%E5%85%A7%E6%A0%B8%E5%88%97%E8%A1%A8">维基百科</a></p>
-<p> </p>
-<h2 id="一．MX-Player-1-8-15"><a href="#一．MX-Player-1-8-15" class="headerlink" title="一．MX Player 1.8.15"></a><strong>一．MX Player 1.8.15</strong></h2><h3 id="1-主程序"><a href="#1-主程序" class="headerlink" title="1.主程序"></a>1.主程序</h3><p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer/_no/_x86/_1.8.15.apk?t=1484476482036%27%5C%5DMX">http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer\_no\_x86\_1.8.15.apk?t=1484476482036&#39;\]MX</a> Player 1.8.15下载地址[&#x2F;dl]</p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer/_neon/_1.8.15.apk?t=1484476477878%27%5C%5DMX">http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer\_neon\_1.8.15.apk?t=1484476477878&#39;\]MX</a> Player 1.8.15 (NEON)下载地址[&#x2F;dl]</p>
-<p> </p>
-<h3 id="2-第三方解码包："><a href="#2-第三方解码包：" class="headerlink" title="2.第三方解码包："></a>2.第三方解码包：</h3><p>这也就是真正支持DTS&#x2F;AC3的原因！</p>
-<p>博主很懒，直接给出All in One的啦。</p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/aio.1.7.32.rev1.zip?t=1484476082961%27%5C%5D1.7.32rev1%5C%5B/dl%5C%5D">http://bennydownload.file.alimmdn.com/MXPlayer/aio.1.7.32.rev1.zip?t=1484476082961&#39;\]1.7.32rev1\[/dl\]</a></p>
-<p> </p>
-<h2 id="二．MX-Player-1-8-6"><a href="#二．MX-Player-1-8-6" class="headerlink" title="二．MX Player 1.8.6"></a><strong>二．MX Player 1.8.6</strong></h2><h3 id="1-主程序-1"><a href="#1-主程序-1" class="headerlink" title="1.主程序"></a>1.主程序</h3><p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer/_no/_x86/_1.8.6.apk?t=1484477050098%27%5C%5DMX">http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer\_no\_x86\_1.8.6.apk?t=1484477050098&#39;\]MX</a> Player 1.8.6下载地址[&#x2F;dl]</p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer/_neon/_1.8.6.apk?t=1484477050668%27%5C%5DMX">http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayer\_neon\_1.8.6.apk?t=1484477050668&#39;\]MX</a> Player 1.8.6 (NEON)下载地址[&#x2F;dl]</p>
-<p> </p>
-<h3 id="2-第三方解码包：-1"><a href="#2-第三方解码包：-1" class="headerlink" title="2.第三方解码包："></a>2.第三方解码包：</h3><p> </p>
-<p>博主很懒，直接给出All in One的啦。</p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/AIO/_1.8.6.zip?t=1484475491152%27%5C%5Dv1.8.6%5C%5B/dl%5C%5D">http://bennydownload.file.alimmdn.com/MXPlayer/AIO\_1.8.6.zip?t=1484475491152&#39;\]v1.8.6\[/dl\]</a></p>
-<h2 id="三-注意事项"><a href="#三-注意事项" class="headerlink" title="三.注意事项"></a>三.注意事项</h2><p>1.MXPlayer的1.7.40的解码包无法用于MXPlayer1.8.0，MX1.8.0的解码包或许可以用于1.7.40，但是<strong>强烈建议对应版本使用</strong>。</p>
-<p>而且，<strong>不要更改</strong>解码文件的名字，否则会导致播放器无法识别、加载！</p>
-<p>2.XDA论坛上的自定义解码包作者已经停止更新解码包。</p>
-<p>3.可以自行编译解码包（需要Linux发行版）</p>
-<p>4.我这里还有个1.7.40的解码包，留着吧。</p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/AIO1.7.40.zip?t=1484476101746%27%5C%5D1.7.40%5C%5B/dl%5C%5D">http://bennydownload.file.alimmdn.com/MXPlayer/AIO1.7.40.zip?t=1484476101746&#39;\]1.7.40\[/dl\]</a></p>
-<p>5.全部文件合集，比较大，有需要的就下载吧！</p>
-<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayerAIO.7z?t=1484477471630%27%5C%5D%E5%90%88%E9%9B%86%E4%B8%8B%E8%BD%BD%5C%5B/dl%5C%5D">http://bennydownload.file.alimmdn.com/MXPlayer/MXPlayerAIO.7z?t=1484477471630&#39;\]合集下载\[/dl\]</a></p>
-<hr>
-<p><strong>使用第三方解码包方法：</strong></p>
-<ol>
-<li><p>将解码包放到存储设备的根目录，打开MX即有询问是否使用。</p>
-</li>
-<li><p>菜单-设置-解码器-自定义解码器，选择到你的解码器位置即可。</p>
-</li>
-</ol>
-<p><img src="/images/122415_1111_MXPlayer4.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2015/12/24/mxplayer-dts-ac3/index/" data-id="clhp7rthk0052s2qrhhgt8mfb" data-title="[2017年1月15日更新]MXPlayer最新版、包含解码包，支持DTS/AC3" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -882,6 +903,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -895,10 +920,6 @@
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

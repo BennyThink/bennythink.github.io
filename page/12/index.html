@@ -73,6 +73,102 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-padavan-vypr/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/02/23/padavan-vypr/index/" class="article-date">
+  <time class="dt-published" datetime="2018-02-23T00:00:00.000Z" itemprop="datePublished">2018-02-23</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/gfw/">gfw</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/02/23/padavan-vypr/index/">在路由器（padavan）上使用VPN客户端</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="为什么"><a href="#为什么" class="headerlink" title="为什么"></a>为什么</h2><p>好好的，为什么要在路由器上挂VPN呢？</p>
+<ul>
+<li>我有一个<a target="_blank" rel="noopener" href="https://dmesg.app/y1s.html">刷了padavan的联想y1s</a></li>
+<li>我买了个Xbox，想玩外服游戏ε&#x3D;(´ο｀*)）)唉以及加速下载数字版游戏</li>
+<li>有点闲的没事干</li>
+</ul>
+<h2 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h2><p>咱需要点啥呢……</p>
+<ul>
+<li>需要一个刷了padavan的路由器（或者是支持OpenVPN客户端的路由器）</li>
+<li>需要<a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html/3">一个VyprVPN账号</a>，或者是其他能用的OpenVPN（比如说我搭建在腾讯云的也算呗）</li>
+<li>还需要一台电脑（这不废话嘛）</li>
+</ul>
+<h2 id="一些背景知识"><a href="#一些背景知识" class="headerlink" title="一些背景知识"></a>一些背景知识</h2><p>首先，<a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html/3">VyprVPN</a>支持OpenVPN、L2TP&#x2F;IPSec、PPTP以及自创的Chameleon协议，<strong>Chameleon穿透GFW的效果还是比较理想的</strong>。</p>
+<p>既然是标准的VPN协议，那我们就拿OpenVPN做例子试试在路由器上部署啦。</p>
+<h3 id="Router-App"><a href="#Router-App" class="headerlink" title="Router App"></a>Router App</h3><p>非常不幸的是，VyprVPN Router App仅支持Tomato by Shibby这一个衍生固件，所以还是不要尝试了吧，port会很累的。</p>
+<h2 id="Padavan的VPN客户端设置"><a href="#Padavan的VPN客户端设置" class="headerlink" title="Padavan的VPN客户端设置"></a>Padavan的VPN客户端设置</h2><p><img src="/images/2018022308363418.png"></p>
+<p>我们需要配置如下信息：</p>
+<ul>
+<li>VPN协议</li>
+<li>远程VPN服务器</li>
+<li>通信端口</li>
+<li>通信协议</li>
+<li>封装层</li>
+<li>认证类型与用户名密码</li>
+<li>认证算法</li>
+<li>加密算法</li>
+<li>HMAc签名检查</li>
+<li>公钥</li>
+</ul>
+<p>一个完整的ovpn配置文件恰巧会包含一部分如上信息，通过下载opvn文件并打开，我们可以发现如下对应关系：</p>
+<p><img src="/images/2018022308363860.jpeg"></p>
+<h3 id="添加基本信息"><a href="#添加基本信息" class="headerlink" title="添加基本信息"></a>添加基本信息</h3><p>所以在padavan中我们如下图和opvn配置文件中的信息设置就好了：</p>
+<p><img src="/images/2018022308364623.jpeg"></p>
+<h2 id="扩展配置"><a href="#扩展配置" class="headerlink" title="扩展配置"></a>扩展配置</h2><p>OpenVPN扩展配置需要添加如下内容：</p>
+<p>resolv-retry infinite<br>keepalive 10 60<br>nobind<br>persist-key<br>persist-tun<br>persist-remote-ip<br>verify-x509-name 服务器域名 name<br>verb 3<br>auth SHA256<br>tls-cipher TLS-DHE-RSA-WITH-AES-256-CBC-SHA</p>
+<h3 id="添加公钥"><a href="#添加公钥" class="headerlink" title="添加公钥"></a>添加公钥</h3><p>切换到选项卡“OpenVPN证书和密钥”，将opvn配置文件中的公钥贴进去，如下：</p>
+<p><img src="/images/2018022308364958.png"></p>
+<h3 id="其他选项"><a href="#其他选项" class="headerlink" title="其他选项"></a>其他选项</h3><ul>
+<li>VPN 国内外自动分流：顾名思义，自动分流</li>
+<li>通过 VPN 接口转发所有流量：顾名思义，如果选择是，那么所有流量都会通过VPN</li>
+</ul>
+<h3 id="保存设置"><a href="#保存设置" class="headerlink" title="保存设置"></a>保存设置</h3><p>如果没有问题的话，刷新路由器控制页面就会看到已经连接成功了，打开ipip.net也会看到IP变成了服务器IP</p>
+<h2 id="测速"><a href="#测速" class="headerlink" title="测速"></a>测速</h2><p>需要注意的是，路由器可能会存在CPU性能瓶颈，所以可能会有一些影响。不过能够开国内外分流是<strong>一大优点，这样就不用走全局啦</strong>。 <img src="/images/201802230836549.png"></p>
+<h2 id="感想"><a href="#感想" class="headerlink" title="感想"></a>感想</h2><ul>
+<li>速度还是挺快的，于是我就这么水了一贴……？</li>
+<li>如果某些网游加速器（比如说网易UU）也是通过建立VPN连接的话，那么我可以抓包，获取到对应的认证信息，然后放到路由器上给Xbox加速用……（然而失败惹</li>
+<li>我感觉好像回到了<a target="_blank" rel="noopener" href="https://dmesg.app/internship.html">X公司的N号楼</a>，出口就是香港</li>
+</ul>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>请严格根据你的opvn文件来进行配置，比如有的opvn会有两个证书，那么就两个都贴进去；有的会要求HMAC TLS-Auth，也要乖乖贴进去哦。</p>
+<p>另外SoftEther VPN搭建的Open VPN，只要贴第一个CA就好了。默认配置文件再&#x2F;etc&#x2F;openvpn下</p>
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><h3 id="VPN总是自动断开"><a href="#VPN总是自动断开" class="headerlink" title="VPN总是自动断开"></a>VPN总是自动断开</h3><p>感谢<a target="_blank" rel="noopener" href="https://dmesg.app/padavan-vypr.html/comment-page-1#comment-4337">评论区chq123的测试</a>，<strong>终于研究出来了，把 启用 LZO 数据压缩 这个选 否 ，就不会自动重启了。。。哇感动啊，弄了这么久终于弄出来了</strong></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://support.goldenfrog.com/hc/en-us/articles/222083028-VyprVPN-OpenVPN-Setup-for-AsusWRT">VyprVPN OpenVPN Setup for AsusWRT</a></p>
+<p><a target="_blank" rel="noopener" href="https://support.goldenfrog.com/hc/en-us/articles/204088603-VyprVPN-OpenVPN-Setup-for-Tomato">VyprVPN OpenVPN Setup for Tomato</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html/3">VyprVPN详细信息</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/02/23/padavan-vypr/index/" data-id="clhp7rti0006hs2qr22877noc" data-title="在路由器（padavan）上使用VPN客户端" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-yyets/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/02/10/yyets/index/" class="article-date">
@@ -1174,147 +1270,6 @@ return e
 
 
   
-    <article id="post-tgbot0/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/10/20/tgbot0/index/" class="article-date">
-  <time class="dt-published" datetime="2017-10-20T00:00:00.000Z" itemprop="datePublished">2017-10-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/10/20/tgbot0/index/">[Telegram bot系列]0：用Python写一个Telegram Bot 简单的回话bot</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[collapse title&#x3D;””]</p>
-<p>[&#x2F;collapse]（我知道我还有一个<a target="_blank" rel="noopener" href="https://dmesg.app/ssh-1.html">SSH系列</a>的坑没填完，别催，越催越不填，再催熄火）</p>
-<p>终于，又轮到了小土豆我开新系列的日子啦，这也可能是我的为数不多的讲编程的文章。这一系列中我们将详细说说怎么用Python写一个能玩的Telegram bot，顺便学习一下Python中的一些知识点。</p>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>假定读者们都知道Telegram是什么，会翻墙并且掌握一定的Python基础。在本系列中我使用Python 2.7和PyCharm，如果要是用Python 3的话最好用Python 3.6</p>
-<p>本系列可能会有部分内容翻译自Telegram官方网站，可是官网对于API的说明<strong>非常简明易懂</strong>，而且有的地方还很幽默。<strong>如果英语水平连这都看不懂、理解苦难的话，那说句实在话（不是打击大家），<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">还是尽早转行吧</a>。</strong></p>
-<p>所以有的时候我也很纠结，我写这一系列干嘛啊，吃饱了没事干么？</p>
-<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><p>未完待定</p>
-<h2 id="什么是bot（机器人）"><a href="#什么是bot（机器人）" class="headerlink" title="什么是bot（机器人）"></a>什么是bot（机器人）</h2><p>机器人是一种特殊的不额外需要手机号码的账号。用户可以通过给机器人发消息来进行交互。哎呀反正你们都知道啦。</p>
-<p>机器人和普通用户有何不同呢？</p>
-<p>机器人没有在线状态、没有上次在线时间；</p>
-<p>机器人的存储空间是有限的；</p>
-<p>机器人不能主动和用户开启会话，换句话说，要用户先跟它说（或者是添加到群里），他才能回消息；</p>
-<p>机器人的用户名结尾永远是bot；</p>
-<p>把机器人加到群里的时候，默认情况下（开启隐私模式），机器人是不会收到所有的消息的；</p>
-<p>机器人不吃不喝，不睡觉也不抱怨（除非编码太垃圾分分钟抛异常?）。</p>
-<h2 id="如何创建一个机器人"><a href="#如何创建一个机器人" class="headerlink" title="如何创建一个机器人"></a>如何创建一个机器人</h2><p>很简单，跟<a target="_blank" rel="noopener" href="https://telegram.me/botfather">BotFather</a>说话，他会指引你创建一个机器人。真的是太简单了，大家去<a target="_blank" rel="noopener" href="https://core.telegram.org/bots">官网自己看</a>吧。</p>
-<p>在此系列中，我创建一个名为@benny_demo_bot的机器人，TOKEN为XXX我当然不会告诉你啦。</p>
-<p>并且，我使用<code>Edit commands</code>添加了如下命令（start、help、settings是全局命令）：</p>
-<blockquote>
-<p>start - 自我介绍</p>
-<p>help - 帮助</p>
-<p>talk - 聊天</p>
-</blockquote>
-<p><img src="/images/102017_1429_Telegrambot1.png"></p>
-<h2 id="搭建开发环境"><a href="#搭建开发环境" class="headerlink" title="搭建开发环境"></a>搭建开发环境</h2><p>众所周知的是，Python可以使用pip来安装一些非常好用的第三方库。这里我们使用了<a target="_blank" rel="noopener" href="https://github.com/eternnoir/pyTelegramBotAPI">pyTelegramBotAPI</a>来和Telegram API进行交互。实际上你想用curl也没人拦着你。</p>
-<p>为啥不用另一个star更多的库？我嫌弃那个库麻烦不好用。</p>
-<h3 id="准备virtual-environment与pyTelegramBotAPI"><a href="#准备virtual-environment与pyTelegramBotAPI" class="headerlink" title="准备virtual environment与pyTelegramBotAPI"></a>准备virtual environment与pyTelegramBotAPI</h3><p>Virtual environment就是一个虚拟出来的纯净的、不包含第三方库的Python环境（想包含本地已安装的，也不是不行）。</p>
-<p>为什么要使用virtual environment呢？唔是这样的，pip默认会把库安装到系统里对应的site-packages里，这样无论你在哪打开Python，都是可以用这个库的。这样听起来好像挺好，但实际上还是有一些弊端的。比如说，在一些项目中，我们最后需要整理出来一个这个项目使用了哪些第三方库，然后指引用户去安装这些库。一个两个还好，多了的话，恐怕开发者也容易找不全、漏掉一些库吧。再加上一些库的依赖、版本等问题，所以如果有必要，那么一定要使用virtual Environment的。</p>
-<p>所以我们先创建virtual environment吧。有好几种方式，这里我们就说两种：命令行方式和IDE方式</p>
-<h4 id="命令行方式"><a href="#命令行方式" class="headerlink" title="命令行方式"></a>命令行方式</h4><p>首先我们需要安装virtual environment，用<code>pip</code>就可以了，网上教程很多，这里我就简述一下。</p>
-<p>pip install virtualenv</p>
-<p>如果你使用某些Linux发行版，可能会提示<code>pip: command not found</code>，如果是Debian系的话，那么运行：</p>
-<p>sudo apt install python-pip</p>
-<p>之后我们创建一个目录，使之成为工程目录：</p>
-<p>mkdir bot_demo<br>cd bot_demo<br>#创建virtualenv<br>virtualenv ENV<br>#激活virtualenv（Windows）<br>ENV\Scripts\activate<br>#激活virtualenv（Linux）<br>source ENV&#x2F;bin&#x2F;activate</p>
-<p>此时命令行前面会变成(ENV)，代表着已经进入了。这个时候再运行pip就会安装到虚拟环境中</p>
-<p>pip install pyTelegramBotAPI</p>
-<h4 id="IDE方式"><a href="#IDE方式" class="headerlink" title="IDE方式"></a>IDE方式</h4><p>使用IDE相比来说很方便。我们只需要新建一个项目，File - Settings - Project interpreter,右侧的齿轮里即可选择create VirtualEnv</p>
-<p><img src="/images/102017_1429_Telegrambot2.png"></p>
-<p>我建议将VirtualEnv选择到工程目录下，这样方便我们判断哪个VirtualEnv对应哪个项目。当然，如果你打算把代码push到GitHub，记得把这个目录加到<code>.gitignore</code>里。</p>
-<p>之后我们点击加号，安装<code>pyTelegramBotAPI</code>这个package，PyCharm就会自动为我们安装好这个包了。</p>
-<p><img src="/images/102017_1429_Telegrambot3.png"></p>
-<h2 id="开始你的项目"><a href="#开始你的项目" class="headerlink" title="开始你的项目"></a>开始你的项目</h2><h3 id="我该怎么处理我的TOKEN"><a href="#我该怎么处理我的TOKEN" class="headerlink" title="我该怎么处理我的TOKEN"></a>我该怎么处理我的TOKEN</h3><p>为了方便项目的扩展，咱一般都会把配置信息放在一个Python文件中。但是，咱知道，像TOKEN这类东西都是比较敏感的，如果要打算把代码push到GitHub，那么<strong>很容易就会泄露这类敏感信息</strong>。也千万别以为删除这些信息了就万事大吉了。要知道<strong>时光机可是Git的能力之一</strong>。万一不幸发生了这种事情，推荐大家用BFG抹掉历史纪录，详细教程可以<a target="_blank" rel="noopener" href="https://dmesg.app/git-password.html">参考我</a>。</p>
-<p>那从头开始预防这件事，咱该怎么做呢？一个非常愚蠢但是有效的办法是，新建一个名为<code>config.py</code>的文件，此文件用于保存你的配置信息，并将其加到<code>.gitignore</code>中，另外复制一个名为<code>config-example.py</code>，此文件内容与<code>config.py</code>一致，只是不包含TOKEN敏感信息。</p>
-<p>为什么咱不直接把<strong>不包含</strong>敏感信息的<code>config.py</code>先push上去，然后加入自己的TOKEN，之后再加入到<code>.gitignore</code>中呢？其实这样要倍加小心，哦是这样的，gitignore管不到已经在历史记录中的文件的。</p>
-<p>另外，如果你使用私有仓库（并且打算以后公开），那就更简单了。可以什么都不管直接push上去，再打算公开之前抹掉TOKEN再push，然后用BFG抹掉历史记录再force push就可以了。</p>
-<p>另一个更好的办法是，创建一个<code>config.py</code>但是不在这里写入真实的配置信息，转而设置环境变量然后用<code>os.environ</code>加判断获取到对应的KEY，如果使用PyCharm的话，在Run&#x2F;Debug configuration里就可以添加环境变量，当然直接在命令行里设置也可以（windows要用<code>set xxx=&#39;123&#39;</code>, Linux直接<code>export xxx=&#39;123&#39;</code>设置可以考虑写入<code>.bashrc</code>里）</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/10/2017112102585531.jpg"><img src="/images/2017112102585531-300x116.jpg"></a></p>
-<h3 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h3><p>这里由于只是一个演示，并不打算push到GitHub，所以就不处理TOKEN啦。</p>
-<p>很显然，我们需要一个<code>config.py</code>用于保存配置文件，还需要一个”主程序”，这里我就很无耻的叫它<code>main.py</code>啦。</p>
-<p><img src="/images/102017_1429_Telegrambot4.png"></p>
-<p>一些解释：</p>
-<p>第一行的<code>#!/usr/bin/python</code>用于指定当给文件加x权限并执行时(<code>./main.py</code>)该使用哪个解释器，用法和shell编程中的是一样的；</p>
-<p>第二行用于指定编码格式，下面则是注释说明与doc啦。大家不好奇这些是怎么来的吗？实际上是IDE自动生成的啦。我才懒得自己打这些玩意。</p>
-<p>在设置中的如下位置即可设定模板，更多信息可以参考<a target="_blank" rel="noopener" href="https://www.jetbrains.com/help/pycharm/creating-and-editing-file-templates.html">JetBrains</a>官网。</p>
-<p><img src="/images/102017_1429_Telegrambot5.png"></p>
-<h3 id="config-py"><a href="#config-py" class="headerlink" title="config.py"></a>config.py</h3><p>显然我们要在这里放入TOKEN，所以我们直接写一行<code>TOKEN=&#39;XXX&#39;</code>即可。我一般习惯把这类变量全大写，给人“常量”的感觉嘛（实际上Python中是没有常量这个概念的）。如下所示</p>
-<p><img src="/images/102017_1429_Telegrambot6.png"></p>
-<p>看这时间戳，我写一篇文章容易嘛我！几个小时了……</p>
-<h3 id="main-py"><a href="#main-py" class="headerlink" title="main.py"></a>main.py</h3><p>首先我们需要import库和我们的配置文件并创建telebot类的实例</p>
-<p>import telebot<br>from config import TOKEN<br>bot &#x3D; telebot.TeleBot(TOKEN)</p>
-<p>定义接受&#x2F;start和命令的消息处理函数，如果多个命令都用这一个函数处理，就这样<code>[&#39;start&#39;,&#39;help&#39;]</code></p>
-<p>@bot.message_handler(commands&#x3D;[‘start’])<br>def send_welcome(message):<br>    bot.send_message(message.chat.id, ‘大家好，我是机器人’)</p>
-<p>定义接受所有消息的处理函数</p>
-<p>@bot.message_handler()<br>def echo(message):<br>    bot.reply_to(message, message.text)</p>
-<p>另一种reply_to</p>
-<p>@bot.message_handler(commands&#x3D;[‘help’])<br>def send_welcome(message):<br>    bot.send_message(reply_to_message_id&#x3D;message.message_id, chat_id&#x3D;message.chat.id, text&#x3D;’有什么可以帮您’)</p>
-<p>定义程序的入口：</p>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    bot.polling()</p>
-<p>我来解释一下：</p>
-<h4 id="装饰器"><a href="#装饰器" class="headerlink" title="装饰器"></a>装饰器</h4><p>在每个函数前面，我们可以看到有一个<code>@bot.message_handler</code>，这其实是一个Python装饰器。装饰器其实是一个起初听起来觉得什么用都没有、但是用起来却很方便的高阶Python功能。简单说，装饰器可以在运行时改变或增加函数的功能。此话怎讲？</p>
-<p>比如说，我们需要在函数开始运行、结束运行的时候输出消息到控制台，大家可能会想着在函数开始和结尾加两个<code>print</code>。没错这样是可以的，但是假如我们有10个函数呢？这代码都没能重用，删除的时候还要删除20次。由于函数在Python中是一等公民，我们可以定义一个嵌套函数（也就是装饰器），配合Python的语法糖@来实现这一功能。</p>
-<p>在我们说的打印日志这个例子中，装饰器就可以这么写这么用：</p>
-<p><img src="/images/102017_1429_Telegrambot7.png"></p>
-<p>当然在这个例子中，这个装饰器无法处理带参数的函数。要处理函数的参数，我们需要在内层的<code>wrapper</code>的参数中使用<code>*args</code>和<code>**kwargs</code>来处理参数（和关键字参数），关于装饰器更多的内容，可以参考奔跑的蜗牛壳<a target="_blank" rel="noopener" href="https://www.tougetu.com/2017/02/python-decorator.html">《Python 装饰器》</a></p>
-<h4 id="message"><a href="#message" class="headerlink" title="message"></a>message</h4><p>Telegram API会返回给我们一组JSON，但是控制台用<code>print</code>打印出来的JSON都是一行，看起来很不舒服，解决方法是使用<code>pprint</code>或者新建一个扩展名为json的文件，将一行json放入，Ctrl + Alt + L格式化。</p>
-<p>在message这个参数中，有几个是比较重要的，我说几个个人比较常用的：</p>
-<p><code>message.chat.id</code> 类型为int，聊天ID，如果是和机器人私聊，那么这个ID也就是用户的user_id；如果是群组的话，那么就是群组的id</p>
-<p><code>message.text</code> 类型为unicode，用户发给机器人的聊天内容</p>
-<p><code>message.message_id</code> 类型为int，用户发给机器人的消息编号，再使用”回复”功能时会用到这个编号。</p>
-<h4 id="send-message与reply-to-message"><a href="#send-message与reply-to-message" class="headerlink" title="send_message与reply_to_message"></a>send_message与reply_to_message</h4><p><code>send_message</code>用于给用户发送消息，必须要有至少两个参数，一个是<code>chat_id</code>，一个是text；</p>
-<p><code>reply_to</code>则是回复某条消息，是<code>send_message(message.chat.id, text, reply_to_message_id=message.message_id, **kwargs)</code>的方便用法，需要两个参数，一个是message，一个是回复的内容；</p>
-<p>如果我们要用<code>send_message</code>来实现<code>relpy_to_message</code>，那么就要手动用关键字参数指定回复哪条消息，如代码中的help命令所示。</p>
-<h4 id="if-name-x3D-x3D-‘-main-‘"><a href="#if-name-x3D-x3D-‘-main-‘" class="headerlink" title="if __name__ &#x3D;&#x3D; ‘__main__‘:"></a>if __name__ &#x3D;&#x3D; ‘__main__‘:</h4><p>这一行则定义了这个Python程序的入口，在他下面运行<code>bot.polling()</code>方法。这个方法可神奇了呢，他会帮你处理各种事件，自动帮你从API里取回消息，基本不用你干预。</p>
-<p>如果我们不用<code>__name__</code>控制的话，那么当在其他文件中import时，也就顺便运行这个文件啦。这很明显不是我们想要的结果。</p>
-<h2 id="运行与调试"><a href="#运行与调试" class="headerlink" title="运行与调试"></a>运行与调试</h2><p>如果一切顺利的话，当你点击运行时，跟机器人说话，它就会回复你啦。当然啦，运行（run）与调试（debug）其实还是有些区别的，关于这的一些技巧，我们可以以后再谈~</p>
-<p><img src="/images/102017_1429_Telegrambot8.png"></p>
-<p>哦对了，我们还需要导出依赖，方便别人也能够用啊！</p>
-<p>很简单，进入到virtual env，运行如下命令：</p>
-<p>pip freeze &gt; requirements.txt</p>
-<p>别人用的时候，<code>pip install -r requirements.txt</code>就可以安装对应的依赖啦。</p>
-<h2 id="我该怎么长期运行我的机器人呢"><a href="#我该怎么长期运行我的机器人呢" class="headerlink" title="我该怎么长期运行我的机器人呢"></a>我该怎么长期运行我的机器人呢</h2><p>这个问题问得好！首先你得有个在海外的服务器（或者让程序走代理），可以考虑用用<code>nohup</code>或者<code>screen</code>，这样当你关掉终端之后，程序还会继续运行。呃，那些用Windows做服务器的，当我什么都没说好了。</p>
-<p>当然了正经的办法，是要用systemd或者supervisor的。具体可以<a target="_blank" rel="noopener" href="https://dmesg.app/linux-keep-running.html">参考这里</a></p>
-<h2 id="我想要任务计划机器人，怎么办"><a href="#我想要任务计划机器人，怎么办" class="headerlink" title="我想要任务计划机器人，怎么办"></a>我想要任务计划机器人，怎么办</h2><p>这个问题问得也很好。我们可能需要某种机器人，每十分钟给用户发送一条消息。</p>
-<p>此时我的建议是，<strong>如果需求很简单，那么使用操作系统自带的任务计划功能</strong>来执行脚本（Linux为cron）。</p>
-<p>可能有人会有反对意见了。Python里有很多优秀的任务调度、任务计划库，比如说apscheduler。这样也是可以的，只不过需要多写点代码！</p>
-<p>当然了，有些时候我们的需求比较灵活，操作系统提供的任务计划用起来会很麻烦，此时就只能用一些任务调度的库啦。</p>
-<h2 id="下一篇打算讲点什么呢"><a href="#下一篇打算讲点什么呢" class="headerlink" title="下一篇打算讲点什么呢"></a>下一篇打算讲点什么呢</h2><p>如果我们的机器人只能以固定的模式讲话，那么显然是不行的！</p>
-<p>那么下一篇，我们就要尝试着接入其他服务（使用pycurl发送POST或者GET请求），操作数据库，给机器人加入”正在输入”的特效，更加深入的理解Telegram Bot API。当然了，我下一篇说不定等到啥时候，所以，别太期待。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/10/20/tgbot0/index/" data-id="clhp7rtld009ms2qrgatk5z7n" data-title="[Telegram bot系列]0：用Python写一个Telegram Bot 简单的回话bot" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1372,6 +1327,10 @@ return e
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1385,10 +1344,6 @@ return e
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

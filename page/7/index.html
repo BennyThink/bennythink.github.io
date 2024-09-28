@@ -73,6 +73,69 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-docker-scale/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/02/10/docker-scale/index/" class="article-date">
+  <time class="dt-published" datetime="2021-02-10T00:00:00.000Z" itemprop="datePublished">2021-02-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/02/10/docker-scale/index/">使用docker scale时遇到的一点小问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>今天在使用<code>docker-compose</code>时，突然发现有一个command叫做<code>scale</code>，感觉有点像kubernetes的replica，于是试了一下</p>
+<p>-&gt; # docker-compose scale yyets-web&#x3D;5<br>WARNING: The scale command is deprecated. Use the up command with the –scale flag instead.<br>Starting websiterunner_yyets-web_1 … done<br>Creating websiterunner_yyets-web_2 … done<br>Creating websiterunner_yyets-web_3 … done<br>Creating websiterunner_yyets-web_4 … done<br>Creating websiterunner_yyets-web_5 … done</p>
+<p>果真是这个样子的，那么从其他容器访问这个container，用的是什么负载均衡算法呢？猜测应该是最简单也是最常见的round robin吧？在nginx里<code>ping</code>和<code>curl</code>试了一下，果真是的，每次解析的IP地址都会变化：</p>
+<p><img src="/images/2021021017463110.jpeg"></p>
+<p>然后看了一下log，发现请求全部落在了1上，而没有平均到其他4个container</p>
+<p><img src="/images/2021021017463387.jpeg"></p>
+<p>但是我如果在nginx里<code>curl</code>，却可以看到请求是均匀分布在5个container里的。</p>
+<p><img src="/images/2021021017463847.jpeg" alt="图像"></p>
+<p>什么鬼嘛，怎么会这样，从外部过来的请求不过是经过了nginx proxy_pass，这和我在nginx container里直接<code>curl</code>有什么差别嘛。</p>
+<p>后来吃饭的时候想到，难道是因为，我是后scale的，而nginx是早就启动的，所以nginx启动时把配置文件中的域名解析到了一个固定的IP。而我在container中<code>curl</code>每次都是重新解析的，所以每次解析的结果都是round robin的</p>
+<p>于是重启了一下nginx</p>
+<p>docker-compose restart nginx</p>
+<p><img src="/images/2021021017464153.jpeg" alt="图像"></p>
+<p>看起来破案了，请求均匀分布到了5个container中。 [v_blue]<a target="_blank" rel="noopener" href="https://twitter.com/dev_techmoe/status/1359372686598766592?s=20">感谢techmoe指出</a>，其实应该不是固定的，文档说nginx默认的resolver是遵循DNS record的TTL值的，对nginx进程reload应该就可以刷新缓存，让nginx重新解析。 [&#x2F;v_blue] 那么问题来了，在单机上scale，是否有必要？</p>
+<p>从我个人的角度来讲，意义似乎不太大。我觉得，如果单个容器（进程）存在性能瓶颈，比如说单进程&#x2F;单线程，只能用一个CPU宿主机有恰巧是多核心，多个进程可以明显提升性能，那么scale一下还是可以的。举个例子，万一我傻了吧唧的这么写的代码：</p>
+<p>class ResourceHandler(BaseHandler):<br>    executor &#x3D; ThreadPoolExecutor(5)</p>
+<pre><code>@run\_on\_executor()....
+</code></pre>
+<p>那么scale一下，还是有很大希望的。</p>
+<p>不过我当然没这么傻，所以这里scale对我可能用处不太大。</p>
+<p>当然了，还是用kubernetes最爽:-)可惜俺并不会也没那么多机器去搞:-(</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/02/10/docker-scale/index/" data-id="clhp7rtf8001qs2qrh4iib315" data-title="使用docker scale时遇到的一点小问题" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-container-no-network/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/01/26/container-no-network/index/" class="article-date">
@@ -1044,142 +1107,6 @@ return file\_id
 
 
   
-    <article id="post-xbox-fail-unlock/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/08/22/xbox-fail-unlock/index/" class="article-date">
-  <time class="dt-published" datetime="2020-08-22T00:00:00.000Z" itemprop="datePublished">2020-08-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/08/22/xbox-fail-unlock/index/">2020年记一次不成功的Xbox解锁经历</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>一定有人还记得，今年5月份的时候，<a target="_blank" rel="noopener" href="http://youxiputao.com/articles/19910">PS4国行商店宣布暂停服务</a>。之后，没多久，Xbox的更新<a target="_blank" rel="noopener" href="https://ngabbs.com/read.php?tid=21886262&rand=501">封杀了之前用“后门”任意跨区服的方法</a>。</p>
-<p>之后的某一天，由于某个莫名其妙的原因我傻又不是一天两天了，我一不小心把主机的区域切换回了中国，也就是说回到了国服……</p>
-<p>那么在这次微软锁服之后，国行Xbox是否还能够有办法切换到其他国家和地区呢？</p>
-<p>特大喜讯，现在又能啦</p>
-<p>国行Xbox或成地表最强Xbox？🤔</p>
-<p>又可以再次解锁外服啦，具体操作方法如下</p>
-<p>1.将U盘格式化，需ntfs格式。</p>
-<p>2.U盘根目录下建立文件，Xbox One为$ConsoleGen8，Xbox Series X&#x2F;S为$ConsoleGen9，无扩展名。</p>
-<p>3.Xbox主机系统更新至最新版本，开机状态插U盘，提示读取到外部储存后，直接重启主机。</p>
-<p>4.进入设置-系统-语言和区域-位置看到语言中文（繁體）、语言区域中文（繁體）（台湾）、位置（阿根廷）。</p>
-<p>5.再次设定语言、语言区域和位置，选择中文（简体）、位置香港或美国，立即重启主机。</p>
-<p><a target="_blank" rel="noopener" href="https://www.yxzzd.com/25449.html">更多信息请参考这里</a></p>
-<h1 id="太长不看版"><a href="#太长不看版" class="headerlink" title="太长不看版"></a>太长不看版</h1><h2 id="怎么换到外服啊"><a href="#怎么换到外服啊" class="headerlink" title="怎么换到外服啊"></a>怎么换到外服啊</h2><p>在保修期的话，直接换个新的，又不要钱，开机插U盘还是能够抢救一下的，虽说不能变成上帝，但是一直呆在香港也不错的吧；</p>
-<p>没升级系统的，切换到非中国还是可以的；</p>
-<p>已经升级完的了、并且又切换回中国、并且还过了保修期的，那么恐怕是没救了，哪怕换硬盘、通过U盘离线安装系统也没用，因为：</p>
-<ol>
-<li>Xbox系统版本号会写到固件之中，无论你的硬盘怎么换，都没用。</li>
-<li>微软可能是和Apple学坏了，无法安装旧版本的系统</li>
-<li>Xbox的系统又不开源</li>
-</ol>
-<h2 id="那该咋办"><a href="#那该咋办" class="headerlink" title="那该咋办"></a>那该咋办</h2><p>难道花了几千元，竟然就买了一个4K高清机顶盒、爱奇艺启动器、4K蓝光播放器吗？其实想要玩到游戏还是有办法的……</p>
-<ol>
-<li>买光盘，玩完卖了回血</li>
-<li>想办法通过各种手段为自己的Microsoft账户购买游戏，然后下载了就能玩了。这些手段包括但不限于：网页端跨区购买，买Key激活，找阿根廷、土耳其有人，敲诈微软</li>
-<li>咸鱼卖了，转手买港行等水货</li>
-</ol>
-<h2 id="拆机"><a href="#拆机" class="headerlink" title="拆机"></a>拆机</h2><p>Xbox拆机换硬盘刷系统之前，我们需要做这些准备：</p>
-<ul>
-<li>T4螺丝刀，必须要有，别想着用刀片当螺丝刀</li>
-<li>2.5英寸硬盘，移动硬盘盒</li>
-<li>废弃信用卡等撬东西的工具，实在没有，拿个点外卖送的金属勺子也行</li>
-<li>Windows电脑，Boot Camp的MacBook也可以</li>
-<li>一台Xbox，过保的</li>
-<li>Xbox需要为正式版系统，insider需要退出恢复为正式版（总不能等两个月正式版本号高于预览版吧）</li>
-<li>8G以上U盘</li>
-<li>网线</li>
-</ul>
-<p>友情提示：</p>
-<p>下载游戏挺慢的，也费时间，因此建议如果有额外的移动硬盘，那么就插USB口，直接把游戏应用都移动过去就可以了。</p>
-<p><img src="/images/2020082222201182.jpeg" alt="螺丝刀套装-罐装"></p>
-<p>没有螺丝刀可以沃尔玛买一个这种，很便宜</p>
-<p>Xbox One S的拆机是非常容易的，从底盖开始撬，全部是卡扣结构：</p>
-<p><img src="/images/2020082222201227.jpeg"></p>
-<p>Hello from Seattle，请和我一起运动免得得颈椎病</p>
-<p>底盖拿掉之后，6个绿色螺丝</p>
-<p><img src="/images/2020082222201347.jpeg"></p>
-<p>然后稍微活动一下侧面，也是卡扣，就能够把上面散热孔的那面也拿下来了</p>
-<p><img src="/images/2020082222201594.jpeg"></p>
-<p>一定要注意的是，拿下来的时候，<strong>不要把光驱、开机键那一面朝下</strong>，因为这样的话你很有可能蹭到工作台&#x2F;床，产生很大的摩擦力，很有可能会把一些微动开关蹭下来！</p>
-<p>这一面的金属罩，后门有螺丝，可以拿下来</p>
-<p>无线网卡在侧面，完全没有排线连接</p>
-<p><img src="/images/202008222220178.jpeg"></p>
-<p>哦Mediatek 联发科？</p>
-<p>这个是前面的面板，包含了电源、弹出、配对三个按键的那个，也是没有排线的</p>
-<p>红框里是微动开关，下面的那个是不是觉得有点怪啊？</p>
-<p><img src="/images/2020082222201943.jpeg"></p>
-<p>BIND 也就是配对，在这里哦?知道为什么我说<strong>面板别朝下</strong>了吧。以后如果真的要配对，可能只有硬核短接了吧。</p>
-<p><img src="/images/2020082222202091.jpeg"></p>
-<p>当然了，这两个面板没必要拆。</p>
-<p>面罩拿下来之后，就能够看到硬盘的位置。然后硬盘背面继续拧螺丝，就可以把硬盘托架拿下来了，东芝的500G硬盘</p>
-<p><img src="/images/2020082222202239.jpeg"></p>
-<p>仔细看下主板内部，foxconn富士康也就是鸿海哦</p>
-<p><img src="/images/20200822222024100.jpeg"></p>
-<h2 id="换硬盘刷旧系统"><a href="#换硬盘刷旧系统" class="headerlink" title="换硬盘刷旧系统"></a>换硬盘刷旧系统</h2><p>新硬盘需要用工具进行分区处理，工具从这里找 <a target="_blank" rel="noopener" href="https://gbatemp.net/threads/xbox-one-internal-hard-drive-upgrade-or-repair-build-any-size-drive-that-works-on-any-console.496212/">https://gbatemp.net/threads/xbox-one-internal-hard-drive-upgrade-or-repair-build-any-size-drive-that-works-on-any-console.496212/</a></p>
-<p>教程参考这里 <a target="_blank" rel="noopener" href="https://github.com/JACK-THINK/Xbox-One-X-Cookbook/blob/master/Xbox_One_Internal_Hard_Drive_Repair_or_Replace_Using_Windows_(Software).md">https://github.com/JACK-THINK/Xbox-One-X-Cookbook/blob/master/Xbox_One_Internal_Hard_Drive_Repair_or_Replace_Using_Windows_(Software).md</a></p>
-<p>以防万一翻车，Xbox原装的硬盘先留着。</p>
-<p>更新操作非常简单，OSU需要比当前系统版本要新的才可以更新成功，否则疯狂报错。豆本豆已经帮你尝试了各种可能的组合，放弃治疗吧:-(</p>
-<p>我尝试了：</p>
-<ul>
-<li>3个旧版本的OSU，失败</li>
-<li>把旧版本的更新文件复制到System Update分区的A、B文件夹，失败</li>
-<li>最新的OSU，成功。</li>
-</ul>
-<p>我猜啊，Xbox 里 Settings相关的代码可能是这么写的?这你还玩个锤子嘛?</p>
-<p>currentOSVersion :&#x3D; getOSVersion()<br>    isRegionFree :&#x3D; getRegionType()<br>    if currentOSVersion &gt;&#x3D; “10.0.16299.3031” &amp;&amp; currentOSVersion &lt;&#x3D; “10.0.19041.1927” &amp;&amp; isRegionFree {<br>        var GodMode &#x3D; true<br>    } else {<br>        var GodMode &#x3D; false<br>    }</p>
-<p>你说这玩意咋办啊！写死了啊！</p>
-<p>然后开机、登录，如果游戏复制出去了，直接再插上，还是会认的。</p>
-<p>折腾了一个下午，还是没能跑出如来佛的手心。不过好歹用了1T的硬盘，也算有点成果了……可惜了以后用不了新的手柄了……</p>
-<h2 id="其他资料"><a href="#其他资料" class="headerlink" title="其他资料"></a>其他资料</h2><p>Xbox 历史系统下载：<a target="_blank" rel="noopener" href="https://digiex.net/forums/dashboard-system-updates.98/">https://digiex.net/forums/dashboard-system-updates.98/</a></p>
-<p>关于“U盘解锁”技术原理与其他指令科普：<a target="_blank" rel="noopener" href="https://bbs.a9vg.com/thread-8681625-1-1.html">https://bbs.a9vg.com/thread-8681625-1-1.html</a></p>
-<h2 id="后记：为什么家用游戏主机在中国这么难"><a href="#后记：为什么家用游戏主机在中国这么难" class="headerlink" title="后记：为什么家用游戏主机在中国这么难"></a>后记：为什么家用游戏主机在中国这么难</h2><p>政策原因嘛。 [collapse title&#x3D;””] 在中国，有一种神奇的审查制度。这个审查制度无处不在，从游戏、电影，到书籍、电视传媒，哦还有网络，简直伴你行。其实说实在的，审查制度在很多国家都是很正常的一件事情，比如说宣扬纳粹总是不行的吧，儿童色情也是不可以的吧，这些“雷区”往往都是有明确的法律条文去规定的，并且多数情况下各大公司还会维护透明度报告。</p>
-<p>我不反对审查，我反对的是不透明的、无法理的、黑箱操作并且不予解释让你去问永远无关的有关部门的审查制度。</p>
-<p>更进一步让人觉得可笑的是，在如此严厉的审查之下，竟然没有分级制度。这就像家长式威权一样……</p>
-<p>比如说，当一个成年人带着一个天真无邪的小女孩去电影院里看《战狼2》，看到被坦克压断的腿和被子弹打飞的肢体，这样真的合理吗？ [&#x2F;collapse]</p>
-<h2 id="源起"><a href="#源起" class="headerlink" title="源起"></a>源起</h2><p>你们一定都听说过关于他的魂斗罗和坦克大战的故事。有人说，……魂斗罗好玩；也有人说，……坦克大战好玩；还有人说，……只有冒险岛才是最好玩的。但我要讲的故事，你们一定没有听过我猜你们也都知道个大概。这个故事，得从一只金蝉游戏机禁令说起……</p>
-<p>2000年，国务院办公厅发布<a target="_blank" rel="noopener" href="http://www.gov.cn/gongbao/content/2000/content_60240.htm">《关于开展电子游戏经营场所专项治理意见的通知》</a>。这个禁令中最严厉的一条是：禁止面向国内的电子游戏设备及其零、附件生产、销售。也就是说，在中国大陆，从理论上来说，你是买不到游戏机的。当然了，这个禁令执行的并不算彻底也不是那么严苛，比如我小学时候很流行的小霸王学习机，齐声DVD游戏机等。</p>
-<h2 id="Xbox-One"><a href="#Xbox-One" class="headerlink" title="Xbox One"></a>Xbox One</h2><p>14年之后，也就是2014年，上海自贸区条例的下发使得游戏机得以进入大陆市场销售。Xbox One成功入华。但是由于游戏审查，所以国行Xbox的商店中包含的游戏全部都是经过了审查的游戏，自然数量也就非常少了。不过好在国行赠送了可以使用到9999年的金会员，可是没有游戏我拿什么给你联机呢？</p>
-<p>因此，买了国行Xbox的玩家自嘲为“国行勇士”、“国行烈士”，因为他们辛苦赚钱，却买了一个高清机顶盒，什么也玩不了，真就不如买点蓝光光碟，让Xbox成为4K蓝光播放器呢。</p>
-<p>毕竟你看现在，4K的蓝光播放器也不便宜嘛……</p>
-<p><img src="/images/2020082222202766.png"></p>
-<h2 id="解锁"><a href="#解锁" class="headerlink" title="解锁"></a>解锁</h2><p>之后又过了一段时间，大概是2017年的下半年，网上突然爆出来“后门”，通过在U盘中创建名为$ConsoleRegion0的空文件，国行Xbox可以任意切换区域，什么美国英国法国德国等老牌资本主义国家，墨西哥阿根廷智利等南美国家，反正就是几乎区域随便选，哦朝鲜除外。选完之后一重启，你的商店就会变成这个区域的，然后添加付款方式，基本上有个VISA就能买买买了，基本无限制。</p>
-<p>不知道这是不是微软对国行用户的一点点照顾，反正一瞬间，国行勇士终于翻身了，国行变成了地表最强的Xbox，从此，中国人民站起来了……毕竟低价区的游戏谁不喜欢嘛！</p>
-<h2 id="再次锁服"><a href="#再次锁服" class="headerlink" title="再次锁服"></a>再次锁服</h2><p>时间来到2020年6月，可能是由于某些根本原因，在加上某位微博用户举报的直接原因，PS4和Xbox One都……</p>
-<p>?️ ?️ ?️ ?️ ?️ ?️ ?️ ?️ ?️ ?️</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/08/22/xbox-fail-unlock/index/" data-id="clhp7rtnm00bms2qrb63ndew3" data-title="2020年记一次不成功的Xbox解锁经历" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1237,6 +1164,10 @@ return file\_id
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1250,10 +1181,6 @@ return file\_id
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

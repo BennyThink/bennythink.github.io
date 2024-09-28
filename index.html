@@ -73,6 +73,130 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-worker-image-metadata/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/09/28/worker-image-metadata/index/" class="article-date">
+  <time class="dt-published" datetime="2024-09-28T00:00:00.000Z" itemprop="datePublished">2024-09-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>WebP Cloud 提供一个接口，可以用于获取图片的元数据，比如长宽、大小、色彩空间以及blurhash。这部分计算，尤其是blurhash其实还是略有压力的，我们就想能不能把这部分功能放到回源请求上。</p>
+<p>对于 Azure Function来说，这必然不是问题，因为他几乎就是<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/azure/developer/javascript/how-to/develop-serverless-apps?tabs=v4-ts">一个完整的NodeJS环境</a>，可以用sharp的；但是对于Workers，<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/workers/reference/how-workers-works/">由于他是V8</a>，只支持<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/workers/runtime-apis/nodejs/">NodeJS最基本的一些API</a>，最多<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/workers/runtime-apis/webassembly/">带上Wasm</a>，这样用sharp就变成了几乎不可能的事情，因为要调用libvips。</p>
+<p>最终经过了我的艰苦探索，发现一个名为 <code>@cf-wasm/photon</code> 的库，可以用来获取图片基础信息。首先需要 import</p>
+<p>import { PhotonImage, SamplingFilter, resize } from ‘@cf-wasm&#x2F;photon’;</p>
+<p>用起来也还行，首先我们需要通过 <code>fetch</code>获取图片，得到一个<code>response</code>，可以从这里拿到 <code>ArrayBuffer</code></p>
+<p>const response &#x3D; await fetch(url)<br>const buffer &#x3D; await response.arrayBuffer();</p>
+<p>然后<code>PhotonImage</code> 需要<code>Uint8Array</code>，那先转换一下</p>
+<p>const inputBytes &#x3D; new Uint8Array(buffer);</p>
+<p>然后加载图片</p>
+<p>const inputImage &#x3D; PhotonImage.new_from_byteslice(inputBytes);</p>
+<p>宽高可以用 <code>inputImage.get_width()</code>和<code>inputImage.get_height()</code></p>
+<p>色彩空间可以用 <code>inputImage.get_image_data().colorSpace</code></p>
+<p>文件大小直接 <code>buffer.length</code>就行</p>
+<p>计算 blurhash建议先调整图片大小，毕竟 Worker有执行时间限制</p>
+<p>const resized &#x3D; resize(inputImage, 32, 32, SamplingFilter.Nearest);</p>
+<p>然后计算</p>
+<p>const blur &#x3D; encode(resized.get_raw_pixels(), resized.get_width(), resized.get_height(), 4, 4);</p>
+<p>至于图片格式，那只能靠magic header了，比如使用如下ChatGPT给我的神奇代码</p>
+<p>function getImageFormatFromArrayBuffer(arrayBuffer) {<br>    const uint8Array &#x3D; new Uint8Array(arrayBuffer);</p>
+<pre><code>// Check for PNG (first 8 bytes: 89 50 4E 47 0D 0A 1A 0A)
+if (
+    uint8Array\[0\] === 0x89 &amp;&amp;
+    uint8Array\[1\] === 0x50 &amp;&amp;
+    uint8Array\[2\] === 0x4e &amp;&amp;
+    uint8Array\[3\] === 0x47 &amp;&amp;
+    uint8Array\[4\] === 0x0d &amp;&amp;
+    uint8Array\[5\] === 0x0a &amp;&amp;
+    uint8Array\[6\] === 0x1a &amp;&amp;
+    uint8Array\[7\] === 0x0a
+) &#123;
+    return &#39;png&#39;;
+&#125;
+
+// Check for JPEG (first 3 bytes: FF D8 FF)
+if (uint8Array\[0\] === 0xff &amp;&amp; uint8Array\[1\] === 0xd8 &amp;&amp; uint8Array\[2\] === 0xff) &#123;
+    return &#39;jpeg&#39;;
+&#125;
+
+// Check for GIF (first 6 bytes: GIF87a or GIF89a)
+if (
+    uint8Array\[0\] === 0x47 &amp;&amp;
+    uint8Array\[1\] === 0x49 &amp;&amp;
+    uint8Array\[2\] === 0x46 &amp;&amp;
+    uint8Array\[3\] === 0x38 &amp;&amp;
+    (uint8Array\[4\] === 0x37 || uint8Array\[4\] === 0x39) &amp;&amp;
+    uint8Array\[5\] === 0x61
+) &#123;
+    return &#39;gif&#39;;
+&#125;
+
+// Check for BMP (first 2 bytes: 42 4D)
+if (uint8Array\[0\] === 0x42 &amp;&amp; uint8Array\[1\] === 0x4d) &#123;
+    return &#39;bmp&#39;;
+&#125;
+
+// Check for WebP (first 4 bytes: 52 49 46 46 and &quot;WEBP&quot; in bytes 8-11)
+if (
+    uint8Array\[0\] === 0x52 &amp;&amp;
+    uint8Array\[1\] === 0x49 &amp;&amp;
+    uint8Array\[2\] === 0x46 &amp;&amp;
+    uint8Array\[3\] === 0x46 &amp;&amp;
+    uint8Array\[8\] === 0x57 &amp;&amp;
+    uint8Array\[9\] === 0x45 &amp;&amp;
+    uint8Array\[10\] === 0x42 &amp;&amp;
+    uint8Array\[11\] === 0x50
+) &#123;
+    return &#39;webp&#39;;
+&#125;
+
+return &#39;Unknown format&#39;;
+</code></pre>
+<p>}</p>
+<p>部署</p>
+<p>npm install @cf-wasm&#x2F;photon<br>npm install blurhash<br>wrangler deploy </p>
+<p>就可以了。wrangler会自动打包，把依赖和wasm也一起上传上去</p>
+<h2 id="Azure-Function"><a href="#Azure-Function" class="headerlink" title="Azure Function"></a>Azure Function</h2><p>如果你使用的是Azure Function，那么事情就简单多了，直接安装并使用 sharp 就行。需要注意的一点是，Azure Function可以选择运行的环境是Linux还是Windows。所以本地也要安装好正确的sharp然后才可以部署。</p>
+<p>npm install –cpu&#x3D;x64 –os&#x3D;linux sharp</p>
+<p>详情可以参考<a target="_blank" rel="noopener" href="https://sharp.pixelplumbing.com/install#cross-platform">Cross-platform</a></p>
+<h2 id="最终结果"><a href="#最终结果" class="headerlink" title="最终结果"></a>最终结果</h2><p>原来是打算把 Worker和Function 用同一套代码库的，但是由于 Worker的限制，即使不同情况下使用不同的import，Worker还是没法兼容 Function🫠</p>
+<p>所以只能分开两个分支了。</p>
+<p><img src="/images/2024092817391160.png" alt="表格 描述已自动生成"></p>
+<p>Cloudflare Workers 太弱智了，害我失去了人生中宝贵的三个小时<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/09/2024092817391148.png"><img src="/images/2024092817391148.png" alt="卡通人物 中度可信度描述已自动生成"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/09/28/worker-image-metadata/index/" data-id="cm1mqfxms0000d8jf1uap05xh" data-title="使用 Cloudflare Worker获取图片元数据" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-workers-function/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/09/27/workers-function/index/" class="article-date">
@@ -999,66 +1123,6 @@ return computed\_hash == data.get(&quot;hash&quot;)
 
 
   
-    <article id="post-immersion/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/02/03/immersion/index/" class="article-date">
-  <time class="dt-published" datetime="2024-02-03T00:00:00.000Z" itemprop="datePublished">2024-02-03</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/02/03/immersion/index/">沉浸感</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>我很喜欢玩赛博朋克2077，在往日之影发布之前很久已经清完了所有的支线和委托。往日之影发布之后，我熬了两个晚上，玩完了全部四个分支。</p>
-<p>随后我就出去旅游了。往日之影的结局是在是太让我感到无力了，那个时候我就坐在酒店的阳台上发呆。为什么会这样啊，我很难过。与其这样生活，真的不如再活半年，或者把身体留给强尼，至少这样不会失去朋友啊。</p>
-<p>人们总是很容易把艺术作品中的情形代入到自己的生活中，或者反之。</p>
-<p>那个时候我在日记里写道</p>
-<blockquote>
-<p>这也像极了现在的我。我在一点点失去我的朋友，我找不到生活的目标，这样的生活，远远不如以前开心。可生活不是游戏，没办法轻松重新选择故事走向。每次重新选择，都要承担巨大的代价和后果。</p>
-</blockquote>
-<hr>
-<p>在赛博朋克之后，我再也没有精力去如此品玩任何其他的游戏。可能是怕试错成本太高，很难找到符合我的喜好的游戏。Game Pass Ultimate过期之后也没有再续费，因为感觉自己完全找不到能玩的游戏。</p>
-<p>在影视作品中，我有些时候也会有这种感觉。</p>
-<p>最近白嫖了 Apple TV+，然后熬了三四个晚上看完了灵异女仆。 电视剧的节奏挺慢的，至少说在惊悚悬疑题材里这个节奏很慢，还好我没有追剧。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/01/2024013122284421-scaled.jpg"><img src="/images/2024013122284421-scaled.jpg"></a></p>
-<p>我很喜欢女主Leanne的人设和演员的演绎，Leanne只不过是童年破碎的受害者，她把自己对亲生母亲的期望全部投射到Dorothy身上。 男主一家人里如果有一个人能稍微正常点，那么结局会不会好一点？ 只有厨师小弟对 Leanne 很好，没有理由也没有利益的羁绊，只是可惜那场约会永远也不会到来……</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/02/2024020605495956-scaled.jpg"><img src="/images/2024020605495956-scaled.jpg"></a></p>
-<hr>
-<p>哎所以我总是很怕这样。一方面是怕自己陷得太深，另一方面是怕自己以后很难发现更好的文艺作品。</p>
-<p>我毫不犹豫的熬夜，只是想把自己沉浸在这些作品所营造的背景和氛围之内，这样我就可以暂时忘记发生在现实生活中的种种烦恼与问题，这样我就可以忽略问题，像鸵鸟一样把头埋在沙子里。 然而一旦看完这部电影，玩通那个游戏，这样的沙子也就不复存在，也就只能面对现实和无奈。🤷</p>
-<p>有时候可能看看爽剧，玩一玩那些无脑爽游戏（比如最近几年的使命召唤），只是娱乐放松而没有沉浸，这样可能会对我的心理状态有更好的帮助。沉浸感太强，有的时候可能也不是一件好事🫠</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2024/02/03/immersion/index/" data-id="clyujt8au00025yjfb1atdv1w" data-title="沉浸感" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1116,6 +1180,10 @@ return computed\_hash == data.get(&quot;hash&quot;)
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1129,10 +1197,6 @@ return computed\_hash == data.get(&quot;hash&quot;)
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

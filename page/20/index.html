@@ -73,6 +73,60 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-nethogs-bug-v0-8-0/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/17/nethogs-bug-v0-8-0/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-17T00:00:00.000Z" itemprop="datePublished">2016-02-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/17/nethogs-bug-v0-8-0/index/">nethogs - creating socket failed are you root?</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>话说前几天更新了服务器之后，再用nethogs就会出现这种问题</p>
+<p>Creating socket failed while establishing local IP - are you root?</p>
+<p><img src="/images/021516_0516_nethogscrea1.png"></p>
+<p>分明是root权限的好嘛！</p>
+<p>其实这是nethogs version 0.8.0的一个bug，只要更新到0.8.1即可。可是Ubuntu软件源里并没有更新到0.8.1，那么只好拿来传统大法，手动下载源码包编译安装了。</p>
+<p>首先要确保安装了gcc、make这类工具。如果没有就先安装下。</p>
+<p>sudo apt-get install build-essential<br>sudo apt-get install libncurses5-dev libpcap-dev<br>wget -c <a target="_blank" rel="noopener" href="https://github.com/raboof/nethogs/archive/v0.8.1.tar.gz">https://github.com/raboof/nethogs/archive/v0.8.1.tar.gz</a><br>tar xf v0.8.1.tar.gz<br>cd .&#x2F;nethogs-0.8.1&#x2F;<br>make &amp;&amp; sudo make install</p>
+<p>之后退出或者重启当前终端</p>
+<p>sudo nethogs</p>
+<p>即可发现变成了0.8.1.</p>
+<p><img src="/images/021516_0516_nethogscrea2.png"></p>
+<p>问题完美解决。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/17/nethogs-bug-v0-8-0/index/" data-id="clhp7rtho005fs2qrgxwl955k" data-title="nethogs - creating socket failed are you root?" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ssh-welcome-funny-command/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/02/16/ssh-welcome-funny-command/index/" class="article-date">
@@ -1052,119 +1106,6 @@
 
 
   
-    <article id="post-super-cheap-3-5-three-years-united-states-vps-science-internet-special/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-20T00:00:00.000Z" itemprop="datePublished">2016-01-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/">3.5美元三年的超便宜美国VPS，科学上网专用</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>今天在Google+上发现了有人分享了Sentris Network LLC超便宜的VPS，于是小小的折腾一下，就又剁手了下（如果3.5美元也算剁手的话）</p>
-<p>3.5刀三年付，折合每年约人民币7.5元</p>
-<p>配置：OpenVZ&#x2F;1vCPU&#x2F;64M内存 (16M SWAP) &#x2F;1G硬盘&#x2F; 250G&#x2F;月&#x2F;1 IPv4</p>
-<p>这配置基本上也就是搭建个shadowsocks，剩下估计啥也干不了。</p>
-<p>关于shadowsocks的使用方法，看这篇博文<a target="_blank" rel="noopener" href="https://dmesg.app/shadowsocks-displays-set-up-and-use-a-simple-tutorial.html">https://dmesg.app/shadowsocks-displays-set-up-and-use-a-simple-tutorial.html</a></p>
-<p>这是我搭建好ss之后的速度，感觉还可以的，我挺满足的。</p>
-<p><img src="/images/012016_1134_35VP1.png"></p>
-<p>购买地址：支持PayPal、信用卡、比特币支付，不能退款。</p>
-<p><a target="_blank" rel="noopener" href="https://www.sentris.net/billing/cart.php?a=confproduct&i=0">https://www.sentris.net/billing/cart.php?a=confproduct&i=0</a></p>
-<p>如果不是超低价的，请点击这个 <strong><a target="_blank" rel="noopener" href="http://t.cn/RbHpSj7">http://t.cn/RbHpSj7</a></strong></p>
-<p>注意：默认流量为500G每月，请手动改为<strong>250G每月</strong>才能享受最低价格，选择三年期可以用5折优惠券<strong>ISCVJZ0365</strong></p>
-<p>超低价主机商说不定要超售多少，也说不定啥时候就跑路了，建议谨慎购买。不过也就是3.5美元，23元谁心疼呢是不是，万一主机商良心了开了好几年呢。</p>
-<p>测试IP：63.216.14.61</p>
-<p>附：</p>
-<p>Top（本人心狠手辣卸载了httpd，sendmail等等，命令为yum remove httpd）</p>
-<p><img src="/images/012016_1134_35VP2.png"></p>
-<p>服务器网速测试，还不错哎！</p>
-<p><img src="/images/012016_1134_35VP3.png"></p>
-<p>内存这么小，就老老实实的安装32位的操作系统吧，我选择的是CentOS 6 x86</p>
-<p>Libev版本的shadowsocks比较省内存，如果只是自己用的话，那么用这个就可以了；否则可以考虑用Go或者Python版的。</p>
-<hr>
-<h2 id="三个版本的重启、停止等命令："><a href="#三个版本的重启、停止等命令：" class="headerlink" title="三个版本的重启、停止等命令："></a>三个版本的重启、停止等命令：</h2><p>启动：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks start</p>
-<p>停止：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks stop</p>
-<p>重启：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks restart</p>
-<p>查看状态：</p>
-<p>&#x2F;etc&#x2F;init.d&#x2F;shadowsocks status</p>
-<h2 id="Shadowsocks-libev一键安装脚本（CentOS-6-x2F-7不支持多用户）"><a href="#Shadowsocks-libev一键安装脚本（CentOS-6-x2F-7不支持多用户）" class="headerlink" title="Shadowsocks-libev一键安装脚本（CentOS 6&#x2F;7不支持多用户）"></a>Shadowsocks-libev一键安装脚本（CentOS 6&#x2F;7不支持多用户）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks-libev.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks-libev.sh</a><br>chmod +x shadowsocks-libev.sh<br>.&#x2F;shadowsocks-libev.sh 2&gt;&amp;1 | tee shadowsocks-libev.log</p>
-<p>配置文件路径：</p>
-<p> <strong>&#x2F;etc&#x2F;shadowsocks-libev&#x2F;config.json</strong></p>
-<hr>
-<p> </p>
-<h2 id="Python版本（支持多用户CentOS-6-x2F-7，Debian，Ubuntu）"><a href="#Python版本（支持多用户CentOS-6-x2F-7，Debian，Ubuntu）" class="headerlink" title="Python版本（支持多用户CentOS 6&#x2F;7，Debian，Ubuntu）"></a>Python版本（支持多用户CentOS 6&#x2F;7，Debian，Ubuntu）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks.sh</a><br>chmod +x shadowsocks.sh<br>.&#x2F;shadowsocks.sh 2&gt;&amp;1 | tee shadowsocks.log</p>
-<p>多用户多端口配置文件 Sample</p>
-<p>配置文件路径：</p>
-<p><strong>&#x2F;etc&#x2F;shadowsocks.json</strong></p>
-<p>{</p>
-<p>“server”:”0.0.0.0”,</p>
-<p>“local_address”:”127.0.0.1”,</p>
-<p>“local_port”:1080,</p>
-<p>“port_password”:{</p>
-<p>“8989”:”password0”,</p>
-<p>“9001”:”password1”,</p>
-<p>“9002”:”password2”,</p>
-<p>“9003”:”password3”,</p>
-<p>“9004”:”password4”</p>
-<p>},</p>
-<p>“timeout”:300,</p>
-<p>“method”:”aes-256-cfb”,</p>
-<p>“fast_open”: false</p>
-<p>}</p>
-<p> </p>
-<hr>
-<h2 id="Go版（支持多用户，CentOS-6-x2F-7，Debian，Ubuntu）"><a href="#Go版（支持多用户，CentOS-6-x2F-7，Debian，Ubuntu）" class="headerlink" title="Go版（支持多用户，CentOS 6&#x2F;7，Debian，Ubuntu）"></a>Go版（支持多用户，CentOS 6&#x2F;7，Debian，Ubuntu）</h2><p>wget –no-check-certificate <a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/teddysun/shadowsocks/_install/master/shadowsocks-go.sh">https://raw.githubusercontent.com/teddysun/shadowsocks\_install/master/shadowsocks-go.sh</a><br>chmod +x shadowsocks-go.sh<br>.&#x2F;shadowsocks-go.sh 2&gt;&amp;1 | tee shadowsocks-go.log</p>
-<p> </p>
-<p>多用户多端口配置文件 sample</p>
-<p>配置文件路径：</p>
-<p><strong>&#x2F;etc&#x2F;shadowsocks&#x2F;config.json</strong></p>
-<p>{</p>
-<p>“port_password”:{</p>
-<p>“8989”:”password0”,</p>
-<p>“9001”:”password1”,</p>
-<p>“9002”:”password2”,</p>
-<p>“9003”:”password3”,</p>
-<p>“9004”:”password4”</p>
-<p>},</p>
-<p>“method”:”aes-256-cfb”,</p>
-<p>“timeout”:600</p>
-<p>}</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/20/super-cheap-3-5-three-years-united-states-vps-science-internet-special/index/" data-id="clhp7rtki0098s2qr884yh28m" data-title="3.5美元三年的超便宜美国VPS，科学上网专用" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1222,6 +1163,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1235,10 +1180,6 @@
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

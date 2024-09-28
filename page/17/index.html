@@ -73,6 +73,140 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-win2linux/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/01/03/win2linux/index/" class="article-date">
+  <time class="dt-published" datetime="2017-01-03T00:00:00.000Z" itemprop="datePublished">2017-01-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/01/03/win2linux/index/">重装腾讯云的Windows Server 2012为Ubuntu 16.04</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>2018年5月10日更新 貌似现在这个方法不管用了，我测试中18.04无法检测到磁盘，16.04检测光盘的时候出错。</p>
+<p><strong>要是想全新安装18.04的话（腾讯云官方不给18.04的镜像，而且装了一大堆烂七八糟的东西，心烦），可以参考这篇文章 <a target="_blank" rel="noopener" href="https://i-meto.com/netboot-ubuntu-18-04/">https://i-meto.com/netboot-ubuntu-18-04/</a></strong></p>
+<p>本文灵感源于此：<a target="_blank" rel="noopener" href="https://blog.yoitsu.moe/arch-linux/cvm_with_arch_linux.html">https://blog.yoitsu.moe/arch-linux/cvm_with_arch_linux.html</a></p>
+<p>嘿嘿嘿</p>
+<p>本文就以Ubuntu 16.04做例子啦。首先需要安装<a target="_blank" rel="noopener" href="http://neosmart.net/Download/Register">EasyBCD</a>，下载好<a target="_blank" rel="noopener" href="http://mirrors.aliyun.com/ubuntu-releases/16.04.1/ubuntu-16.04.1-server-amd64.iso">Ubuntu 16.04</a>的ISO</p>
+<p>[v_blue]友情提示（这Comic Sans字体有点逗啊） 1.其他发行版不敢保证成功率哦。</p>
+<p>2.将Win改成Linux之后，在控制台关机重启会很慢……但是开机还是一如既往的快[&#x2F;v_blue]</p>
+<h2 id="压缩系统盘"><a href="#压缩系统盘" class="headerlink" title="压缩系统盘"></a>压缩系统盘</h2><p>为了方便，我们把50G的系统盘分成两部分，一部分用来存放安装镜像，一部分用于分给&#x2F;使用。首先要远程桌面连到服务器。然后呐，使用mmc.exe，文件-添加&#x2F;删除管理单元-添加磁盘管理</p>
+<p><img src="/images/010317_1141_1.png"></p>
+<p>之后在C盘上右键，选择压缩卷。</p>
+<p><img src="/images/010317_1141_2.png"></p>
+<p>不用太多，1G就够哦。</p>
+<p><img src="/images/010317_1141_3.png"></p>
+<p>哎嘿出现了未分配的空闲分区，右键，新建简单卷。一直下一步，选择文件系统的时候记得选择FAT32，保险起见顺便把卷标也清空了哈。</p>
+<p><img src="/images/010317_1141_4.png"></p>
+<h2 id="备份网络信息"><a href="#备份网络信息" class="headerlink" title="备份网络信息"></a>备份网络信息</h2><p>腾讯云不给DHCP用，所以咱就得备份下网络信息，谁希望安装一个不能联网的Ubuntu呀？</p>
+<p>方法就是网络和共享中心-更改适配器设置-属性-TCP&#x2F;IP v4，大概是酱紫</p>
+<p><img src="/images/010317_1141_5.png"></p>
+<p>截个图或者存记事本里吧。</p>
+<h2 id="挂载镜像、复制文件"><a href="#挂载镜像、复制文件" class="headerlink" title="挂载镜像、复制文件"></a>挂载镜像、复制文件</h2><p>此时我假设你的镜像已经下载好啦，本文以Ubuntu 16.04 server amd64为例（其他发行版是否能够成功我不清楚哟）</p>
+<p>你就直接双击那个镜像，把所有文件都复制到D盘（也就是刚刚压缩出来的1G的分区），请再次确认这个分区的文件系统是FAT32哟~</p>
+<h2 id="创建引导"><a href="#创建引导" class="headerlink" title="创建引导"></a>创建引导</h2><p>哎哟，复制完啦，咱就打开EasyBCD，定位到添加新条目-NeoGrub，下面选项卡切换到ISO</p>
+<p><img src="/images/010317_1141_6.png"></p>
+<p>保险起见，咱就把名称的中文去掉啦，然后路径<strong>指向你的iso文件</strong>，模式选择<strong>从磁盘运行</strong>，点击添加条目，稍等片刻~</p>
+<p>漫长的等待啊……</p>
+<p><img src="/images/010317_1141_7.png"> [v_tips]友情提示： 不用试从内存运行啦，会失败的哟~[&#x2F;v_tips]</p>
+<h2 id="重启并挂载vda3"><a href="#重启并挂载vda3" class="headerlink" title="重启并挂载vda3"></a>重启并挂载vda3</h2><p>EasyBCD完成任务之后，咱就可以重启服务器啦。</p>
+<p>之后眼疾手快的打开VNC哟。</p>
+<p>当然选择第二项然后回车啦</p>
+<p><img src="/images/010317_1141_8.png"></p>
+<p>然后就是选择语言，配置</p>
+<p><img src="/images/010317_1141_9.png"></p>
+<p>差不多一路回车，直到探测键盘之后</p>
+<p>也就是下图之后</p>
+<p><img src="/images/010317_1141_10.png"></p>
+<p>安装程序会告诉你找不到cdrom</p>
+<p>别急，咱在右上角切换到第二个tty呀</p>
+<p><img src="/images/010317_1141_11.png"></p>
+<p>手动挂载下vda3，执行如下命令</p>
+<p>mount -o ro &#x2F;dev&#x2F;vda3 &#x2F;cdrom</p>
+<p>咱可以切到<code>/cdrom</code>里ls下</p>
+<p>如果结果不像下图这样，那就重启检查下D盘（也就是vda3）是否为FAT32</p>
+<p><img src="/images/010317_1141_12.png"></p>
+<p>再回到tty1</p>
+<p>在挂载失败页面选择no，然后重新运行下这一项呐</p>
+<p><img src="/images/010317_1141_13.png"></p>
+<p>啊哈哈成功了。</p>
+<h2 id="配置系统"><a href="#配置系统" class="headerlink" title="配置系统"></a>配置系统</h2><p>之后就和正常的安装没什么两样啦，不过DHCP是不管用的哟，所以要自己手动按照保存的信息配置下系统哟。</p>
+<p><img src="/images/010317_1141_14.png"></p>
+<p>之后主机名随意设置，用户名自己取，密码自己选，主目录加密不加密随心情，时区呀什么的看着办，然后安装程序就告诉你了，不能碰vda3呀，确定不理他，直到选择安装磁盘的地方……</p>
+<p>咱选择2号，也就是vda2，Windows的C盘，不要选择错了哦。要是某些有强迫症的童鞋，可以把1#和2#删掉放一起。</p>
+<p><img src="/images/010317_1141_15.png"></p>
+<p>如下图设置，<strong>挂载点选择&#x2F;，文件系统选择Ext4，启动标志选择on</strong>，然后done</p>
+<p><img src="/images/010317_1141_16.png"></p>
+<p>之后选择finish……</p>
+<p><img src="/images/010317_1141_17.png"></p>
+<p>安装程序跟你要swap，先别管啦选择no（你要非得管，就把vda1分了，要么自己好好分得了），之后安装程序又问你一遍，你就yes确定写入硬盘。</p>
+<p><img src="/images/010317_1141_18.png"></p>
+<p>漫长的安装过程呀</p>
+<p><img src="/images/010317_1141_19.png"></p>
+<p>不要着急哟，安装程序看着好像是卡住了，其实活着呐~</p>
+<h2 id="配置软件包"><a href="#配置软件包" class="headerlink" title="配置软件包"></a>配置软件包</h2><p>这一步呐出现了一个比较严肃的问题，安装程序会跳出来，我们尝试选择select and install software，想要选择下安装哪些软件包，但是却总是跳回来。</p>
+<p><img src="/images/010317_1141_20.png"></p>
+<p>所以……跨到安装grub吧，安装个基本的系统又何妨，比busybox强、有dpkg就可以啊。</p>
+<h2 id="安装grub"><a href="#安装grub" class="headerlink" title="安装grub"></a>安装grub</h2><p>如果一切顺利的话，那么就得配置grub啦。</p>
+<p>选择install the grub boot loader on a hard disk，不要选错了哟。默认来说就是<code>/dev/vda</code>，直接回车就好了。</p>
+<p><img src="/images/010317_1141_21.png"></p>
+<p>估计接下来就没啥事了，然后重启吧~当前的VNC会挂掉，再开个新的VNC，就会发现Ubuntu已经在启动啦！</p>
+<p>啊哈哈哈</p>
+<p><img src="/images/010317_1141_22.png"></p>
+<p>输入你的账号密码，登录吧。</p>
+<p>df一个给你们看看哟。货真价实的50G呀。</p>
+<p><img src="/images/010317_1141_23.png"></p>
+<h2 id="一些后续问题和后遗症"><a href="#一些后续问题和后遗症" class="headerlink" title="一些后续问题和后遗症"></a>一些后续问题和后遗症</h2><h3 id="OpenSSH"><a href="#OpenSSH" class="headerlink" title="OpenSSH"></a>OpenSSH</h3><p>很遗憾咱无法选择软件包，所以就只能想办法用用光盘里的东西啦。</p>
+<p>sudo mount –o ro &#x2F;dev&#x2F;vda3 &#x2F;media&#x2F;cdrom<br>sudo apt update<br>sudo apt install openssh-server</p>
+<h3 id="软件源"><a href="#软件源" class="headerlink" title="软件源"></a>软件源</h3><p>既然咱已经装好了OpenSSH，那还怕啥，putty这类家伙连上，想要什么软件包不都是分分钟的事情吗。为了方便广大读者，直接粘贴这两句就可以啦。</p>
+<p>sudo mount –o ro &#x2F;dev&#x2F;vda3 &#x2F;media&#x2F;cdrom<br>sudo apt install curl<br>curl <a target="_blank" rel="noopener" href="https://repogen.simplylinux.ch/txt/xenial/sources/_431af76ab4c7ca7ccb02ff30ab7d58c6d5e60000.txt">https://repogen.simplylinux.ch/txt/xenial/sources\_431af76ab4c7ca7ccb02ff30ab7d58c6d5e60000.txt</a> | sudo tee &#x2F;etc&#x2F;apt&#x2F;sources.list</p>
+<p><img src="/images/010317_1141_24.png"></p>
+<p>很推荐<a target="_blank" rel="noopener" href="https://repogen.simplylinux.ch/index.php">Ubuntu Sources List Generator</a>这个网站！</p>
+<h3 id="1G的分区"><a href="#1G的分区" class="headerlink" title="1G的分区"></a>1G的分区</h3><p>童鞋们还记得最开始分的1G的分区吗？怎么处理他？哎，当然是做成Swap啦，或者闲着也可以啊。</p>
+<p>sudo mkswap &#x2F;dev&#x2F;vda3<br>sudo swapon &#x2F;dev&#x2F;vda3</p>
+<p>但是酱紫每次重启都得运行一遍，咱就修改&#x2F;etc&#x2F;fstab吧（我这里vi有点问题，就apt安装vim啦）。</p>
+<p>sudo mkswap &#x2F;dev&#x2F;vda3<br>sudo apt install vim<br>sudo vim &#x2F;etc&#x2F;fstab<br>#行尾添加如下内容<br>&#x2F;dev&#x2F;vda3    swap    swap defaults        0 0</p>
+<p>保存退出即可。</p>
+<h3 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h3><p>常在江湖走，哪敢不开防火墙？</p>
+<p>用ufw查查资料啦，懒得打字啦。</p>
+<h3 id="缺少众多软件包的后遗症"><a href="#缺少众多软件包的后遗症" class="headerlink" title="缺少众多软件包的后遗症"></a>缺少众多软件包的后遗症</h3><p>前面咱们不是select and install software失败了嘛，所以导致我们几乎安装成了一个最小化的Ubuntu，甚至连curl也没有，但是只要有apt、有网，还怕什么呢？</p>
+<p>下面的这条命令是安装vim、nano、build-essential、man手册、ppa支持、do-release upgrade、bash自动补全什么的，缺什么补什么吧，反正有apt超级牛力嘛~</p>
+<p>sudo apt install -y vim  nano build-essential  man-db python-software-properties  update-manager-core bash-completion dnsutils at locate software-properties-common</p>
+<p>注意，bash自动补全要编辑<code>/etc/bash.bashrc</code>文件，把 <code>enable bash completion in interactive shells</code>之后的一段全都取消注释</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>俺们技术宅就是这么坑蒙拐骗哒~</p>
+<p>50G硬盘到手，快去做个快照吧啊哈哈~</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/01/03/win2linux/index/" data-id="clhp7rtnd00bcs2qr3y7o94pm" data-title="重装腾讯云的Windows Server 2012为Ubuntu 16.04" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-fear-without-rules/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/12/19/fear-without-rules/index/" class="article-date">
@@ -1005,72 +1139,6 @@
 
 
   
-    <article id="post-chrome-theme-color/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/09/09/chrome-theme-color/index/" class="article-date">
-  <time class="dt-published" datetime="2016-09-09T00:00:00.000Z" itemprop="datePublished">2016-09-09</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/09/09/chrome-theme-color/index/">让你的网站更具个性：WordPress下Android Chrome通知栏变色</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>让你的网站更具个性：WordPress下Android Chrome通知栏变色</p>
-<p>在大家用Android版Chrome时，可能会发现有些时候通知栏会变色，举个Quora的栗子</p>
-<p><img src="/images/090916_0514_WordP1.png"></p>
-<p>感觉很搭很个性是不是！</p>
-<p>其实想要支持这一特性，只要插入一个meta标签、并且设备的Chrome版本大于39、运行于Lollipop（Android 5.0）以后的版本，就可以完美支持这一特性啦！</p>
-<p>对应的meta标签可以参考如下格式，其中content后面是颜色的十六进制表示：</p>
-<p>将meta放到head后面就可以啦！</p>
-<p>十六进制颜色可以用Photoshop的拾色器取出来。</p>
-<p>对于WordPress来说，找到你主题的header.php，将上面的一行插入到它该有的地方，搜索下，放在其他meta下面就好啦~！</p>
-<p>友情提示：header.php这个文件非常重要，修改之前备份一下更好！</p>
-<hr>
-<p>顺路提一句，沉浸模式和通知栏变色是两个概念。</p>
-<p>来看看我的效果图：</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/09/090916_0514_WordP3.png"><img src="/images/090916_0514_WordP3-300x163.png" alt="090916_0514_WordP3.png"></a></p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/09/090916_0514_WordP4.png"><img src="/images/090916_0514_WordP4-300x199.png" alt="090916_0514_WordP4.png"></a></p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p> </p>
-<p>配色也是一门艺术啊！</p>
-<p>本文参考资料：</p>
-<p><a target="_blank" rel="noopener" href="https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android?hl=en">https://developers.google.com/web/updates/2014/11/Support-for-theme-color-in-Chrome-39-for-Android?hl=en</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/09/09/chrome-theme-color/index/" data-id="clhp7rtel000ss2qr569f2msd" data-title="让你的网站更具个性：WordPress下Android Chrome通知栏变色" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1128,6 +1196,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1141,10 +1213,6 @@
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

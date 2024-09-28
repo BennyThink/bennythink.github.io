@@ -73,6 +73,71 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-zero-trust-access-web/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/20/zero-trust-access-web/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-20T00:00:00.000Z" itemprop="datePublished">2023-04-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/20/zero-trust-access-web/index/">使用Cloudflare Zero Trust保护你的Web应用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>有些时候我们跑一些web应用，想把他们放在公网上，但是又不能每个人都可以访问。如果这个程序不支持通过身份验证，那么之前的做法大概会前面套上一个nginx之类的反向代理，在反向代理中配置身份认证。</p>
+<p>这样……也不是不行，但是配置nginx就让人感觉很繁琐！在有了Cloudflare Zero Trust之后，我们可以利用Cloudflare做到这种身份认证的事情。</p>
+<p>我这刚好有一个redis insight，接下来就可以说一下这个东西怎么跑</p>
+<h2 id="Redis-Insight"><a href="#Redis-Insight" class="headerlink" title="Redis Insight"></a>Redis Insight</h2><p>Redis官方出的一个用户管理redis的工具，可以增删改查啦什么的。跑起来很容易，用docker跑是这样的：才不用那个electron套壳呢</p>
+<p>docker run -d –restart&#x3D;unless-stopped –name&#x3D;redisinsight \<br>    -v redisinsight:&#x2F;db -p 127.0.0.1:8001:8001 \<br>    -e RITRUSTEDORIGINS&#x3D;<a target="_blank" rel="noopener" href="https://redis.dmesg.app/">https://redis.dmesg.app</a> \<br>    redislabs&#x2F;redisinsight</p>
+<p>由于 Redis Insight有 CORS检查，因此这里要设置环境变量来控制，要记住不可以带 <code>/</code>哦</p>
+<p>然后把容器连接到网络，因为我的redis通过docker-compose跑了两个，因此要把容器和网络连接起来：</p>
+<p>docker network connect botsrunner_default redisinsight<br>docker network connect yyetsbot_default redisinsight</p>
+<h2 id="创建Argo-tunnel，添加Public-Hostname"><a href="#创建Argo-tunnel，添加Public-Hostname" class="headerlink" title="创建Argo tunnel，添加Public Hostname"></a>创建Argo tunnel，添加Public Hostname</h2><p>如下图所示。此时<code>redis.dmesg.app</code>应该可以访问了</p>
+<p><img src="/images/2023042003301977.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="开启access"><a href="#开启access" class="headerlink" title="开启access"></a>开启access</h2><p>Zero Trust – Access – Applications – Add Application – Self-hosted</p>
+<p>选择对应的会话有效期，对应的子域名</p>
+<p><img src="/images/2023042003302065.png" alt="图形用户界面 描述已自动生成"></p>
+<p>下一页configure rules选择最简单的email方式即可</p>
+<p><img src="/images/2023042003302199.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>此时打开对应的网站，就会发现已经进入了验证页面</p>
+<p><img src="/images/2023042003302235.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>输入邮箱验证之后就可以正常访问了。</p>
+<p>在Redis Insight中，添加连接的时候，用<code>redis.yyetsbot_default</code> 来表示<code>yyetsbot_default</code>这个网络的<code>redis</code> service。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003342554.png"><img src="/images/2023042003342554.png"></a></p>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="收不到验证码"><a href="#收不到验证码" class="headerlink" title="收不到验证码"></a>收不到验证码</h3><p>别怕，可能是被拦截了，比如说Gmail……</p>
+<p><img src="/images/2023042003302348.png" alt="图形用户界面, 文本 中度可信度描述已自动生成"></p>
+<h3 id="Redis-Insight页面无法显示"><a href="#Redis-Insight页面无法显示" class="headerlink" title="Redis Insight页面无法显示"></a>Redis Insight页面无法显示</h3><p>应该是cache的问题，开development mode暂时绕过，验证通过之后再关掉好了</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/20/zero-trust-access-web/index/" data-id="clhp7rtny00c0s2qr0qjzc0ow" data-title="使用Cloudflare Zero Trust保护你的Web应用" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-cf-zero-trust/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/04/01/cf-zero-trust/index/" class="article-date">
@@ -1004,77 +1069,6 @@ server.quit()
 
 
   
-    <article id="post-m1-aom/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/08/26/m1-aom/index/" class="article-date">
-  <time class="dt-published" datetime="2022-08-26T00:00:00.000Z" itemprop="datePublished">2022-08-26</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/08/26/m1-aom/index/">在M1 Mac下开发WebP Server Go</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近换了M1的Mac，成为了ARM芯片的受害者。在尝试用Go运行WebP Server Go的时候出错了</p>
-<p><img src="/images/2022082608305257.jpeg" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>看起来是没有安装aom，但是<code>brew install</code>了一下还是有的啊。另一边的Intel Mac就没这个问题。</p>
-<p>╰─$ ls &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;aom<br>aom.h aom_external_partition.h aomcx.h<br>aom_codec.h aom_frame_buffer.h aomdx.h<br>aom_decoder.h aom_image.h<br>aom_encoder.h aom_integer.h</p>
-<p>头文件明明是有的！</p>
-<p>想了一下， 原因可能是因为M1的homebrew会把相关的依赖安装到 <code>/opt/homebrew</code>下，而不像Intel的版本会丢在<code>/usr/local/</code>下，而<code>/usr/local/</code>大概率是gcc默认的搜索路径。所以gcc compiler找不到对应的头文件了。</p>
-<p>创建了一个简单的<code>test.c</code> 验证一下</p>
-<p>#include<br>#include<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>int main() {<br>   &#x2F;&#x2F; printf() displays the string inside quotation<br>   printf(“Hello, World!”);<br>   return 0;<br>}</p>
-<p>╰─$ gcc test.c test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found #include &lt;aom&#x2F;aom_encoder.h&gt; ^~~~~~~~~~~~~~~~~~~ 1 error generated.</p>
-<p>果真如此，那么就export一下CFLAGS吧</p>
-<p>╰─$ export CFLAGS&#x3D;I&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F; 1 ↵<br>╭─benny@MBP ~&#x2F;Downloads<br>╰─$ gcc test.c<br>test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>^~~~~~~~~~~~~~~~~~~<br>1 error generated.</p>
-<p>依旧报错。为什么CFLAGS不生效呢？</p>
-<p>试试把aom符号连接到 <code>/usr/local/include</code>？ 这个目录应该是默认搜索的。</p>
-<p>❯ ln -s &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;aom &#x2F;usr&#x2F;local&#x2F;include<br>~&#x2F;Downloads<br>❯ gcc test.c</p>
-<p>没有报错，证明我的推断是正确的。</p>
-<p>突然想到，macOS的这个gcc，其实是clang啊，那么是不是和正常的gcc用的环境变量不同？搜了一下还真是，clang应该用<code>CPATH</code>，<code>C_INCLUDE_PATH</code> 和<code>CPLUS_PATH</code>之类的，具体可以参考这里 <a target="_blank" rel="noopener" href="https://clang.llvm.org/docs/CommandGuide/clang.html">https://clang.llvm.org/docs/CommandGuide/clang.html</a></p>
-<p>把符号连接删掉，再试试看！</p>
-<p>└&gt; gcc test.c<br>test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>^~~~~~~~~~~~~~~~~~~<br>1 error generated.<br>┌[kiwish-4.2]-(<del>&#x2F;Downloads)-<br>└&gt; export CPATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;<br>┌[kiwish-4.2]-(</del>&#x2F;Downloads)-<br>└&gt; gcc test.c</p>
-<p>果真如此！于是Goland加一个环境变量，再次编译</p>
-<p>&#x2F;opt&#x2F;homebrew&#x2F;Cellar&#x2F;go&#x2F;1.19&#x2F;libexec&#x2F;pkg&#x2F;tool&#x2F;darwin_arm64&#x2F;link: running clang failed: exit status 1<br>ld: library not found for -laom<br>clang: error: linker command failed with exit code 1 (use -v to see invocation)</p>
-<p>看起来是LDFLAGS的问题，猜测clang还是用的奇奇怪怪的环境变量。先link一下看看</p>
-<p>ln -s &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;* &#x2F;usr&#x2F;local&#x2F;lib&#x2F;</p>
-<p>再运行，果真好了。那么如何用环境变量解决问题呢？我不太喜欢在系统目录里link来link去的。</p>
-<p>搜了一圈，正确的环境变量的名字叫<code>LIBRARY_PATH</code></p>
-<p>LIBRARY_PATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Clang真坑</p>
-<p>设置两个环境变量就好了</p>
-<p>CPATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;;LIBRARY_PATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;</p>
-<p><img src="/images/2022082608305373.png" alt="文本 中度可信度描述已自动生成"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/08/26/m1-aom/index/" data-id="clhp7rthi004ss2qr85fk9fvn" data-title="在M1 Mac下开发WebP Server Go" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1132,6 +1126,10 @@ server.quit()
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1145,10 +1143,6 @@ server.quit()
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

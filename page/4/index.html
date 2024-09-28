@@ -73,6 +73,77 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-m1-aom/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/08/26/m1-aom/index/" class="article-date">
+  <time class="dt-published" datetime="2022-08-26T00:00:00.000Z" itemprop="datePublished">2022-08-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/08/26/m1-aom/index/">在M1 Mac下开发WebP Server Go</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>最近换了M1的Mac，成为了ARM芯片的受害者。在尝试用Go运行WebP Server Go的时候出错了</p>
+<p><img src="/images/2022082608305257.jpeg" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>看起来是没有安装aom，但是<code>brew install</code>了一下还是有的啊。另一边的Intel Mac就没这个问题。</p>
+<p>╰─$ ls &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;aom<br>aom.h aom_external_partition.h aomcx.h<br>aom_codec.h aom_frame_buffer.h aomdx.h<br>aom_decoder.h aom_image.h<br>aom_encoder.h aom_integer.h</p>
+<p>头文件明明是有的！</p>
+<p>想了一下， 原因可能是因为M1的homebrew会把相关的依赖安装到 <code>/opt/homebrew</code>下，而不像Intel的版本会丢在<code>/usr/local/</code>下，而<code>/usr/local/</code>大概率是gcc默认的搜索路径。所以gcc compiler找不到对应的头文件了。</p>
+<p>创建了一个简单的<code>test.c</code> 验证一下</p>
+<p>#include<br>#include<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>int main() {<br>   &#x2F;&#x2F; printf() displays the string inside quotation<br>   printf(“Hello, World!”);<br>   return 0;<br>}</p>
+<p>╰─$ gcc test.c test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found #include &lt;aom&#x2F;aom_encoder.h&gt; ^~~~~~~~~~~~~~~~~~~ 1 error generated.</p>
+<p>果真如此，那么就export一下CFLAGS吧</p>
+<p>╰─$ export CFLAGS&#x3D;I&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F; 1 ↵<br>╭─benny@MBP ~&#x2F;Downloads<br>╰─$ gcc test.c<br>test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>^~~~~~~~~~~~~~~~~~~<br>1 error generated.</p>
+<p>依旧报错。为什么CFLAGS不生效呢？</p>
+<p>试试把aom符号连接到 <code>/usr/local/include</code>？ 这个目录应该是默认搜索的。</p>
+<p>❯ ln -s &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;aom &#x2F;usr&#x2F;local&#x2F;include<br>~&#x2F;Downloads<br>❯ gcc test.c</p>
+<p>没有报错，证明我的推断是正确的。</p>
+<p>突然想到，macOS的这个gcc，其实是clang啊，那么是不是和正常的gcc用的环境变量不同？搜了一下还真是，clang应该用<code>CPATH</code>，<code>C_INCLUDE_PATH</code> 和<code>CPLUS_PATH</code>之类的，具体可以参考这里 <a target="_blank" rel="noopener" href="https://clang.llvm.org/docs/CommandGuide/clang.html">https://clang.llvm.org/docs/CommandGuide/clang.html</a></p>
+<p>把符号连接删掉，再试试看！</p>
+<p>└&gt; gcc test.c<br>test.c:3:10: fatal error: ‘aom&#x2F;aom_encoder.h’ file not found<br>#include &lt;aom&#x2F;aom_encoder.h&gt;<br>^~~~~~~~~~~~~~~~~~~<br>1 error generated.<br>┌[kiwish-4.2]-(<del>&#x2F;Downloads)-<br>└&gt; export CPATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;<br>┌[kiwish-4.2]-(</del>&#x2F;Downloads)-<br>└&gt; gcc test.c</p>
+<p>果真如此！于是Goland加一个环境变量，再次编译</p>
+<p>&#x2F;opt&#x2F;homebrew&#x2F;Cellar&#x2F;go&#x2F;1.19&#x2F;libexec&#x2F;pkg&#x2F;tool&#x2F;darwin_arm64&#x2F;link: running clang failed: exit status 1<br>ld: library not found for -laom<br>clang: error: linker command failed with exit code 1 (use -v to see invocation)</p>
+<p>看起来是LDFLAGS的问题，猜测clang还是用的奇奇怪怪的环境变量。先link一下看看</p>
+<p>ln -s &#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;* &#x2F;usr&#x2F;local&#x2F;lib&#x2F;</p>
+<p>再运行，果真好了。那么如何用环境变量解决问题呢？我不太喜欢在系统目录里link来link去的。</p>
+<p>搜了一圈，正确的环境变量的名字叫<code>LIBRARY_PATH</code></p>
+<p>LIBRARY_PATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Clang真坑</p>
+<p>设置两个环境变量就好了</p>
+<p>CPATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;include&#x2F;;LIBRARY_PATH&#x3D;&#x2F;opt&#x2F;homebrew&#x2F;opt&#x2F;aom&#x2F;lib&#x2F;</p>
+<p><img src="/images/2022082608305373.png" alt="文本 中度可信度描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/08/26/m1-aom/index/" data-id="clhp7rthi004ss2qr85fk9fvn" data-title="在M1 Mac下开发WebP Server Go" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-go-selenium/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/07/23/go-selenium/index/" class="article-date">
@@ -878,98 +949,6 @@ psutil.Process().kill()
 
 
   
-    <article id="post-actions-celery/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/01/08/actions-celery/index/" class="article-date">
-  <time class="dt-published" datetime="2022-01-08T00:00:00.000Z" itemprop="datePublished">2022-01-08</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/01/08/actions-celery/index/">使用GitHub Actions跑Celery worker</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>自从有了GitHub Actions之后，TravisCI、DockerHub Autobuild等都可以歇菜了。</p>
-<h2 id="集成测试"><a href="#集成测试" class="headerlink" title="集成测试"></a>集成测试</h2><p>通常来说我会写好Makefile，actions里安装好依赖之后直接<code>make test</code>就可以了。</p>
-<p><img src="/images/2022010813162126.png"></p>
-<p>可以在actions的界面创建badge，加到<code>README.md</code>里，彻底取代TravisCI</p>
-<h2 id="自动构建Docker-image"><a href="#自动构建Docker-image" class="headerlink" title="自动构建Docker image"></a>自动构建Docker image</h2><p>可以<a target="_blank" rel="noopener" href="https://dmesg.app/github-actions-docker-image.html">直接用Actions构建</a>Multi-Arch的Docker image，然后push到docker hub，就是不给docker hub交钱。甚至我们还可以同步push到ghcr.io 虽说也没什么人用就是了。相关的workflow可以参考这个</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/builder.yaml">https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/builder.yaml</a></p>
-<p>基本上已经做到拿来配置好secrets就能用了。</p>
-<h2 id="自动部署代码"><a href="#自动部署代码" class="headerlink" title="自动部署代码"></a>自动部署代码</h2><p>image也构建完了，部署的话可以用ssh action，直接ssh到机器<code>docker pull</code>一波走起。记得把private key放到secret里就好。可以参考这个workflow</p>
-<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/upgrade.yml">https://github.com/tgbot-collection/ytdlbot/blob/master/.github/workflows/upgrade.yml</a></p>
-<h2 id="其他应用"><a href="#其他应用" class="headerlink" title="其他应用"></a>其他应用</h2><p>GitHub Actions的机器性能还不错，2C 7G RAM，大概总共……官方说14G SSD，其实有办法弄出来更多磁盘空间的。</p>
-<p>每个job能跑6小时，每个workflow能跑72小时。缺点是没有入网，所有的inbound traffic都被防火墙挡住了（而且不是iptables搞的），因此想当web server、梯子这种需要暴露端口的就不行了。</p>
-<p>但是如果是celery worker这种不需要暴露端口的就没问题。</p>
-<h2 id="配置WireGuard"><a href="#配置WireGuard" class="headerlink" title="配置WireGuard"></a>配置WireGuard</h2><p>我的celery worker需要连接到broker，因此需要加密的通道。可以用WireGuard，可以用ssh隧道，以及各种神奇的加密隧道。</p>
-<p>ssh隧道比较简单，run里执行一下如下命令：</p>
-<p>ssh -L 6379:localhost:6379 root@server</p>
-<p>以后访问本地的6379就像访问服务器的6379一样了。</p>
-<p>WireGuard的话，比较麻烦，先安装 直接<code>sudo apt install -y wireguard-tools</code>就可以了。</p>
-<p>然后配置好peer，比如说我给GitHub Actions的peer是这样的：</p>
-<p>[Interface]<br>PrivateKey &#x3D; 12345241<br>Address &#x3D; 192.168.6.111&#x2F;24</p>
-<p>[Peer]<br>PublicKey &#x3D; 322331<br>AllowedIPs &#x3D; 192.168.6.0&#x2F;24<br>Endpoint &#x3D; 1.1.1.1:443<br>PersistentKeepalive &#x3D; 60</p>
-<p>这个东西肯定不能明文写到workflow里，因此需要用到secret，又因为是带了换行的，所以有至少两种办法。</p>
-<p> </p>
-<h3 id="base64法"><a href="#base64法" class="headerlink" title="base64法"></a>base64法</h3><p>跑一遍base64之后得到了这么个东西，然后把这个东西加到secret里：</p>
-<p>CltJbnRlcmZhY2VdClByaXZhdGVLZXkgPSAxMjM0NTI0MQpBZGRyZXNzID0gMTkyLjE2OC42LjExMS8yNAoKW1BlZXJdClB1YmxpY0tleSA9IDMyMjMzMQpBbGxvd2VkSVBzID0gMTkyLjE2OC42LjAvMjQKRW5kcG9pbnQgPSAxLjEuMS4xOjQ0MwpQZXJzaXN0ZW50S2VlcGFsaXZlID0gNjAK</p>
-<p>需要在shell script中用到这个base64字符串，echo到<code>/etc/wireguard/wg0.conf</code> 中。</p>
-<p>要注意的是， <code>sudo echo $WG &gt; /etc/wireguard/wg0.conf</code> 是不行的，因为 &gt;是shell的重定向操作符，当前shell还是普通用户，这种用法只是echo有了root而已。方法之一是用tee</p>
-<p>echo $WG |base64 -d | sudo tee -a &#x2F;etc&#x2F;wireguard&#x2F;wg0.conf</p>
-<p>tee完之后<code>wg-quick up wg0</code> 然后ping下peer就可以了。整段yaml是这样的：</p>
-<p>- name: Set up WireGuard<br>  env:<br>    WG: $<br>  run: |<br>    sudo apt install -y wireguard-tools<br>    echo $WG |base64 -d | sudo tee -a &#x2F;etc&#x2F;wireguard&#x2F;wg0.conf<br>    sudo wg-quick up wg0<br>    ping 192.168.6.1 -c 2</p>
-<p>第二行的env可选，要不就env成WG这个变量，要不就直接<code>echo $&#123;&#123;secrets.WG&#125;&#125;</code></p>
-<p>注意：</p>
-<p>由于用了base64，所以workflow的日志中会看到明文key，因此建议private repository。毕竟用了tee一份标准输出一份文件。如果不想private repository，那就这样</p>
-<p>echo $WG |base64 -d &gt; &#x2F;tmp&#x2F;wg0.conf<br>sudo cp &#x2F;tmp&#x2F;wg0.conf &#x2F;etc&#x2F;wireguard&#x2F;wg0.conf</p>
-<p>或者EOF什么的，自己发挥吧。相信广大人民群众的脑洞。</p>
-<h3 id="直接用secret"><a href="#直接用secret" class="headerlink" title="直接用secret"></a>直接用secret</h3><p>secret中写peer配置明文，然后echo的时候加上 “”</p>
-<p>echo “$“  | sudo tee -a &#x2F;etc&#x2F;wireguard&#x2F;wg0.conf</p>
-<h2 id="更多磁盘空间"><a href="#更多磁盘空间" class="headerlink" title="更多磁盘空间"></a>更多磁盘空间</h2><p>GitHub Actions默认装了很多东西，大部分我们是用不到的，卸载掉拿来搞事情吧，可以用 <a target="_blank" rel="noopener" href="https://github.com/easimon/maximize-build-space">https://github.com/easimon/maximize-build-space</a></p>
-<p>我的配置是这样的</p>
-<p>- name: Maximize build space<br>  uses: easimon&#x2F;maximize-build-space@master<br>  with:<br>    swap-size-mb: 512<br>    remove-dotnet: ‘true’<br>    remove-android: ‘true’<br>    remove-haskell: ‘true’</p>
-<h2 id="跑celery-worker"><a href="#跑celery-worker" class="headerlink" title="跑celery worker"></a>跑celery worker</h2><p>我的服务都是有docker image的，所有的运行时信息都是用的环境变量。因此这步基本上就是配置一下，然后跑起来就行了。要注意的是，<code>docker run</code>的话不要加 -d 选项，否则跑后台了整个workflow结束，VM也就没了。对应<code>docker-compose</code>也不要加<code>-d</code>。</p>
-<p><img src="/images/2022010813162376.png"></p>
-<p>效果还是很刺激的（</p>
-<h2 id="crontab"><a href="#crontab" class="headerlink" title="crontab"></a>crontab</h2><p>设置一个6小时跑一次的cron，这样就不用再操心了。</p>
-<p>on:<br>  schedule:<br>    - cron: ‘0 *&#x2F;6 * * *‘</p>
-<p>cron的第一个数字0（或者是0-59的其他分钟）非常重要，如果是*的话，那么就意味着6、12、18、0点的每分钟都跑一次，也就是240个任务。相信这样过不了你的号就会遭受GitHub的社会主义铁拳。</p>
-<h2 id="警告"><a href="#警告" class="headerlink" title="警告"></a>警告</h2><p>如此薅羊毛的风险还是有的，建议谨慎行事，避免号没了。</p>
-<p>完整workflow <a target="_blank" rel="noopener" href="https://gist.github.com/BennyThink/e95e00f50e20cc56eb5810a1b2feaaad">https://gist.github.com/BennyThink/e95e00f50e20cc56eb5810a1b2feaaad</a></p>
-<p> </p>
-<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p>我号没了</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/01/2022012620085533.jpeg"><img src="/images/2022012620085533.jpeg"></a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/01/08/actions-celery/index/" data-id="clhp7rtdp0001s2qr3nn55tvu" data-title="使用GitHub Actions跑Celery worker" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1027,6 +1006,10 @@ psutil.Process().kill()
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1040,10 +1023,6 @@ psutil.Process().kill()
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

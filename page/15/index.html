@@ -73,6 +73,103 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-wanna-cry/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/05/14/wanna-cry/index/" class="article-date">
+  <time class="dt-published" datetime="2017-05-14T00:00:00.000Z" itemprop="datePublished">2017-05-14</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/05/14/wanna-cry/index/">Wanna Cry勒索病毒事件随想</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>这波WannaCry可能过去了，但是据安全人员研究称，<a target="_blank" rel="noopener" href="https://github.com/stamparm/EternalRocks/">新的一波EternalRocks即将到来</a>，现阶段此蠕虫没有采取勒索行为而是试图创建僵尸网络。不同于WannaCry只使用了Eternalblue，EternalRocks使用了NSA的SMB漏洞利用程序EternalBlue, EternalChampion, EternalRomance,EternalSynergy，还有相关的程序DoublePulsar（用于注入dll或者运行shellcode）, ArchiTouch（判断目标系统的架构）SmbTouch（判断可以被利用的SMB漏洞）。</p>
+<p>我们……不哭，起来，再撸 [v_error]那个啥，先说下呗，使用Windows的小伙伴，别想你是Windows几了，尽可能的<strong>开自动更新</strong>吧，顺便<strong>关了SMB服务</strong>吧，然后再养成<strong>备份文件</strong>的好习惯噢（不如试试dropbox）。备份不做，十恶不赦啊！时刻感觉自己要被人谋害这才对嘛(_ _)( - . - )逃[&#x2F;v_error]</p>
+<p>根据EternalBlue的说明，目前可以受到攻击的系统有XP、Server 2008和Windows7；我今早测试貌似Windows 10（1511）不受此漏洞的影响，可能是我测试方法有误，但是依旧小心为妙吧！</p>
+<p>关注本博客的朋友们可能会发现，三个多星期之前我根据歪果仁的论文写了一篇<a target="_blank" rel="noopener" href="https://dmesg.app/shadowbroker.html">《使用EternalBlue, doublepulsar, metasploit渗透Windows》</a>的文章，那时候ShadowBroker刚刚公布NSA黑客工具一个星期，MS17-010都公布接近一个月了。没想到一个月之后，竟然有人根据这漏洞搞出来蠕虫大规模入侵内网（那个……我拿着08年的netapi也干了不少事），同时又看到很多哭笑不得的言论，什么别以为Mac就安全了什么Linux的。童鞋们啊，多读书，尽可能的进行<strong>批判性思维和独立思考</strong>真的很重要啊。 由于本文主要会集中讨论一下Windows和Linux的问题，这就好像问一个程序员，你是用vim还是Emacs，<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%90%89%E5%93%88%E5%BE%B7">jihad</a>啊！所以，我会尽量避免这些问题，争取避免片面思维。 咱本篇主要讨论的是服务器和桌面的Windows与Linux，当然在开始之前，咱们有必要普及几个技术术语，毕竟，咱的写作目标是科普嘛！</p>
+<h2 id="啥是比特币"><a href="#啥是比特币" class="headerlink" title="啥是比特币"></a>啥是比特币</h2><p>不同于一般货币拥有载体（实物）、中央发行机构，比特币是一种<strong>没有载体</strong>（实物）的、<strong>没有发行机构</strong>的、<strong>去中心化</strong>电子货币。由于其采用密码技术来控制货币的生产和转移，而没有中央的发行机构，无法任意增发，交易由整个网络进行验证，因此比特币也被认为是一种电子加密货币 ，由于其有特殊的隐秘性，加上不必经过第三方金融机构，因此除了重视隐私的用户外，也经常被拿来当作非法交易的媒介，比如说在<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9A%97%E7%BD%91">暗网</a>上干点坏事啦，都是用比特币的。 使用比特币最大的特点就是<strong>很难溯源</strong>，在<strong>技术层面上</strong>你不知道这个比特币账户背后的人究竟是谁，因此也特别适合那些“黑客们”。 比特币有多值钱呢？现在1比特币已经大概等值于1700USD了，挺值钱的，要是我在初中的时候知道这东西搞几个就好了……</p>
+<h2 id="啥是勒索病毒"><a href="#啥是勒索病毒" class="headerlink" title="啥是勒索病毒"></a>啥是勒索病毒</h2><p>就是吧，有一种恶意的计算机程序，它控制你的电脑之后，会用某种加密算法加密你的部分甚至是全部文件，之后向你索要赎金来解密；类似的事情不仅发生在桌面、服务器上，有些数据库被脱下来之后也会这样索要比特币。 由于密码学的一些原因，咱想不交钱解密可能比较难（咱不会逆向，不过咱可以想万一这个病毒制作者的加密密钥是硬编码在软件中的呢，应该没这么智障吧），所以咱要支付赎金吗？当然不要了，那不是助纣为虐么！谁敢保证“黑客”一定会有良心！话说回来，那勒索工具需要Tor？那完了哈哈哈还得挂代理啊真是悲剧；中文版据说是Google Translate的？Google Translate这么牛逼了？</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/05/2017051411330961.png"><img src="/images/2017051411330961-1024x768.png"></a></p>
+<p>需要tor才能解密，来源<a target="_blank" rel="noopener" href="https://twitter.com/chenshaoju/status/863602735257493504">陈少举Twitter</a></p>
+<p>在一两年前我还玩新浪微博的时候，看到字幕组里一个人的朋友的电脑被这样的病毒搞了，应该使用了巨慢无比的RSA，哎，看来这事还是层出不穷呢。</p>
+<h2 id="EternalBlue又是个啥"><a href="#EternalBlue又是个啥" class="headerlink" title="EternalBlue又是个啥"></a>EternalBlue又是个啥</h2><p>就是嘛，美国有一个巨牛逼巨可恶的机构叫做<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%BE%8E%E5%9B%BD%E5%9B%BD%E5%AE%B6%E5%AE%89%E5%85%A8%E5%B1%80">NSA</a>国家安全局，对就是爆光<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%A8%9C%E9%8F%A1%E8%A8%88%E7%95%AB">棱镜计划</a>的主角<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E7%88%B1%E5%BE%B7%E5%8D%8E%C2%B7%E6%96%AF%E8%AF%BA%E7%99%BB">斯诺登</a>曾经就职的那个地方；说NSA巨牛逼是因为NSA技术实力其实蛮强的，说NSA巨可恶是因为他们净想着以各种名义来做各种侵犯人权的事情。话说有另一个黑客组织叫影子经纪人（The Shadow Brokers ），他们竟然从NSA手里吧Equation Group的黑客工具偷出来了。那堆黑客工具中有一系列叫做Eternal啥的，包括<code>EternalBlue，EternalRomance，EternalRomance</code>啥的，听这名咱就能直到NSA那群人是多么的骄傲啊竟然把这玩意叫Eternal永恒的？ 在这对工具中啊最好用的基本上就是EternalBlue了，EternalBlue可以通过开放445端口（提供<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%BC%BA%E6%9C%8D%E5%99%A8%E8%A8%8A%E6%81%AF%E5%8D%80%E5%A1%8A">SMB服务</a>，SMB是啥？简单理解你在网上邻居里看到同局域网的电脑那就算SMB好吧）来远程执行代码，其中可以被入侵的目标包括XP、Server 2008&#x2F;7，咦竟然没有Server 2003？没事咱有<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ms08-067_Server_2003_Chinese_Version">ms08-067的netapi</a>啊……</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/05/2017051411335554.png"><img src="/images/2017051411335554.png"></a></p>
+<p>总结就是一句话，EternalBlue非常强大，强大到只要知道一个IP地址就能够植入后门，颇有当年ms08-067的风范啊……</p>
+<h2 id="啥是零日漏洞（0day）、未公开漏洞"><a href="#啥是零日漏洞（0day）、未公开漏洞" class="headerlink" title="啥是零日漏洞（0day）、未公开漏洞"></a>啥是零日漏洞（0day）、未公开漏洞</h2><p>咱字幕组做字幕啊，分成好几种，一种叫0day，就是当天必须翻译完压制完的；还有1day，就是第二天翻译完。类比下，假如某个系统的某个漏洞的细节被公开，他们可以在24小时之内制作出相应的攻击代码。而这个时候，软件厂商多半还没来得及发布补丁。那么这些攻击者就可以利用这个时间差，进行入侵活动。所以，这种漏洞称为“<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%9B%B6%E6%97%A5%E6%94%BB%E5%87%BB">零日漏洞</a>”（Zero-Day, 0-Day）。 类似0day有一种说法叫做“未公开漏洞”，这俩概念比较接近，“零日漏洞”可利用的时间段会短一些，比较负责任的软件厂商通常会比较快发布补丁（当然也有例外，比如那个Oracle啊）；未公开漏洞就是没公开给厂商、但是却有漏洞利用程序的，咱可以说NSA这堆在没被公开之前就属于未公开漏洞。 咱能发现，未公开漏洞要危险的多。NSA在2011年就有了这堆工具(根据文件的时间戳)，这都17年了，想想就可怕。 好了咱说了一大堆啥是，大概让大家对背景有了些了解。</p>
+<h2 id="勒索病毒是咋扩散的这么快的啊"><a href="#勒索病毒是咋扩散的这么快的啊" class="headerlink" title="勒索病毒是咋扩散的这么快的啊"></a>勒索病毒是咋扩散的这么快的啊</h2><p>鉴于巨硬的Windows 7是如此成功、优秀的一款操作系统，大家应该都使用过吧？但是很多人应该发现只要自己那么一关机啊，它就给你更新更新更新，有的时候还更新失败，巨烦无比！在Windows 10上这个问题貌似得到了一些改善。所以呐有很多人，为了防止被这个更新折磨致死，就把它关掉了（坦言我也曾经给自己的自动更新关掉），于是乎巨硬推送的安全更新就不会自动安装了，恰巧SMB默认是开启的、EternalBlue攻击执行远程代码成功率奇高，在加上很多政府组织、公司、学校内网的Windows配置都是一样的，网管还很懒，这天时地利人和加一起就导致了像传染病一样的传播。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/05/2017051411342843.png"><img src="/images/2017051411342843.png"></a> 被攻击的学校机房，来源<a target="_blank" rel="noopener" href="https://twitter.com/BattlerHenry/status/863273070097612805">猫箱内の巴托拉-BattlerHenry</a></p>
+<p>提到政府组织、公司、学校的安全策略，其实有一些会对外来攻击防范的比较好，但是对于内网发起的攻击却不那么在乎；有些则是内外都不在乎，比如说我学校，网管懒死了！</p>
+<h2 id="Linux对于此次病毒攻击的防范"><a href="#Linux对于此次病毒攻击的防范" class="headerlink" title="Linux对于此次病毒攻击的防范"></a>Linux对于此次病毒攻击的防范</h2><p>据国外安全研究人员报道，此病毒的变种版本2.0可以在wine下感染文件，但是还请各位Linux用户放心……原因待我一一道来。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/05/2017051511222426.png"><img src="/images/2017051511222426.png"></a></p>
+<p>图片来源：<a target="_blank" rel="noopener" href="https://twitter.com/hackerfantastic/status/863359375787925505">Hacker Fantasic称</a></p>
+<h3 id="原因之一：wine-x2F-Linux默认不带有smb服务"><a href="#原因之一：wine-x2F-Linux默认不带有smb服务" class="headerlink" title="原因之一：wine&#x2F;Linux默认不带有smb服务"></a>原因之一：wine&#x2F;Linux默认不带有smb服务</h3><h3 id="原因之二：就算带，EternalBlue也只是针对有漏洞的smb实现发起攻击（7-x2F-2008-x2F-XP）"><a href="#原因之二：就算带，EternalBlue也只是针对有漏洞的smb实现发起攻击（7-x2F-2008-x2F-XP）" class="headerlink" title="原因之二：就算带，EternalBlue也只是针对有漏洞的smb实现发起攻击（7&#x2F;2008&#x2F;XP）"></a>原因之二：就算带，EternalBlue也只是针对有漏洞的smb实现发起攻击（7&#x2F;2008&#x2F;XP）</h3><p>以上两个原因就已经能够保证Linux就像<strong>打了疫苗一样对病毒的传播是免疫</strong>的，但是哪怕某个用户脑残在Linux下收到了病毒的exe、并且还装有wine、并且还双击了……</p>
+<h3 id="原因之三：wine的一些对于Windows-API、dll不完善的封装可能会导致某些版本的病毒运行失败"><a href="#原因之三：wine的一些对于Windows-API、dll不完善的封装可能会导致某些版本的病毒运行失败" class="headerlink" title="原因之三：wine的一些对于Windows API、dll不完善的封装可能会导致某些版本的病毒运行失败"></a>原因之三：wine的一些对于Windows API、dll不完善的封装可能会导致某些版本的病毒运行失败</h3><p>找不到入口点，无法加载某个dll，唉，当个病毒也不容易啊。</p>
+<h3 id="原因之四：退一步讲，wine只对-有读写权限，万一走了狗屎运也只是自己的-被加密"><a href="#原因之四：退一步讲，wine只对-有读写权限，万一走了狗屎运也只是自己的-被加密" class="headerlink" title="原因之四：退一步讲，wine只对~有读写权限，万一走了狗屎运也只是自己的~被加密"></a>原因之四：退一步讲，wine只对<code>~</code>有读写权限，万一走了狗屎运也只是自己的<code>~</code>被加密</h3><p>默认wine会把<code>~/.wine/driver_c</code>映射为C盘，把<code>/</code>映射为Z盘，然而普通用户对<code>/</code>没有w权限，用root权限运行wine的当我啥也没说。</p>
+<p>所以总结这四个原因就是，Linux对此病毒的传染是免疫的、哪怕此病毒破坏力再强再跨平台，只要你不运行，那就没事……这就好似某人发明了一款蟑螂药，管它美洲蟑螂还是火星机械蟑螂吃了肯定会死，但是你得掰开蟑螂嘴喂它才行……???</p>
+<p>请注意，5月26日，Samba近日发布了4.6.4版本，该版本修复了一个严重的远程代码执行漏洞（漏洞编号：CVE-2017-7494），Samba 3.5.0 和包括4.6.4&#x2F;4.5.10&#x2F;4.4.14中间的版本均在受影响之列</p>
+<h2 id="先谈谈预防措施"><a href="#先谈谈预防措施" class="headerlink" title="先谈谈预防措施"></a>先谈谈预防措施</h2><p>值得庆幸的是，我所在的学校并没有被此次蠕虫波及（但是我学校的网络安全防护差到不敢想想），昨天也发现身边的一些朋友在分享这条消息。然而我敢打赌，大家都是看完了就看完了就像<strong>看了笑话一样以为一切和自己毫无关系</strong>，很少有人会立刻开电脑进行安全加固吧？所以万万不可掉以轻心，EternalBlue成功率高到可以手动十分钟一台…… 所以至少要未雨绸缪嘛，羊还没丢啊！我们需要做的事情的<strong>安装ms17-010安全更新（巨硬都给XP和2003这个更新了），关闭SMB服务，养成备份文件的好习惯。</strong> 当然了那些使用Mac（并且安装使用的是OS X）、Linux发行版的用户就别管了，与你们无关。 说句题外话，昨天我从外面回来，室友忧心忡忡的问我：这个没事吧我都不敢连锐捷了。我说你别急，等我扫下你的电脑看看开没开445哈……</p>
+<h2 id="已经中招了咋办"><a href="#已经中招了咋办" class="headerlink" title="已经中招了咋办"></a>已经中招了咋办</h2><p>那些已经中招的小伙伴，唉，一定不要交赎金啊，还得带tor，目前根据一些安全人员的逆向研究，也没啥太管用的恢复文件的办法，也不知道这玩意变异了几个版本，目前我搜集到的稍微靠谱点的信息有：</p>
+<p>1.使用数据恢复工具恢复文件（因为这家伙是在内存中加密再删除源文件的），至于用其他人的比特币记录忽悠始作俑者，还是算了吧……</p>
+<p>2.XP用户可以试试一个安全人员利用XP中CryptoAPI实现缺陷来取得加密密钥，<a target="_blank" rel="noopener" href="https://github.com/aguinet/wannakey">戳我</a></p>
+<p>好哒，咱说了这么多题外话，终于到转入正题了，为啥无论是在桌面上还是服务器上（甚至是移动设备上），Linux要比Windows在安全性上做的更好啊。当然了，我这样是在引战，Linux也有过dirty cow，OpenSSL也有过heartbleed，但是就如小蜗牛童鞋所言：</p>
+<blockquote>
+<p>若无力驾驭，自由便是负担</p>
+</blockquote>
+<p>为了避免打口水战，咱要提的第一个先决条件就是：适用性</p>
+<h2 id="适用性"><a href="#适用性" class="headerlink" title="适用性"></a>适用性</h2><p>众所周知，当今世界是一个开放的、经济全球化的世界，想要闭关锁国那是不行滴（包包：啥？）！软件也如此，很多软件现在都开始是跨平台并且设计为<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%9B%BD%E9%99%85%E5%8C%96%E4%B8%8E%E6%9C%AC%E5%9C%B0%E5%8C%96">i18n</a>，当然也有一些例外，比如说大部分游戏都只有Windows版本的，这咱不能wine一个吧（其实也不是不行……wine2.0能跑使命召唤4你敢信？） 咱所说的适用性就是，有些服务器必须要使用Windows，最常见的就是那些游戏服务器；有些必须要使用Linux，有些则是二者均可。咱要说Linux和Windows都<strong>有各自的适用性</strong>，只不过在服务器领域，Linux是占有大部分优势的；在桌面领域，Linux的优势似乎没那么大…… 咱主要说的就是最后这二者均可的。</p>
+<h2 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h2><p>首先咱要知道，Linux就是个内核，只有内核那是不成的，所以还需要套上一大堆东西才能成为今天咱用的发行版。根据包管理器的不同，Linux发行版可以大体分成deb系和rpm系，还有其他的比如Arch、Gentoo啥的。 大家可以戳去<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Linux%E5%8F%91%E8%A1%8C%E7%89%88%E5%88%97%E8%A1%A8#/media/File:Linux_Distribution_Timeline.svg">维基百科</a>来看看所有发行版的时间线，咱能发现这简直太多太多了好吧。</p>
+<h3 id="Linux发行版数量这么多，有啥好处呢？"><a href="#Linux发行版数量这么多，有啥好处呢？" class="headerlink" title="Linux发行版数量这么多，有啥好处呢？"></a>Linux发行版数量这么多，有啥好处呢？</h3><p>其一对于咱用户来说，选择的余地太多啦！苦了那些选择纠结症的童鞋 其二，发行版数量多也直接减少了攻击面，不同的发行版，其体系可能会差非常多。预装的软件不同，内核版本也不同，甚至是内核的编译参数、运行参数都不同，你这让攻击者情何以堪啊——目标都无法确定攻击个毛啊。 相反咱看看Windows，总共也就那么几个版本，像Windows 7有Professional、Home、Ultimate，反正双手双脚大概是差不多输得过来了，尽管数的过来，但实际上这些版本是没啥差别的。为啥呢？因为Windows的核心组件都是基本不变的，比如这几个版本都有IE，那个巨慢无比漏洞百出的IE。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/05/201705141135249.jpg"><img src="/images/201705141135249.jpg"></a></p>
+<p>被嘲讽的IE，来源见水印</p>
+<h3 id="Linux发行版的可定制性"><a href="#Linux发行版的可定制性" class="headerlink" title="Linux发行版的可定制性"></a>Linux发行版的可定制性</h3><p>咱说，Linux非常灵活、简洁，咱可以重新编译内核来去掉很多用不到的模块，咱可以删掉很多用不到的软件包，这样就直接减小了攻击面。活这么大，我还没听说过谁能够自己编译Windows的内核呢，Mac OS的内核虽说也是开源的，但是想要自己编译，似乎还是有些难度的。</p>
+<h3 id="Linux发行版对于硬件的丰富支持"><a href="#Linux发行版对于硬件的丰富支持" class="headerlink" title="Linux发行版对于硬件的丰富支持"></a>Linux发行版对于硬件的丰富支持</h3><p>《计算机原理》没挂科的童鞋们大概知道CPU有很多架构吧，什么x86啊，x86_64啊，ARM啊，MIPS啊，PowerPC啊……反正是超多CPU架构的，Windows可没有这么多。 支持这么多、对于安全性来说，有啥好处呢？不知道大家是否听过这样的新闻：XX处理器爆出XXX漏洞，硬件漏洞也是可能的。支持的硬件更多可以有效的降低“被盯上”的可能性，这么多谁知道你用的是啥处理器嘛。</p>
+<h3 id="Linux用户更小众"><a href="#Linux用户更小众" class="headerlink" title="Linux用户更小众"></a>Linux用户更小众</h3><p>我相信所有人都会一致认为，在桌面上，三大系统使用率是Windows&gt;Mac OS<strong>&gt;&gt;<strong>Linux，所以这也避免了“树大招风”的效应。毕竟，如果想要开发对应的漏洞利用程序，就要付出更多的资源来针对使用率最广泛的系统，也就是Windows咯。 不过一定要注意，桌面Linux之所以要安全，用户数量少只是</strong>其中的原因之一</strong>，Linux的安全是<strong>从本质上优越于</strong>Windows的。全球Linux（包括服务器和桌面）用户可不少，Android的用户量早就超过了Windows，可是Android和Linux可并没有像Windows那样病毒泛滥成灾，所以千万不要犯本末倒置的逻辑谬误。</p>
+<h3 id="Linux有完善的包管理器机制"><a href="#Linux有完善的包管理器机制" class="headerlink" title="Linux有完善的包管理器机制"></a>Linux有完善的包管理器机制</h3><p>大家在用Windows的时候，是咋么安装软件的，肯定是这么几个步骤吧：打开百度啥，搜索XX软件，从广告中分辨出真正的官方网站，到某个网站，从广告中分辨出真实的下载地址，下载，安装，使用。 上述步骤中可能存在有非常多的问题，比如说：万一你去的网站不是https的，下载链接被劫持了呢？万一那个网站本身就给加了后门啥的呢？（参见<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/XcodeGhost%E9%A3%8E%E6%B3%A2">XGhost Code事件</a>） 还有一点，Windows下有些软件的自动更新也存在一些问题，有些的自动更新渠道不是加密的、并且不会对下载之后的文件进行校验，大名鼎鼎的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2016/08/Trojan-Horse-DCM.html">黑暗幽灵</a>是怎么来的，嘿嘿。 烦死人了嘛！但是在Linux下，咱不用这么做，因为有软件包管理器啊，软件包管理器有啥好处呢，除了方便快捷之外？ <strong>安全的签名机制：</strong>咱不用担心源里面的软件是被篡改的、下载过程中被篡改了，它会直接拒绝安装。因为完善的包管理器都会有一些机制来校验，有些是使用散列函数、有些是数字签名，有些是这二者结合。 <strong>升级更新机制：</strong>当软件包的维护者开发完新的版本并测试之后（可能是功能更新，可能是bug fix，也可能是安全更新），他可以把新的版本推送到源，包管理器也会有对应的自动更新机制（尤其是服务器版）。咱晓得，使系统随时保持最新状态可以集大程度降低被攻击的风险</p>
+<h3 id="Linux的文件权限遏制了病毒的扩散"><a href="#Linux的文件权限遏制了病毒的扩散" class="headerlink" title="Linux的文件权限遏制了病毒的扩散"></a>Linux的文件权限遏制了病毒的扩散</h3><p>话说土豆我当初在学习Linux的时候，最头疼的问题就是，rwx权限有毛用啊！更别提还有<code>suid、sgid、sticky bit</code>了，简直头疼。那时候我还年轻呐！ 呐，咱知道，在Windows下，一个程序能不能运行，是看扩展名滴！只要扩展名是exe那么就是能够运行的（这里的能够运行是指的操作系统能够给它可执行的能力，而不是能否工作，咱把一个txt改成exe当然是没办法运行出来hello world的），不知道大家中没中过U盘病毒啊嘻嘻嘻。 [v_tips]注： 有些人可能会说了，Windows也有类似的文件权限体系啊，比如说NTFS的ACL啥的……那个，是这么个理，只不过俺至今不会配置那玩意（太费事了太繁琐了），而且U盘基本上都格式化为FAT之类的文件系统，FAT天生不支持文件权限，没戏！[&#x2F;v_tips]</p>
+<p>但是在Linux下，一个程序能不能运行是靠的x权限的，扩展名并不是判定因素。再由于默认的<code>umask</code>是022，本来一个文件就是没有x权限的了，唉~ <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/05/2017051411355453.png"><img src="/images/2017051411355453.png"></a></p>
+<p>没有x权限，你是运行不了滴！咦，暴露了我电脑型号。</p>
+<p>还有一些其他的有助于Linux安全的因素，比如说开源有助于安全审查，社区维护可以避免商业公司侵犯用户隐私，这里就不提了。 不过，咱得说，Linux也曾经爆出过很多非常严重的漏洞，包括其他的一些非常关键的开源项目（比如说OpenSSL）也爆出过漏洞。但是咱得承认，Windows漏洞的修复速度、漏洞潜伏期往往都比较慢的……</p>
+<h2 id="价格"><a href="#价格" class="headerlink" title="价格"></a>价格</h2><p>没错哒，那么多发行版基本上咱都可以拿来免费用，不用给他们一毛钱！呐，有人也许会问，那些靠着发行版活着的商业公司是怎么赚钱的啊？软件免费，服务收钱呗~ 因为开源的性质，有很多发行版都适合做服务器，而Windows服务器是要给微软交钱的，所以你能看到国外有些vps, Windows服务器比Linux贵个几块钱（不过<a target="_blank" rel="noopener" href="https://dmesg.app/win2linux.html">腾讯云是个例外哈哈哈赚它30G硬盘</a>）</p>
+<h2 id="稳定性、操作性、高性能"><a href="#稳定性、操作性、高性能" class="headerlink" title="稳定性、操作性、高性能"></a>稳定性、操作性、高性能</h2><p>Linux比较稳定，跑几个月甚至几年都不会挂也不需要重启，而且<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/KISS%E5%8E%9F%E5%88%99">KISS</a>：简洁，自定义程度高，更节约资源更高效，信不信我<code>rm /bin/rm</code>给你看? 服务器版的Linux都没有桌面环境，更节约内存，Windows的桌面环境怎么也得要二三百兆内存吧，而且Linux有很强大的shell，shell就能搞定一切，而管理Windows服务器则需要远程桌面，你再瞅瞅Windows的那个cmd..虽说微软新搞的powershell很强大，但是学习成本有点高。 文件系统的性能上ext4, btrfs, xfs都比Windows的NTFS好太多啦</p>
+<p>Linux对硬件要求很低，而且也支持更多的CPU架构不用多大内存多大硬盘，有的在128M，64M内存都跑的起来(不信你搜搜puppy Linux, tiny core Linux人家还带桌面环境)，咱甚至可以通过重新编译内核等途径，精简不需要的模块来达到更好的效果，整体而言Linux的<strong>耦合度比较低</strong>，很多没必要的东西都能删掉，也照样跑的起来。而Windows是不可能做到这一点的，Windows的组件几乎都是没有选择的只能全装(比如说漏洞百出的IE，<strong>耦合度高</strong>的Windows自己都离不开)，再怎么精简也得是几百兆出头吧。 对于硬件要求低，在服务器上这一点优势更明显，咱家用PC可能都是GB级别的内存，但是<strong>服务器上多1G的内存就要多不少钱呢</strong>！干嘛要把本来就很珍贵的内存用来跑GUI呢，是吧！就算都跑GUI，咱还有LXDE、Xface这类轻量级的桌面环境可以选择嘛，照样虐杀瘟斗士。</p>
+<h2 id="维护性"><a href="#维护性" class="headerlink" title="维护性"></a>维护性</h2><p>升级维护方面 Linux发行版都有包管理器，所以各种包很容易升级到最新版本。而且很多发行版都弱化版本号而采用<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%BB%BE%E5%8B%95%E7%99%BC%E8%A1%8C">滚动发行</a>的概念(那些不滚动的很多也都有用某个命令就可以升级到下一个LTS)，比如Arch、Kali，你再想想要是把server 2008升级成12，不得累死人 还有一点就是，Windows更改了配置啥的，很多情况下都得重启才行，但是Linux基本不用，有很多东西直接是修改内核参数的。甚至一些商业公司(redhat啊canonical)提供热补丁，不重启就能patch内核。</p>
+<h2 id="标准和一些乱七八糟的"><a href="#标准和一些乱七八糟的" class="headerlink" title="标准和一些乱七八糟的"></a>标准和一些乱七八糟的</h2><p>呐，POSIX啊，咱比如说Linux都是用UTF-8的，全球通用，但是Windows就不是了，简体中文版是gbk,繁体中文是big5等等跟着不同语言版本的locale来的。UTF-8还给加个BOM，怪胎啊。</p>
+<p> </p>
+<h2 id="当然了……"><a href="#当然了……" class="headerlink" title="当然了……"></a>当然了……</h2><p>最近这几年，Windows也有了很大的改进，比如支持WSL，微软也开始拥抱开源，甚至收购了GitHub。一些娱乐性需求，Windows还是很吃香的:-)是不是</p>
+<h2 id="随想与总结"><a href="#随想与总结" class="headerlink" title="随想与总结"></a>随想与总结</h2><p>介绍了这么多Linux的优点，其实避而不谈了一些缺点，比如说字体可能会有些问题（随着文泉驿、思源宋体等开源字体的发展，这个问题已经越来越少见了）、入门门槛比较高、某些桌面环境操作习惯不同、某些桌面环境兼容性稳定性有问题、娱乐游戏比较少，总之很多吧。但是呢，</p>
+<p>对待这次蠕虫事件，咱得说遇见了好些逻辑谬误：本末倒置的以用户量多少作为衡量安全性的标准、阴谋论认为这是微软的阴谋等等、片面性的认为Linux使用范围只有服务器、打稻草人转移话题等等，俺是真的懒得说了……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/05/14/wanna-cry/index/" data-id="clhp7rtn500b1s2qr4w59bu72" data-title="Wanna Cry勒索病毒事件随想" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ssh-1/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/05/08/ssh-1/index/" class="article-date">
@@ -889,66 +986,6 @@
 
 
   
-    <article id="post-sheep-idiot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/03/10/sheep-idiot/index/" class="article-date">
-  <time class="dt-published" datetime="2017-03-10T00:00:00.000Z" itemprop="datePublished">2017-03-10</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/china/">china</a>►<a class="article-category-link" href="/categories/china/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/03/10/sheep-idiot/index/">拿破仑的羊</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在<a target="_blank" rel="noopener" href="https://dmesg.app/takedown-on-github.html">GitHub government takedown on programthink&#x2F;zhao</a>时，我曾经说自己有点过气。今天再次说自己过气，这事都过去了十几天了，我才开始写，要么就是反映迟钝，要么就是大器晚成吧，我觉得还是前者更好吧。</p>
-<h2 id="拿破仑"><a href="#拿破仑" class="headerlink" title="拿破仑"></a>拿破仑</h2><p>这个拿破仑啊，不是那个想当将军的士兵；这个拿破仑啊，来源于乔治奥威尔<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8A%A8%E7%89%A9%E5%BA%84%E5%9B%AD">《动物农场》</a>。</p>
-<p>动物农场的情节其实基本上可以说是在影射俄国十月革命至斯大林时代的苏联。 首先呐，动物们在人类的统治下生活苦不堪言，一头猪在提出了“人类剥削牲畜，牲畜须革命”的理论之后死去，若干年后农场里掀起了一场由猪领导的革命，原来的剥削者——农场主人被赶走，牲畜们实现了“当家作主”的愿望，尝到了革命的成果，农场更名为“动物庄园”并且制定了庄园的宪法——“七诫”。 但不久后领导革命的猪们发生了分裂，一头猪被宣布为革命的敌人。此后，获取了领导权的猪拥有了越来越大的权力和越来越多的优厚待遇，逐渐脱离了其他动物，最终变成和人类完全一样的牲畜剥削者，动物庄园的名字也被放弃。 在最后，其它的动物已经认为猪和原本的人类剥削者没有差别，分不清楚究竟哪个是人，哪个是猪了。</p>
-<h2 id="羊群"><a href="#羊群" class="headerlink" title="羊群"></a>羊群</h2><p>在《动物农场》中，有一个角色特别让人感到无奈与可笑，就是那群羊：他们盲目追随拿破仑，阻止反对拿破仑的声音。最开始一直在说“<strong>四条腿好，两条腿坏</strong>”后来变成了“<strong>四条腿好，两条腿更好</strong>”而丝毫不觉得矛盾。 羊群代表盲从政治宣传的无知民众。而今天我们要说的就是，羊群，生活在我们身边的羊群。</p>
-<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>事情的起因也很简单，就是乐天把自家的地与韩国政府<strong>进行交换</strong>部署萨德，之后大陆官方和民众反韩、抵制乐天的行为便如“雨后春笋”般涌现出来。咱啊，不打算讨论萨德是个什么玩意，韩国为啥要部署萨德，为啥韩国民众游行抗议，为啥抵制韩国不抵制俄罗斯，为啥乐天和韩国政府是做交易而不是征地，金正男是咋死的，朝鲜又射了几枚导弹，是谁纵容朝鲜的，这些咱通通都不谈，这些咱留给那些热血青年们自己反思。咱今天只要谈谈脑残们的故事：过去了这么多年，脑残没变少反而<strong>变多、变得更严重</strong>了。</p>
-<h2 id="四年前的钓鱼岛"><a href="#四年前的钓鱼岛" class="headerlink" title="四年前的钓鱼岛"></a>四年前的钓鱼岛</h2><p>大概四年前，因为钓鱼岛而引发的<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/2012%E5%B9%B4%E4%B8%AD%E5%9B%BD%E5%8F%8D%E6%97%A5%E7%A4%BA%E5%A8%81%E6%B4%BB%E5%8A%A8">反日游行</a>大家应该还记得些吧。 如果大家回忆下，是否记得那个<a target="_blank" rel="noopener" href="https://theinitium.com/article/20161123-mainland-lijianli/">开丰田的至今生活不能自理</a>的可怜人？ 很抱歉这只不过是历史重演，是谁说的“历史总是惊人的相似”，是啊，<a target="_blank" rel="noopener" href="https://twitter.com/CorndogCN/status/811022925805424640">永远不知道吸取教训</a>历史不相似也只能全等了。</p>
-<h2 id="脑残的养成"><a href="#脑残的养成" class="headerlink" title="脑残的养成"></a>脑残的养成</h2><p>人民日益减弱的智商同先进的洗脑教材之间的矛盾</p>
-<h3 id="错误敏感的G点"><a href="#错误敏感的G点" class="headerlink" title="错误敏感的G点"></a>错误敏感的G点</h3><p>在春节期间，我曾写过一篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/gspot.html">《天朝民众的敏感G点》</a> 其中主要分析了G点的形成，提到了一些心理学概念。提到了洗脑教育、选择性失察、一致性原则等。但是……</p>
-<h3 id="双重思想"><a href="#双重思想" class="headerlink" title="双重思想"></a>双重思想</h3><p>除了G点的那些，还有一个非常著名的词语叫做“双重思想（Doublethink）”，别想了这话也是奥威尔首创的。双重思想是啥意思呢，就是同时接受两种相违背的信念的行为，然后内心还不觉得矛盾。好像是不是有些熟悉？比如说： 一边说中华民族是最伟大、最优秀的民族；一边说中国人的素质太低，不适合民主。 一边说人多力量大英雄母亲；一边说强制一胎严惩二胎。 再近一点，那些羊群们不就是先说“四条腿好，两条腿坏”而后说“四条腿好，两条腿更好”吗？还有数次改动的“七诫 ”。 用奥威尔的话说，对于统治阶层，双重思想也同样很重要：</p>
-<blockquote>
-<p>知与不知，知道全部真实情况而却扯些滴水不漏的谎话，同时持两种互相抵消的观点，明知它们互相矛盾而仍都相信，用逻辑来反逻辑，一边表示拥护道德一边又否定道德，一边相信民主是办不到的一边又相信党是民主的捍卫者，忘掉一切必须忘掉的东西而又在需要的时候想起它来，然后又马上忘掉它，而尤其是，把这样的做法应用到做法本身上面——这可谓绝妙透顶了：有意识地进入无意识，而后又并不意识到你刚才完成的催眠。即使要了解“双重思想”的含义你也得使用双重思想。</p>
-</blockquote>
-<h3 id="拿破仑的羊与天朝的脑残"><a href="#拿破仑的羊与天朝的脑残" class="headerlink" title="拿破仑的羊与天朝的脑残"></a>拿破仑的羊与天朝的脑残</h3><p>拿破仑手下的羊，倒是和脑残很多相似的地方，不会思考，盲从领导。每当有人试图抗议，他们都会大唱“四条腿好，两条腿坏”来阻碍他们；每当局势变化，他们总是坚定不移的占到拿破仑一边。别以为这样就能万事大吉了，该被拆还是被拆，棋子用完了就扔这个道理谁不懂。 历史总是惊人的相似，嘿嘿嘿……</p>
-<h2 id="避免成为脑残"><a href="#避免成为脑残" class="headerlink" title="避免成为脑残"></a>避免成为脑残</h2><p>至于成为脑残有何坏处，这大概不用说吧。<strong>丧失自己的思考能力</strong>，沦为附庸，被利用；恰如羊群只是拿破仑的棋子一样，作为脑残，也只是朝廷的工具，只不过是转移国内矛盾的工具而已。 如何避免成为脑残？其实说简单也简单，说复杂也复杂：<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">自由思想、独立思考、批判性思维</a></p>
-<h2 id="可笑的行为"><a href="#可笑的行为" class="headerlink" title="可笑的行为"></a>可笑的行为</h2><p>要么没人敢欺负我；要么你欺负我，我欺负你；要么你欺负我，我兄弟欺负你；最不济也是你欺负我，我欺负你兄弟；从来没听说过你欺负我，我欺负我兄弟这种模式。 这句话是几年前还在写博客的韩寒说的，这么多年过去了，看起来还是如此讽刺。</p>
-<h2 id="荒唐的抵制"><a href="#荒唐的抵制" class="headerlink" title="荒唐的抵制"></a>荒唐的抵制</h2><p>咱都是自私的，什么事肯定会下意识的本能的去保护自己，所以咱首先就要关心咱自己的利益和生命安全的问题。 你该抵制什么？很显然，雾霾要抵制，毒食品要抵制，污染要抵制，垃圾教育要抵制，医疗问题要抵制，天价房产要抵制。 可是脑残们并没有这么做，脑残们选择了去捏方便面、去砸车抢超市。<strong>选择性失察和双重思想</strong>再次发挥了无与伦比的作用。因为脑残们知道抵制雾霾等有危险。他妈的不敢！连个屁都不敢放！</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>本文篇章结构并不是很完整，逻辑性也略有欠缺，也许是因为：</p>
-<p>只是坐在窗前，搜寻你的身影。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/03/10/sheep-idiot/index/" data-id="clhp7rtju008ms2qrchw98ijd" data-title="拿破仑的羊" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1006,6 +1043,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1019,10 +1060,6 @@
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>

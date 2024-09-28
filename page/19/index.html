@@ -73,6 +73,212 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-letsencrypt-nginx-subdomain/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/04/25/letsencrypt-nginx-subdomain/index/" class="article-date">
+  <time class="dt-published" datetime="2016-04-25T00:00:00.000Z" itemprop="datePublished">2016-04-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/04/25/letsencrypt-nginx-subdomain/index/">手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]警告： 国内的大部分服务器会拦截80端口的通信，所以在这种情况下，无论是用webroot还是standalone模式，都是不可能成功签发证书的（因为这俩本质上都是http challenge）。 在这种情况下只能使用DNS challenge了，命令大致如下（renew要稍微麻烦一些）： <code>certbot certonly --manual --preferred-challenges dns</code> 官网详的教程<a target="_blank" rel="noopener" href="https://certbot.eff.org/docs/">戳我</a>[&#x2F;v_error]</p>
+<p>话说Let’s Encrypt已经进入正式版了，咱就来说说怎么签发证书。本人呐，恰巧今日弄了个马甲站<a target="_blank" rel="noopener" href="http://www.shemissed.me,还弄了几个子域名,于是乎就顺便也给弄了let's/">www.shemissed.me,还弄了几个子域名，于是乎就顺便也给弄了Let&#39;s</a> Encrypt吧！</p>
+<p>先声明下我的网站的结构，如果读者和我的建站结构一样，那么，跟着走就可以了！</p>
+<p>使用LNMP1.3一键安装包，nginx版本是1.9.5</p>
+<p>网站目录全部在&#x2F;home&#x2F;wwwroot，其中包含三个子域名（不要管那个default，是我懒得删除了）</p>
+<p><a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a> 主站 <a target="_blank" rel="noopener" href="http://angela.shemissed.me/">angela.shemissed.me</a> 给女神的祝福 <a target="_blank" rel="noopener" href="http://memory.shemissed.me/">memory.shemissed.me</a> 图床</p>
+<p><img src="/images/042516_1416_LetsEncry1.png"></p>
+<p>通过</p>
+<p>lnmp vhost add</p>
+<p>添加了三个子域名，配置为文件如下</p>
+<p><img src="/images/042516_1416_LetsEncry2.png"> [v_blue]关于子域名和二级域名的关系，其实子域名是个相对的概念，就像你是你爸爸的儿子，你儿子是你的儿子一样。而二级域名则是固定的概念，从右侧起第二个.就算二级域名。 纯粹的说，<a target="_blank" rel="noopener" href="http://www.shemissed.me也是shemissed.me的子域名./">www.shemissed.me也是shemissed.me的子域名。</a> 这里我就同一称作子域名啦！[&#x2F;v_blue]</p>
+<p>要注意，Let’s Encrypt并不是泛域名证书（可以签_.abc.com，_就代表泛域名的意思啦）</p>
+<p>现在Let’s Encrypt已经支持泛域名证书啦，使用如下命令，推荐用screen（0.22以后版本）：</p>
+<p>.&#x2F;certbot-auto –server <a target="_blank" rel="noopener" href="https://acme-v02.api.letsencrypt.org/directory">https://acme-v02.api.letsencrypt.org/directory</a> -d *.example.com –manual –preferred-challenges dns-01 certonly</p>
+<p>查询TXT记录</p>
+<p>dig txt example.com</p>
+<p> </p>
+<h2 id="准备Let’s-Encrypt"><a href="#准备Let’s-Encrypt" class="headerlink" title="准备Let’s Encrypt"></a>准备Let’s Encrypt</h2><p>这里有两种方法，一种是包管理器，一种的repo</p>
+<h3 id="包管理器（Ubuntu-16-04）或者官方PPA"><a href="#包管理器（Ubuntu-16-04）或者官方PPA" class="headerlink" title="包管理器（Ubuntu 16.04）或者官方PPA"></a>包管理器（Ubuntu 16.04）或者官方PPA</h3><p>sudo apt install certbot</p>
+<p>PPA</p>
+<p>sudo add-apt-repository ppa:certbot&#x2F;certbot<br>sudo apt-get update<br>sudo apt-get install certbot</p>
+<h3 id="使用GitHub的repo"><a href="#使用GitHub的repo" class="headerlink" title="使用GitHub的repo"></a>使用GitHub的repo</h3><p>找个目录，执行下两句吧</p>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/certbot/certbot">https://github.com/certbot/certbot</a><br>cd certbot</p>
+<p><img src="/images/042516_1416_LetsEncry3.png"></p>
+<p>[v_notice]我该使用那种办法？这两种有何区别 包管理器中的Let’s Encrypt&#x2F;certbot版本比较旧。 当然啦，我个人选择GitHub上最新的，因为支持wildcard哟。 值得注意的是，低版本的并不会兼容高版本的！会出现错误的。 [&#x2F;v_notice]</p>
+<h2 id="使用Let’s-Encrypt生成证书"><a href="#使用Let’s-Encrypt生成证书" class="headerlink" title="使用Let’s Encrypt生成证书"></a>使用Let’s Encrypt生成证书</h2><p>无论使用那种方法，只需要执行certonly即可。 如果你是使用包管理器的，那么就</p>
+<p>letsencrypt certonly</p>
+<h1 id="or"><a href="#or" class="headerlink" title="or"></a>or</h1><p>certbot certonly</p>
+<p>如果你是使用GitHub Repo的，那就cd进对应的目录，然后执行</p>
+<p>.&#x2F;certbot-auto certonly</p>
+<p><img src="/images/042516_1416_LetsEncry4.png"> 此后这两者的步骤是相同的了。 检测并安装环境……此时只需要等待等待……</p>
+<p><img src="/images/042516_1416_LetsEncry5.png"></p>
+<p>很磕碜的界面是不是，PuTTY就这熊样，xshell就没这个问题了。要是有强迫症，就开个screen，就没这么难看啦！</p>
+<p>在这一步很多人选择第一项，包括我自己也曾这样尝试过，不知为何会报”dialog error”，各位如果失败了的话，就停掉web服务器，就<strong>果断选择2</strong>吧！</p>
+<p>我这次讲解就直接从2来了，先停掉web服务器（以Nginx为例）</p>
+<p>service nginx stop</p>
+<p>选择2，回车</p>
+<p>输入你的邮箱</p>
+<p><img src="/images/042516_1416_LetsEncry7.png"></p>
+<p>接受许可条款</p>
+<p><img src="/images/042516_1416_LetsEncry8.png"></p>
+<p>输入你的域名，这里我们先给<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>签，所以就先输入这一个，要记得www哦（而且我并没有解析@）</p>
+<p><img src="/images/042516_1416_LetsEncry9.png"></p>
+<p>[v_blue]有人可能会问了，为什么我看到有的人的证书是abc.com，但是域名却是<a href="http://www.abc.com呢？如图">www.abc.com呢？如图</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/04/2016082714251989.png"><img src="/images/2016082714251989-300x156.png" alt="www和不带www"></a></p>
+<p>其实，在输入域名这一块，你可以输入abc.com,<a target="_blank" rel="noopener" href="http://www.abc.com,然后配置的时候直接选择abc.com的那个证书,就可以啦./">www.abc.com,然后配置的时候直接选择abc.com的那个证书，就可以啦。</a> 至于你想怎么选择，没有太大的安全考虑的情况下，那是随便滴！顺便提一句，这个叫做DNS Name啦……[&#x2F;v_blue]</p>
+<p>回车确定就会提示Congratulations啦。</p>
+<p>证书（fullchain.pem）和私钥（privkey.pem）已经给你放到了&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a></p>
+<p><img src="/images/042516_1416_LetsEncry11.png"></p>
+<h2 id="修改nginx的配置文件"><a href="#修改nginx的配置文件" class="headerlink" title="修改nginx的配置文件"></a>修改nginx的配置文件</h2><p>由于我是自行编译安装的，所以配置文件的路径在&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;conf</p>
+<p>我们重点需要编辑的是vhost下的那个<a target="_blank" rel="noopener" href="http://www.shemissed.me.conf的配置文件./">www.shemissed.me.conf的配置文件。</a></p>
+<p>没有监听443端口，因此，我们就需要在这后面加入监听443的配置内容。</p>
+<p>conf目录下可以看到一个enable-ssl-example.conf，都看到example了，还寻思啥呢，把这个example的内容全部复制到<a target="_blank" rel="noopener" href="http://www.shemissed.me.conf最下面/">www.shemissed.me.conf最下面</a></p>
+<p>之后我们只需要修改server name, root, ssl_certificate, ssl_certificate_key,并删掉下面多余的监听80的就可以了。我下面把我的完整的配置文件写出来供参考，#后面的是注释。</p>
+<p>[v_error]默认的那个example其实我不太安全的，我根据自己的需求进行了一些更改，感谢<a target="_blank" rel="noopener" href="https://www.logcg.com/archives/1709.html">落格博客</a>！[&#x2F;v_error] 先生成迪菲-赫尔曼密钥 以增强安全</p>
+<p>openssl dhparam -out &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;dhparam.pem 2048</p>
+<p>你所需要做的事情就是<strong>修改网站目录、域名、证书私钥路径</strong>，然后保存。最顺快的情况就是搜索替换<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>为你的域名或者子域。（请注意此配置文件启用了HTTP&#x2F;2、自动跳转到https，有HSTS, X-Frame-Options, X-Xss-Protection, X-Content-Type-Options, Referrer-Policy这几个响应头，会防止一些盗链，请确定这符合你的意愿、并且你的Web服务器支持HTTP&#x2F;2）</p>
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/TLS">最新的配置文件请点击这里</a></strong></p>
+<p>server<br>    {<br>        listen 80;<br>        #listen [::]:80;<br>        server_name <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;<br>        index index.html index.htm index.php default.html default.htm default.php;<br>        root  &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;<br>    rewrite ^(.*)$  https:&#x2F;&#x2F;$host$1 permanent;<br>        #include other.conf;<br>        #error_page   404   &#x2F;404.html;<br>        include enable-php.conf;</p>
+<pre><code>location ~ .\*\\.(ico|gif|jpg|jpeg|png|bmp|swf)$ 
+&#123; expires      30d;
+  valid\_referers none blocked www.shemissed.me \*.google.com \*.baidu.com \*.so.com \*.bing.com;
+  if ($invalid\_referer) &#123;
+  rewrite ^/ https://o51bfbumd.qnssl.com/link.jpg;
+ &#125;
+&#125;
+
+    location ~ .\*\\.(js|css)?$
+    &#123;
+        expires      12h;
+    &#125;
+
+    location ~ /\\.
+    &#123;
+        deny all;
+    &#125;
+
+    access\_log  /home/wwwlogs/www.shemissed.me.log;
+&#125;
+</code></pre>
+<p>server<br>        {<br>        listen 443 ssl http2 ;<br>        #listen [::]:443 ssl spdy;<br>        server_name     <a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;     #此处写你的域名<br>        index index.html index.htm index.php default.html default.htm default.php;<br>        root  &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;   #此处写你的网站目录</p>
+<pre><code>ssl on;
+    ssl\_certificate /etc/letsencrypt/live/www.shemissed.me/fullchain.pem;   #此处写你的证书文件的路径
+    ssl\_certificate\_key /etc/letsencrypt/live/www.shemissed.me/privkey.pem;    #私钥，同上
+    
+    ssl\_session\_timeout 20m;
+    ssl\_session\_cache builtin:1000 shared:SSL:10m;
+    ssl\_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl\_prefer\_server\_ciphers on;
+    
+    ssl\_dhparam /etc/ssl/certs/dhparam.pem;
+    ssl\_ciphers &#39;ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA&#39;;
+    
+    ssl\_stapling on;
+    ssl\_stapling\_verify on;
+        
+</code></pre>
+<p>add_header Strict-Transport-Security “max-age&#x3D;63072000; includeSubDomains; preload”;<br>add_header X-Frame-Options “SAMEORIGIN” always;<br>add_header X-Xss-Protection “1; mode&#x3D;block” always;<br>add_header X-Content-Type-Options “nosniff” always;<br>#add_header Public-Key-Pins ‘pin-sha256&#x3D;”YLh1dUR9y6Kja30RrAn7JKnbQG&#x2F;uEtLMkBgFF2Fuihg&#x3D;”; pin-sha256&#x3D;”sRHdihwgkaib1P1gxX8HFszlD+7&#x2F;gTfNvuAybgLPNis&#x3D;”; max-age&#x3D;10; includeSubDomains’;<br>#add_header  Content-Security-Policy  “default-src https: ‘unsafe-inline’ ‘unsafe-eval’ data:;”;<br>add_header Referrer-Policy “no-referrer-when-downgrade”;</p>
+<pre><code>    #error\_page   404   /404.html;
+    include enable-php.conf;
+if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
+    return 403;
+&#125;
+    location /nginx\_status
+    &#123;
+        stub\_status on;
+        access\_log   off;
+    &#125;
+
+   location ~ .\*\\.(ico|gif|jpg|jpeg|png|bmp|swf)$ 
+&#123; expires      30d;
+  valid\_referers none blocked www.shemissed.me \*.google.com \*.baidu.com \*.so.com;
+  if ($invalid\_referer) &#123;
+  rewrite ^/ https://o51bfbumd.qnssl.com/link.jpg;
+ &#125;
+&#125;
+
+    location ~ .\*\\.(js|css)?$
+    &#123;
+        expires      12h;
+    &#125;
+    
+    location / 
+    &#123;
+        try\_files $uri $uri/ /index.php; 
+    &#125;
+
+    access\_log  /home/wwwlogs/www.shemissed.me.log;   #日志文件
+</code></pre>
+<p>}</p>
+<p>保存，然后启动nginx</p>
+<p>service nginx start</p>
+<p>我们访问下，自动跳转了哟，而且启用了HSTS支持。</p>
+<p>小锁头已经出现</p>
+<p><img src="/images/042516_1416_LetsEncry14.png"></p>
+<p> </p>
+<p>PS，SSLLabs可以来测试你的HTTPS安全性哦！<a target="_blank" rel="noopener" href="https://www.ssllabs.com/ssltest/index.html">戳我</a>！</p>
+<p>其他两个子域，大家看着改吧…生成memory.shemissed.me…我玩不动了，要歇菜了。</p>
+<p>大家要注意，let’s encrypt的证书会在90天之后过期，快到期的时候</p>
+<p>.&#x2F;certbot-auto renew</p>
+<p>续期，这就不用说啥了。按照官网的推荐，一天两次cron最好了</p>
+<p>另外，如果用webroot模式，这样申请证书</p>
+<p>certbot certonly –webroot –webroot-path &#x2F;home&#x2F;wwwroot&#x2F;dmesg.app –renew-by-default –email <a href="mailto:&#49;&#x31;&#x31;&#x40;&#49;&#49;&#49;&#46;&#x63;&#111;&#109;">&#49;&#x31;&#x31;&#x40;&#49;&#49;&#49;&#46;&#x63;&#111;&#109;</a> –text –agree-tos -d dmesg.app</p>
+<p>Nginx里这么配置</p>
+<p>location ~ &#x2F;.well-known {<br>        allow all;<br>    }</p>
+<p>对呢，由于咱用的standlone模式，所以要关掉webserver才能续期成功，方法之一是写个bash脚本判断上一条命令返回值，方法之二是用hook，比如说：</p>
+<p>certbot renew --pre-hook “service nginx stop” --post-hook “service nginx start”</p>
+<hr>
+<h1 id="其他的一些小问题"><a href="#其他的一些小问题" class="headerlink" title="其他的一些小问题"></a>其他的一些小问题</h1><h2 id="HTTP自动跳转HTTPS"><a href="#HTTP自动跳转HTTPS" class="headerlink" title="HTTP自动跳转HTTPS"></a>HTTP自动跳转HTTPS</h2><p>啥都别说啦，在每个vhost的80的server段加个</p>
+<p>rewrite ^(.*)$  https:&#x2F;&#x2F;$host$1 permanent;</p>
+<p>在</p>
+<p>root &#x2F;home&#x2F;wwwroot&#x2F;<a target="_blank" rel="noopener" href="http://www.shemissed.me/">www.shemissed.me</a>;</p>
+<p>这一行下加就行。实测在nginx.conf加这一句是没有用滴……（Apache就用.htaccess吧）</p>
+<p>顺便提一句，如果是apache的话，思路也是一样的。同样以我【本站】的配置文件为例（很不幸本站没有vhost啊……），修改httpd-ssl.conf中的</p>
+<p>SSLCertificateFile “&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;dmesg.app&#x2F;fullchain.pem”<br>SSLCertificateKeyFile “&#x2F;etc&#x2F;letsencrypt&#x2F;live&#x2F;dmesg.app&#x2F;privkey.pem”<br>DocumentRoot “&#x2F;home&#x2F;wwwroot&#x2F;default”<br>ServerName dmesg.app:443</p>
+<p>自己看着改吧……我可懒得折腾这网站的vhost了</p>
+<h2 id="裸域自动跳转www二级域"><a href="#裸域自动跳转www二级域" class="headerlink" title="裸域自动跳转www二级域"></a>裸域自动跳转www二级域</h2><p>首先要设置@解析到你的IP，然后在nginx.conf中，在80的server段下添加如下内容</p>
+<p>if ($host &#x3D; ‘shemissed.me’ )<br>{<br>  rewrite  ^&#x2F;(.*)$ <a target="_blank" rel="noopener" href="https://www.shemissed.me/$1">https://www.shemissed.me/$1</a> permanent;<br>}</p>
+<h2 id="WordPress-404"><a href="#WordPress-404" class="headerlink" title="WordPress 404"></a>WordPress 404</h2><p>在443段下添加如下即可！</p>
+<p>location &#x2F; {<br>     try_files $uri $uri&#x2F; &#x2F;index.php;<br>}</p>
+<h2 id="Typecho-404"><a href="#Typecho-404" class="headerlink" title="Typecho 404"></a>Typecho 404</h2><p>在对应的443段添加如下信息（仅限于那些使用了lnmp1.3一键安装包的人哟，其他方式的不敢保证成功率。但是就是php path info的事情而已）</p>
+<p>include typecho.conf;<br>include enable-php-pathinfo.conf;</p>
+<h2 id="写后谈"><a href="#写后谈" class="headerlink" title="写后谈"></a>写后谈</h2><p>nginx配置文件真是简单易懂啊……还好编辑！</p>
+<p>当初我就为了个WP Super Cache选择了Apache……</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/04/25/letsencrypt-nginx-subdomain/index/" data-id="clhp7rth7004gs2qra8jhgz8a" data-title="手动配置Let&#39;s Encrypt+Nginx/Apache, certonly,解决DialogError" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ubuntu16-04-wifi/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/04/23/ubuntu16-04-wifi/index/" class="article-date">
@@ -931,60 +1137,6 @@
 
 
   
-    <article id="post-nethogs-bug-v0-8-0/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/17/nethogs-bug-v0-8-0/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-17T00:00:00.000Z" itemprop="datePublished">2016-02-17</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/17/nethogs-bug-v0-8-0/index/">nethogs - creating socket failed are you root?</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>话说前几天更新了服务器之后，再用nethogs就会出现这种问题</p>
-<p>Creating socket failed while establishing local IP - are you root?</p>
-<p><img src="/images/021516_0516_nethogscrea1.png"></p>
-<p>分明是root权限的好嘛！</p>
-<p>其实这是nethogs version 0.8.0的一个bug，只要更新到0.8.1即可。可是Ubuntu软件源里并没有更新到0.8.1，那么只好拿来传统大法，手动下载源码包编译安装了。</p>
-<p>首先要确保安装了gcc、make这类工具。如果没有就先安装下。</p>
-<p>sudo apt-get install build-essential<br>sudo apt-get install libncurses5-dev libpcap-dev<br>wget -c <a target="_blank" rel="noopener" href="https://github.com/raboof/nethogs/archive/v0.8.1.tar.gz">https://github.com/raboof/nethogs/archive/v0.8.1.tar.gz</a><br>tar xf v0.8.1.tar.gz<br>cd .&#x2F;nethogs-0.8.1&#x2F;<br>make &amp;&amp; sudo make install</p>
-<p>之后退出或者重启当前终端</p>
-<p>sudo nethogs</p>
-<p>即可发现变成了0.8.1.</p>
-<p><img src="/images/021516_0516_nethogscrea2.png"></p>
-<p>问题完美解决。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/17/nethogs-bug-v0-8-0/index/" data-id="clhp7rtho005fs2qrgxwl955k" data-title="nethogs - creating socket failed are you root?" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1042,6 +1194,10 @@
       <ul>
         
           <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+          <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
@@ -1055,10 +1211,6 @@
         
           <li>
             <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
           </li>
         
       </ul>
