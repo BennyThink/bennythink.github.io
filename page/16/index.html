@@ -73,6 +73,78 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ssd/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/03/25/ssd/index/" class="article-date">
+  <time class="dt-published" datetime="2017-03-25T00:00:00.000Z" itemprop="datePublished">2017-03-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/03/25/ssd/index/">换固态的那点事</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>俗话说，前人种(wā)树(kēng)，后人乘(tiào)凉(kēng)。</p>
+<p>昨天下午的时候，有幸和<a target="_blank" rel="noopener" href="https://mingyueli.com/">小蜗牛</a>童鞋一起换了固态硬盘。俗话说得好，<strong>想要装逼的时候却总是失败</strong>。咱就把下午的事说一说，总结下吧</p>
+<p>俺呐，是双系统，已经用True Image备份了Windows和Ubuntu，放在了即将变成移动硬盘的那个硬盘里。（Ubuntu自带的备份工具简直狗屎，还不如我自己tar jcpvf呢）</p>
+<p>首先来看下我准备工具。</p>
+<p><img src="/images/032517_0253_1.jpg"> 哇，一整套螺丝刀，一个专门用来翘边的小东西（还有一张废弃的会员卡作为备用），移动硬盘盒。可谓装备齐全啊。</p>
+<p>哎小蜗牛童鞋你瞧哈。这个是硬盘，CPU，GPU（显卡），这个是无线网卡，这个是右侧坏掉的USB，始终没修好……这个是内存，两边往下一按就能弹出来了，下面的是4G的手里的是8G的（我的手那个抖啊太激动了），总之就是一顿介绍嘛。</p>
+<p><a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/motherboard.jpg"><img src="/images/motherboard.jpg"></a></p>
+<p>咱的目标就是，把主硬盘放到光驱位上，再把固态放到原来的硬盘上。为啥要这么折腾呢？因为华硕它抠门啊，光驱位就给3Gb&#x2F;s，硬盘位才是6Gb&#x2F;s，咱怎么能让传输速率称为性能的瓶颈呢？（麻利的拿起螺丝刀要去扭硬盘托盘的螺丝，越来越觉得不对劲，哎这玩意怎么这么难拧？后来发现太激动了应该拧右侧的固定螺丝）<img src="/images/032517_0253_3.jpg"></p>
+<p>好吧固态咱装完了，上盖开机恢复系统吧。咦？好像少了点什么？对，应该测试完再上盖的！<img src="/images/032517_0253_4.jpg"></p>
+<p>（“这手真嫩啊”，别看了就说你呢）</p>
+<p>滴滴滴！老司机竟然有报警声。什么情况？开盖！使用<strong>排除法</strong>，先拿了机械硬盘，再拿了固态，依旧滴滴滴。莫非…内存问题？把内存拔了重新插，哎嘿还真是。我……草泥马都hold不住了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/03/2017032503145693.png"><img src="/images/2017032503145693.png"></a></p>
+<p>然后咱只剩下两个任务了，恢复系统</p>
+<p>拿True Image恢复备份，咱得先把旧硬盘搞成移动硬盘啊。</p>
+<p>竟然没法扣盖（晚上才发现我正反面弄错了），插上USB口，竟然咔咔咔的不转！啥情况？换到USB2.0好了……敢情这丫是嫌弃我电压高啊？ 当然啦，EFI分区什么的咱都先创建好呢。</p>
+<h2 id="恢复Windows"><a href="#恢复Windows" class="headerlink" title="恢复Windows"></a>恢复Windows</h2><p>方法就是，用True Image恢复备份到固态硬盘，然后修复引导。</p>
+<p>不知为何竟然修复失败，固态硬盘里的文件也都没有权限。奇怪了我也没开EFS、BitLocker啊。</p>
+<p>那就重装Windows 10吧，然后再用True Image恢复。成功。</p>
+<h2 id="恢复Ubuntu"><a href="#恢复Ubuntu" class="headerlink" title="恢复Ubuntu"></a>恢复Ubuntu</h2><p>恢复Ubuntu的方法挺多的。仿造Windows，用U盘重装Ubuntu，然后True Image恢复。果不其然，grub rescue了。这就给我了一个学习的机会，咋应对grub rescue呢……</p>
+<p>咱Linux就是好玩，咱运行时就能备份，哪像瘟斗士嘛……</p>
+<p>[v_blue]“信不信我能把rm给rm了(<code>sudo rm /bin/rm</code>)？信不信我自杀给你看（<code>sudo rm –rf /</code>）？信不信我把你<a target="_blank" rel="noopener" href="https://www.reddit.com/r/linux/comments/43ls7j/no_post_after_rm_rf_systemd_uefi/">固件毁了？</a>“窝在角落里的Linux发行版说到。 “这不是我的锅，我不背”Systemd和MSI一同忧郁的说到。[&#x2F;v_blue]</p>
+<p>先说下我的环境吧。UEFI+GPT，SSD被Linux识别成sdb，sdb1是EFI分区，sdb2的Windows，sdb3是ext4的&#x2F;，所以咱grub rescue咱这么干呐</p>
+<p>set prefix&#x3D;(hd1,gpt3)&#x2F;boot&#x2F;grub&#x2F;<br>set root&#x3D;(hd1,gpt3)<br>insmod normal<br>normal</p>
+<p><img src="/images/032517_0253_5.jpg"></p>
+<p>这四句话的意思就是让grub知道该去哪里找各种启动过程中必须的文件，输入最后一个<code>normal</code>的时候，应该就见到了常见的grub引导界面，此时选择Ubuntu，等那么几分钟……哎嘿，<code>emergency mode</code>了。为啥呢？因为内核无法挂载文件系统啊。为啥无法挂载啊？因为……</p>
+<p>别说了咱看下<code>/etc/fstab</code>吧，果然啊……磁盘的UUID改了，知道病因那就好办了。要么用<code>blkid</code>看下新的UUID，把fstab改正确了，要么直接用<code>/dev/sdb1</code>这种形式</p>
+<p>看我改动的痕迹！</p>
+<p><img src="/images/032517_0253_6.png"></p>
+<p>然后就都正常啦。不过重启依旧会grub rescue。不怕，咱进Ubuntu装个boot-repair或者<code>grub-install</code>，就可以啦。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>感谢可爱的小蜗牛童鞋的拍照、看管螺丝和数不清的❤</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/03/25/ssd/index/" data-id="clhp7rtk7008ys2qr9bugav4g" data-title="换固态的那点事" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-sheep-idiot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/03/10/sheep-idiot/index/" class="article-date">
@@ -926,57 +998,6 @@
 
 
   
-    <article id="post-miss-dong/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/01/03/miss-dong/index/" class="article-date">
-  <time class="dt-published" datetime="2017-01-03T00:00:00.000Z" itemprop="datePublished">2017-01-03</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/01/03/miss-dong/index/">怀念东东</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>开门就不红的2017年，被羁绊在旅途中….途中想起你，想起了好久之前就想写的怀念。</p>
-<p>今年的的第一节课，和我上大学的第一节课，都是他。 很无奈的是我却被困在途中，无法亲临现场。</p>
-<p>三年半之前了吧，我和室友们走进教室的时候发现早已站着一名西装革履的帅哥。他就是我们的综合英语老师，我们都叫他东东。九月份，真的是一脸严肃认真啊。当时我还对大学懵懵懂懂，之前给家里打电话的时候听到小孩喊舅舅差点哭出来；当时我还完全不知道大学是什么，身边也都是陌生的人们。Half a day?我来这是为了什么…</p>
-<p>渐渐的我发现气质这种东西真的是看不见的美好。只要他站在讲台上，就好似有一种看不到的气势在督促着你但又不会让你感觉窒息；无论课前、课间、课后，我都从未见过他拿手机，伴随着他的总是一些原著、或是教科书。他不像有的老师那样无理取闹，也不像有的老师那样严加管教。大概理性、睿智、宽容、博学是最能能形容他的词语了。怎么会这样完美！</p>
-<p>有的时候他会跟我们说公园里那些可笑的翻译，有的时候他会跟我们说universal grammar, 会说约翰把球推下山，还有究竟是约翰通过望远镜看到了一个人还是约翰看到了一个拿着望远镜的人？缺乏证据和没有证据，绝对权力导致绝对腐败。Democracy? 这些与课本毫无相关的内容几乎成为了当时维护我破碎的爱情的支架。</p>
-<p>有的时候，每周最希望的事情就是上他的课，因为总是会听到很多好玩的东西；有的时候又有些害怕，谁叫我总是不背课文不背单词呢…有的时候有的时候，时间就这样一点点跑掉，跑到了那个被银行职员“欺负”的小男孩，跑到了胖子智斗间谍的故事，跑到了莳萝泡菜那段深情感人的对白，跑到了在水中挣扎求生的人们，跑到了美国中部那个曾经美好的死寂的春天，还有那个荒谬的、站不住脚的观点。后来我在看《学会提问》的时候，总是想起Groundless beliefs.</p>
-<p>两年，没想到那一天你会告诉我们你要去进修，你还信誓旦旦的保证说你会回来的。 或许是到毕业的时候….幸运的是，一年半，终于等到了。我怀念的，是那时课上的音容笑貌…</p>
-<p>三个学期都快过去了，记忆开始变得模糊，好怕忘记那两年…终于等到你。这就是幸运吧，如果我大学的综英老师不是他，可能我也无法像今天这样吧。我从小就不喜欢听人管教，又讨厌无理取闹。得知我幸，不得我不信，再不得我不幸-_-#</p>
-<p>可是，唯一不幸的是，我再也无法触及你曾点赞的温暖，再也没有最后的幻想了❤</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/01/03/miss-dong/index/" data-id="clhp7rthj004xs2qr3nuzc1qx" data-title="怀念东东" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1021,7 +1042,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1032,6 +1053,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
+          </li>
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
@@ -1047,10 +1072,6 @@
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
           </li>
         
       </ul>

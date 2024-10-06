@@ -73,6 +73,96 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-zero-trust-login-method/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/22/zero-trust-login-method/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-22T00:00:00.000Z" itemprop="datePublished">2023-04-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/22/zero-trust-login-method/index/">Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是App-Launcher"><a href="#什么是App-Launcher" class="headerlink" title="什么是App Launcher"></a>什么是App Launcher</h2><p>所谓App launcher，就是当用户登录之后，会显示一些应用，可以直接点击跳转过去。再也不用单独收藏每一个链接啦，只要收藏这个 App Launcher即可。长这样</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003361458.png"><img src="/images/2023042003361458.png"></a></p>
+<h2 id="添加新登录验证方式"><a href="#添加新登录验证方式" class="headerlink" title="添加新登录验证方式"></a>添加新登录验证方式</h2><p>通常来讲，我们是通过邮件的方式来进行验证的。非常简单，但是有时邮件可能会发送失败，比如说被Gmail拦截。那么有没有办法添加新的验证方式呢？答案当然是有的啦。Cloudflare继承了非常多的登录方式，如下图所示，甚至有一个通用的SAML：</p>
+<p><img src="/images/2023042003351149.png" alt="表格 描述已自动生成"></p>
+<p>下面就以配置GitHub登录来说，Google等同理基本没太大差别。</p>
+<h2 id="创建GitHub-App"><a href="#创建GitHub-App" class="headerlink" title="创建GitHub App"></a>创建GitHub App</h2><p>打开GitHub，进入Settings – Developer Settings – OAuth Apps，新建一个app</p>
+<ul>
+<li>Application name：随便写，自己记得就可以</li>
+<li>Homepage URL： 你的team url，比如说 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a></li>
+<li>Callback：同上，<a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback">https://bennythink.cloudflareaccess.com/cdn-cgi/access/callback</a></li>
+</ul>
+<p>创建之后，复制 Client ID，然后点击Generate a new client secret 复制secret的值</p>
+<h2 id="创建GitHub-Organization"><a href="#创建GitHub-Organization" class="headerlink" title="创建GitHub Organization"></a>创建GitHub Organization</h2><p>创建一个GitHub Organization，后续做验证的时候要用这个。</p>
+<h2 id="配置Zero-Trust"><a href="#配置Zero-Trust" class="headerlink" title="配置Zero Trust"></a>配置Zero Trust</h2><p>回到Cloudflare Zero Trust，选择Settings – Authentication – Login Methods，右侧有一个Add new，然后选择GitHub</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/04/2023042003372621.png"><img src="/images/2023042003372621.png"></a></p>
+<p>填入刚刚复制的ID和secret，点击保存</p>
+<p> </p>
+<p>下面会弹出一个小的框框</p>
+<p><img src="/images/2023042003351386.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>点击finish setup或者复制链接到新窗口打开，在org中给我们新创建的org授权，点击Grant，然后authorize</p>
+<p><img src="/images/2023042003351323.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>此时回到Login Methods 就可以看到已经添加成功啦，点击 Test按钮可以看下Cloudflare从GitHub的API拿到的数据</p>
+<p><img src="/images/2023042003351481.png" alt="背景图案 描述已自动生成"></p>
+<h2 id="配置验证"><a href="#配置验证" class="headerlink" title="配置验证"></a>配置验证</h2><p>此时如果你打开 team url，比如 <a target="_blank" rel="noopener" href="https://bennythink.cloudflareaccess.com/">https://bennythink.cloudflareaccess.com/</a> 在Login就已经能看到GitHub了。</p>
+<p><img src="/images/202304200335155.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>当然这还没完，不能所有人都能通过GitHub OAuth进入App Launcher呀！因此我们还需要进一步配置</p>
+<p>点开Zero Trust – Settings – App Launcher – Manage</p>
+<p>首先确认一下Authentication页面已经选中了GitHub，默认应该是所有认证方式都可以，当然你也可以自定义</p>
+<p><img src="/images/2023042003351550.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>然后在Rules中，新建或者编辑已有规则，我们会发现有三种可以选择的模式： include、require和exclude</p>
+<p><img src="/images/2023042003351695.png" alt="图形用户界面 描述已自动生成"></p>
+<ul>
+<li>include：类似逻辑OR操作符，用户只要满足条件之一就可以</li>
+<li>require：类似逻辑AND操作符，用户要满足所有的条件</li>
+<li>exclude：类似逻辑NOT，排除条件</li>
+</ul>
+<p>[v_error] 添加require规则的时候要注意，是要满足所有条件才可以授权。比如我的require规则添加了两条，分别是County&#x3D;China &amp; Country&#x3D;US，那么没人可以通过，因为IP只能在一个国家而不是两个国家。 [&#x2F;v_error]</p>
+<p>这里我们的需求是，用户要么通过 dmesg.app 的邮箱验证，要么在新创建的那个Organization里，所以新添加一个include，Selector选择GitHub Organization，organization name写创建的name</p>
+<p><img src="/images/2023042003351779.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>如果我们的需求是，用户在org里，并且邮箱为 <a href="mailto:xxx@xxx.com">xxx@xxx.com</a>，那么就要一个include 邮箱规则，一个require GitHub organization规则。</p>
+<p>返回 team url就可以登录了。</p>
+<p>注意：配置 App Launcher的权限，并不等于拥有应用的权限，<strong>应用的权限是独立的</strong>。</p>
+<p>举个例子，我之前创建的redis，只能邮箱进行验证，并且放到了launcher之中，那么在App Launcher这里我通过GitHub OAuth后，并看不到那个redis。想要看到对应的应用，那只能去编辑对应应用的规则。</p>
+<h2 id="Access-Group"><a href="#Access-Group" class="headerlink" title="Access Group"></a>Access Group</h2><p>把一样的规则配置多次就显得很蠢，这个时候就要用Access Group。</p>
+<p>Access – Access Group，设置名称和配置和前面一样</p>
+<p><img src="/images/2023042003351846.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>在其他地方，添加策略的时候选择这个Group就可以了。甚至在WARP的Device enrollment permissions中也可以这样搞！</p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/policies/access/">https://developers.cloudflare.com/cloudflare-one/policies/access/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/22/zero-trust-login-method/index/" data-id="clhp7rtnz00c2s2qrbtpb4apw" data-title="Cloudflare Zero Trust App Launcher、Access Group及添加新的登录验证方式" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-zero-trust-access-web/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/04/20/zero-trust-access-web/index/" class="article-date">
@@ -991,84 +1081,6 @@ server.quit()
 
 
   
-    <article id="post-linux-lipo/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/09/13/linux-lipo/index/" class="article-date">
-  <time class="dt-published" datetime="2022-09-13T00:00:00.000Z" itemprop="datePublished">2022-09-13</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/09/13/linux-lipo/index/">在Linux下使用lipo创建 universal macOS binary</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>macOS的应用程序可以同时包含多种架构，最常见的是包含arm64和amd64这两种。操作系统会自动选择执行最合适的架构，避免使用rosetta 2.</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/09/2022091220433923.png"><img src="/images/2022091220433923.png"></a></p>
-<h2 id="创建universal-binary"><a href="#创建universal-binary" class="headerlink" title="创建universal binary"></a>创建universal binary</h2><p>在macOS中，自带一个工具 <code>lipo</code>，可以用来合并、提取、显示这种universal binary的信息。</p>
-<p>比如我想创建一个universal binary，可以这样做</p>
-<p># lipo -create -output universal amd64 arm64</p>
-<h1 id="file-universal"><a href="#file-universal" class="headerlink" title="file universal"></a>file universal</h1><p>universal: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64Mach-O 64-bit executable x86_64] [arm64]<br>universal (for architecture x86_64): Mach-O 64-bit executable x86_64<br>universal (for architecture arm64): Mach-O 64-bit executable arm64</p>
-<p>可以把某个架构的binary提取出来，<code>-extract</code></p>
-<p># lipo -extract x86_64 -output amd universal</p>
-<h1 id="file-amd"><a href="#file-amd" class="headerlink" title="file amd"></a>file amd</h1><p>amd: Mach-O universal binary with 1 architecture: [x86_64:Mach-O 64-bit executable x86_64Mach-O 64-bit executable x86_64]<br>amd (for architecture x86_64): Mach-O 64-bit executable x86_64</p>
-<p>也可以用来显示binary的一些信息</p>
-<p>&gt; $ lipo -detailed_info universal<br>Fat header in: universal<br>fat_magic 0xcafebabe<br>nfat_arch 2<br>architecture x86_64<br>    cputype CPU_TYPE_X86_64<br>    cpusubtype CPU_SUBTYPE_X86_64_ALL<br>    capabilities 0x0<br>    offset 4096<br>    size 1181264<br>    align 2^12 (4096)<br>architecture arm64<br>    cputype CPU_TYPE_ARM64<br>    cpusubtype CPU_SUBTYPE_ARM64_ALL<br>    capabilities 0x0<br>    offset 1196032<br>    size 1190706<br>    align 2^14 (16384)</p>
-<h2 id="Linux下创建universal-binary替代品"><a href="#Linux下创建universal-binary替代品" class="headerlink" title="Linux下创建universal binary替代品"></a>Linux下创建universal binary替代品</h2><p>可惜Linux上竟然没有对应的lipo。对于那些用Go写的应用程序，天生就支持交叉编译，那为了在release发布一个universal binary，还得自己合并，或者GitHub Actions跑一个macOS？也不是不行，就是太麻烦啦！</p>
-<p>但是不怕，universal binary的技术细节是公开的，并且Apple开源了lipo对应的代码，可以看<a target="_blank" rel="noopener" href="https://github.com/apple-oss-distributions/cctools">cctools</a>. 非常幸运的是还有一个人给port到了Linux，<a target="_blank" rel="noopener" href="https://github.com/tpoechtrager/cctools-port">https://github.com/tpoechtrager/cctools-port</a></p>
-<p>那么为了在Linux下创建这样的universal binary，要么就去读技术细节，参考官方的C语言实践，自己用其他语言写一个；要么就直接用现成的cctools-port，编译一个lipo，直接用即可。</p>
-<h2 id="Linux-lipo"><a href="#Linux-lipo" class="headerlink" title="Linux-lipo"></a>Linux-lipo</h2><p>我比较菜，大概读不懂那些难度很高的文档，还得看十六进制，因此我选择直接用官方的代码。</p>
-<p>于是我就做了一个docker image，只要传递过来参数，就可以创建universal binary</p>
-<p>比如我写了这样的简单的Go代码，打印出运行时的架构</p>
-<p>package main</p>
-<p>import “runtime”</p>
-<p>func main() {<br>    &#x2F;&#x2F; print architecture info<br>    println(“Architecture:”, runtime.GOARCH)<br>}</p>
-<p>然后编译两个不同架构的binary</p>
-<p>GOOS&#x3D;darwin GOARCH&#x3D;amd64 go build -o amd64 .<br>GOOS&#x3D;darwin GOARCH&#x3D;arm64 go build -o arm64 .</p>
-<blockquote>
-<p>$ file amd64 arm64<br>amd64: Mach-O 64-bit executable x86_64<br>arm64: Mach-O 64-bit executable arm64</p>
-</blockquote>
-<p>然后就可以这样创建出来universal binary</p>
-<p>docker run –rm -v $(pwd):&#x2F;app&#x2F; bennythink&#x2F;lipo-linux -create -output universal amd64 arm64</p>
-<p>或者extract啊什么的都行的。只要你想，甚至可以把这个docker image里的lipo提取出来用，问题不大。</p>
-<p> </p>
-<h2 id="也许可以……"><a href="#也许可以……" class="headerlink" title="也许可以……"></a>也许可以……</h2><p>如果你的Mac的存储空间严重不足，也许可以考虑把那些fat binary给瘦身一下。毕竟两个架构，体积翻倍。framework之类的也可以瘦身，就看能不能找到。比如说word的话……可以考虑瘦身一下这个文件，80M变40M🤣</p>
-<p>Microsoft Word.app&#x2F;Contents&#x2F;MacOS&#x2F;Microsoft Word</p>
-<p>效果还是有的，70%左右吧😂 <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/09/2022091623192693.png"><img src="/images/2022091623192693.png"></a></p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>A deep dive on macOS universal binaries</p>
-<p><a target="_blank" rel="noopener" href="https://www.jviotti.com/2021/07/23/a-deep-dive-on-macos-universal-binaries.html">https://www.jviotti.com/2021/07/23/a-deep-dive-on-macos-universal-binaries.html</a></p>
-<p>Building a Universal macOS Binary</p>
-<p><a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/apple-silicon/building-a-universal-macos-binary">https://developer.apple.com/documentation/apple-silicon/building-a-universal-macos-binary</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/09/13/linux-lipo/index/" data-id="clhp7rthe004os2qra61g0589" data-title="在Linux下使用lipo创建 universal macOS binary" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1113,7 +1125,7 @@ server.quit()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1124,6 +1136,10 @@ server.quit()
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
+          </li>
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
@@ -1139,10 +1155,6 @@ server.quit()
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
           </li>
         
       </ul>

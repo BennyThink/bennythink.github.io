@@ -73,6 +73,96 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-vnstat-container/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/08/21/vnstat-container/index/" class="article-date">
+  <time class="dt-published" datetime="2021-08-21T00:00:00.000Z" itemprop="datePublished">2021-08-21</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/08/21/vnstat-container/index/">使用vnstat获取容器网络流量</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在我使用pyrogram重构了<a target="_blank" rel="noopener" href="https://t.me/benny_ytdlbot">YouTube Download</a>之后，bot的SLA<a target="_blank" rel="noopener" href="https://twitter.com/magicxqq/status/1428514338785009671?s=20">从9个6变为6个9</a>，同时也迎来了使用量上的增加。这样的结果是，每天我的服务器都会跑掉100-200G的流量。</p>
+<p><img src="/images/2021082111335735.png"></p>
+<p>（这段统计信息是从docker stats拿到的，为了方便复用，我发布了一个wrapper到pypi，同样也可以go get，代码可以看这里 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/tgbot_ping">https://github.com/tgbot-collection/tgbot_ping</a>）</p>
+<p>于是我就想，我一定要想办法记录这个容器每天究竟跑了多少流量，不能每次都亲自指挥，亲自部署吧。那咋办呢……</p>
+<h2 id="宿主机上使用vnstat"><a href="#宿主机上使用vnstat" class="headerlink" title="宿主机上使用vnstat"></a>宿主机上使用vnstat</h2><p>在宿主机上使用vnstat，就可以看到本机一共跑了多少流量，不过这个数值通常来讲是会大于YouTube Download的流量的，当然也有一些例外情况，比如容器之间通信，那么自然不会被记录到宿主机的外网网卡。</p>
+<p>直接用宿主机的vnstat做参考，对于我的场景也没什么大问题，因为这个bot是单独跑在一台机器上的，没有太多的影响因素。那么如何在容器中执行宿主机上的某个命令呢？</p>
+<p>坏消息是，这个恐怕是没办法的。容器的namespace是隔离的，看不到宿主机上的信息。</p>
+<p>非想搞呢，在宿主机上跑一个web程序，用于调用vnstat，然后容器访问宿主机的web程序好了……</p>
+<h2 id="docker-stats"><a href="#docker-stats" class="headerlink" title="docker stats"></a>docker stats</h2><p>docker stats可以用于获取容器的运行时统计信息，比如CPU、RAM等。</p>
+<p>比如在某台机器上，我执行下stats，能看到这样的结果</p>
+<p><img src="/images/2021082111335814.png"></p>
+<p>本质上docker是C&#x2F;S架构的一个东西，所以其实这东西是有一个REST API的。</p>
+<p>对于 docker stats，是这个接口</p>
+<p><a target="_blank" rel="noopener" href="http://socat:2375/containers/dreamy/_hugle/stats?stream=0">http://socat:2375/containers/dreamy\_hugle/stats?stream=0</a></p>
+<p>哦我预先用了下socat，在实际部署中，我有一个名为socat的容器，专门干这事的。当然这也意味着容器可以控制宿主机上的docker engine，有一定的风险。</p>
+<p>socat tcp-listen:2375,fork,reuseaddr unix-connect:&#x2F;var&#x2F;run&#x2F;docker.sock</p>
+<p>拿到的响应是json，其中有一段networks</p>
+<p><img src="/images/2021082111340014.png"></p>
+<p>那么我只要去解析这个json，然后定时算diff，这样就可以啦！只不过实现难度 🌟🌟🌟🌟🌟，万一以后想看小时、月的呢，容器重启了怎么办，数据存哪，这代码怎么维护呀……</p>
+<h2 id="vnstat"><a href="#vnstat" class="headerlink" title="vnstat"></a>vnstat</h2><p>在统计流量这方面，已经有了成熟的vnstat，在容器里怎么就不行了？容器也是能跑很多个进程的啊，我还见过容器跑sshd的呢。</p>
+<p>vnstat其实也是个C&#x2F;S架构的东西，<code>vnstatd</code>负责存储流量信息到SQLite，<code>vnstat</code>用于读取显示信息，还有一个<code>vnstati</code>，能够生成图表。在某些廉价VPS厂商能看到如下简陋的流量图，那么很有可能就是<code>vnstati</code>生成的。</p>
+<p><img src="/images/202108211134001.png"></p>
+<p>在容器里用vnstat并不复杂，先开启vnstatd，然后再开我们的应用程序。</p>
+<p>那么就先搞一段shell脚本，为了避免问题使用绝对路径吧</p>
+<p>&#x2F;usr&#x2F;sbin&#x2F;vnstatd -d<br>&#x2F;usr&#x2F;local&#x2F;bin&#x2F;python ytdl.py</p>
+<p>然后把入口从 <code>python xxx.py</code>改成<code>sh xxx.sh</code></p>
+<p>看进程树是这样子的</p>
+<p><img src="/images/2021082111340051.jpeg"></p>
+<p>需要的时候，写代码调用vnstat就可以了。为了避免干扰，代码中可以用 <code>/usr/bin/vnstat -i eth</code>0 排除其他网卡哦。</p>
+<p>一个示例<code>Dockerfile</code>如下，使用了多阶段构建，所以vnstat要安装在运行时而不是构建时：</p>
+<p>FROM python:alpine as builder</p>
+<p>RUN apk update &amp;&amp; apk add  –no-cache tzdata alpine-sdk libffi-dev ca-certificates<br>ADD requirements.txt &#x2F;tmp&#x2F;<br>RUN pip3 install –user -r &#x2F;tmp&#x2F;requirements.txt &amp;&amp; rm &#x2F;tmp&#x2F;requirements.txt</p>
+<p>FROM python:alpine<br>WORKDIR &#x2F;ytdlbot<br>ENV TZ&#x3D;Asia&#x2F;Shanghai</p>
+<p>RUN apk update &amp;&amp; apk add  –no-cache ffmpeg vnstat<br>COPY –from&#x3D;builder &#x2F;root&#x2F;.local &#x2F;usr&#x2F;local<br>COPY –from&#x3D;builder &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;ca-certificates.crt &#x2F;etc&#x2F;ssl&#x2F;certs&#x2F;<br>COPY –from&#x3D;builder &#x2F;usr&#x2F;share&#x2F;zoneinfo &#x2F;usr&#x2F;share&#x2F;zoneinfo<br>COPY . &#x2F;ytdlbot<br>RUN echo “&#x2F;usr&#x2F;sbin&#x2F;vnstatd -d;&#x2F;usr&#x2F;local&#x2F;bin&#x2F;python ytdl.py”&gt; &#x2F;ytdlbot&#x2F;start.sh</p>
+<p>CMD [“sh”, “start.sh”]</p>
+<p>需要注意的是，为了避免容器重启后数据丢失，记得做个volume到 <code>/var/lib/vnstat</code>哦。</p>
+<p>完美！结果如下图</p>
+<p><img src="/images/2021082111340120.png"></p>
+<p>当然了，在容器中运行多个进程有很多种办法，使用shell脚本是一种，缺点很多，比如进程崩溃了，那shell脚本也没法给守护起来……更好的更优雅的方案就是用supervisor，或者是一些好用的init，那些想用systemd的还是劝您放弃</p>
+<p>supervisor可以参考这个配置，会把log重定向到stdout中</p>
+<p>[supervisord]<br>nodaemon&#x3D;true<br>logfile&#x3D;&#x2F;dev&#x2F;null<br>logfile_maxbytes&#x3D;0<br>user&#x3D;root</p>
+<p>[program:vnstat]<br>command&#x3D;vnstatd -n<br>autorestart&#x3D;true</p>
+<p>[program:ytdl]<br>directory&#x3D;&#x2F;ytdlbot<br>command&#x3D;python ytdl.py<br>autorestart&#x3D;true</p>
+<p>stdout_logfile&#x3D;&#x2F;dev&#x2F;fd&#x2F;1<br>stdout_logfile_maxbytes&#x3D;0<br>redirect_stderr&#x3D;true</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我不知道你们是怎么想的，反正我感觉我快要被薅🐰了。</p>
+<p><img src="/images/2021082111340343.png"></p>
+<p>尽管我已经开启了VIP模式，试图通过10G&#x2F;24h来产生一定威慑效果，但是依旧架不住人多啊🤣</p>
+<p><img src="/images/2021082111340355.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/08/21/vnstat-container/index/" data-id="clhp7rtmw00ats2qr2xms0hxi" data-title="使用vnstat获取容器网络流量" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-tgbot3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/08/15/tgbot3/index/" class="article-date">
@@ -891,128 +981,6 @@ fun()
 
 
   
-    <article id="post-ufw-vs-docker/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/04/10/ufw-vs-docker/index/" class="article-date">
-  <time class="dt-published" datetime="2021-04-10T00:00:00.000Z" itemprop="datePublished">2021-04-10</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/04/10/ufw-vs-docker/index/">我的ufw怎么又不好用了？使用docker时如何拒绝非cloudflare访问</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>事情是这样的，我想让我的网站的80和443端口只接受cloudflare的访问，直接访问会被拒绝。</p>
-<p>嗨，这还不简单嘛！先给入网加规则，当然要记得先加ssh的规则，然后再给policy设置成DROP，多大点事！</p>
-<p>iptables -I INPUT -p tcp –dport 22 -j ACCEPT<br>iptables -I INPUT -s 192.168.7.67 -p tcp –dport 80 -j ACCEPT<br>iptables -P INPUT DROP</p>
-<p>查看下INPUT的规则确定一下没问题</p>
-<p>[~] iptables -L INPUT<br>Chain INPUT (policy DROP)<br>target prot opt source destination<br>ACCEPT tcp – 192.168.7.67 anywhere tcp dpt:http<br>ACCEPT tcp – anywhere anywhere tcp dpt:ssh</p>
-<p>嗯，没问题！</p>
-<p>大部分情况下，这是没问题的……但是如果你的应用是用docker起的，比如说</p>
-<p>docker run -d -p 80:80 nginx</p>
-<p>那么你会惊喜的发现，这规则好像没用……80端口还是能够从非192.168.7.67以外的IP访问。</p>
-<p>那上ufw！</p>
-<p>ufw allow ssh<br>ufw allow proto tcp from 192.168.7.67 to any port 80,443<br>ufw enable</p>
-<p>嗯……还是没用，毕竟ufw其实也是在操作iptables的嘛。</p>
-<p>嗯，因为docker的话，会新建一个DOCKER的链，如果容器使用<code>-p</code>绑定了端口，那么doker会自动去修改对应的iptables规则。</p>
-<p>所以从现象上来看就是docker在你的防火墙上打了一个洞……</p>
-<hr>
-<p><img src="/images/2021041016413552.png"></p>
-<h2 id="需求分析"><a href="#需求分析" class="headerlink" title="需求分析"></a>需求分析</h2><p>其实我的需求很简单，非cloudflare IP无法访问80&#x2F;443。额外的，我还需要开放UDP的80和443，wireguard在用的。22也是要的，也就顺便开了UDP 22备用吧。当然，以上需求包涵IPv4和IPv6。</p>
-<p>具体来说，我想到了这样几种有效的解决方案：</p>
-<ol>
-<li>在厂商防火墙做配置</li>
-<li>nginx配置allow deny规则</li>
-<li>宿主机nginx做proxy，将docker 的端口绑定到127.0.0.1</li>
-<li>让docker臣服于ufw……</li>
-</ol>
-<h2 id="厂商防火墙配置"><a href="#厂商防火墙配置" class="headerlink" title="厂商防火墙配置"></a>厂商防火墙配置</h2><p>这是最简单也的方案了，有些VPS厂商提供一个防火墙配置，有的也称为安全组，然后绑定到自己的机器就好了，就是cloudflare的IP有点多……改起来麻烦了点……</p>
-<p>比如vultr的防火墙是这样的，自己改改就差不多了。</p>
-<p><img src="/images/2021041016413957.png"></p>
-<h2 id="nginx配置allow-deny规则"><a href="#nginx配置allow-deny规则" class="headerlink" title="nginx配置allow deny规则"></a>nginx配置allow deny规则</h2><p>以下均是配置容器中的nginx</p>
-<h3 id="一般情况"><a href="#一般情况" class="headerlink" title="一般情况"></a>一般情况</h3><p>这个其实很简单的啦，自己补全下IP</p>
-<p># <a target="_blank" rel="noopener" href="https://www.cloudflare.com/ips">https://www.cloudflare.com/ips</a></p>
-<h1 id="IPv4"><a href="#IPv4" class="headerlink" title="IPv4"></a>IPv4</h1><p>allow 103.21.244.0&#x2F;22;</p>
-<h1 id="IPv6"><a href="#IPv6" class="headerlink" title="IPv6"></a>IPv6</h1><p>allow 2400:cb00::&#x2F;32;<br>deny all; # deny all remaining ips</p>
-<h3 id="启用set-real-ip-from"><a href="#启用set-real-ip-from" class="headerlink" title="启用set_real_ip_from"></a>启用set_real_ip_from</h3><p>如果你启用了<code>set_real_ip_from</code>，那么如果像上面那样操作，那就全部都403啦！</p>
-<p>正确的操作姿势是这样的……</p>
-<p>geo $realip_remote_addr $cloudflare_ip {<br>    default 0;</p>
-<pre><code>103.21.244.0/22 1;
-2a06:98c0::/29 1;
-</code></pre>
-<p>}</p>
-<p>然后在对应的server段中：</p>
-<p>if ($cloudflare_ip !&#x3D; 1) {<br>    return 403;<br>}</p>
-<p>嗯，这样就可以了！</p>
-<h2 id="宿主机nginx做proxy"><a href="#宿主机nginx做proxy" class="headerlink" title="宿主机nginx做proxy"></a>宿主机nginx做proxy</h2><p>还有一种方式是，将docker的端口绑定到127.0.0.1，然后宿主机安装nginx做proxy_pass，之后配置宿主机的nginx allow deny或者iptables。这种方式也可以的，比较简单，就不多说啦～🤣</p>
-<h2 id="让docker臣服于ufw"><a href="#让docker臣服于ufw" class="headerlink" title="让docker臣服于ufw"></a>让docker臣服于ufw</h2><p>要做到这一点，我们同时要保证：容器互通、并且通外网。当然，禁用docker的iptables功能也是可以的，就是比较麻烦，咱就想能不能让这二人和谐共处……</p>
-<p>操作起来其实很简单。不过先要做一些准备工作，比如说恢复docker的iptables功能，清除INPUT中的可能冲突的规则……然后：</p>
-<h3 id="修改ufw配置"><a href="#修改ufw配置" class="headerlink" title="修改ufw配置"></a>修改ufw配置</h3><p>修改 <code>/etc/ufw/after.rule</code>s 最后加上如下规则</p>
-<p># BEGIN UFW AND DOCKER</p>
-<h1 id="BEGIN-UFW-AND-DOCKER"><a href="#BEGIN-UFW-AND-DOCKER" class="headerlink" title="BEGIN UFW AND DOCKER"></a>BEGIN UFW AND DOCKER</h1><p>*filter<br>:ufw-user-forward - [0:0]<br>:ufw-docker-logging-deny - [0:0]<br>:DOCKER-USER - [0:0]<br>-A DOCKER-USER -j ufw-user-forward</p>
-<p>-A DOCKER-USER -j RETURN -s 10.0.0.0&#x2F;8<br>-A DOCKER-USER -j RETURN -s 172.16.0.0&#x2F;12<br>-A DOCKER-USER -j RETURN -s 192.168.0.0&#x2F;16</p>
-<p>-A DOCKER-USER -p udp -m udp –sport 53 –dport 1024:65535 -j RETURN</p>
-<p>-A DOCKER-USER -j ufw-docker-logging-deny -p tcp -m tcp –tcp-flags FIN,SYN,RST,ACK SYN -d 192.168.0.0&#x2F;16<br>-A DOCKER-USER -j ufw-docker-logging-deny -p tcp -m tcp –tcp-flags FIN,SYN,RST,ACK SYN -d 10.0.0.0&#x2F;8<br>-A DOCKER-USER -j ufw-docker-logging-deny -p tcp -m tcp –tcp-flags FIN,SYN,RST,ACK SYN -d 172.16.0.0&#x2F;12<br>-A DOCKER-USER -j ufw-docker-logging-deny -p udp -m udp –dport 0:32767 -d 192.168.0.0&#x2F;16<br>-A DOCKER-USER -j ufw-docker-logging-deny -p udp -m udp –dport 0:32767 -d 10.0.0.0&#x2F;8<br>-A DOCKER-USER -j ufw-docker-logging-deny -p udp -m udp –dport 0:32767 -d 172.16.0.0&#x2F;12</p>
-<p>-A DOCKER-USER -j RETURN</p>
-<p>-A ufw-docker-logging-deny -m limit –limit 3&#x2F;min –limit-burst 10 -j LOG –log-prefix “[UFW DOCKER BLOCK] “<br>-A ufw-docker-logging-deny -j DROP</p>
-<p>COMMIT</p>
-<h1 id="END-UFW-AND-DOCKER"><a href="#END-UFW-AND-DOCKER" class="headerlink" title="END UFW AND DOCKER"></a>END UFW AND DOCKER</h1><h3 id="重启ufw"><a href="#重启ufw" class="headerlink" title="重启ufw"></a>重启ufw</h3><p>systemctl restart ufw</p>
-<h3 id="添加规则"><a href="#添加规则" class="headerlink" title="添加规则"></a>添加规则</h3><p>开始愉快的添加规则吧</p>
-<p>ufw allow 22<br>ufw allow proto udp to any port 80,443</p>
-<p>for i in `curl <a target="_blank" rel="noopener" href="https://www.cloudflare.com/ips-v4/%60">https://www.cloudflare.com/ips-v4\`</a>; do ufw route allow proto tcp from $i to any port 80,443; done<br>for i in `curl <a target="_blank" rel="noopener" href="https://www.cloudflare.com/ips-v6/%60">https://www.cloudflare.com/ips-v6\`</a>; do ufw route allow proto tcp from $i to any port 80,443; done</p>
-<p>ufw enabler</p>
-<p>如果你想额外的添加一些IP的话，那就依样画葫芦：</p>
-<p>ufw route allow proto tcp from 1.1.1.1 to any port 80,443;</p>
-<p>好的！设置完成！找台机器改hosts 之后用curl试试吧！</p>
-<h3 id="我警告你们……"><a href="#我警告你们……" class="headerlink" title="我警告你们……"></a>我警告你们……</h3><p>如果你的服务器也开启了WireGuard，并且是使用了WireGuard的转发功能的，那么请记得开ufw forward。举个例子：</p>
-<p>我有ABC三台服务器，B是WireGuard“服务器”，A和C都连接到了B。如果A想要访问C上的ssh，或者反过来，那么就要开forward，否则会不通哦。</p>
-<p>当然啦，前提是要先开<code>net.ipv4.ip_forward=1</code>以及<code>net.ipv6.conf.all.forwarding = 1</code>，否则有没有ufw，AC都不通的哦。</p>
-<p>vim &#x2F;etc&#x2F;defaut&#x2F;ufw<br>DEFAULT_FORWARD_POLICY&#x3D;”ACCEPT”</p>
-<h1 id="或者下面这个也可"><a href="#或者下面这个也可" class="headerlink" title="或者下面这个也可"></a>或者下面这个也可</h1><p>ufw default allow routed</p>
-<h1 id="也要记得放行哦"><a href="#也要记得放行哦" class="headerlink" title="也要记得放行哦"></a>也要记得放行哦</h1><p>ufw allow from 192.168.6.0&#x2F;24 to 192.168.6.1</p>
-<p>如果你的容器需要访问宿主机，还要记得这样加一行</p>
-<p>ufw allow from 172.16.0.0&#x2F;12 to 172.17.0.1</p>
-<h3 id="禁用ufw"><a href="#禁用ufw" class="headerlink" title="禁用ufw"></a>禁用ufw</h3><p>如果此时你是用ufw disable来禁用ufw，会发现容器无法在外部访问。此时需要这么做：</p>
-<p>sudo iptables -I DOCKER-USER 1 -j RETURN</p>
-<p>这样可以暂时bypass掉ufw规则了。</p>
-<p>使用如下命令查看规则</p>
-<p>sudo iptables -n -L DOCKER-USER</p>
-<p>使用这个命令删除规则，不过这个时候就记得要<code>ufw enable</code>哦</p>
-<p>sudo iptables -D DOCKER-USER 1</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>ufw-docker： <a target="_blank" rel="noopener" href="https://github.com/chaifeng/ufw-docker">https://github.com/chaifeng/ufw-docker</a></p>
-<p>让 docker 向 UFW 低头： <a target="_blank" rel="noopener" href="https://keng42.com/blog/article/docker-ufw/">https://keng42.com/blog/article/docker-ufw/</a></p>
-<p>after.rules not reloaded unless reboot： <a target="_blank" rel="noopener" href="https://github.com/chaifeng/ufw-docker/issues/40">https://github.com/chaifeng/ufw-docker/issues/40</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/04/10/ufw-vs-docker/index/" data-id="clhp7rtmv00aps2qre4ce61qr" data-title="我的ufw怎么又不好用了？使用docker时如何拒绝非cloudflare访问" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1057,7 +1025,7 @@ fun()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1068,6 +1036,10 @@ fun()
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
+          </li>
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
@@ -1083,10 +1055,6 @@ fun()
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
           </li>
         
       </ul>

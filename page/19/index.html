@@ -73,6 +73,164 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ubuntumate-raspberry2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/05/05/ubuntumate-raspberry2/index/" class="article-date">
+  <time class="dt-published" datetime="2016-05-05T00:00:00.000Z" itemprop="datePublished">2016-05-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/05/05/ubuntumate-raspberry2/index/">Ubuntu MATE 16.04 for Raspberry 2安装配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_blue]2019年更新： 最终，我换回了raspbian，苦等的18.04怎么也不来，也不想do-release-upgrade，于是直接上raspbian lite吧，开机后内存占用才30M，很完美~<a target="_blank" rel="noopener" href="https://weworkweplay.com/play/automatically-connect-a-raspberry-pi-to-a-wifi-network/">自动连WiFi参考</a>[&#x2F;v_blue]</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/05/201605050804463.png"><img src="/images/201605050804463.png" alt="ghhg"></a></p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>昨天把树莓派揪了出来，全新安装了Ubuntu MATE 16.04，发现这版本还是不错的……然而却存在很多问题，比如说，每次更新、下载软件都得跑去遥远的美帝——反正不在大陆了；SD卡没有扩展等。</p>
+<p>那今天就水一贴来说说Ubuntu MATE 16.04 for Raspberry 2安装之后的事情……</p>
+<p>本文的主要内容（主要解决的问题）有：</p>
+<p>扩展文件系统</p>
+<p>更换软件源</p>
+<p>安装OpenSSH</p>
+<p>完善语言支持</p>
+<p>1080P显示器黑边</p>
+<p>音频默认输出端口</p>
+<p>播放器的硬件加速</p>
+<p>更改桌面风格</p>
+<p>监测CPU温度</p>
+<p>参考资料：<a target="_blank" rel="noopener" href="https://ubuntu-mate.org/raspberry-pi/">https://ubuntu-mate.org/raspberry-pi/</a></p>
+<h2 id="配置要求"><a href="#配置要求" class="headerlink" title="配置要求"></a>配置要求</h2><p>Raspberry 2或者3一个，显示器，鼠标，键盘，HDMI（或者转换器+VGA），microUSB数据线，8GB+的microSD（官方推荐使用Class 6或者Class 10 microSDHC），网线或者无线网卡，至少5V1A的直流电源适配器……一个都不能少。</p>
+<p>因为Ubuntu MATE 没有预先定义的用户，所以烧完卡之后直接想用ssh是不成的……</p>
+<p>反正这配置要求是蛮多的，有Pi的肯定没觉得啥了……</p>
+<p>那就一步一步来吧……</p>
+<p>先说点废话</p>
+<p>纠结树莓派的应用场景，所以我买了两张卡，一张做了OSMC，一张做了Ubuntu MATE</p>
+<p>后来想了想，有这么三种使用方法：</p>
+<p>**1.**把树莓派丢在路由器旁边，随意装个支持SSH的系统，挂个硬盘做NAS，好在现在很多电视有WiFi模块，怎么说也有54Mbps，不看1080P的原盘是没问题了……</p>
+<p>**2.**把树莓派连在电视上，用无线网卡连到路由器，装OSMC挂硬盘当HTPC……当然啦HTPC也可以SSH然后用samba的。PS，OSMC支持遥控器哦！</p>
+<p>**3.**同上，只不过装的是Ubuntu MATE……插个键盘鼠标还能偶尔上个网</p>
+<p>顺便搭建LNMP什么的也完全不过分(→_→)Pi这性能得编译半个晚上还是果断二进制包吧……</p>
+<p>反正现在我也没有多余的移动硬盘，也没有自己的家，还是先让它吃灰吧……</p>
+<h2 id="烧制Ubuntu-MATE"><a href="#烧制Ubuntu-MATE" class="headerlink" title="烧制Ubuntu MATE"></a>烧制Ubuntu MATE</h2><p><a target="_blank" rel="noopener" href="https://ubuntu-mate.org/raspberry-pi/ubuntu-mate-16.04-desktop-armhf-raspberry-pi.img.xz.torrent">点击这里下载种子</a>，然后下载镜像，是xz格式的，随意用什么东西解压缩，用Win32 Disk Imager写入到卡里，这我就不说了……</p>
+<h2 id="安装Ubuntu-MATE"><a href="#安装Ubuntu-MATE" class="headerlink" title="安装Ubuntu MATE"></a>安装Ubuntu MATE</h2><p>此步略……</p>
+<p>我相信大家都会的。</p>
+<p> </p>
+<h2 id="扩展文件系统"><a href="#扩展文件系统" class="headerlink" title="扩展文件系统"></a>扩展文件系统</h2><p>默认来说，16G的卡大概只有7G左右是默认被使用的，需要扩展下。很可惜</p>
+<p>rasp-config</p>
+<p>并不能使用（To do里有一项是后期会添加rasp-config），所以我们要手动扩展下。</p>
+<p>官网给出了两种办法：</p>
+<h3 id="第一种"><a href="#第一种" class="headerlink" title="第一种"></a>第一种</h3><p>在Ubuntu MATE的welcome窗口里调整，只需要点击Information -Resize 即可。（Welcome里可以看到好些好玩的东西呢，我这就截个图给你们看看）</p>
+<p><img src="/images/050516_0715_UbuntuMate12.png"></p>
+<h3 id="另外一种方式"><a href="#另外一种方式" class="headerlink" title="另外一种方式"></a>另外一种方式</h3><p>sudo fdisk &#x2F;dev&#x2F;mmcblk0</p>
+<p>删除第二个分区 (d回车, 2回车), 用默认参数新建分区 (n回车, p回车, 2回车, 回车两次, ), w回车，然后重启，再运行</p>
+<p>sudo resize2fs &#x2F;dev&#x2F;mmcblk0p2</p>
+<p><img src="/images/050516_0715_UbuntuMate13.png"></p>
+<p>重启即可。</p>
+<h2 id="更换软件源为国内源"><a href="#更换软件源为国内源" class="headerlink" title="更换软件源为国内源"></a>更换软件源为国内源</h2><p>别想着直接把mirrors.163.com等的sources.list直接复制过去，是不管用的，因为树莓派是ARM架构的。这里我找到了科大的软件源，顺便吐槽一句，科大的源里东西可真多啊，界面还好看！</p>
+<p>sudo pluma &#x2F;etc&#x2F;apt&#x2F;sources.list</p>
+<p>清空所有内容，添加如下内容（提前做好备份哦！）</p>
+<p>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-updates main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-updates main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-security main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-security main restricted universe multiverse<br>deb <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-backports main restricted universe multiverse<br>deb-src <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/ubuntu-ports/">http://mirrors.ustc.edu.cn/ubuntu-ports/</a> xenial-backports main restricted universe multiverse</p>
+<p>如果你是用的是wily，那就把xenial替换成wily就好了（新版的设置里自带个中国的软件源，直接选就好啦）</p>
+<p>之后尽情的</p>
+<p>sudo apt-get update<br>sudo apt-get upgrade</p>
+<h2 id="安装语言包"><a href="#安装语言包" class="headerlink" title="安装语言包"></a>安装语言包</h2><p>16.04比14.04和15.10大了那么多，果然还是有些道理的，但是依旧有些翻译不完整。</p>
+<p>和Ubuntu差不多，上面的面板里点languages support，之后就会弹出语言支持不完整</p>
+<p><img src="/images/050516_0715_UbuntuMate15.png"></p>
+<p>点安装，输入密码就可以了。速度还是很好的</p>
+<p><img src="/images/050516_0715_UbuntuMate16.png"></p>
+<h2 id="安装openssh-server"><a href="#安装openssh-server" class="headerlink" title="安装openssh-server"></a>安装openssh-server</h2><p>更新源之后</p>
+<p>sudo apt-get install openssh-server</p>
+<p>之后其他电脑用putty之类的就可以了。用户是你设置的用户，密码是你设置的密码。</p>
+<h2 id="1080P显示器有黑边"><a href="#1080P显示器有黑边" class="headerlink" title="1080P显示器有黑边"></a>1080P显示器有黑边</h2><p>sudo pluma &#x2F;boot&#x2F;cofig.txt</p>
+<p>369行，去掉disable_overscan&#x3D;1的注释</p>
+<p>注意，不是前面70多行的HDMI_Mode&#x3D;4那里，别改错了</p>
+<p><img src="/images/050516_0715_UbuntuMate17.png"></p>
+<h2 id="音频默认输出端口"><a href="#音频默认输出端口" class="headerlink" title="音频默认输出端口"></a>音频默认输出端口</h2><h3 id="使用3-5mm或者HDMI输出音频"><a href="#使用3-5mm或者HDMI输出音频" class="headerlink" title="使用3.5mm或者HDMI输出音频"></a>使用3.5mm或者HDMI输出音频</h3><p>#3.5mm<br>sudo amixer cset numid&#x3D;3 1<br>#HDMI<br>sudo amixer cset numid&#x3D;3 2</p>
+<p>这个是全局的。</p>
+<h3 id="omxplayer输出音频端口"><a href="#omxplayer输出音频端口" class="headerlink" title="omxplayer输出音频端口"></a>omxplayer输出音频端口</h3><p>#3.5mm<br>omxplayer -o local video.mp4<br>#HDMI<br>omxplayer -o hdmi video.mp4</p>
+<p>仅对omxplayer有效。如果HDMI和3.5mm都接入了，那么omxplayer默认会输出到HDMI</p>
+<h2 id="VLC和ffmpeg硬件加速"><a href="#VLC和ffmpeg硬件加速" class="headerlink" title="VLC和ffmpeg硬件加速"></a>VLC和ffmpeg硬件加速</h2><p>大概树莓派上最好的播放器就是omxplayer，甚至有人还写了个GUI，TBOPlayer，好想音译成淘宝播放器，GitHub Repo在此：<a target="_blank" rel="noopener" href="https://github.com/KenT2/tboplayer">https://github.com/KenT2/tboplayer</a></p>
+<p>Ubuntu MATE带有VLC，也添加了OpenMax IL硬件解码的支持。</p>
+<h3 id="VLC启用硬件加速"><a href="#VLC启用硬件加速" class="headerlink" title="VLC启用硬件加速"></a>VLC启用硬件加速</h3><p>打开VLC，工具-偏好设置-视频，选择OpenMax IL</p>
+<p><img src="/images/050516_0715_UbuntuMate18.png"></p>
+<p>官网还提了一句，To use hardware accelerated video playback with ffplay you must specify the h264_mmal codec</p>
+<p>ffplay -vcodec h264_mmal video.mp4</p>
+<p>我没有进行测试</p>
+<p>[v_error]注意： 树莓派上的硬件加速是直接把视频输出，所以你看不到暂停、快进什么的播放控制。 所以 ，得用热键……参考如下wiki <a target="_blank" rel="noopener" href="https://wiki.videolan.org/Hotkeys_table/">https://wiki.videolan.org/Hotkeys_table&#x2F;</a>[&#x2F;v_error]</p>
+<h2 id="更改桌面风格"><a href="#更改桌面风格" class="headerlink" title="更改桌面风格"></a>更改桌面风格</h2><p>使用MATE Tweak工具，怀念瘟都死的我啊哈哈，Redmond很像Windows了，而且有好些主题可以换，好色主义的我啊哈哈哈~~</p>
+<p><img src="/images/050516_0715_UbuntuMate19.png"></p>
+<h2 id="监控CPU温度"><a href="#监控CPU温度" class="headerlink" title="监控CPU温度"></a>监控CPU温度</h2><p>懒得上GitHub上找写的非常好的程序了，我这就找了一个非常简单的代码……</p>
+<p>新建文件temp.c</p>
+<p>粘贴入如下内容</p>
+<p>#include<br>#include<br>#include  </p>
+<p>#include &lt;sys&#x2F;types.h&gt;<br>#include &lt;sys&#x2F;stat.h&gt;<br>#include </p>
+<p>#define TEMP_PATH “&#x2F;sys&#x2F;class&#x2F;thermal&#x2F;thermal_zone0&#x2F;temp”<br>#define MAX_SIZE 32<br>int main(void)<br>{<br>    int fd;<br>    double temp &#x3D; 0;<br>    char buf[MAX_SIZE];</p>
+<pre><code>// 打开/sys/class/thermal/thermal\_zone0/temp
+fd = open(TEMP\_PATH, O\_RDONLY);
+if (fd &lt; 0) &#123;
+    fprintf(stderr, &quot;failed to open thermal\_zone0/temp\\n&quot;);
+    return -1;
+&#125;
+
+// 读取内容
+if (read(fd, buf, MAX\_SIZE) &lt; 0) &#123;
+    fprintf(stderr, &quot;failed to read temp\\n&quot;);
+    return -1;
+&#125;
+
+// 转换为浮点数打印
+temp = atoi(buf) / 1000.0;
+printf(&quot;temp: %.2f\\n&quot;, temp);
+
+// 关闭文件
+close(fd);
+</code></pre>
+<p>}</p>
+<p>之后运行</p>
+<p>gcc –o temp temp.c</p>
+<p>会生成一个temp的二进制文件，继续运行</p>
+<p>.&#x2F;temp即可看到CPU温度。</p>
+<p>要想在任何目录都能看到CPU温度，就</p>
+<p>sudo cp temp &#x2F;bin</p>
+<p>任何目录运行temp都能看到CPU温度了——伸手去摸的别怪我哦（别想+x的事啦，是755啦。）</p>
+<p>还记得有个东西叫psensor吗？还有hardinfo（堪称Linux版AIDA64——其实比AIDA64还是有差距的）</p>
+<h2 id="迷之bug"><a href="#迷之bug" class="headerlink" title="迷之bug"></a>迷之bug</h2><p>应该是fcitx的事…？看不到输入法候选框。反正我也只是想拿它做个多媒体中心&#x2F;NAS而已。</p>
+<p><img src="/images/050516_0715_UbuntuMate111.png"></p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>我想了一想，像我这么懒的人，有必要</p>
+<p>alias ai&#x3D;’apt-get install’</p>
+<p>一下了……</p>
+<p><img src="/images/050516_0715_UbuntuMate112.jpg"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/05/05/ubuntumate-raspberry2/index/" data-id="clhp7rtmq00ajs2qr9qvn7gmz" data-title="Ubuntu MATE 16.04 for Raspberry 2安装配置" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-letsencrypt-nginx-subdomain/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/04/25/letsencrypt-nginx-subdomain/index/" class="article-date">
@@ -1081,62 +1239,6 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
 
 
   
-    <article id="post-return-enter-linwin/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/18/return-enter-linwin/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-18T00:00:00.000Z" itemprop="datePublished">2016-02-18</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/18/return-enter-linwin/index/">Win和Linux换行回车的问题：can&#39;t cd to home</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近在学shell，但是却发现一件很蹊跷的事情。</p>
-<p>提示无法切换到&#x2F;home</p>
-<p><img src="/images/021516_0517_WinLinux1.png"></p>
-<p>源代码如下：</p>
-<p><img src="/images/021516_0517_WinLinux2.png"></p>
-<p>简直简单的不能再简单。</p>
-<p>百思不得其解。后来查查资料，想起来了，Windows下的回车是\n\r，而Linux只有\n。一个直接后果是，Linux系统下的文件在Windows里打开的话，所有文字会变成一行；而Windows里的文件在Linux下打开的话，在每行的结尾可能会多出一个^M符号。再算上BOM的问题嘿嘿嘿…</p>
-<p>解决办法呢，以后直接在Linux环境下工作、或者终端里使用nano、vi，或者转换。</p>
-<p>有个软件叫 dos2unix可以删掉行尾的^M</p>
-<p>先安装</p>
-<p>sudo apt-get install dos2unix<br>dos2unix test.sh</p>
-<p>用vi替换掉行尾的^M也可以</p>
-<p>或者干脆在NotePad++里选择编辑-档案格式转换-转换为UNIX格式。</p>
-<p><img src="/images/021516_0517_WinLinux3.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/18/return-enter-linwin/index/" data-id="clhp7rtij007ls2qr5o8b2wt8" data-title="Win和Linux换行回车的问题：can&#39;t cd to home" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1181,7 +1283,7 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1192,6 +1294,10 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
+          </li>
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
@@ -1207,10 +1313,6 @@ if ($http\_user\_agent ~\* (python-requests|Python-urllib|Marxico)) &#123;
         
           <li>
             <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
-          </li>
-        
-          <li>
-            <a href="/2024/07/27/hide-in-cf/index/">隐藏于 Cloudflare 的全球网络之中</a>
           </li>
         
       </ul>
