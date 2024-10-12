@@ -73,6 +73,100 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-container-hot-patch/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/02/container-hot-patch/index/" class="article-date">
+  <time class="dt-published" datetime="2022-02-02T00:00:00.000Z" itemprop="datePublished">2022-02-02</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/02/02/container-hot-patch/index/">Docker container热更新</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>我的YouTube Download有一个worker是<a target="_blank" rel="noopener" href="https://nova.moe/">麻烦盆友帮我跑的</a>，每次更新代码都要让人家重新pull image然后再up，有没有什么能够让我没有ssh也能自助更新代码吗？</p>
+<p>最简单的办法是把docker的socket暴露给容器，这样容器就可以为所欲为了。但是这也太危险而且太麻烦</p>
+<p>既然大部分情况下也都是更新代码，不会有太大的变更，那么似乎只要想办法把代码更新一下，然后重启下容器内的进程就可以了。</p>
+<h2 id="容器内使用git"><a href="#容器内使用git" class="headerlink" title="容器内使用git"></a>容器内使用git</h2><p>首先，要确保在Dockerfile中安装了git哦。</p>
+<p>我的image都是使用GitHub Actions构建的，并且不知道GitHub Actions给我加入了什么神奇的配置项，导致无法无缝pull。毕竟我的仓库是公开的啊🤔</p>
+<p>反正image也是公开的，我就不打码了</p>
+<p><img src="/images/2022020217083765.jpeg"></p>
+<p>所以首先要魔改一下，先给unset掉</p>
+<p>git config –unset http.<a target="_blank" rel="noopener" href="https://github.com/.extraheader">https://github.com/.extraheader</a></p>
+<p>然后unshallow pull</p>
+<p>git pull origin –unshallow</p>
+<p>下次就可以正常的git pull了，大概的代码如下，能用就行</p>
+<p>git_path &#x3D; “your project root” # or maybe pathlib.Path().cwd().parent.as_posix()<br>logging.info(“Hot patching on path %s…”, git_path)</p>
+<p>unset &#x3D; “git config –unset http.<a target="_blank" rel="noopener" href="https://github.com/.extraheader">https://github.com/.extraheader</a>“<br>pull_unshallow &#x3D; “git pull origin –unshallow”<br>pull &#x3D; “git pull”</p>
+<p>subprocess.call(unset, shell&#x3D;True, cwd&#x3D;git_path)<br>if subprocess.call(pull_unshallow, shell&#x3D;True, cwd&#x3D;git_path) !&#x3D; 0:<br>    logging.info(“Already unshallow, pulling now…”)<br>    subprocess.call(pull, shell&#x3D;True, cwd&#x3D;git_path)</p>
+<h2 id="重启应用程序"><a href="#重启应用程序" class="headerlink" title="重启应用程序"></a>重启应用程序</h2><p>自动重启应用方法很多，只要确保容器不被删除直接restart就可以。然后我们需要用一个守护进程来帮忙拉起来，比如docker的restart policy可以设置成<code>on-failure</code>，或者容器内上supervisor也不是不行。</p>
+<p>问题是如何退出进程呢？</p>
+<p>并对于运行在主线程中的处理函数来说，类似 <code>sys.exit(1)</code>就可以。注意exit code要和restart policy相配合。比如restart policy是<code>on-failure</code>，那么<code>exit(0)</code> 就不行了</p>
+<p>对于运行在子线程中的处理函数，exit只会退出当前线程而不会把主线程退出。那么一个简单有效的办法就是获取到整个进程的PID，然后kill掉，Python的psutil提供了这样的功能：</p>
+<p>psutil.Process().kill()</p>
+<p>使用<code>kill</code>而不是<code>terminate</code>也是为了避免exit code是0的问题</p>
+<p>如果想要通过apscheduler的<code>BackgroundScheduler</code>来让自己完全自杀，那么这样就是比较好的了。</p>
+<h2 id="celery-worker-broadcast"><a href="#celery-worker-broadcast" class="headerlink" title="celery worker broadcast"></a>celery worker broadcast</h2><p>我的YouTube Download的整体架构是master+N个worker的模式。因此在热更新的时候不仅要更新master，也要把worker都更新了。</p>
+<p>直接发布消息是不行的，除非只有一个worker，所以我们需要发布broadcast来确保所有的worker都会收到并且执行命令。</p>
+<p>app.control.broadcast(“ping”)</p>
+<p>ping就是表示让worker执行的命令，默认大概有几十个，包括ping、revoke、heartbeat什么的。</p>
+<p>我们可以自定义一个command，使用<code>@Panel.register</code>装饰器</p>
+<p>from celery.worker.control import Panel<br>@Panel.register<br>def hello (*args):<br>    print(“patch…”)</p>
+<p><img src="/images/2022020217083878.png"></p>
+<p>然后</p>
+<p>app.control.broadcast(“hello”)</p>
+<p>所有worker就都能收到这条消息了</p>
+<h2 id="更多……"><a href="#更多……" class="headerlink" title="更多……"></a>更多……</h2><p>更有甚者，可以自定义好在热更新的时候要做什么，比如更新代码，更新 Python Packages，更新系统相关工具。反正无非就是在容器内各种subprocess就好了。</p>
+<p>当然了别忘了做权限控制，要不然就RCE啦😏😏😏😏😏</p>
+<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><p># tasks.py<br>import psutil<br>from celery.worker.control import Panel</p>
+<p>@Panel.register<br>def hot_patch(*args):<br>    git_path &#x3D; “your project root” # or maybe pathlib.Path().cwd().parent.as_posix()<br>    logging.info(“Hot patching on path %s…”, git_path)</p>
+<pre><code>unset = &quot;git config --unset http.https://github.com/.extraheader&quot;
+pull\_unshallow = &quot;git pull origin --unshallow&quot;
+pull = &quot;git pull&quot;
+
+subprocess.call(unset, shell=True, cwd=git\_path)
+if subprocess.call(pull\_unshallow, shell=True, cwd=git\_path) != 0:
+    logging.info(&quot;Already unshallow, pulling now...&quot;)
+    subprocess.call(pull, shell=True, cwd=git\_path)
+
+logging.info(&quot;Code is updated, applying hot patch now...&quot;)
+psutil.Process().kill()
+</code></pre>
+<h1 id="control"><a href="#control" class="headerlink" title="control"></a>control</h1><p>app.control.broadcast(“hot_patch”)</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/tasks.py#L246">https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/tasks.py#L246</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/ytdl_bot.py#L100">https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/ytdl_bot.py#L100</a></p>
+<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/q/65204671/10264400">https://stackoverflow.com/q/65204671/10264400</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/02/02/container-hot-patch/index/" data-id="clhp7rtf6001js2qr348pb9ta" data-title="Docker container热更新" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-no-openssh-server-container/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/01/17/no-openssh-server-container/index/" class="article-date">
@@ -1150,101 +1244,6 @@
 
 
   
-    <article id="post-cat/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/10/02/cat/index/" class="article-date">
-  <time class="dt-published" datetime="2021-10-02T00:00:00.000Z" itemprop="datePublished">2021-10-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/10/02/cat/index/">多图杀猫</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>6月份的时候，我的心情非常差劲，甚至一度怀疑自己有轻度中度抑郁症。那段时间就经常出去散步，漫无目的的走啊走，走累了也就不会再想其他事情了。</p>
-<p>有一次，在外面吃饭的时候，店家有一只小猫特别可爱，眼睛大大的，不仅会喵喵叫，还给摸。</p>
-<p><img src="/images/2021100221421248.png"></p>
-<p>6月底在外面散步的时候，遇到一只狸花猫，见到我就蹭蹭然后喵喵叫。看起来小猫猫很乖，也挺健康的，就是有点瘦。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/10/2021100221482722.png"><img src="/images/2021100221482722.png"></a></p>
-<p>猜测它估计是饿了，在咨询了朋友的意见之后去超市买了火腿肠和矿泉水。</p>
-<p>小猫还挺乖的，不仅让人喂，还不上爪子。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/10/2021100221485431.png"><img src="/images/2021100221485431.png"></a></p>
-<p>都说狸花猫没良心，这只吃完就跑了，都没让我多摸一会。</p>
-<p>后来过几天的时候，看到它在路上和小朋友玩，打滚卖萌呢。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/10/2021100221492553.png"><img src="/images/2021100221492553.png"></a></p>
-<p>再后来我就再也没见过这只猫了。</p>
-<p>7月底的时候，在我这边楼下遇到了一只小狸花，很乖，给摸。楼里见到过猫粮，可能是别的住户喂过。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/10/2021100221495428.png"><img src="/images/2021100221495428.png"></a></p>
-<p>看起来和之前的那只很像，不过花色有些差距，尾巴也不一样，肯定不是同一只。这只小狸花有点蔫，喂吃的也不吃。</p>
-<p>后来我就干脆买了猫粮，打算下班之后没事干的时候喂猫猫。</p>
-<p>别说还真的吸引过来了几只猫</p>
-<p><img src="/images/2021100221430673.png"></p>
-<p>三只奶牛猫，一只橘猫，都十分怕生。见到人就跑那种。喂了半个月了，见到我还是跑。</p>
-<p>而且这只橘猫，别看它是体型最大的，但是却是这几只猫里地位最低下、最胆小的。每次都要等其他的猫猫吃饱了它才去吃。不过这只猫也算是这几只里比较不怕生的了，我甚至趁着它吃食的时候去摸过它的头，不过还是一下子躲开了。</p>
-<p>在有一次喂它们的时候，我还被这只奶牛猫给抓到了。我也是作死啊。当时内心非常慌，在想着要不要去医院。但是很快就了解到了其实这样慌张是没有必要的，我可以直接十日观察法就好了。</p>
-<blockquote>
-<p>The worst thing we can do in a situation like this is panic.</p>
-</blockquote>
-<p>后来一个多月这几只猫还在骗吃骗喝，我也就没事了。</p>
-<p>7月中，这只狸花猫就经常出现了。顺带着偶尔还有一只白色的猫也跑出来蹭吃蹭喝。基本上每晚就会准时出现，有一次去公司快到八点才回来，发现她还在那等我呢。</p>
-<p><img src="/images/2021100221431375.png"></p>
-<p>有一次看到一对情侣给这只白猫抱起来带走了，我开始怀疑这只小白是不是散养的。散养猫也太心大了吧，很容易走丢的。</p>
-<p>这俩还经常一起玩，经常打来打去的。小白猫打不过狸花猫，但是还喜欢撩闲。</p>
-<p>这只小狸花猫很乖，甚至还翻过来，摸肚子也无反抗。毕竟可能她的猫生教会了她一个道理，只要卖萌就能有好吃的。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2021/10/2021100221534286.png"><img src="/images/2021100221534286.png"></a></p>
-<p><img src="/images/2021100221432560.png"></p>
-<p>哎我这手上全是喂猫猫时被蚊子咬的啊……腿上也全是。</p>
-<p>惬意，真会找地方</p>
-<p><img src="/images/2021100221433046.png"></p>
-<p>后来到了9月，我下定决心要绑架小猫猫。</p>
-<p>抱到医院前几天发现她的肚子有点大，是不是怀孕了。毕竟和她打闹的那个是公猫，看起来也是适龄青年猫……怀孕了也不要紧，就生下来吧，问题不大，我甚至都联系好了小猫崽销赃人选……🤪</p>
-<p>9月4日星期六做好了绑架的准备，发现之前的准备的纸箱太小了，抱进去她就跑。于是上楼换长袖，一路抱着走到了医院，期间小猫猫有点紧张，用爪子抓着我的手臂，不过基本没有反抗。</p>
-<p><img src="/images/2021100221433394.jpeg"></p>
-<p>在医院，她用这种幽怨的眼神看着我。</p>
-<p>带回家了之后，自己就会用猫砂盆，都不用教，好评如潮。</p>
-<p><img src="/images/2021100221433496.jpeg"></p>
-<p>当晚就这个姿势了，倒是没把自己当外人啊。</p>
-<p><img src="/images/2021100221433517.jpeg"></p>
-<p>尾巴可真长啊。</p>
-<hr>
-<p>小猫咪整体还是挺乖的，身体也很健康。怀孕那个事，后来做了B超，并没有怀。可能是之前喂猫粮喂的太多了，再加上也不是什么特好的猫粮，直接吃胖。</p>
-<p>这么乖的流浪猫真的是第一次见。到底有多乖呢，我给她清理耳朵她都不带哈人的，一动不动任我蹂躏。</p>
-<p>她也有很凶的时候，在玩逗猫棒时扑咬非常迅猛，可能流浪生活教会了她很多生存技巧吧。</p>
-<p>有的时候也在想一个问题，她是不是被别人弃养了。不过这都不重要，现在已经不会再经历过去饥一顿饱一顿的生活啦，也不用再吃廉价猫粮啦。我的小猫猫当然要吃最好的。</p>
-<p>这小猫咪还没有分离焦虑。当然所有的猫都会蹦迪跑酷，这只也不例外……哦可能眼神还是脑子有点不好用，埋屎的时候总是埋了个空气，不过也是正常现象了。</p>
-<p>哎，只是有些后悔，怎么没有把一开始遇见的那只狸花猫带走。😭现在已经几个月没见到了，冬天也快到来了，感觉凶多吉少。那只白色的小猫，如果能再遇见的话，我也给带走吧。</p>
-<p>国庆假期把酸奶交给了朋友照看几天。因为有酸奶，我也不会再难过，不会再抑郁啦。马上就要回去啦，还有24小时不到，等我，我再也不会离开你了，我保证🙏❤️</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/10/02/cat/index/" data-id="clhp7rtet0010s2qrfomr5yle" data-title="多图杀猫" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1302,6 +1301,10 @@
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1315,10 +1318,6 @@
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>

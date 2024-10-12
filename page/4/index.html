@@ -73,6 +73,69 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-wg0000/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/09/20/wg0000/index/" class="article-date">
+  <time class="dt-published" datetime="2022-09-20T00:00:00.000Z" itemprop="datePublished">2022-09-20</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>►<a class="article-category-link" href="/categories/what/gfw/">gfw</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/09/20/wg0000/index/">为什么我的WireGuard 配置 AllowedIPs=0.0.0.0/0 之后客户端断网了？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>一直以来我都是使用WireGuard组建<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">安全大内网的</a>，几乎没有拿它来当作代理工具使用。</p>
+<p>今天突然要测试一下腾讯云的IP，那还不简单嘛，直接 <code>AllowedIPs=0.0.0.0/0</code>，让所有流量都走WG就好了！只是简单的测一下，并不想搭个shadowsocks或者OpenVPN什么的。（小心被警告写保证书哦）</p>
+<p>结果我一波配置完，却断网了</p>
+<p><img src="/images/2022092019575915.png"></p>
+<p>以为是DNS的问题，配置上 DNS&#x3D;223.5.5.5，还断网，当然peer的IP能ping通，路由器还能通。</p>
+<p>思考了很多可能的因素，包括腾讯云的网络是fullcone NAT，macOS的Darwin内核，本地的IPv6网络，腾讯云的wg配置。尝试了换vultr做peer，开一个新的虚拟机，换手机，换surfshark的配置文件</p>
+<p><code>net.ipv4.ip_forward</code> 和<code>net.ipv4.conf.all.proxy_arp</code> 也都开了，peer也没有防火墙……</p>
+<p>最后发现是因为没有添加iptables规则</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/09/2022092020071682.jpeg"><img src="/images/2022092020071682.jpeg"></a></p>
+<p>在腾讯云配置文件中添加两行规则</p>
+<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE;<br>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE;</p>
+<p>如果还要支持IPv6的话</p>
+<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o en s -j MASQUERADE</p>
+<p>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o ens5 -j MASQUERADE</p>
+<p>重新载入一下配置文件就好了。macOS和iOS这边的Interface再加上一个DNS配置就好了</p>
+<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><h3 id="腾讯云"><a href="#腾讯云" class="headerlink" title="腾讯云"></a>腾讯云</h3><p>[Interface]<br>Address &#x3D; 192.168.2.1&#x2F;24<br>SaveConfig &#x3D; false<br>ListenPort &#x3D; 443<br>PrivateKey &#x3D; </p>
+<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE;<br>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE;</p>
+<p>[Peer]<br>PublicKey &#x3D;<br>AllowedIPs &#x3D; 192.168.2.64&#x2F;32</p>
+<h3 id="Peer"><a href="#Peer" class="headerlink" title="Peer"></a>Peer</h3><p>[Interface]<br>PrivateKey &#x3D;<br>Address &#x3D; 192.168.2.64&#x2F;32<br>DNS &#x3D; 223.5.5.5</p>
+<p>[Peer]<br>PublicKey &#x3D; 4<br>AllowedIPs &#x3D; 0.0.0.0&#x2F;0, ::&#x2F;0<br>Endpoint &#x3D; xxxxxx.xxx:443<br>PersistentKeepalive &#x3D; 30</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://y2k38.github.io/posts/how-to-setup-wireguard-vpn-server/">https://y2k38.github.io/posts/how-to-setup-wireguard-vpn-server/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/09/20/wg0000/index/" data-id="clhp7rtn600b3s2qr592ndvny" data-title="为什么我的WireGuard 配置 AllowedIPs=0.0.0.0/0 之后客户端断网了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-linux-lipo/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/09/13/linux-lipo/index/" class="article-date">
@@ -850,100 +913,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
 
 
   
-    <article id="post-container-hot-patch/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/02/02/container-hot-patch/index/" class="article-date">
-  <time class="dt-published" datetime="2022-02-02T00:00:00.000Z" itemprop="datePublished">2022-02-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/02/02/container-hot-patch/index/">Docker container热更新</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>我的YouTube Download有一个worker是<a target="_blank" rel="noopener" href="https://nova.moe/">麻烦盆友帮我跑的</a>，每次更新代码都要让人家重新pull image然后再up，有没有什么能够让我没有ssh也能自助更新代码吗？</p>
-<p>最简单的办法是把docker的socket暴露给容器，这样容器就可以为所欲为了。但是这也太危险而且太麻烦</p>
-<p>既然大部分情况下也都是更新代码，不会有太大的变更，那么似乎只要想办法把代码更新一下，然后重启下容器内的进程就可以了。</p>
-<h2 id="容器内使用git"><a href="#容器内使用git" class="headerlink" title="容器内使用git"></a>容器内使用git</h2><p>首先，要确保在Dockerfile中安装了git哦。</p>
-<p>我的image都是使用GitHub Actions构建的，并且不知道GitHub Actions给我加入了什么神奇的配置项，导致无法无缝pull。毕竟我的仓库是公开的啊🤔</p>
-<p>反正image也是公开的，我就不打码了</p>
-<p><img src="/images/2022020217083765.jpeg"></p>
-<p>所以首先要魔改一下，先给unset掉</p>
-<p>git config –unset http.<a target="_blank" rel="noopener" href="https://github.com/.extraheader">https://github.com/.extraheader</a></p>
-<p>然后unshallow pull</p>
-<p>git pull origin –unshallow</p>
-<p>下次就可以正常的git pull了，大概的代码如下，能用就行</p>
-<p>git_path &#x3D; “your project root” # or maybe pathlib.Path().cwd().parent.as_posix()<br>logging.info(“Hot patching on path %s…”, git_path)</p>
-<p>unset &#x3D; “git config –unset http.<a target="_blank" rel="noopener" href="https://github.com/.extraheader">https://github.com/.extraheader</a>“<br>pull_unshallow &#x3D; “git pull origin –unshallow”<br>pull &#x3D; “git pull”</p>
-<p>subprocess.call(unset, shell&#x3D;True, cwd&#x3D;git_path)<br>if subprocess.call(pull_unshallow, shell&#x3D;True, cwd&#x3D;git_path) !&#x3D; 0:<br>    logging.info(“Already unshallow, pulling now…”)<br>    subprocess.call(pull, shell&#x3D;True, cwd&#x3D;git_path)</p>
-<h2 id="重启应用程序"><a href="#重启应用程序" class="headerlink" title="重启应用程序"></a>重启应用程序</h2><p>自动重启应用方法很多，只要确保容器不被删除直接restart就可以。然后我们需要用一个守护进程来帮忙拉起来，比如docker的restart policy可以设置成<code>on-failure</code>，或者容器内上supervisor也不是不行。</p>
-<p>问题是如何退出进程呢？</p>
-<p>并对于运行在主线程中的处理函数来说，类似 <code>sys.exit(1)</code>就可以。注意exit code要和restart policy相配合。比如restart policy是<code>on-failure</code>，那么<code>exit(0)</code> 就不行了</p>
-<p>对于运行在子线程中的处理函数，exit只会退出当前线程而不会把主线程退出。那么一个简单有效的办法就是获取到整个进程的PID，然后kill掉，Python的psutil提供了这样的功能：</p>
-<p>psutil.Process().kill()</p>
-<p>使用<code>kill</code>而不是<code>terminate</code>也是为了避免exit code是0的问题</p>
-<p>如果想要通过apscheduler的<code>BackgroundScheduler</code>来让自己完全自杀，那么这样就是比较好的了。</p>
-<h2 id="celery-worker-broadcast"><a href="#celery-worker-broadcast" class="headerlink" title="celery worker broadcast"></a>celery worker broadcast</h2><p>我的YouTube Download的整体架构是master+N个worker的模式。因此在热更新的时候不仅要更新master，也要把worker都更新了。</p>
-<p>直接发布消息是不行的，除非只有一个worker，所以我们需要发布broadcast来确保所有的worker都会收到并且执行命令。</p>
-<p>app.control.broadcast(“ping”)</p>
-<p>ping就是表示让worker执行的命令，默认大概有几十个，包括ping、revoke、heartbeat什么的。</p>
-<p>我们可以自定义一个command，使用<code>@Panel.register</code>装饰器</p>
-<p>from celery.worker.control import Panel<br>@Panel.register<br>def hello (*args):<br>    print(“patch…”)</p>
-<p><img src="/images/2022020217083878.png"></p>
-<p>然后</p>
-<p>app.control.broadcast(“hello”)</p>
-<p>所有worker就都能收到这条消息了</p>
-<h2 id="更多……"><a href="#更多……" class="headerlink" title="更多……"></a>更多……</h2><p>更有甚者，可以自定义好在热更新的时候要做什么，比如更新代码，更新 Python Packages，更新系统相关工具。反正无非就是在容器内各种subprocess就好了。</p>
-<p>当然了别忘了做权限控制，要不然就RCE啦😏😏😏😏😏</p>
-<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><p># tasks.py<br>import psutil<br>from celery.worker.control import Panel</p>
-<p>@Panel.register<br>def hot_patch(*args):<br>    git_path &#x3D; “your project root” # or maybe pathlib.Path().cwd().parent.as_posix()<br>    logging.info(“Hot patching on path %s…”, git_path)</p>
-<pre><code>unset = &quot;git config --unset http.https://github.com/.extraheader&quot;
-pull\_unshallow = &quot;git pull origin --unshallow&quot;
-pull = &quot;git pull&quot;
-
-subprocess.call(unset, shell=True, cwd=git\_path)
-if subprocess.call(pull\_unshallow, shell=True, cwd=git\_path) != 0:
-    logging.info(&quot;Already unshallow, pulling now...&quot;)
-    subprocess.call(pull, shell=True, cwd=git\_path)
-
-logging.info(&quot;Code is updated, applying hot patch now...&quot;)
-psutil.Process().kill()
-</code></pre>
-<h1 id="control"><a href="#control" class="headerlink" title="control"></a>control</h1><p>app.control.broadcast(“hot_patch”)</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/tasks.py#L246">https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/tasks.py#L246</a></p>
-<p><a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/ytdl_bot.py#L100">https://github.com/tgbot-collection/ytdlbot/blob/master/ytdlbot/ytdl_bot.py#L100</a></p>
-<p><a target="_blank" rel="noopener" href="https://stackoverflow.com/q/65204671/10264400">https://stackoverflow.com/q/65204671/10264400</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/02/02/container-hot-patch/index/" data-id="clhp7rtf6001js2qr348pb9ta" data-title="Docker container热更新" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1001,6 +970,10 @@ psutil.Process().kill()
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1014,10 +987,6 @@ psutil.Process().kill()
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>

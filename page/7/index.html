@@ -73,6 +73,110 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-argo-tunnel/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/04/17/argo-tunnel/index/" class="article-date">
+  <time class="dt-published" datetime="2021-04-17T00:00:00.000Z" itemprop="datePublished">2021-04-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/04/17/argo-tunnel/index/">Cloudflare Argo Tunnel 小试：我终于可以用树莓派做网站啦</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>之前，如果想用树莓派之类的设备去做网站，方法一是需要想办法弄到一个公网IP，无论是直接从运营商要，还是在阿里云、腾讯云上做frps之类的内网穿透，都挺麻烦的；方法二是如果有IPv6，那么就去做v6only的解析，并且这个IPv6的地址还可能会经常变，这样就会使得网站可用性变得非常差，并且v4用户就惨了。</p>
+<p>现今，Cloudflare Argo Tunnel已经免费开放啦。这个东西有什么用呢？简单的来说就是在任何可以访问cloudflare的机器和cloudflare中搭建一个安全的加密隧道，然后这个隧道可以用来承载很多不同种类型的流量，比如说http（会被自动换成https），tcp，ssh，smb，rdp，甚至是unix套接字都可以哦。</p>
+<p>也就是说，只要你在家里的机器上一顿操作，那么你家里的机器就可以通过cloudflare的网络来达到全球可以访问的目的了。听起来是不是很棒！</p>
+<p>总结下来这样做大概有这几步：</p>
+<ol>
+<li>注册cloudflare账号</li>
+<li>（可选）把域名的ns改成cloudflare</li>
+<li>安装cloudflared并登录</li>
+<li>创建argo tunnel</li>
+<li>创建dns记录</li>
+<li>配置tunnel</li>
+<li>运行</li>
+</ol>
+<p>本文以Raspberry Pi 3 + Ubuntu 20.04为例</p>
+<h2 id="注册cloudflare账号"><a href="#注册cloudflare账号" class="headerlink" title="注册cloudflare账号"></a>注册cloudflare账号</h2><p>略……</p>
+<h2 id="把域名的ns改成cloudflare"><a href="#把域名的ns改成cloudflare" class="headerlink" title="把域名的ns改成cloudflare"></a>把域名的ns改成cloudflare</h2><p>这一步是可选的，Argo Tunnel会提供一个默认的域名，当然如果能用自己的域名就更好啦。</p>
+<h2 id="安装cloudflared并登录"><a href="#安装cloudflared并登录" class="headerlink" title="安装cloudflared并登录"></a>安装cloudflared并登录</h2><p>具体的话，可以参考<a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup">这篇官方文档</a>。我的树莓派是aarch64的架构，也就是arm64.</p>
+<p>wget -O cloudflared <a target="_blank" rel="noopener" href="https://github.com/cloudflare/cloudflared/releases/download/2021.4.0/cloudflared-linux-arm64">https://github.com/cloudflare/cloudflared/releases/download/2021.4.0/cloudflared-linux-arm64</a><br>chmod +x cloudflared<br>sudo cp cloudflared &#x2F;usr&#x2F;loca&#x2F;bin&#x2F;</p>
+<p>然后就可以开始登录啦！</p>
+<p>cloudflared tunnel login</p>
+<p>然后再打开的页面中选择你的域名～Pi 那边大概会有如下输出：</p>
+<blockquote>
+<p>You have successfully logged in.</p>
+<p>If you wish to copy your credentials to a server, they have been saved to:</p>
+<p>&#x2F;home&#x2F;benny&#x2F;.cloudflared&#x2F;cert.pem</p>
+</blockquote>
+<h2 id="创建argo-tunnel"><a href="#创建argo-tunnel" class="headerlink" title="创建argo tunnel"></a>创建argo tunnel</h2><p>cloudflared tunnel create <NAME></NAME></p>
+<p>这条命令会输出一个tunnle UUID</p>
+<p>name可以自己随便取一个，比如说Pi啦～Yui啦～随便的啦</p>
+<p>想要查看tunnel列表，可以使用 <code>cloudflared tunnel list</code></p>
+<p>很明显，想要删除，那就delete啦 <code>cloudflared tunnel delete pi</code></p>
+<h2 id="创建DNS记录"><a href="#创建DNS记录" class="headerlink" title="创建DNS记录"></a>创建DNS记录</h2><p>有两种办法，一种是去cloudflare dashboard中创建一条道<code>id. cfargotunnel.com</code>的CNAME解析，另外一种是使用cli命令～</p>
+<p>那比如说我要创建一个abcd.dmesg.app，那么就可以这样做</p>
+<p>cloudflared tunnel route dns <UUID or name> abcd.dmesg.com</UUID></p>
+<p>或者在网页上这样添加，结果是一样滴</p>
+<p><img src="/images/2021041713264377.png"></p>
+<p>此时如果你访问abcd.dmesg.app，会看到1033错误的哦，因为我们的tunnel还没有运行。</p>
+<h2 id="配置tunnel"><a href="#配置tunnel" class="headerlink" title="配置tunnel"></a>配置tunnel</h2><p>那么接下来就需要在树莓派上配置如何tunnel了，一个最简单的例子是这样的：</p>
+<p>tunnel: pi<br>credentials-file: &#x2F;home&#x2F;benny&#x2F;.cloudflared&#x2F;af4d19d0-7fb1-40ea-88b7-97036c026ca4.json</p>
+<p>ingress:</p>
+<ul>
+<li>hostname: pi.dmesg.app<br>service: <a target="_blank" rel="noopener" href="http://localhost:8000/">http://localhost:8000</a></li>
+<li>service: http_status:404</li>
+</ul>
+<p>其中hostname就是上面的那个域名，service表示我们要承载什么流量，如果想要承载ssh，那么就<code>service: ssh://localhost:22</code>就好了。</p>
+<p>最开始的uuid同样可以替换成tunnel name</p>
+<p>然后我们……</p>
+<p>cloudflared tunnel –config ~&#x2F;tunnel.yml run</p>
+<p>如果不想写这种配置文件，那么可以一条cli解决</p>
+<p>cloudflared tunnel run –url localhost:8000 <NAME or uuid></NAME></p>
+<p>看到一大串输出，没有报错，那我们的tunnel就成功了。当然树莓派上8000还没有程序在监听，那我们再赶紧开一个吧</p>
+<p>docker run -d -p 127.0.0.1:8000:80 nginx:alpine</p>
+<p>这个时候打开浏览器刷新一下，你的页面就已经出来啦！</p>
+<p><img src="/images/2021041713264488.png"></p>
+<h3 id="以服务模式运行"><a href="#以服务模式运行" class="headerlink" title="以服务模式运行"></a>以服务模式运行</h3><p>当然了，咱不能开个screen去运行argo tunnel啊……</p>
+<p>那么执行这条命令来安装服务</p>
+<p># 需要有～&#x2F;.cloudflared&#x2F;config.yaml<br>sudo cloudflared service install</p>
+<h1 id="指定配置文件位置"><a href="#指定配置文件位置" class="headerlink" title="指定配置文件位置"></a>指定配置文件位置</h1><p>cloudflared –config CONFIG-FILE service install</p>
+<p>这个时候哪怕重启都不怕啦😨</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://developers.cloudflare.com/cloudflare-one/tutorials/single-command">Create and connect an application with a single command</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.outv.im/2021/cloudflared-tunnel/#%E8%B7%B3%E6%9D%BF%E6%9C%BA%EF%BC%88-bastion%EF%BC%89">用 Cloudflare Tunnel 进行内网穿透 | Re:Linked</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/04/17/argo-tunnel/index/" data-id="clhp7rtei000ps2qradl41fjl" data-title="Cloudflare Argo Tunnel 小试：我终于可以用树莓派做网站啦" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-ufw-vs-docker/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/04/10/ufw-vs-docker/index/" class="article-date">
@@ -1045,113 +1149,6 @@ return file\_id
 
 
   
-    <article id="post-why-grafana-nginx/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/09/17/why-grafana-nginx/index/" class="article-date">
-  <time class="dt-published" datetime="2020-09-17T00:00:00.000Z" itemprop="datePublished">2020-09-17</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/09/17/why-grafana-nginx/index/">为什么我的grafana无法用nginx反代呢？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>如果你想用nginx反代grafana，那么很有可能参考了官网文档[Run Grafana behind a reverse proxy](<a target="_blank" rel="noopener" href="https://grafana.com/tutorials/run-grafana-behind-a-proxy/">https://grafana.com/tutorials/run-grafana-behind-a-proxy/</a>“ \l “1)，看了一眼，非常简单，不就是改几个参数，加个location嘛！</p>
-<p>“小case”，你对自己说到，十分钟解决。</p>
-<p>那么在参考结束之后，你很有可能遇到这个错误。</p>
-<p><img src="/images/2020091718212349.png" alt="If you&#39;re seeing this Grafana has failed to load its application files · Issue #24841 · rancher/rancher · GitHub"></p>
-<p> </p>
-<p>随即你进行了搜索，问题还挺多，中文的英文的，然后自己不停地尝试，grafana和nginx的配置都快改花了，发现还是不行。于是两个小时过去了。这究竟是为什么呢？</p>
-<p>作为一名有灵性的工程师，当你看到如图所示的画面时，应该会想到哪些事情呢？</p>
-<ol>
-<li>这个橙色的文字，绝对不是Nginx的，看起来更像是grafana的，那么也就是说请求转发给了grafana</li>
-<li>既然如此，那么看下控制台吧！</li>
-</ol>
-<p><img src="/images/202009171821245.png"></p>
-<p>哟呵，怎么都是404呢，难道是由于一些路径的原因，导致proxy_pass的时候出错了？</p>
-<p>于是你又一顿查，<code>proxy_set_header</code>等全都加上了，路径结尾带不带<code>/</code>也都排列组合了一圈，发现还是不行！?</p>
-<p>作为一名有灵性的工程师，此时自然就要想，难道是grafana有bug？把<code>router_logging</code>打开……此时你突然看到，这个文件名好奇怪啊，这么长。难道文件真的不存在吗？</p>
-<p><img src="/images/2020091718212625.png"></p>
-<p>内心无比刺痛，什么？！另一边的你，甚至拿出来了curl</p>
-<p>~$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/app.4141596c10e564d57dfb.js">https://dmesg.app/grafana/public/build/app.4141596c10e564d57dfb.js</a></p>
-<html>
-<head><title>404 Not Found</title></head>
-<body>
-<center><h1>404 Not Found</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>
-
-<p>~$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/1.txt">https://dmesg.app/grafana/public/build/1.txt</a><br>hello!</p>
-<p>???</p>
-<p>那zip文件呢？</p>
-<p>$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/1.zip">https://dmesg.app/grafana/public/build/1.zip</a><br>a zip(not really)</p>
-<p>那js呢？</p>
-<p>~$ curl -L <a target="_blank" rel="noopener" href="https://dmesg.app/grafana/public/build/1.js">https://dmesg.app/grafana/public/build/1.js</a></p>
-<html>
-<head><title>404 Not Found</title></head>
-<body>
-<center><h1>404 Not Found</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>
-~$
-
-<p>????</p>
-<p>突然，你看到了一处这样的配置：</p>
-<p>location ~ .*\.(js|css|woff)?$ {<br>    expires 30d;<br>}</p>
-<p>这段的意思是，正则匹配，结尾是js、css和woff，expire设置成30天。于是你在脑海里迅速过了一遍nginx的location匹配优先级，好像似乎是正则比路径匹配的优先级要高。</p>
-<p>于是你以迅雷不及掩耳盗铃之速把原先的配置</p>
-<p>location &#x2F;grafana&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://localhost:3000/">http://localhost:3000</a>;<br>}</p>
-<p>中的第一个<code>/</code>改成了<code>~</code>，也就是</p>
-<p>location ~&#x2F;grafana&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://localhost:3000/">http://localhost:3000</a>;<br>}</p>
-<p>然后restart或reload nginx，刷新页面，好了！此刻看看时间，天啊，三个小时过去了，快一点了……</p>
-<p>也就是说，一个<code>~</code>价值三小时，如果按照时薪来算，这一笔，很值钱啊！</p>
-<h2 id="点评"><a href="#点评" class="headerlink" title="点评"></a>点评</h2><p>其实以上就是我昨晚的完整经过，一开始的时候，大部分时间完全就是在“瞎?找死?”，当然网上提到的方案都是没用的，毕竟没有找到问题的根本原因。所以如果早点通过橙色的字体发现问题出在js 404，那么问题就应该会更快解决了。</p>
-<p>哎呀年轻人?‍♀️还是要学会通过现象看本质的，不要瞎猫碰上死耗子呀！</p>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/1306272740639350785?s=20">解释一下</a>：如果你的nginx开启了css、js的cache，想在sub directory下反代grafana，那么按照官网的文档去做失败的概率是非常高的。</p>
-<p>原因非常简单：js和css都404了。因为正则匹配的优先级高于path匹配，所以全被cache的location截胡了。解决方案也很简单，把grafana那段的<code>/</code>换成<code>~</code>，当然 <code>~/grafana/</code>和<code>~ grafana/</code>都是无所谓的啦，正则嘛！还不放心的话，再放到location开头。</p>
-<p>当然了，需要注意的是，不仅仅是子目录时会发生这种情况，子域名时，只要设置了这种cache规则，那么就一定会出错的。</p>
-<p>配置cache的人还不少，已经给官方发了PR，希望他们能及早修复吧。</p>
-<h2 id="完整配置和解释"><a href="#完整配置和解释" class="headerlink" title="完整配置和解释"></a>完整配置和解释</h2><h3 id="grafana"><a href="#grafana" class="headerlink" title="grafana"></a>grafana</h3><p># 只让grafana监听127，反代没必要监听0.0.0.0<br>http_addr &#x3D;127.0.0.1</p>
-<h1 id="域名，都懂"><a href="#域名，都懂" class="headerlink" title="域名，都懂"></a>域名，都懂</h1><p>domain &#x3D; dmesg.app</p>
-<h1 id="Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个"><a href="#Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个" class="headerlink" title="Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个"></a>Grafana内部的一些url（比如警告的url）都是根据这个来的，其实可以看出来这里其实是格式化字符串，domain就是上面的那个</h1><p>root_url&#x3D; https:&#x2F;&#x2F;%(domain)s&#x2F;grafana&#x2F;</p>
-<h1 id="子目录就要true"><a href="#子目录就要true" class="headerlink" title="子目录就要true"></a>子目录就要true</h1><p>serve_from_sub_path &#x3D; true</p>
-<h3 id="nginx"><a href="#nginx" class="headerlink" title="nginx"></a>nginx</h3><p># ~表示正则匹配，区分大小写<br>location ~grafana&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://localhost:3000/">http://localhost:3000</a>;<br>}</p>
-<p>location ~ .*\.(js|css|woff)?$ {<br>    expires 30d;<br>}</p>
-<p>参考资料</p>
-<p>Nginx location priority <a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/5238377/nginx-location-priority">https://stackoverflow.com/questions/5238377/nginx-location-priority</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/09/17/why-grafana-nginx/index/" data-id="clhp7rtnc00b7s2qr7qf34ow8" data-title="为什么我的grafana无法用nginx反代呢？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1209,6 +1206,10 @@ return file\_id
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1222,10 +1223,6 @@ return file\_id
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>

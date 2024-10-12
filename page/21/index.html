@@ -73,6 +73,122 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-newbee-uefi-gpt-win10/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/01/29/newbee-uefi-gpt-win10/index/" class="article-date">
+  <time class="dt-published" datetime="2016-01-29T00:00:00.000Z" itemprop="datePublished">2016-01-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/01/29/newbee-uefi-gpt-win10/index/">[新手向]全新UEFI+GPT安装Windows 10</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p> </p>
+<p>UEFI+GPT相比BIOS+MBR的一大优势之一是开机快，另一大优势是支持2T以上硬盘。很多人的电脑太乱，迫切的需要重装系统，但是各种”Ghost版”、”正版”鱼目混杂。那么今天就让博主俺来【新手向】的教大家用UEFI+GPT方式<strong>纯净</strong>的安装Windows。</p>
+<p>[v_blue]顺便提一句，Win 7也支持UEFI的，谁说不支持就揍屁屁哦！[&#x2F;v_blue]</p>
+<p>本文适用对象：任何想要重装系统的童鞋，包括想装Windows 8、8.1甚至是Win7的童鞋</p>
+<p>适用条件：说了是UEFI+GPT，所以支持UEFI电脑一台~。基本上2013年之后电脑都是UEFI的了</p>
+<p> </p>
+<h1 id="准备条件："><a href="#准备条件：" class="headerlink" title="准备条件："></a><strong>准备条件：</strong></h1><p>大于4G的U盘一个，可用的互联网。</p>
+<p>下载如下工具：</p>
+<p>WinNTSetup3（有的PE没有，所以备着吧） [bb href&#x3D;”<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/WinNTSetup3.7z?t=1454066775734%22%5C%5D%E7%82%B9%E6%88%91%E4%B8%8B%E8%BD%BD%5C%5B/bb%5C%5D">http://bennydownload.file.alimmdn.com/WinNTSetup3.7z?t=1454066775734&quot;\]点我下载\[/bb\]</a></p>
+<p>Windows 10 x64 Threshold2镜像 [yb href&#x3D;”ed2k:&#x2F;&#x2F;|file|cn_windows_10_multiple_editions_version_1511_x64_dvd_7223622.iso|4187224064|FE3F221D193FEF02627F7F8CF0041BB3|&#x2F;“]点我下载[&#x2F;yb]</p>
+<p>一个可用的PE ：我也不知道什么好用，自己找找吧。</p>
+<p>睿派克装机助手 <a target="_blank" rel="noopener" href="https://www.repaik.com/thread-81386-1-1.html">https://www.repaik.com/thread-81386-1-1.html</a></p>
+<p>（文末附了很多版本的Windows）</p>
+<h2 id="步骤一。准备PE工具"><a href="#步骤一。准备PE工具" class="headerlink" title="步骤一。准备PE工具"></a><strong>步骤一。准备PE工具</strong></h2><p>安装小马PE或者是什么其他的PE，然后打开，插入U盘</p>
+<p><img src="/images/012916_1147_UEFIGPT1.png"></p>
+<p>选择好自己的U盘，其他选项默认，然后点击安装，制作PE。</p>
+<h2 id="步骤二。启动到PE"><a href="#步骤二。启动到PE" class="headerlink" title="步骤二。启动到PE"></a><strong>步骤二。启动到PE</strong></h2><p>如果是BIOS模式的那就简单啦！</p>
+<p>插上U盘，开机。华硕系列笔记本按ESC，索尼系列是有个Assist按键，戴尔F12，联系部分F12（部分配合Fn）就可以临时选择启动设备；</p>
+<p><img src="/images/012916_1147_UEFIGPT2.jpg"></p>
+<p>选择类似USB Mass Storage…的设备就可以了。</p>
+<p>如果是UEFI的也没事，大部分笔记本还是可以在出现logo的时候按ESC、F12、F2、Enter等按键进入固件或者临时选择启动设备的。</p>
+<p>再不行咱进固件里改成Legacy启动总可以吧~</p>
+<p>用U盘启动之后尽快选择进入PE。</p>
+<p>[v_blue]TIPS: UEFI启动的表现：在品牌logo的时候有个小圈一直在转转转。[&#x2F;v_blue]</p>
+<h2 id="步骤三。设置分区表"><a href="#步骤三。设置分区表" class="headerlink" title="步骤三。设置分区表"></a><strong>步骤三。设置分区表</strong></h2><p>进入PE之后打开DiskGenius。首先要做的事情是把硬盘从MBR转换成GPT，此过程是无损的。</p>
+<p><img src="/images/012916_1147_UEFIGPT3.jpg"></p>
+<p>之后瞅准了<strong>原来的系统盘</strong>C（注意PE下盘符有可能是错乱的，所以建议通过分区大小仔细核对！），右键，删除当前分区。</p>
+<p>之后在删除了的空白的分区上右键，<strong>建立新分区</strong></p>
+<p><img src="/images/012916_1147_UEFIGPT4.png"></p>
+<p>出现如下图所示界面：</p>
+<p>把<strong>ESP分区</strong>勾选上，100，200M都是可以的。</p>
+<p><img src="/images/012916_1147_UEFIGPT5.png"></p>
+<p>确定即可。之后会弹出来另一个建立分区的界面，是主分区，直接确定。</p>
+<p><img src="/images/012916_1147_UEFIGPT6.png"></p>
+<p>然后左上角的保存更改、选择是，顺路给格式化了。</p>
+<p>如果没出来刚刚的建立ESP、MSR分区，直接是上图建立新分区的界面，那怎么办呢？</p>
+<p>那就手动创建呗。如图所示。</p>
+<p>先建立NTFS的主分区。</p>
+<p><img src="/images/012916_1147_UEFIGPT7.png"></p>
+<p>别都填满了啊，给ESP和MSR留点。留个零头就够了</p>
+<p>在右侧的白色空闲分区上右键，继续选择新建分区。</p>
+<p><img src="/images/012916_1147_UEFIGPT8.png"></p>
+<p><img src="/images/012916_1147_UEFIGPT9.png"></p>
+<p>建立<strong>EFI分区</strong>，100M就够了，当然了，为了以后考虑，分个200、300也完全不是问题。</p>
+<p>同理，再新建MSR分区。</p>
+<p><img src="/images/012916_1147_UEFIGPT10.png"></p>
+<p>[v_tips]注：先新建MSR、EFI也行，顺序无所谓。[&#x2F;v_tips]</p>
+<p>[v_blue]TIPS： EFI分区：在UEFI用于启动、引导的分区就叫做EFI。以前传统BIOS往往是系统盘。 MSR分区：微软保留分区。转换动态磁盘的时候会用到。似乎并没有什么乱用~[&#x2F;v_blue]</p>
+<h2 id="步骤四。展开镜像文件"><a href="#步骤四。展开镜像文件" class="headerlink" title="步骤四。展开镜像文件"></a><strong>步骤四。展开镜像文件</strong></h2><p>先分配EFI盘符，右键EFI分区，选择”<strong>指派新的驱动器号</strong>“。咱就选个Z好了。</p>
+<p>右键下载好的Windows 10的ISO文件，选择装载。</p>
+<p>之后就会当当当！</p>
+<p><img src="/images/012916_1147_UEFIGPT11.png"></p>
+<p>打开WinNTSetup_x64.exe，如下图设置</p>
+<p><img src="/images/012916_1147_UEFIGPT12.png"></p>
+<p><strong>安装文件夹</strong>选择刚刚挂载的驱动器盘符下sources里的install.wim</p>
+<p><strong>引导驱动器</strong>选择EFI分区，也就是Z，此时你会看到右侧的EFI PART从红色变到了绿色。</p>
+<p><strong>安装磁盘</strong>的位置就选择C（注意PE下盘符有可能是乱的哦）</p>
+<p>版本看自己心情啦。<strong>模式</strong>里，那个可以不勾选；如果想以时间换空间，那就选择一个绿灯的模式就可以，优化调整随个人心情。之后点击开始安装…..喝茶喝茶警察叔叔请我来喝茶。</p>
+<p>镜像部署完成之后重启电脑。记得拔U盘哦。</p>
+<p>此时要注意，如果<strong>原来是BIOS模式</strong>的童鞋，一定要在此时迅速进入BIOS，改成UEFI Only或者UEFI First，总之是改成UEFI模式启动。否则就直接挂了哦。</p>
+<p>不同的电脑可能会有所不同。戴尔Inspiration 15R如下：</p>
+<p>切换到Exit下save and exit（保存退出），或者直接F10~</p>
+<h2 id="步骤五。正式安装阶段"><a href="#步骤五。正式安装阶段" class="headerlink" title="步骤五。正式安装阶段"></a><strong>步骤五。正式安装阶段</strong></h2><p>之后就开始正式安装了….设置时区，账号，更新…基本上就是下一步，下一步(⊙v⊙)</p>
+<p>输入密钥的时候可以跳过。</p>
+<p>默默的等待重启几次，然后就完事了</p>
+<p> </p>
+<p><strong>一些说明：</strong></p>
+<p>安装的重点是<strong>设置EFI分区</strong>、并给<strong>EFI分区分配盘符</strong>。如果想用光盘安装，或者直接双击setup.exe，那么选择引导分区的时候直接选择对应的EFI。</p>
+<p>Win 7同样可以用UEFi+GPT模式飞起。如果非得要BIOS+MBR模式，那就把硬盘分区表转换为<strong>MBR</strong>，WinNTSetup的<strong>引导驱动器、安装磁盘位置</strong>都选C就可以了。</p>
+<p> </p>
+<p>Windows安装镜像下载……额……要不你试试msdn我告诉你？</p>
+<p> </p>
+<p> </p>
+<p>附：激活器下载（支持Office 2016、Windows 10哟） [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/HEU/_KMS/_Activator/_CH/_v11.2.0.7z?t=1479525479890%27%5C%5D%E5%93%9F%E5%93%9F%E5%93%9F%5C%5B/dl%5C%5D">http://bennydownload.file.alimmdn.com/HEU\_KMS\_Activator\_CH\_v11.2.0.7z?t=1479525479890&#39;\]哟哟哟\[/dl\]</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/01/29/newbee-uefi-gpt-win10/index/" data-id="clhp7rthp005js2qrbtk18wpx" data-title="[新手向]全新UEFI+GPT安装Windows 10" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-cross-the-wall/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/01/22/cross-the-wall/index/" class="article-date">
@@ -877,82 +993,6 @@
 
 
   
-    <article id="post-baidu-shares-support-https/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2015/12/28/baidu-shares-support-https/index/" class="article-date">
-  <time class="dt-published" datetime="2015-12-28T00:00:00.000Z" itemprop="datePublished">2015-12-28</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2015/12/28/baidu-shares-support-https/index/">让百度分享支持https！</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[v_blue]本站已经不再使用百度分享，而是使用<a target="_blank" rel="noopener" href="https://github.com/revir/need-more-share2">needforshare2</a>，更改好后的主题<a target="_blank" rel="noopener" href="https://github.com/BennyThink/WordPressGit">参见这里</a>[&#x2F;v_blue]</p>
-<p>今天本博客正式升级到全站https啦！主要参考了这两篇文章</p>
-<p><a target="_blank" rel="noopener" href="https://ttt.tt/9/">https://ttt.tt/9/</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.logcg.com/archives/961.html">https://www.logcg.com/archives/961.html</a></p>
-<p>所有http访问都将301重定向到https</p>
-<p>但是在开启之后，百度分享却总是走http的，导致Chrome不显示小绿锁。</p>
-<p>会显示成这样活着直接是白色的。</p>
-<p><img src="/images/122815_0826_https1.png"></p>
-<p>“处女座”怎么受得了这样！</p>
-<p>于是Google参考资料，倒是找到了两篇文章。但是我的百度分享是Git主题自带的，导致跟着做几乎不成。</p>
-<p>于是看主题的源代码，发现主题目录js下面有一个share.js，打开一看，果真是带有http链接的。</p>
-<p><img src="/images/122815_0826_https2.png"></p>
-<p>但是直接改成https是不管用的，参考到<a target="_blank" rel="noopener" href="http://lizhug.com/tech/https%E7%BD%91%E7%AB%99%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E7%99%BE%E5%BA%A6%E5%88%86%E4%BA%AB/">这篇文章</a>。</p>
-<p>本地弄个就好了啊！</p>
-<p><a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/bdshare.zip">Bdshare下载</a></p>
-<p> </p>
-<p>经过摸索研究，我的方法是：</p>
-<p>开始之前，建议大家伙先关了类似WP Super Cache这类插件！</p>
-<p> </p>
-<h2 id="1-修改share-js，将第一个http替换成bdshare-min-js里的那个。修改之后就是这样了。"><a href="#1-修改share-js，将第一个http替换成bdshare-min-js里的那个。修改之后就是这样了。" class="headerlink" title="1.修改share.js，将第一个http替换成bdshare.min.js里的那个。修改之后就是这样了。"></a>1.修改share.js，将第一个http替换成bdshare.min.js里的那个。修改之后就是这样了。</h2><p><img src="/images/122815_0826_https3.png"></p>
-<h2 id="2-上传api文件夹到主题的js下，然后打开Chrome，随意打开一个博文。"><a href="#2-上传api文件夹到主题的js下，然后打开Chrome，随意打开一个博文。" class="headerlink" title="2.上传api文件夹到主题的js下，然后打开Chrome，随意打开一个博文。"></a>2.上传api文件夹到主题的js下，然后打开Chrome，随意打开一个博文。</h2><p>此时如果点击分享，URL的结尾会出现一个#，是不会起作用的。没关系我们Ctrl+Shift+I打开诊断工具，看看哪些js没有加载。<img src="/images/122815_0826_https4.png"></p>
-<h2 id="3-看到了这些缺失的js了吗？到网站目录建立对应的目录，复制bdshare里的文件过去就可以了！"><a href="#3-看到了这些缺失的js了吗？到网站目录建立对应的目录，复制bdshare里的文件过去就可以了！" class="headerlink" title="3.看到了这些缺失的js了吗？到网站目录建立对应的目录，复制bdshare里的文件过去就可以了！"></a>3.看到了这些缺失的js了吗？到网站目录建立对应的目录，复制bdshare里的文件过去就可以了！</h2><p><img src="/images/122815_0826_https5.png"></p>
-<h2 id="4-复制完成之后，刷新下网页。"><a href="#4-复制完成之后，刷新下网页。" class="headerlink" title="4.复制完成之后，刷新下网页。"></a>4.复制完成之后，刷新下网页。</h2><p>当当当当！</p>
-<p><img src="/images/122815_0826_https6.png"></p>
-<p>可以分享了。</p>
-<p> </p>
-<p>但是目前发现存在两个bug，有的时候分享需要刷新下才可以；并且分享不会再计数。</p>
-<p> </p>
-<h2 id="注意事项："><a href="#注意事项：" class="headerlink" title="注意事项："></a>注意事项：</h2><p>有人会问，这怎么还有404啊</p>
-<p><img src="/images/122815_0826_https7.png"></p>
-<p>本来原博主也没提供这几个文件，我也不知道为什么，可能和计数的logger有关，就这样吧。</p>
-<p>总结一下思路，就是修改主题的share.js，把<a target="_blank" rel="noopener" href="http://bdimg.share.baidu.com/">http://bdimg.share.baidu.com</a>换成location.protocol+”&#x2F;&#x2F;“+location.host+”&#x2F;“，上传api文件夹到js目录下，打开博文看缺少js文件的路径，然后该添加添加！</p>
-<p> </p>
-<p>希望能够给那些主题自带百度分享功能的朋友们一个好的解决方案！</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2015/12/28/baidu-shares-support-https/index/" data-id="clhp7rtdy000bs2qr1od4769g" data-title="让百度分享支持https！" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1010,6 +1050,10 @@
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1023,10 +1067,6 @@
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>

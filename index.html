@@ -73,6 +73,112 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-aca-php/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/10/12/aca-php/index/" class="article-date">
+  <time class="dt-published" datetime="2024-10-12T00:00:00.000Z" itemprop="datePublished">2024-10-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/azure/">azure</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>既然是容器，那么也可以跑数据库的吧？那只要再加上一个PHP，就可以跑 WordPress、Typecho之类的应用了！</p>
+<p>在 Azure上，用 Container Apps也是可以做到serverless PHP应用的，具体来说就是：</p>
+<p>一个pod里开两个容器（不太推荐这种方式），一个是php-apache，一个是MySQL，通过挂载 Azure Files作为volumes来做数据存储。</p>
+<p>为什么想这么玩，是因为：</p>
+<ol>
+<li>优化大陆访问，Azure的亚洲机房对大陆访客很友好，因此不能用 Cloudflare</li>
+<li>不想自己管理SSL证书，因此不能用vm</li>
+<li>managed database太贵了用不起</li>
+<li>FrontDoor也太贵了，每个月要$35的保护费🥹</li>
+</ol>
+<p>使用这种方案的好处是，在访问量不是很大的情况下，成本应该可以忽略不计，甚至可以在无访问时缩放到0副本，真正“无服务器” 😂</p>
+<h2 id="创建资源组"><a href="#创建资源组" class="headerlink" title="创建资源组"></a>创建资源组</h2><p>创建资源组，创建一个vnet，因为存储不想公开给所有人，也方便以后和其他虚拟机内网互通。</p>
+<h2 id="创建容器应用"><a href="#创建容器应用" class="headerlink" title="创建容器应用"></a>创建容器应用</h2><p>创建的时候，Container Apps Environment 选择已有的虚拟网络</p>
+<p><img src="/images/2024100701193586.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>配置镜像，这个镜像是我自己构建的，基于 php:8.3-apache，支持MySQL、PostgreSQL、SQLite，添加了 mod_rewrite，足够给WordPress和Typecho用</p>
+<p><img src="/images/2024100701193677.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="创建存储"><a href="#创建存储" class="headerlink" title="创建存储"></a>创建存储</h2><p>Primary Service选择 Azure Files</p>
+<p><img src="/images/2024100701193849.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="创建-File-Shares"><a href="#创建-File-Shares" class="headerlink" title="创建 File Shares"></a>创建 File Shares</h3><p><img src="/images/2024100701194097.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>我创建了两个，一个是数据库的，一个是网站文件的</p>
+<p><img src="/images/2024100701194256.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h2 id="连接-volume到容器"><a href="#连接-volume到容器" class="headerlink" title="连接 volume到容器"></a>连接 volume到容器</h2><p>在创建完存储后，去复制一下access key</p>
+<p><img src="/images/2024100701194419.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>在容器环境中添加 SMB</p>
+<p><img src="/images/2024100701194669.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>依次输入信息，这里没有补全，不要输入错了哦</p>
+<p><img src="/images/2024100701194777.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>在容器环境中创建完之后，就可以到容器应用中添加啦</p>
+<p><img src="/images/202410070119481.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
+<p>这里需要注意，数据库的卷可能需要如下额外挂载参数</p>
+<p>uid&#x3D;999,gid&#x3D;999,nobrl,mfsymlinks,cache&#x3D;none</p>
+<h2 id="容器应用volume"><a href="#容器应用volume" class="headerlink" title="容器应用volume"></a>容器应用volume</h2><p>编辑容器，添加volume就可以了</p>
+<p><img src="/images/2024100701195029.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>然后添加一个数据库的sidecar</p>
+<p><img src="/images/2024100701195170.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>如果需要配置环境变量，也可以一起配置了</p>
+<p><img src="/images/2024100701195239.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>最终结果是这样的两个容器，在一个pod里，我这种穷人自然只能选择最低配置啦</p>
+<p><img src="/images/2024100701195346.png" alt="图形用户界面, 表格 描述已自动生成"></p>
+<h2 id="存储安全"><a href="#存储安全" class="headerlink" title="存储安全"></a>存储安全</h2><p>默认存储是可以公网访问的（需要用户名密码），为了更安全，我们可以配置为只有某几个虚拟网络可以访问</p>
+<p><img src="/images/2024100701195455.png" alt="图形用户界面, 文本, 应用程序, 网站 描述已自动生成"></p>
+<h2 id="配置应用"><a href="#配置应用" class="headerlink" title="配置应用"></a>配置应用</h2><p>可能需要进入 console，执行一下创建数据库之类的操作，这点就自行发挥了。</p>
+<h2 id="最终结果"><a href="#最终结果" class="headerlink" title="最终结果"></a>最终结果</h2><p>在不使用的时候，容器可以缩为0（可以配置为最低1副本）</p>
+<p><img src="/images/202410070119559.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>在有请求的时候，真的能访问耶，而且还可以自动扩容！</p>
+<p><img src="/images/2024100701195835.png" alt="图形用户界面, 网站 描述已自动生成"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>正常的应用不应该这样配置的，两个容器在同一个pod内耦合也是不理想的。</p>
+<p>如果想要利用 Azure的优良线路，正常来说应该选择如下方法之一</p>
+<ol>
+<li>Azure VM，自己配置SSL证书，域名解析到这个IP，最经典的操作</li>
+<li>Azure FrontDoor + 任意VM，SSL证书可以由FrontDoor管理</li>
+<li>Azure应用网关 + 任意VM，解析域名到网关的IP，配置SSL证书，然后上传证书给应用网关</li>
+<li>Azure Load Balancer + 任意VM，证书需要在VM上配置好，因为LB是4层的</li>
+<li>Container Apps运行PHP，用托管数据库，Container Apps支持托管SSL</li>
+<li>Container Apps运行PHP，通过VM运行数据库，两者网络之间创建对等连接</li>
+<li>Static Web Apps，只能给静态站点用</li>
+<li>Web App + Database，完全托管，价格很感人</li>
+<li>Azure Kubernetes Service ，这个我可能不太懂，但是应该可行……</li>
+</ol>
+<hr>
+<p>最后……</p>
+<blockquote>
+<p>PHP用什么跑不好要用这个，真是只有真正的赛博精神病才能够想出来这种操作🤡</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/10/12/aca-php/index/" data-id="cm26qm18p0000jwjfgxhkeyfl" data-title="用 Azure Container Apps 运行PHP网站" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-aca-vm-scale/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/10/06/aca-vm-scale/index/" class="article-date">
@@ -1053,109 +1159,6 @@ if (response.ok) &#123;
 
 
   
-    <article id="post-telegram-login-widget-verify-data/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/04/21/telegram-login-widget-verify-data/index/" class="article-date">
-  <time class="dt-published" datetime="2024-04-21T00:00:00.000Z" itemprop="datePublished">2024-04-21</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/04/21/telegram-login-widget-verify-data/index/">Telegram Login Widget 如何验证用户数据</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>使用<a target="_blank" rel="noopener" href="https://core.telegram.org/widgets/login">Telegram 做OAuth</a>是一件很容易的事情，毕竟整个 Telegram API 都相当开放。</p>
-<p>需要注意的一件事情就是，我们需要验证用户的数据确实是来自于 Telegram而不是第三方伪造的。无论是在回调函数还是回调URL中，Telegram都会提供如下参数： id, first_name, last_name, username, photo_url, auth_date, hash 根据官方文档的说法，验证数据分如下几步：</p>
-<ol>
-<li> 把这些字段按照字母顺序排序，组成一个字符串，每一个键值对之间用换行符隔开，如 <code>&#39;auth_date=&lt;auth_date&gt;\nfirst_name=&lt;first_name&gt;\nid=&lt;id&gt;\nusername=&lt;username&gt;&#39;</code></li>
-<li>计算 bot token 的 sha256</li>
-<li>计算 HMAC_SHA256，明文是上面的这个字符串，密码是bot token 的sha256，然后计算这个结果的hex，比对与他提供的 hash是否相等</li>
-</ol>
-<p>看起来很简单是不是，随便丢给 ChatGPT就能出结果。甚至官方还给了个<a target="_blank" rel="noopener" href="https://gist.github.com/anonymous/6516521b1fb3b464534fbc30ea3573c2">PHP的代码</a></p>
-<p>但是很抱歉的是，这样并不能给保证100%验证成功，甚至可能会完全无法验证。以下是我踩的两个坑</p>
-<h2 id="hash字段要排除"><a href="#hash字段要排除" class="headerlink" title="hash字段要排除"></a>hash字段要排除</h2><p>在组装字符串的时候，记得排除hash字段，要不然是不可能计算出正确的结果的。</p>
-<h2 id="值是空的字段要排除"><a href="#值是空的字段要排除" class="headerlink" title="值是空的字段要排除"></a>值是空的字段要排除</h2><p>在 Telegram 中，username、photo_url 等字段不是必须的。在计算时，这种类型的字段<strong>如果为空，那么不需要考虑</strong>。</p>
-<p>可怕的是，无论是官方文档，还是PHP示例代码，都没有提到值是空的字段不参与计算的事情。😢</p>
-<h2 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h2><h3 id="Go-的示例代码"><a href="#Go-的示例代码" class="headerlink" title="Go 的示例代码"></a>Go 的示例代码</h3><p>type TelegramAuthData struct {<br>    Id        int    `json:”id”`<br>    FirstName string `json:”first_name”`<br>    LastName  string `json:”last_name”`<br>    Username  string `json:”username”`<br>    PhotoUrl  string `json:”photo_url”`<br>    AuthDate  int    `json:”auth_date”`<br>    Hash      string `json:”hash”`<br>}</p>
-<p>func verifyTelegramAuthData(data TelegramAuthData) bool {<br>    &#x2F;&#x2F; Extracting fields and preparing for sorting.<br>    fields :&#x3D; map[string]string{<br>        “auth_date”:  strconv.Itoa(data.AuthDate),<br>        “first_name”: data.FirstName,<br>        “last_name”:  data.LastName,<br>        “id”:         strconv.Itoa(data.Id),<br>        “photo_url”:  data.PhotoUrl,<br>        “username”:   data.Username,<br>    }</p>
-<pre><code>// Sorting the fields to create the data-check-string.
-var keys \[\]string
-for key := range fields &#123;
-    keys = append(keys, key)
-&#125;
-sort.Strings(keys)
-
-var dataCheckString string
-for \_, key := range keys &#123;
-    if fields\[key\] != &quot;&quot; &#123;
-        dataCheckString += fmt.Sprintf(&quot;%s=%s\\n&quot;, key, fields\[key\])
-    &#125;
-&#125;
-dataCheckString = dataCheckString\[:len(dataCheckString)-1\] // Remove the last newline character
-
-// Calculate the SHA256 hash of the bot&#39;s token.
-hasher := sha256.New()
-hasher.Write(\[\]byte(botToken))
-secretKey := hasher.Sum(nil)
-
-// Compute the HMAC-SHA-256 signature.
-hmacHasher := hmac.New(sha256.New, secretKey)
-hmacHasher.Write(\[\]byte(dataCheckString))
-computedHash := hex.EncodeToString(hmacHasher.Sum(nil))
-
-// Compare the computed HMAC with the received hash.
-return computedHash == data.Hash
-</code></pre>
-<p>}</p>
-<h3 id="Python-版本"><a href="#Python-版本" class="headerlink" title="Python 版本"></a>Python 版本</h3><p>def verify_telegram_authdata(data: dict) -&gt; bool:<br>    # Extracting fields and preparing for sorting<br>    fields &#x3D; {<br>        “auth_date”: data.get(“auth_date”),<br>        “first_name”: data.get(“first_name”),<br>        “last_name”: data.get(“last_name”),<br>        “id”: data.get(“id”),<br>        “photo_url”: data.get(“photo_url”),<br>        “username”: data.get(“username”),<br>    }</p>
-<pre><code># Sorting the fields to create the data-check-string
-keys = sorted(fields)
-data\_check\_string = &quot;\\n&quot;.join(f&quot;&#123;key&#125;=&#123;fields\[key\]&#125;&quot; for key in keys if fields\[key\])
-
-# Calculate the SHA256 hash of the bot&#39;s token
-hasher = hashlib.sha256()
-# bot token token
-hasher.update(&quot;token&quot;.encode(&quot;utf-8&quot;))
-secret\_key = hasher.digest()
-
-# Compute the HMAC-SHA-256 signature
-hmac\_hasher = hmac.new(secret\_key, data\_check\_string.encode(&quot;utf-8&quot;), hashlib.sha256)
-computed\_hash = hmac\_hasher.hexdigest()
-
-# Compare the computed HMAC with the received hash
-return computed\_hash == data.get(&quot;hash&quot;)
-</code></pre>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2024/04/21/telegram-login-widget-verify-data/index/" data-id="clyujt8bh00055yjf43e151d5" data-title="Telegram Login Widget 如何验证用户数据" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1213,6 +1216,10 @@ return computed\_hash == data.get(&quot;hash&quot;)
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1226,10 +1233,6 @@ return computed\_hash == data.get(&quot;hash&quot;)
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>

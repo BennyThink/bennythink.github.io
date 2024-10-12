@@ -73,6 +73,86 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-cloudflare-access-gfwed-server/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/04/29/cloudflare-access-gfwed-server/index/" class="article-date">
+  <time class="dt-published" datetime="2023-04-29T00:00:00.000Z" itemprop="datePublished">2023-04-29</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/cloudflare/">cloudflare</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/04/29/cloudflare-access-gfwed-server/index/">使用Cloudflare Zero Trust连接被墙的服务器</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>我有些服务器被墙了，除了通过跳板机连接，还有什么好的办法吗？当然有了，使用Cloudflare Zero Trust即可。我们不仅可以使用ssh客户端，甚至还可以通过浏览器访问。除了SSH协议之外，RDP、SMB甚至任何奇奇怪怪的协议都可以。</p>
+<h2 id="安装并连接cloudflared"><a href="#安装并连接cloudflared" class="headerlink" title="安装并连接cloudflared"></a>安装并连接cloudflared</h2><p>首先还是要想办法连接到被墙的机器，下载cloudflared</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/cloudflare/cloudflared/releases">https://github.com/cloudflare/cloudflared/releases</a></p>
+<p>在网页上Access – Tunnels中创建一个 Tunnel，然后按照提示安装。</p>
+<hr>
+<h1 id="连接到服务器"><a href="#连接到服务器" class="headerlink" title="连接到服务器"></a>连接到服务器</h1><p>Cloudflare提供了三种通过tunnel连接到服务器的方式，第一种是通过客户端安装WARP，第二种是通过客户端安装<code>cloudflared</code>，第三种是直接通过浏览器访问。</p>
+<h2 id="通过WARP连接服务器"><a href="#通过WARP连接服务器" class="headerlink" title="通过WARP连接服务器"></a>通过WARP连接服务器</h2><p>这种办法其实和<a target="_blank" rel="noopener" href="https://dmesg.app/cf-zero-trust.html">《使用Cloudflare Zero Trust创建大内网》</a>一样，区别只是创建大内网时，我们内网的设备写的是局域网IP，而这里则可能会写公网IP。但是本质上没有区别哒！</p>
+<p>在网页上Tunnel中，配置<strong>Private Network</strong>，填入服务器的IP。如果类似GCP那种分配的内网IP，直接写内网IP对应的段也可以；否则直接写公网IP也可以。</p>
+<p>老生常谈，创建Profile，表达式写比如说 <a href="mailto:ssh@dmesg.app">ssh@dmesg.app</a></p>
+<p><img src="/images/2023042202404060.png" alt="图形用户界面 描述已自动生成"></p>
+<p>Split Tunnel选择include，然后添加服务器的IP。</p>
+<p><img src="/images/2023042202404112.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>使用WARP连接，输入邮箱进行验证</p>
+<p>WARP连接成功之后，就会发现能SSH啦，再也不怕GFW了</p>
+<p><img src="/images/2023042202404290.png" alt="图形用户界面, 文本, 聊天或短信 描述已自动生成"></p>
+<h2 id="通过cloudflared-access连接"><a href="#通过cloudflared-access连接" class="headerlink" title="通过cloudflared access连接"></a>通过cloudflared access连接</h2><p>在网页上，配置<strong>Public Hostname</strong>，下面Service Type选择SSH，URL写<code>127.0.0.1:22</code>，如果你想通过这个跳到其他服务器，那么就写<code>IP:22</code></p>
+<p><img src="/images/2023042202404214.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>客户端需要安装cloudflared，先登录 <code>cloudflared login</code></p>
+<p>然后修改SSH配置文件 <code>~/.ssh/config</code></p>
+<p>Host ssh.dmesg.app</p>
+<h1 id="记得修改cloudflared路径"><a href="#记得修改cloudflared路径" class="headerlink" title="记得修改cloudflared路径"></a>记得修改cloudflared路径</h1><p>ProxyCommand &#x2F;opt&#x2F;homebrew&#x2F;bin&#x2F;cloudflared access ssh –hostname %h</p>
+<p>然后再<code>ssh username@ssh.dmesg.app</code> 就可以啦</p>
+<p>当然如果不想改config那么也可以</p>
+<p>cloudflared access ssh –hostname ssh.dmesg.app –url 127.0.0.1:10022</p>
+<p>然后另外一个窗口</p>
+<p>ssh <a href="mailto:&#x72;&#x6f;&#111;&#116;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#x2e;&#x30;&#x2e;&#49;">&#x72;&#x6f;&#111;&#116;&#x40;&#49;&#50;&#x37;&#46;&#x30;&#x2e;&#x30;&#x2e;&#49;</a> -p 10022</p>
+<p>效果是一样的！</p>
+<p>只要你的脑洞足够大，甚至可以通过<code>cloudflared access</code> 去连接任意TCP协议，甚至连UNIX套接字都可以哦</p>
+<h2 id="使用浏览器连接"><a href="#使用浏览器连接" class="headerlink" title="使用浏览器连接"></a>使用浏览器连接</h2><p>同上，<strong>Public Hostname</strong>创建一个SSH服务，比如说域名叫 <code>browser.dmesg.app</code></p>
+<p>然后 Application – Add Application – Self-hosted，application sub domain 同样写 <code>browser.dmesg.app</code></p>
+<p>然后创建policies，和以前的方法一样，如果只是测试用甚至可以Everyone</p>
+<p>下一步Additional Settings中，选择SSH</p>
+<p><img src="/images/2023042202404319.png" alt="图形用户界面, 文本 描述已自动生成"></p>
+<p><img src="/images/2023042202404461.png" alt="图形用户界面 低可信度描述已自动生成"></p>
+<p>浏览器打开链接就可以了，注意这里的用户名是服务器的用户名，比如<code>root</code>，并不是进行邮箱验证的 <code>xxx@dmesg.app</code></p>
+<p><img src="/images/2023042202404579.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<p>下一步输入认证信息即可登录。根据服务器sshd配置不同，选择密码或者key登录即可。</p>
+<p><img src="/images/2023042202404680.png" alt="文本 描述已自动生成"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/04/29/cloudflare-access-gfwed-server/index/" data-id="clhp7rtet000xs2qr2kqcfyc5" data-title="使用Cloudflare Zero Trust连接被墙的服务器" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-zero-trust-login-method/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2023/04/22/zero-trust-login-method/index/" class="article-date">
@@ -1018,69 +1098,6 @@ server.quit()
 
 
   
-    <article id="post-wg0000/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/09/20/wg0000/index/" class="article-date">
-  <time class="dt-published" datetime="2022-09-20T00:00:00.000Z" itemprop="datePublished">2022-09-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>►<a class="article-category-link" href="/categories/what/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/09/20/wg0000/index/">为什么我的WireGuard 配置 AllowedIPs=0.0.0.0/0 之后客户端断网了？</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>一直以来我都是使用WireGuard组建<a target="_blank" rel="noopener" href="https://nova.moe/deploy-wireguard-on-ubuntu-bionic/">安全大内网的</a>，几乎没有拿它来当作代理工具使用。</p>
-<p>今天突然要测试一下腾讯云的IP，那还不简单嘛，直接 <code>AllowedIPs=0.0.0.0/0</code>，让所有流量都走WG就好了！只是简单的测一下，并不想搭个shadowsocks或者OpenVPN什么的。（小心被警告写保证书哦）</p>
-<p>结果我一波配置完，却断网了</p>
-<p><img src="/images/2022092019575915.png"></p>
-<p>以为是DNS的问题，配置上 DNS&#x3D;223.5.5.5，还断网，当然peer的IP能ping通，路由器还能通。</p>
-<p>思考了很多可能的因素，包括腾讯云的网络是fullcone NAT，macOS的Darwin内核，本地的IPv6网络，腾讯云的wg配置。尝试了换vultr做peer，开一个新的虚拟机，换手机，换surfshark的配置文件</p>
-<p><code>net.ipv4.ip_forward</code> 和<code>net.ipv4.conf.all.proxy_arp</code> 也都开了，peer也没有防火墙……</p>
-<p>最后发现是因为没有添加iptables规则</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2022/09/2022092020071682.jpeg"><img src="/images/2022092020071682.jpeg"></a></p>
-<p>在腾讯云配置文件中添加两行规则</p>
-<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE;<br>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE;</p>
-<p>如果还要支持IPv6的话</p>
-<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE; ip6tables -A FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -A POSTROUTING -o en s -j MASQUERADE</p>
-<p>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE; ip6tables -D FORWARD -i wg0 -j ACCEPT; ip6tables -t nat -D POSTROUTING -o ens5 -j MASQUERADE</p>
-<p>重新载入一下配置文件就好了。macOS和iOS这边的Interface再加上一个DNS配置就好了</p>
-<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><h3 id="腾讯云"><a href="#腾讯云" class="headerlink" title="腾讯云"></a>腾讯云</h3><p>[Interface]<br>Address &#x3D; 192.168.2.1&#x2F;24<br>SaveConfig &#x3D; false<br>ListenPort &#x3D; 443<br>PrivateKey &#x3D; </p>
-<p>PostUp &#x3D; iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE;<br>PostDown &#x3D; iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens5 -j MASQUERADE;</p>
-<p>[Peer]<br>PublicKey &#x3D;<br>AllowedIPs &#x3D; 192.168.2.64&#x2F;32</p>
-<h3 id="Peer"><a href="#Peer" class="headerlink" title="Peer"></a>Peer</h3><p>[Interface]<br>PrivateKey &#x3D;<br>Address &#x3D; 192.168.2.64&#x2F;32<br>DNS &#x3D; 223.5.5.5</p>
-<p>[Peer]<br>PublicKey &#x3D; 4<br>AllowedIPs &#x3D; 0.0.0.0&#x2F;0, ::&#x2F;0<br>Endpoint &#x3D; xxxxxx.xxx:443<br>PersistentKeepalive &#x3D; 30</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://y2k38.github.io/posts/how-to-setup-wireguard-vpn-server/">https://y2k38.github.io/posts/how-to-setup-wireguard-vpn-server/</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/09/20/wg0000/index/" data-id="clhp7rtn600b3s2qr592ndvny" data-title="为什么我的WireGuard 配置 AllowedIPs=0.0.0.0/0 之后客户端断网了？" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1138,6 +1155,10 @@ server.quit()
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1151,10 +1172,6 @@ server.quit()
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>

