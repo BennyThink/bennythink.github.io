@@ -73,6 +73,109 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-swiffy-flash2html5/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/02/28/swiffy-flash2html5/index/" class="article-date">
+  <time class="dt-published" datetime="2016-02-28T00:00:00.000Z" itemprop="datePublished">2016-02-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/share/">share</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/02/28/swiffy-flash2html5/index/">swiffy的本地化：在线Flash转HTML5</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]swiffy下线了[&#x2F;v_error] [dl href&#x3D;’<a target="_blank" rel="noopener" href="https://o2klrn0xq.qnssl.com/hamster.swf'/]%E6%9C%AC%E6%96%87%E7%A4%BA%E4%BE%8Bswf%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD/[/dl/]">https://o2klrn0xq.qnssl.com/hamster.swf&#39;\]本文示例swf文件下载\[/dl\]</a></p>
+<p>[v_error]Flash已死，请大家转向HTML5……[&#x2F;v_error]</p>
+<p>本博客也将追寻乔帮主的步伐，开启去Flash化——其实本身也没啥Flash元素啊。</p>
+<p>有的时候看到个比较好玩的Flash动画，想要挂到网站上，但是移动端却很难支持Flash。那就只有想办法将Flash转换成人见人爱花见花开的HTML5了。搜索良久，发现一些所谓的”转换工具”其实就是让你玩那个Flash，然后录制成视频，简直是滑天下之大稽<img src="/images/022816_0347_swiffyF1.png"></p>
+<p>终于在Google找到了一个工具swiffy，也是老大爷Google开发的，可以用来转换Flash到HTML5.可喜可贺的是这个工具不仅仅提供了Adobe Flash CC的扩展，还提供了一个在线转换工具。悲伤的是这个在线转换工具只支持1M以下的swf文件。</p>
+<p>当然了即使网页版够用，想要稳稳的在国内使用这个Flash也是略有难度的，那就让我来一步一步的说教吧！</p>
+<p>事先打个小广告，哪位好心人<a target="_blank" rel="noopener" href="https://dmesg.app/it">帮我喂喂小仓鼠吧！</a></p>
+<hr>
+<p> </p>
+<p>首先需要翻墙（如何翻墙，请参考<a target="_blank" rel="noopener" href="https://dmesg.app/all-platform-scientific-internet-all-in-one.html">《[2016-01-22]全平台科学上网[翻墙]工具集合》</a>）</p>
+<p>打开<a target="_blank" rel="noopener" href="https://developers.google.com/swiffy/">Google开发者中心</a></p>
+<p>简单粗暴的界面，点convert，上传本地的swf文件。文件限制1M以下，当然了，Adobe Flash扩展应该没啥限制。有兴趣可以自己去Adobe官网下载安装Flash试用版玩玩。友情提示，是扩展不是插件哦，需要Adobe Extension Manager，不是丢进某个目录就可以的。</p>
+<p><img src="/images/022816_0347_swiffyF2.png"></p>
+<p>这还用说么…简单的不得了。</p>
+<p><img src="/images/022816_0347_swiffyF3.png"></p>
+<p>Upload上传。</p>
+<p>之后在view conversion上右键，选择<strong>链接另存为</strong>。</p>
+<p><img src="/images/022816_0347_swiffyF4.png"></p>
+<p>[v_blue]不知道为啥我的Chrome总是蹦不出来保存窗口，于是我换成了小狐狸Firefox。[&#x2F;v_blue] 可以看到有一些警告，也<strong>并不是</strong>所有swf都能完美的转换成h5的。</p>
+<p>直接双击保存的html文件就能看到动画了</p>
+<p><img src="/images/022816_0347_swiffyF5.png"></p>
+<p>但是天真的你以为这就结束了吗？<strong>并没有</strong></p>
+<p>假如你给没翻墙的人看的话，很大的可能就会一片空白。如果安装了Switchy Omega还会看到有一个资源没加载。</p>
+<p><img src="/images/022816_0347_swiffyF6.png"></p>
+<p>Chrome检查工具同样告诉我们这个文件超时了</p>
+<p><img src="/images/022816_0347_swiffyF7.png"></p>
+<p>gstatic是Google的……so拜祖国伟大的墙所赐呵呵呵 :smile:  :smile:</p>
+<p><img src="/images/022816_0347_swiffyF8.png"></p>
+<p>几乎是完全屏蔽。</p>
+<p>没关系，我们手动的对这个HTML文件进行改造。</p>
+<p>Chrome检查工具已经告诉我们了那个js没有加载成功，那就用任意文本编辑器打开这个HTML文件</p>
+<p><img src="/images/022816_0347_swiffyF9.png"></p>
+<p>把这个链接复制下来，然后粘贴到浏览器中，很自然的就打开了吧（前提是翻墙了）</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016022804234694.png"><img src="/images/2016022804234694-1024x662.png" alt="2"></a></p>
+<p> </p>
+<p>还想啥啊，快把这个runtime.js另存为了吖。</p>
+<p>然后找个支持外链的地方，比如自己的博客，七牛云，阿里百川，这里就拿<strong>七牛云</strong>做例子了。当然了如果是HTTPS的博客网站的话，为了避免Mix Content而JavaScript的Mix Content是一定会被浏览器拦截的，还是去七牛充个十块钱或者拿自己网站吧……</p>
+<p>这里拿七牛做例子……</p>
+<p>打开<a target="_blank" rel="noopener" href="http://www.qiniu.com/">http://www.qiniu.com/</a>，选择一个https默认域名的空间，上传刚刚的那个js文件，然后取得文件的外链，这里的例子是<a target="_blank" rel="noopener" href="https://o13hhk496.qnssl.com/runtime.js">https://o13hhk496.qnssl.com/runtime.js</a></p>
+<p>[v_tips]如果你懒直接用这个也未尝不可，反正我流量也是用不完的用……（什么？免费用户就10G难道你充钱呢？不，<a target="_blank" rel="noopener" href="http://hd.qiniu.com/qingcong/pack">青葱创业计划</a>）[&#x2F;v_tips]</p>
+<p>还用我说嘛…用这个外链替换html文件里的那个js。</p>
+<p>嗯就是酱</p>
+<p><img src="/images/022816_0347_swiffyF11.png"></p>
+<p>打开隐身模式看下，游戏<strong>尚未结束</strong>……说不定这个js又加载了哪些js是吧……</p>
+<p>真是人品好，秒开有木有！当然了，如果这个js又加载了其他被墙的js，那就得顺藤摸瓜用检查工具一个调试了……<a target="_blank" rel="noopener" href="https://dmesg.app/baidu-shares-support-https.html">百度分享</a>不就是这么解决的么</p>
+<p><img src="/images/022816_0347_swiffyF12.png"></p>
+<p>到这这个转换就算彻底做完了。</p>
+<p>有博客的小伙伴可能会想把这个467KB的HTML文件的全部内容粘贴到博客侧边栏的文本框中，大概就是这样：</p>
+<p><img src="/images/022816_0347_swiffyF13.png"></p>
+<p>实际上我并<strong>不推荐</strong>这样做，保存下你就会发现一卡一卡的……而且拜伟大的墙所赐，这么大（467KB很大了，真的）的文件加载还是有点慢的……那怎么办呢？</p>
+<p>好办，不是有七牛吗，继续把这个HTML文件存到七牛，取得外链，然后文本框这么写就可以了，src自行替换，宽度和高度自己看着摸索吧。</p>
+<p>如图所示</p>
+<p><img src="/images/022816_0347_swiffyF14.png"></p>
+<p><embed> 标签是 HTML 5 中的新标签哦。</p>
+<p>这才算结束……还不快跟我一起大吼，H5大法好！</p>
+<p>当然了，一些嵌入了比较大HTML源码的页面（比如说<a target="_blank" rel="noopener" href="https://dmesg.app/hamster">这个</a>），我也直接用了embed…</p>
+<p>PS，有些主题的404界面插了个Flash游戏，主题对应的404.php可能会对应如下代码</p>
+<p>甭想了，替换成类似这样的</p>
+<p>当然前面可能有必要来几个<br>（换行）</p>
+<p>效果图，我还是很满足的。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/02/2016022804264364.jpg"><img src="/images/2016022804264364-1024x494.jpg" alt="QQ截图20160228122615"></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/02/28/swiffy-flash2html5/index/" data-id="clhp7rtkj009as2qraw732rui" data-title="swiffy的本地化：在线Flash转HTML5" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-psg1208-noads/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/02/26/psg1208-noads/index/" class="article-date">
@@ -802,165 +905,6 @@
 
 
   
-    <article id="post-newbee-uefi-windows10-ubuntu/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/01/30/newbee-uefi-windows10-ubuntu/index/" class="article-date">
-  <time class="dt-published" datetime="2016-01-30T00:00:00.000Z" itemprop="datePublished">2016-01-30</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/01/30/newbee-uefi-windows10-ubuntu/index/">[新手向][图文并茂] UEFI下Windows 10、Ubuntu双系统安装</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>昨天”新手向”的说了下UEFI+GPT下安装Windows 10，今天就趁热打铁，继续”新手向”的安装<strong>双系统</strong>吧！</p>
-<p>此教程同样也适用于安装Debian、Mint、CentOS等发行版。基本原理都是一样的，学会变通就可以。</p>
-<p>[v_notice]Tips：Ubuntu是啥？ Ubuntu是GNU&#x2F;Linux的众多发行版之一。Linux是遵循GPL协议发布的开源操作系统内核，而Ubuntu是以Linux做内核的基于Debian的桌面操作系统（当然Ubuntu也有服务器版）。Android同样也是基于ARM Linux的移动操作系统。不要把UI（User Interface 用户接口）和系统混为一谈，也不要把发行版、内核混为一谈。[&#x2F;v_notice]</p>
-<h1 id="适用条件："><a href="#适用条件：" class="headerlink" title="适用条件："></a>适用条件：</h1><p><strong>UEFI+GPT</strong>已安装Windows、准备双系统安装Ubuntu的童鞋</p>
-<p> </p>
-<h1 id="准备工具："><a href="#准备工具：" class="headerlink" title="准备工具："></a>准备工具：</h1><p>4G以上U盘一个</p>
-<p>Ubuntu 14.04 64bit镜像</p>
-<p>[lhb href&#x3D;”<a target="_blank" rel="noopener" href="http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso%22/]%E7%BD%91%E6%98%93%E5%BC%80%E6%BA%90%E7%AB%99/[/lhb/]">http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso&quot;\]网易开源站\[/lhb\]</a></p>
-<p>[lhb href&#x3D;”<a target="_blank" rel="noopener" href="http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso.torrent%22/]%E7%A7%8D%E5%AD%90%E6%96%87%E4%BB%B6/[/lhb/]">http://mirrors.163.com/ubuntu-releases/14.04.3/ubuntu-14.04.3-desktop-amd64.iso.torrent&quot;\]种子文件\[/lhb\]</a></p>
-<p>UNetBootin [lhb href&#x3D;”<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/unetbootin-windows-613.exe?t=1454146201878%22%5C%5D%E6%9C%AC%E5%9C%B0%E4%B8%8B%E8%BD%BD%5C%5B/lhb%5C%5D">http://bennydownload.file.alimmdn.com/unetbootin-windows-613.exe?t=1454146201878&quot;\]本地下载\[/lhb\]</a> 那些<strong>两个硬盘</strong>的孩子们，就省省心吧。<strong>一个硬盘一个引导</strong>得了。你们永远也体会不到MBR改引导有多么好玩~~</p>
-<h1 id="阅读之前"><a href="#阅读之前" class="headerlink" title="阅读之前"></a>阅读之前</h1><p>安装Ubuntu过程中<strong>建议断网</strong>，你总不想从美国下载更新安装吧！</p>
-<p>先进Windows 10来证明下我真的是UEFI+GPT的哦</p>
-<p><img src="/images/013016_1111_UEF1.png"></p>
-<p> </p>
-<h2 id="步骤零。准备Ubuntu-“分区”"><a href="#步骤零。准备Ubuntu-“分区”" class="headerlink" title="步骤零。准备Ubuntu “分区”"></a><strong>步骤零。准备Ubuntu “分区”</strong></h2><p>需要将Ubuntu安装到一个空闲分区中，但是假如没有空的分区呢？总不能为这个移动文件、格式化分区吧？</p>
-<p>其实不必这样，用DiskGenius可以做到<strong>无损</strong>分区的。</p>
-<p>假设在D盘前面腾出空闲空间给Ubuntu用，大致方法如下图所示。</p>
-<p>右键D盘，选择拆分分区。</p>
-<p><img src="/images/013016_1111_UEF2.png"></p>
-<p>把前面拖出来空闲空间，或者手动输入设置下。点击开始，然后慢慢等待吧~</p>
-<p><img src="/images/013016_1111_UEF3.png"></p>
-<p>之后再右键、新建分区就可以了。</p>
-<p>[v_tips]Tips：关于硬盘组织结构 在DG里，硬盘是以圆柱形从左到右显示的，是<strong>连续的</strong>。所以，如果分区里有很多文件，要想在分区前面腾出空间，那就要历经一个漫长的移动文件的过程。同理，如果觉得C太小了想把F的空间分给C点，那就要先把F前面空出来，分给E，E前面空出来分给D，D前面空出来分给C….[&#x2F;v_tips]</p>
-<p>[v_error]Tips：哪个分区性能最好？ 如果是机械硬盘的话……机械硬盘是个圆盘，<strong>角速度</strong>都是一样的，相比之下<strong>外圈的线速度要比较大</strong>。凑巧0磁道在外圈………C盘是紧挨着MBR的（0,0,1）[&#x2F;v_error]</p>
-<p> </p>
-<h2 id="步骤一。制作Ubuntu启动盘"><a href="#步骤一。制作Ubuntu启动盘" class="headerlink" title="步骤一。制作Ubuntu启动盘"></a><strong>步骤一。制作Ubuntu启动盘</strong></h2><p>插入U盘，打开UNetBootin，第二项里选择下载好的iso镜像，选择对应U盘的盘符。点确定开始展开文件。</p>
-<p><img src="/images/013016_1111_UEF4.png"></p>
-<p> </p>
-<h2 id="步骤二。进入Ubuntu-Live-CD"><a href="#步骤二。进入Ubuntu-Live-CD" class="headerlink" title="步骤二。进入Ubuntu Live CD"></a><strong>步骤二。进入Ubuntu Live CD</strong></h2><p>[v_tips]Live在这里应该是<strong>形容词</strong>，所以应该读作laɪv而不是where did you live的lɪv[&#x2F;v_tips]</p>
-<p>重启电脑，选择U盘启动。看过前文的童鞋应该知道，基本上就是按ESC、Enter这类的按键。</p>
-<p>之后直接回车就可以进入Ubuntu live CD</p>
-<p>如果无法启动请多试试，再不行就重回步骤一，将U盘格式化成FAT32或者干脆使用UltraISO</p>
-<p> </p>
-<h2 id="步骤三。设置Ubuntu分区"><a href="#步骤三。设置Ubuntu分区" class="headerlink" title="步骤三。设置Ubuntu分区"></a><strong>步骤三。设置Ubuntu分区</strong></h2><p>双击桌面上的 Install Ubuntu</p>
-<p>左侧拉倒最下面选择简体中文。</p>
-<p><img src="/images/013016_1111_UEF5.png"></p>
-<p>然后继续</p>
-<p>在”安装类型”这一步的时候要选择<strong>其他选项</strong>，也就是Something Else</p>
-<p><img src="/images/013016_1111_UEF6.png"></p>
-<p>之后安装程序会自动检测磁盘，下图是磁盘分区的说明。</p>
-<p>[v_blue]Tips：分区？ 在Linux下没有”分区”这个概念。所谓”一切皆文件”的哲学思想。sd代表硬盘，a就代表第一块硬盘，sda1就是第一块硬盘的第一个分区，以此类推，sdb3就是第二块硬盘的第三个分区。[&#x2F;v_blue]</p>
-<h3 id="1-创建EFI分区（此步骤可以跨过）"><a href="#1-创建EFI分区（此步骤可以跨过）" class="headerlink" title="1.创建EFI分区（此步骤可以跨过）"></a><strong>1.创建EFI分区（此步骤可以跨过）</strong></h3><p>[v_error]</p>
-<h3 id="2016年1月31日更新"><a href="#2016年1月31日更新" class="headerlink" title="2016年1月31日更新"></a>2016年1月31日更新</h3><p>请注意，EFI分区并不是必须要创建的。在“安装启动引导的设备”中选择Windows的EFI分区sda1即可。实测由于双系统，Ubuntu会探测到已经存在的EFI分区，所以新建的EFI之后删除也不会影响启动。[&#x2F;v_error]</p>
-<p>Ubuntu社区强烈建议每块硬盘<strong>只有一个</strong>EFI分区。（<a target="_blank" rel="noopener" href="https://help.ubuntu.com/community/UEFI">https://help.ubuntu.com/community/UEFI</a>）</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/01/2016013112031376.png"><img src="/images/2016013112031376.png" alt="5146"></a></p>
-<p>我们选择D盘，也就是sda4，然后点击左下角的change，新建一个<strong>EFI分区</strong>。大小200M、100M都可以。</p>
-<p><img src="/images/013016_1111_UEF8.png"></p>
-<p>然后确定。</p>
-<h3 id="2-创建交换空间（此步骤自行决定是否进行）"><a href="#2-创建交换空间（此步骤自行决定是否进行）" class="headerlink" title="2.创建交换空间（此步骤自行决定是否进行）"></a><strong>2.创建交换空间（此步骤自行决定是否进行）</strong></h3><p>如法炮制，继续新建Swap分区。大小保持和内存一样或者二倍就可以。如果你的内存足够大（千万别说4G就算足够大），直接跨过这一步<strong>也不是不可以</strong>。</p>
-<p><img src="/images/013016_1111_UEF9.png"></p>
-<p>[v_blue]Tips：Swap交换空间是什么？ 大家还记得Windows下一个大概和你内存大小差不多的pagefile.sys吗？Linux下的Swap就是Windows下的虚拟内存。[&#x2F;v_blue]</p>
-<h3 id="3-创建根"><a href="#3-创建根" class="headerlink" title="3.创建根"></a><strong>3.创建根</strong></h3><p>继续，把剩余的空间都分给&#x2F;，选择个挂载点就可以。</p>
-<p><img src="/images/013016_1111_UEF10.png"></p>
-<p>[v_blue]Tips：Ubuntu支持NTFS吗？ Ubuntu支持很多种文件系统，包括微软家的NTFS和存不了4G文件的FAT32等等。这一步选择Ext3也可以，脑残了选择NTFS也可以，但是何苦呢？[&#x2F;v_blue]</p>
-<p>[v_warn]Tips：Linux支持NTFS吗？ Linux内核可<strong>并不支持</strong>NTFS哦，要不怎么有一个叫”ntfs3g”的开源项目。[&#x2F;v_warn]</p>
-<p>[v_tips]Tips：把home单独分出去，也可以哦。这样以后万一格式化重新安装也不怕丢~的文件[&#x2F;v_tips]</p>
-<h3 id="4-选择引导分区"><a href="#4-选择引导分区" class="headerlink" title="4.选择引导分区"></a><strong>4.选择引导分区</strong></h3><p>这一步，选择新建的EFI分区（sda4）或者原来Windows的EFI（sda1）<strong>都可以</strong>。因为实测表明直接选择Windows的EFI分区并不会有什么问题。所以你们自己看着办！</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/01/2016013112150865.png"><img src="/images/2016013112150865.png" alt="QQ截图20160131201439"></a></p>
-<p>然后点击现在安装。</p>
-<p>[v_blue]Tips：这个启动引导器是个啥子嘛… 你看，你双击桌面的QQ，Windows的外壳程序explorer.exe帮你打开了QQ.exe（或者QQProtect.exe），但是你有没有想过explorer.exe是哪个程序启动的呢？最开始的程序是什么启动的呢？操作系统本质上也是个特殊的软件，那是啥东西启动它的呢？似乎陷入了先有鸡先有蛋的死循环。 在BIOS中，BIOS在自检结束之后会去找硬盘的MBR，MBR在0柱面、0磁头、扇区 BIOS模式下去找MBR UEFI模式下，就要去找EFI分区了。 [&#x2F;v_blue]</p>
-<p> </p>
-<h2 id="步骤四。设置账号密码"><a href="#步骤四。设置账号密码" class="headerlink" title="步骤四。设置账号密码"></a><strong>步骤四。设置账号密码</strong></h2><p>之后默认点继续就可以了。</p>
-<p>在这一步，要设置一个用户名和密码，这个密码<strong>一定要记住</strong>了哦。自动登录和加密home可以根据个人情况选择。</p>
-<p><img src="/images/013016_1111_UEF12.png"></p>
-<p>漫长的等待…….等待</p>
-<p>根据提示重启就行了。</p>
-<p>到这里安装就完成了….有兴趣可以继续往下看。</p>
-<p>[v_blue]Tips：何为root用户？ Linux下包含一个<strong>最高权限</strong>的用户：root，<strong>root用户无所不能</strong>，甚至都可以用来<strong>删除操作系统本身</strong>。对，就是<strong>正在运行</strong>着的操作系统就可以给删掉。Android下的root就是这个概念。[&#x2F;v_blue]</p>
-<p>[v_tips]Tips：电脑是我的，我还没有最高权限吗？ 我们设置的用户名本身<strong>不具有root权限</strong>。但是我们用户名在sudoers中，所以可以通过sudo来暂时<strong>提权</strong>到root权限。root也同样有密码，在Ubuntu中这个密码是<strong>随机的</strong>无人可知的，Debian中是<strong>安装时设置</strong>的。[&#x2F;v_tips]</p>
-<p>[v_error]Tips：别的用户也可以用sudo吗 如果要编辑sudoers文件，<strong>可别</strong>chmod（改变文件权限）之后在用vi等编辑。这种情况下除非知道root密码可以直接su切换到root，否则就再也无法使用sudo了，因为sudoers要求440权限。还是老老实实用<strong>visudo</strong>吧！[&#x2F;v_error]</p>
-<h2 id="步骤五。交代点事…"><a href="#步骤五。交代点事…" class="headerlink" title="步骤五。交代点事…"></a><strong>步骤五。交代点事…</strong></h2><p>（暴露了我是虚拟机…其实真实也就是这个情况）</p>
-<h3 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h3><p>启动前按ESC，可以看到<strong>Ubuntu的EFI引导在Windows Boot Manager上面</strong>，所以默认情况下就会进入Ubuntu的启动引导程序。至于引导程序引导啥操作系统，那就不是UEFI说了算的。</p>
-<p><img src="/images/013016_1111_UEF13.png"></p>
-<p> </p>
-<h3 id="2"><a href="#2" class="headerlink" title="2."></a>2.</h3><p>这里来到了Ubuntu的启动引导程序，grub2</p>
-<p><img src="/images/013016_1111_UEF14.png"></p>
-<p>可以看到Ubuntu非常”大度”的识别出来了Windows的引导程序。</p>
-<p>事实上也是真正可以引导的。</p>
-<p> </p>
-<h2 id="步骤六。设置grub2"><a href="#步骤六。设置grub2" class="headerlink" title="步骤六。设置grub2"></a><strong>步骤六。设置grub2</strong></h2><p>默认是启动Ubuntu，我有点不适应还想先用一会Windows；十秒钟超时太长了，设置短一点可以吗？</p>
-<p>我想说这都不是事！</p>
-<p>进入Ubuntu，搜索打开<strong>终端</strong></p>
-<p><img src="/images/013016_1111_UEF15.png"></p>
-<p>输入如下命令：</p>
-<p>sudo gedit &#x2F;etc&#x2F;default&#x2F;grub</p>
-<p><img src="/images/013016_1111_UEF16.png"></p>
-<p>输入安装时设置的账号密码。没有反应就是正常的，<strong>没有回显</strong>，照样打密码就对了。</p>
-<p>然后会打开这样的一个配置文件。</p>
-<p><img src="/images/013016_1111_UEF17.png"></p>
-<p>GRUB_DEFAULT是设置默认的启动项，<strong>从0开始计数</strong>。<strong>这种情况下</strong>如果要Windows默认启动，那就设置成2即可。</p>
-<p>GRUB_TIMEOUT是默认超时时间，单位秒。</p>
-<p>之后保存，终端输入如下内容：</p>
-<p>sudo update-grub</p>
-<p>回车即可。</p>
-<p><img src="/images/013016_1111_UEF18.png"></p>
-<p> </p>
-<p>TIPS：grub默认的紫色启动界面太难看了，我想换怎么办？</p>
-<p>sudo nautilus</p>
-<p>将自定义图片复制到&#x2F;boot&#x2F;grub下 再</p>
-<p>sudo update-grub</p>
-<p>如果壁纸严重”变形”，那就修改&#x2F;etc&#x2F;default&#x2F;grub，将</p>
-<p>#GRUB_GFXMODE&#x3D;640x480</p>
-<p>改成</p>
-<p>GRUB_GFXMODE&#x3D;640x480</p>
-<p>此处640x480应该是你电脑的<strong>最佳分辨率</strong>。</p>
-<p>然后</p>
-<p>sudo update-grub</p>
-<p> </p>
-<h2 id="步骤七。没了，安装完了。"><a href="#步骤七。没了，安装完了。" class="headerlink" title="步骤七。没了，安装完了。"></a><strong>步骤七。没了，安装完了。</strong></h2><p>推荐一套非常棒的Ubuntu入门书籍，《Linux入门很简单》，各大电商均有销售。</p>
-<p>这个名字可能不太熟悉，但是《笨兔兔的故事》可能就比较知名了。</p>
-<p>此文写于2008年，后来根据10年Ubuntu10.04重新更新了下，但仍旧不失为非常优秀、幽默的Ubuntu入门文档。尤其适合女孩子读。</p>
-<p>当然了，《Linux入门很简单》内容要略丰富些。</p>
-<p>同样收录于“推荐书籍栏目中”</p>
-<p>原帖地址：<a target="_blank" rel="noopener" href="http://forum.ubuntu.org.cn/viewtopic.php?t=162040">http://forum.ubuntu.org.cn/viewtopic.php?t=162040</a></p>
-<p>打包下载地址： [dltable file&#x3D;”笨兔兔的故事.7z” size&#x3D;”8.90M”]<a target="_blank" rel="noopener" href="http://bennydownload.file.alimmdn.com/%E7%AC%A8%E5%85%94%E5%85%94%E7%9A%84%E6%95%85%E4%BA%8B.7z?t=1454151283700">本地下载</a>[&#x2F;dltable]</p>
-<p>今天的教程就到这里~~</p>
-<p><img src="/images/013016_1111_UEF19.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/01/30/newbee-uefi-windows10-ubuntu/index/" data-id="clhp7rthp005ls2qrhk9kg49y" data-title="[新手向][图文并茂] UEFI下Windows 10、Ubuntu双系统安装" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1005,7 +949,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1016,6 +960,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
+          </li>
         
           <li>
             <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
@@ -1031,10 +979,6 @@
         
           <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
       </ul>

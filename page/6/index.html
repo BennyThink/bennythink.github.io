@@ -73,6 +73,108 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-telegram-sticker/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/10/26/telegram-sticker/index/" class="article-date">
+  <time class="dt-published" datetime="2021-10-26T00:00:00.000Z" itemprop="datePublished">2021-10-26</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/10/26/telegram-sticker/index/">使用Telegram 斗图</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <blockquote>
+<p>人类的本质就是斗图机。</p>
+</blockquote>
+<p>想要在Telegram上斗图，那么必然就要用到MTProto了。对于pyrogram来说，那是非常简单的！</p>
+<p>@app.on_message(filters.incoming)<br>def sticker_handler(client: “Client”, message: “types.Message”):<br>    chat_id &#x3D; message.chat.id<br>    sticker &#x3D; “CAACAgUAAxkBAAEHooZhc87afMQjB-c10tBfkdcH1VSAWwACjwEAAjMDHAiv-7CBCwXTrR4E”<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(sticker, quote&#x3D;True)</p>
+<p>sticker可以为表情包的文件路径、HTTP URL、或者是文件ID。</p>
+<p>如有需要可以对filters进行各种定制，比如说我要某个用户给我发某个特定表情包时才斗图，那么filter大概可以这样写</p>
+<p>@app.on_message(filters.sticker &amp; filters.incoming &amp; filters.user(user_id))</p>
+<p>然后判断一下</p>
+<p>if message.sticker.file_unique_id &#x3D;&#x3D; “abcd”:<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(sticker, quote&#x3D;True)</p>
+<p>[v_blue]</p>
+<p>小提示：如何获取user_id? 试试这个bot呢？ <a target="_blank" rel="noopener" href="https://t.me/blog_update_bot">https://t.me/blog_update_bot</a> [&#x2F;v_blue] 那么这个sticker的ID怎么获取呢？笨办法是，找个小号帮忙发个表情就好了。</p>
+<p>我的Telegram里明明添加了那么多表情包，如果能一键使用就好了。既然MTProto是公开的，那么也一定有办法。</p>
+<h2 id="Raw-Functions"><a href="#Raw-Functions" class="headerlink" title="Raw Functions"></a>Raw Functions</h2><p>pyrogram封装了许多易于使用的方法，比如上面的发sticker，最常用的回复消息等等。但是实际上这些都利用了Raw Function。很多功能并没有封装成高层的 Python方法，非常不幸的是，获取sticker set便是其中之一。</p>
+<p>想要使用raw functions也很简单啦</p>
+<p>from pyrogram.raw import functions<br>app.send(<br>    functions.account.UpdateProfile(<br>    first_name&#x3D;”Dan”, last_name&#x3D;”Tès”,<br>    about&#x3D;”Bio written from Pyrogram”)<br>)</p>
+<h2 id="获取全部已添加的sticker"><a href="#获取全部已添加的sticker" class="headerlink" title="获取全部已添加的sticker"></a>获取全部已添加的sticker</h2><p>获取全部sticker的函数是 <code>functions.messages.GetAllStickers</code></p>
+<p>于是你兴致勃勃写好了代码，并且猜测猜测send方法会有返回值</p>
+<p><img src="/images/2021102621070689.png"></p>
+<p>这是怎么回事？这个参数hash是什么？要怎么写？</p>
+<p><img src="/images/2021102621070739.jpeg"></p>
+<p>其实这个hash是为了节约双方的资源的，有点像etag。具体可以看这里 <a target="_blank" rel="noopener" href="https://core.telegram.org/api/offsets#hash-generation">https://core.telegram.org/api/offsets#hash-generation</a></p>
+<p>我们这随便传入一个数字就可以了，这个接口获取到的数据大概是这种结构：</p>
+<p><img src="/images/2021102621070847.png"> [v_error]看到上面的hash 50617….了吗，按道理应该传入这个的哦，就会有类似304 Not Modified的效果[&#x2F;v_error]</p>
+<h2 id="获取sticker-set"><a href="#获取sticker-set" class="headerlink" title="获取sticker set"></a>获取sticker set</h2><p>上面的<code>all_stickers</code>就包含了这个用户所收藏的所有sticker，每一个sticker set都是list的一个元素。</p>
+<p>然后我们看下获取sticker set的API</p>
+<p><code>functions.messages.GetStickerSet</code></p>
+<p>接受一个神奇的参数 <code>stickerset: &quot;raw.base.InputStickerSet&quot;</code></p>
+<p>很多人可能会问，这是啥参数类型啊，怎么构造？</p>
+<p>要从raw_types里去搞啦，type hint已经给了提示是 <code>raw.base.InputStickerSet</code></p>
+<p>from pyrogram.raw import types as raw_types<br>raw_types.InputStickerSetID</p>
+<p><code>InputStickerSetID</code>接受两个参数，一个是<code>id</code>，一个是<code>access_hash</code></p>
+<p>那这个就不用我多说了吧，每一个set都有这两个参数</p>
+<p><img src="/images/2021102621070967.png"></p>
+<p>这样我们就能拿到一个sticker的全部信息了！数据结构大致如下</p>
+<p>set字段，表示sticker set的基本信息，和上面的一样</p>
+<p>packs和documents，表示单个sticker的信息</p>
+<p>packs的结构比较简单，看起来像是个索引一样</p>
+<p><img src="/images/2021102621071087.png"></p>
+<p>documents的结构比较复杂，包含了缩略图等信息</p>
+<p><img src="/images/2021102621071241.png"></p>
+<p>那看起来这个document就是我们想要的了！那么继续用<code>functions.messages.send_xxx</code></p>
+<p>想想就痛苦，有没有办法利用pyrogram的send_stickersn呢？</p>
+<p>那一大长串<code>file_id</code>是什么啊？</p>
+<h2 id="转换为file-id"><a href="#转换为file-id" class="headerlink" title="转换为file_id"></a>转换为file_id</h2><p>要使用古娜拉黑暗之神——呼呼拉——黑仙魔光才能把sticker变到file_id！</p>
+<p>具体怎么做我教给你们就好了！不用探索其中原理……反正就是看pyrogram的<code>send_sticker</code>是怎么实现的，然后逆着来嘛😝</p>
+<p>from pyrogram.file_id import FileId, FileType</p>
+<p>file_id &#x3D; FileId(file_type&#x3D;FileType.STICKER,<br>    dc_id&#x3D;doc.dc_id,<br>    file_reference&#x3D;doc.file_reference,<br>    media_id&#x3D;doc.id,<br>    access_hash&#x3D;doc.access_hash,<br>    sticker_set_id&#x3D;set_id,<br>    sticker_set_access_hash&#x3D;set_hash).encode()</p>
+<p><code>set_id</code>是<code>set_access_hash</code>是sticker set的，<code>media_id</code>和<code>access_hash</code>是这个sticker的，不要搞错了哦。</p>
+<p>然后生成的一长串字符串，就可以喂给 <code>send_sticker</code>啦。</p>
+<p>建议事先把所有的sticker的file_id都跑出来，然后随机从里面选就好了～要不然容易触发rate limit导致Durov送你飞机票。</p>
+<h2 id="欢乐斗图"><a href="#欢乐斗图" class="headerlink" title="欢乐斗图"></a>欢乐斗图</h2><p>为了斗图更快乐，我们也要搞的更欢乐更随机！</p>
+<p>那么最简单的办法，其实就random一下就好了，先随机选sticker，然后再自定义回复概率，比如我想要一半概率回复，那就……</p>
+<p>if random.choice([1, 0]):<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(“sticker file_id”, quote&#x3D;True)</p>
+<p>或者比如我想要79%的概率回复，那就……</p>
+<p>random.randint(1, 100) &lt;&#x3D; 79</p>
+<p>要想要每次都随机的回复概率，那其实也不难</p>
+<p>rand1 &#x3D; random.randint(1, 100)<br>rand2 &#x3D; random.randint(1, 100)<br>if rand1 &gt; rand2:<br>    pass</p>
+<p>当然啦，上述算法从整体上来讲，回复概率是50%的,样本数量越大就会越近于50%。毕竟嘛，要么发要么不发，这范围还是一样的……那肯定50%啦。</p>
+<h2 id="斗图结果"><a href="#斗图结果" class="headerlink" title="斗图结果"></a>斗图结果</h2><p>自然是非常开心了，24小时随时回复！小伙伴都惊呼我竟然大半夜不睡觉！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/10/26/telegram-sticker/index/" data-id="clhp7rtlc009ks2qr64r6f6g7" data-title="使用Telegram 斗图" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-cat/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/10/02/cat/index/" class="article-date">
@@ -878,100 +980,6 @@ fun()
 
 
   
-    <article id="post-aeru/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/05/aeru/index/" class="article-date">
-  <time class="dt-published" datetime="2021-06-05T00:00:00.000Z" itemprop="datePublished">2021-06-05</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/05/aeru/index/">また会える</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>在椅子上坐了半个多小时，也不知道想要写点什么，但是又总觉得要写点什么，明明脑海里有万千思绪，但是却不知道该从何下笔。几年之前也有过类似的感觉，但是完全不记得后来是怎么好起来的。</p>
-<p>不过既然如此，既然已经在这坐了半个多小时，那也就把自己最近的所思所想全部记录下来吧。没有逻辑就没有逻辑吧，想到哪说哪。说到底，这个博客只是我个人的一个小天地，是用来为我自己做记录的，我只是觉得差不多到了阶段性记录的时候。</p>
-<p>首先呢，我觉得要先从自身的身心状态说起。到上海已经一年多了，也同样给自己独居生活增加了一年。</p>
-<p>上海这座城市，怎么说呢，我很喜欢呀，我喜欢这种繁华，当然最主要的还是在上海收入比较高，也在做着自己擅长的工作。在上海我几乎没有朋友，所有的朋友还都是在来到上海之前认识的。我从未想过去交朋友，因为我很慢热，不太喜欢认识新的人，对于我而言亲密关系的建立也是很困难的事情，因此也不可能喜欢上谁。这应该算是一种社交恐惧吧。</p>
-<p>我现在大概处于一种“低欲望”的生活状态，每个月的支出中，房租水电占据了一半，剩下几乎就是日常吃喝和超市了。即使是去超市，我买的东西也是非常固定的，我一定会买牛奶，一定会买酸奶，然后再买点应季水果，休闲零食也几乎只会有瓜子。</p>
-<p>在正常没有意外的情况下，我的支出比例差不多就是这样固定，当然有时会有意外情况的。比如每年4月我会支出$199，用于续费JetBrains全家桶；每年总有一段时间是要买机票的，说不准还会被航空公司当天取消航班，然后只能加钱买当天机票；说不准改天手机丢了坏了，总是要花钱买新的。</p>
-<p>说到支出，那就一定要提到收入。我的收入嘛，绝大部分还是要靠工资的。还有一小部分是靠着善良网友的捐赠，感谢你们的支持呀，我会继续把人人影视的遗产维护下去的。</p>
-<p>我似乎已经没什么太大的物质欲望了。我对吃的不感兴趣，每天只要能填饱肚子能够让我生存下去就好；我对电子产品也没什么兴趣了，什么都有，也不需要买新的；我对买游戏也没兴趣，这要多亏了Xbox Game Pass Ultimate，玩游戏还是有些兴趣的；天呐我都不买衣服鞋子了。感觉对什么都提不起兴趣，也就对IT，还保持着一些兴趣和热枕吧。</p>
-<p>最近是不是有一个词“躺平”特别火？我这算不算也躺平了？没有任何购买消费欲望，不买车，不结婚，不买房，也不生娃。躺平可能更有点像破罐子破摔的样子，也许我这更像是“断舍离”，斩断对物质生活过多的欲望，过着简单清爽的生活。</p>
-<p>甚至在每次买计划之外的东西的时候，我都在想，我真的需要这个东西吗，这个东西适合我吗？假如给我等值的钱，和这个东西，我选择哪个？</p>
-<p>其实呀我也想买车，这样我的活动半径就会扩大很大，我可以不用去哪全靠自行车和公共交通了，尽管买个代步车买菜车对于我来说还是没问题的，但是现阶段觉得这暂时没太大用处；我也想结婚呀，可是老婆已经嫁给了星野源，可是谁愿意嫁给我呀；我也想买房呀，有属于自己的真正的住处是很好的一件事情，可是……这个我是真的买不起呀，想想自己背负着几百万的贷款，还要维持收入几十年不变低，每天只有十元零花钱，哎。</p>
-<p>所以这些都不要想了啦。低欲望不是没有欲望，有时那些“小确幸”也足够满足欲望了。吃饱了就可以很幸福，所以吃什么都可以哦。努力把工作做好，领到薪水，就像这样。</p>
-<p>本来还想着有空去豆瓣躺平小组看看，这下可好，没得看了。「我们不解决问题，我们只解决提出问题的人」</p>
-<blockquote>
-<p>感觉就像是，「你看着身边的人都在往一个方向走，自己却站在原地，甚至要走反方向。你看着身边的人都在做某件事情，可是你却没有做这件事情的想法，甚至都不做。就会觉得，孤独，觉得自己好像被世界遗弃了一样格格不入。更重要的是，其他人走一个方向，是充满信心的走下去的，是有目标的。但是像我这种留在原地，甚至反方向，其实并不知道接下来要去向何处。感觉身边的人都找到了自己的方向，但是我却不知道自己的方向是什么，或者明知道自己的方向是什么，但是眼前隔了几座山，感到力不从心」</p>
-<p>这一切，只要安慰自己「孤独是生而为人的宿命」就好了</p>
-<p>我一个人也可以活的很好，我就是不想顺流而下。</p>
-<p>我是明明有药可救的，可是我却选择放弃治疗。</p>
-<p>只要我把我家里的钱拿上，再加上自己的积蓄，买房这件事情，问题应该不算很大</p>
-<p>所以你看我这就是分明有药可救，但是却自己内心放弃治疗了</p>
-<p>可能是吧，如果家里一个孩子还好，我能更心安理得一些，但是两个孩子，就真的非常不想花父母的钱了。</p>
-<p>而且我妈明确的和我说过“这钱就是留着给你买房首付的”</p>
-<p>就是不心安理得啊。家里俩孩子，父母一辈子的财产却只给男孩，我觉得这样对女孩不公平。</p>
-<p>只是因为她是女孩，比我大，并且已经嫁出去了，这些钱我就可以心安理得的拿着用吗？</p>
-<p>这是一方面原因。另一个原因是，我可能有些要强吧。好不容易获得了经济独立，不想再次涉及这些。虽说我的家庭非常和睦，不存在“生活在父母的阴影下”，但是我就是觉得这样会让我心理很不是滋味。我父母的钱是我父母的钱，不是我的钱</p>
-<p>就像很多人毕业时会毕业游（那时候我还好，有一些积蓄了，已经经济独立半年了），我只能感叹：其他人都在毕业游，我却只能为生活奔波</p>
-<p>我觉得这样子对女孩子很不公平</p>
-<p>总结下来，我太要强了，或者说太傻了</p>
-<p>反正就是你看，我觉得我和一些“主流价值观”格格不入，我不知道这是因为中国文化的原因，还是怎么的，就总感觉自己是个freak啊</p>
-<p>对于我来说，“传统文化 传统习俗”等等并不是可以让我奉行的理由。</p>
-<p> </p>
-<p>【你真的会觉得是自己太怪了 而不是别人的想法观念有问题嘛？】</p>
-<p>我不知道，想法和观念这种东西，我觉得没有对错之分吧。</p>
-<p>【有啊比如重男轻女】</p>
-<p>大部分情况下来说是这样的吧，不过我觉得这个有点更倾向于观点了。其实我一直在非常努力的区分“事实和观点”，我一直觉得“事实与观点”中，事实是客观的，观点是因人而异的。对于我来说我的观点是“我认为xxx是不妥的”，但是对于支持者来说就不是了。当然有些观点可能也许会变成事实，比如“日心说”</p>
-<p>当然了，你不要理解错了，我可没有一个字说我喜欢男孩不喜欢女孩。我是支持性别平等的哦。</p>
-<p>当然，我也没有为“重男轻女”辩护，实际上我也是不喜欢并反感这种传统思想的，实际上很多传统思想什么的我都不喜欢</p>
-<p>【如果年轻人都能像你这样想 我们的压力就不会这么大了把】</p>
-<p>那么子弹就不够用了</p>
-<p>你想，既然能轻轻松松的活着，为什么非要让自己活得这么累呢？即使自我感觉良好，感觉自己是更具有包容性的，那又能怎么样啊🤦‍♀️「想这么多不累吗，为什么不西瓜可乐」</p>
-<p>所以可能你更能理解我为什么想要去新的环境了吧</p>
-<p>我无法改变这些，那我只好换个环境了</p>
-<p>【咱俩是不是聊的太深刻了】</p>
-<p>还不够深刻。在微信上很多话题我都是避而不谈的，但是我很讨厌这样的自己，我很讨厌自我审查，可是我又不得不这么做。你看，「最终还是活成了自己讨厌的样子」</p>
-<p>我们的生活就好比种地，大家都在种水稻（结婚买房子），但是有的人种的是苹果，乍一看有点突兀，他们会怀疑自己是不是走的不对，其实只要产出的东西是有价值的，最后都能满足自己，所以和别人不一样也没关系，重要的是结果是不是自己想要的。</p>
-<p>2020-11-02</p>
-</blockquote>
-<p> </p>
-<hr>
-<p> </p>
-<p><img src="/images/2021060512110440.jpeg" alt="《逃避可耻却有用》新春SP"></p>
-<p>我们还会再见面吗？</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/05/aeru/index/" data-id="clhp7rtdv0007s2qr596vc43o" data-title="また会える" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1016,7 +1024,7 @@ fun()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1027,6 +1035,10 @@ fun()
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
+          </li>
         
           <li>
             <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
@@ -1042,10 +1054,6 @@ fun()
         
           <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
       </ul>

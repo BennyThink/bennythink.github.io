@@ -73,6 +73,182 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-one-million-data/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/11/28/one-million-data/index/" class="article-date">
+  <time class="dt-published" datetime="2018-11-28T00:00:00.000Z" itemprop="datePublished">2018-11-28</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/11/28/one-million-data/index/">假如给我一百万（的数据）</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>很长时间之前我写过一篇<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">《使用</a> <a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">Python 将海量 MySQL 数据导入 Elastic Search&#x2F;MongoDB</a><a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">》</a>，主要就说了如何把大量MySQL数据写入键值对数据库。</p>
+<p>现在回过头看来这篇文章还是很有参考价值的。</p>
+<p>有的时候我们会遇到相反的需求，比如说把对应的键值对数据库（或者说是json文件）导入（列数据类型相符）的MySQL表中。通常来说这不是个啥大问题，根据json提取出列，生成SQL语句就可以了。也就这么几行，然后execute加参数就可以了：</p>
+<p>placeholders &#x3D; ‘, ‘.join([‘%s’] * len(raw_dict))<br>columns &#x3D; ‘, ‘.join(raw_dict.keys())<br>insert_sql &#x3D; “INSERT INTO %s ( %s ) VALUES ( %s )” % (insert_table, columns, placeholders)</p>
+<p>当然了你要是想直接生成能用的sql语句那我也没意见（并抛出一个?的表情）</p>
+<p>大量插入数据的时候咋整呢？</p>
+<h1 id="首先我们……"><a href="#首先我们……" class="headerlink" title="首先我们……"></a>首先我们……</h1><p>首先我们要知道，性能是由多方面因素决定的，比如说代码效率质量、Python性能、服务器性能（包含MySQL版本，编译优化，宿主机IO&#x2F;CPU&#x2F;RAM等）、表结构的设计、网络速度等，咱要找到短板才可以。为了找到短板，需要使用控制变量法，但是有些变量不可控，那就很不好办了……</p>
+<p>然后我需要送上MySQL官方文档两篇，说的非常详细了，我简单总结下</p>
+<p>Optimizing INSERT Statements: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html">https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html</a></p>
+<p>Bulk Data Loading for InnoDB Tables: <a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/optimizing-innodb-bulk-data-loading.html">https://dev.mysql.com/doc/refman/8.0/en/optimizing-innodb-bulk-data-loading.html</a></p>
+<h2 id="优化INSERT语句"><a href="#优化INSERT语句" class="headerlink" title="优化INSERT语句"></a>优化INSERT语句</h2><p>插入时间由以下因素决定，数字代表权重</p>
+<ul>
+<li>Connecting: (3)</li>
+<li>Sending query to server: (2)</li>
+<li>Parsing query: (2)</li>
+<li>Inserting row: (1 × size of row)</li>
+<li>Inserting indexes: (1 × number of indexes)</li>
+<li>Closing: (1)</li>
+</ul>
+<p>可以使用以下方式加速插入：</p>
+<ul>
+<li>如果从同一个客户端同时插入，使用多值的INSERT语句一次性插入多行，这比使用单行的INSERT语句要快得多。如果要将数据添加到非空表中，则可以调整该 <code>bulk_insert_buffer_size</code> 变量以使数据插入速度更快。</li>
+<li>从文本文件加载表格时，请使用 <code>LOAD DATA INFILE</code>。这通常比使用INSERT语句快20倍</li>
+<li>利用列具有默认值的事实。只有当要插入的值不同于默认值时才显式插入值。这减少了MySQL必须执行的解析并提高了插入速度。</li>
+</ul>
+<h2 id="InnoDB表的批量数据加载"><a href="#InnoDB表的批量数据加载" class="headerlink" title="InnoDB表的批量数据加载"></a>InnoDB表的批量数据加载</h2><h3 id="关闭自动提交"><a href="#关闭自动提交" class="headerlink" title="关闭自动提交"></a>关闭自动提交</h3><p>关闭自动提交，因为它为每个操作执行日志刷新。</p>
+<p>实际上默认情况下pymysql帮我们做了，<code>set autocommit=0</code></p>
+<h3 id="关闭唯一性校验"><a href="#关闭唯一性校验" class="headerlink" title="关闭唯一性校验"></a>关闭唯一性校验</h3><p>set unique checks &#x3D; 0</p>
+<p>对于大表而言这会节约很多磁盘IO，不过要确保数据没有重复记录。</p>
+<h3 id="关闭外键校验"><a href="#关闭外键校验" class="headerlink" title="关闭外键校验"></a>关闭外键校验</h3><p>SET foreign_key_checks&#x3D;0;</p>
+<h3 id="多值INSERT"><a href="#多值INSERT" class="headerlink" title="多值INSERT"></a>多值INSERT</h3><p>使用多值INSERT 来减少客户端与服务器之间的通信开销</p>
+<p>INSERT INTO yourtable VALUES (1,2), (5,5), …;</p>
+<p>需要注意的是，MyISAM用这招也管用。</p>
+<p><strong>这一点是我们本文讨论的重点内容。</strong></p>
+<h3 id="自增列的处理"><a href="#自增列的处理" class="headerlink" title="自增列的处理"></a>自增列的处理</h3><p>当对具有自动增量列的表进行批量插入时，请将其设置 <code>innodb_autoinc_lock_mode</code>为2而不是默认值1</p>
+<h3 id="主键排序"><a href="#主键排序" class="headerlink" title="主键排序"></a>主键排序</h3><p>InnoDB表是按照主键顺序排列的，所以将数据顺序按照主键顺序排列好，可以提高导入效率</p>
+<h1 id="Python性能"><a href="#Python性能" class="headerlink" title="Python性能"></a>Python性能</h1><p>这可能是PHP被黑的最惨的一次。</p>
+<p>如果单纯的比较执行性能的话，Python是肯定比不过静态语言的。不过我早就过了单纯的年龄，我很邪恶的。由于这是Python自身的短板，咱也不太好做点什么有实质性的工作，也许仅限于把解释器换成PyPy，编译Python时带上<code>enable-optimizations</code>，把性能关键的模块用C&#x2F;C++写一遍然后胶水糊上。</p>
+<p>但可是啊可但是啊，代码执行时绝大部分的时间都消耗在了网络IO、磁盘IO，在语言本身上的劣势并不是那么明显。当然了非得说语言本身，那动态语言运行时要解释，要运行时检查……</p>
+<h1 id="代码效率质量"><a href="#代码效率质量" class="headerlink" title="代码效率质量"></a>代码效率质量</h1><p>实际上老实说，这部分才是最关键的。一个足够Pythonic的代码看起来是很舒服的嗯……</p>
+<h2 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h2><h3 id="查询时SQL注入的预防"><a href="#查询时SQL注入的预防" class="headerlink" title="查询时SQL注入的预防"></a>查询时SQL注入的预防</h3><p>在有些情况下（比如说登录的时候）我们需要进行where限制条件查询，此时如果使用拼接SQL语句的方式，那么被注入几乎就是肯定的了。</p>
+<p>比如某些新手在登录的查询语句可能会构造如下语句：</p>
+<p>SELECT * FROM account WHERE username&#x3D;’benny’ AND password&#x3D;’123456’</p>
+<p>其中benny和123456是由用户输入的变量，通过判断结果集是否为空来判断是否登录成功。乍一看似乎没啥问题，但是……问题太多了。</p>
+<ol>
+<li>无验证登录</li>
+</ol>
+<p>恶意用户只需要把用户名输入为<code>&#39; or 1=1; --</code> ，SQL语句就会变成这样：</p>
+<p>SELECT * FROM account WHERE username&#x3D;’’ or 1&#x3D;1; – ‘ AND password&#x3D;’123456’</p>
+<p>这是一条带不带WHERE都一样的语句，只要表中有数据那么结果集就一定为真，自然也就绕过登录了。</p>
+<ol>
+<li>各种注入</li>
+</ol>
+<p>通过构造各种各样的奇葩的SQL语句，可以摸索出来表的结构，甚至是某些关键库（比如mysql这个库）的数据，比如说<a target="_blank" rel="noopener" href="https://chybeta.github.io/2017/07/21/MySql%E6%B3%A8%E5%85%A5%E5%A4%87%E5%BF%98%E5%BD%95/">这篇</a>。</p>
+<ol>
+<li>密码存储问题</li>
+</ol>
+<p>即使注入不是问题，从系统设计的角度来讲这种设计也是错误的。</p>
+<p>明文密码，无论从传输角度还是从数据库角度来讲都是不合理的。即使是使用安全的散列函数、HMAC也是错误的。</p>
+<p>正确的姿势是用参数化查询查询出密码，使用PBKDF的方法进行等时间比较。</p>
+<p>（如何存储用户密码是一门艺术，以后也许单独开一篇完整介绍吧）</p>
+<h3 id="dictCursor"><a href="#dictCursor" class="headerlink" title="dictCursor"></a>dictCursor</h3><p>有些时候我们可能需要查询出来的结果是一定类型的，默认情况下pymysq使用的cursor会查询出来<code>[(),()]</code>这种格式的数据，如果我们需要字典样式的数据，那么就要在构造con连接对象的时候指定游标，语法大致如下：</p>
+<p>con &#x3D; pymysql.connect(host&#x3D;’localhost’, user&#x3D;’user’, password&#x3D;’passwd’,<br>db&#x3D;’db’, charset&#x3D;’utf8mb4’, cursorclass&#x3D;pymysql.cursors.DictCursor)</p>
+<p>这样就不用再从information_schema里乱查一通了。</p>
+<h3 id="fetch方式"><a href="#fetch方式" class="headerlink" title="fetch方式"></a>fetch方式</h3><p>cur在获取数据时，有<code>fetchall()</code>、<code>fetchone()</code>、<code>fetchmany()</code>三种方法。细节已经<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">在这里说了</a>，所以就暂且不提。</p>
+<h2 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h2><h3 id="插入时SQL注入的预防"><a href="#插入时SQL注入的预防" class="headerlink" title="插入时SQL注入的预防"></a>插入时SQL注入的预防</h3><p>插入数据时也同样需要防范SQL注入，所以应该使用参数化查询。下面会详细说明</p>
+<h3 id="cur-execute-与参数"><a href="#cur-execute-与参数" class="headerlink" title="cur.execute()与参数"></a>cur.execute()与参数</h3><p>首先看一眼原型：<code>def execute(self, query, args=None)</code></p>
+<p>第一个参数query代表要执行的SQL语句，第二个args代表可选的查询参数，类型可为tuple, list or dict</p>
+<p>也就是说，我们应该这样执行execute：</p>
+<ol>
+<li><code>cur.execute(&#39;select version()&#39;)</code> 不需要任何参数，直接一整条SQL语句。</li>
+<li><code>cur.execute(&#39;INSERT INTO sometable VALUES (%s,%s)&#39;, (1, 4))</code> 参数化查询，%s是占位符，不需要考虑字段类型。无脑%s没事的，这不是Python的字符串%格式化风格语法。</li>
+</ol>
+<p>根据<a target="_blank" rel="noopener" href="https://www.python.org/dev/peps/pep-0249/">PEP 249</a>，clientlibrary.paramstyle可以看到占位符风格，比如说自带的sqlite3的占位符就是?，pymysql是pyformat，更多详细信息可以<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/7929364/python-best-practice-and-securest-to-connect-to-mysql-and-execute-queries">看看这里</a></p>
+<p>比较不推荐的执行查询的方式</p>
+<p>sql &#x3D; ‘insert into sometable values(‘<br>sql &#x3D; sql + “‘“ + var1 + “‘,’” + var2 + “‘,’” + var3 + “‘,” + str(1984) + “)”</p>
+<p>以及任何花样循环拼接的方式，看着那些单引号双引号我都头疼，就算USE somedb这种没办法搞参数化查询，那咱用%s、format、f-string拼字符串可读性也比这种+的好。况且+要开辟新的内存空间，会更慢了。</p>
+<p>提示：mysql connector的cursor支持multiLine模式，也就是说可以通过分号执行多条SQL语句。不过，pymysql不支持哟。</p>
+<h3 id="cur-executemany-参数"><a href="#cur-executemany-参数" class="headerlink" title="cur.executemany()参数"></a>cur.executemany()参数</h3><p>以为会execute参数化查询就够了吗？才不是呢，远远还不够。有些时候我们需要大量插入（或是replace）。按照一般的脑回路：</p>
+<p>sql &#x3D; “INSERT INTO sometable VALUES (%s,%s,%s)”<br>for item in data:<br>    cur.execute(sql, item)</p>
+<p>还是先来看下executemany的原型：<code>executemany(self, query, args)</code></p>
+<p>第一个参数query还是带有占位符的SQL语句，第二个参数args一般来说是双层嵌套的参数。例子如下：</p>
+<p>sql &#x3D; ‘INSERT INTO SOMETABLE VALUES (%s,%s,%s)’<br>data &#x3D; [[1, 2, 3], [4, 5, 6], [7, 8, 9]]<br>cur.executemany(sql, data)</p>
+<p>核心关键就在这里，executemany会通过多值的INSERT提升性能，其他情况下就和循环调用execute一样了</p>
+<p>有些小盆友可能想问，为啥executemany能够提高性能呢？因为executemany生成的是类似<code>INSERT INTO sometable VALUES(1,2,3),(4,5,6)</code>这种语句啊，肯定要比一条一条INSERT要快很多了。不过为什么说“肯定”呢？想当然是很正常的，有理有据的想当然才是可以的（…( ＿ ＿)ノ｜继续看就知道为什么了）。</p>
+<p>注意，由于单条SQL语句的长度有限制，这里可能需要看情况分割一下：</p>
+<p>for i in range(0, len(data), SIZE):<br>    part &#x3D; data[i:i + SIZE]<br>    # do something here, such as executemany</p>
+<p>相信我，只要插入数据量足够大，executemany就能够成为性能提升的最关键的一点。</p>
+<p>哦对了，executemany配合参数化查询已经很好用了，还是别多值INSERT，虽说也能提高效率……</p>
+<p>以下测试有一点需要注意，不同的表结构、字段类型所得到的二者比值未必相同，但总体情况毫无疑问是executemany胜出。</p>
+<p>下面是我的测试，测试脚本可以从如下地址获取： [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/tools/tree/master/one/_million'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/tools/tree/master/one\_million&#39;\]开源地址\[/gt\]</a></p>
+<table><tbody><tr><td colspan="3"><span style="font-size: 12pt;">简单表的性能benchmark</span></td></tr><tr><td>插入条数</td><td><span style="font-size: 12pt;">execute</span></td><td><span style="font-size: 12pt;">executemany</span></td></tr><tr><td><span style="font-size: 12pt;">1000</span></td><td><span style="font-size: 12pt;">0.35</span></td><td><span style="font-size: 12pt;">0.02</span></td></tr><tr><td><span style="font-size: 12pt;">5000</span></td><td><span style="font-size: 12pt;">0.84</span></td><td><span style="font-size: 12pt;">0.06</span></td></tr><tr><td><span style="font-size: 12pt;">10000</span></td><td><span style="font-size: 12pt;">4.16</span></td><td><span style="font-size: 12pt;">0.34</span></td></tr><tr><td><span style="font-size: 12pt;">20000</span></td><td><span style="font-size: 12pt;">4.87</span></td><td><span style="font-size: 12pt;">0.39</span></td></tr><tr><td><span style="font-size: 12pt;">50000</span></td><td><span style="font-size: 12pt;">19.43</span></td><td><span style="font-size: 12pt;">0.93</span></td></tr><tr><td><span style="font-size: 12pt;">100000</span></td><td><span style="font-size: 12pt;">40.84</span></td><td><span style="font-size: 12pt;">3.18</span></td></tr><tr><td><span style="font-size: 12pt;">500000</span></td><td><span style="font-size: 12pt;">165.72</span></td><td><span style="font-size: 12pt;">9.76</span></td></tr><tr><td><span style="font-size: 12pt;">1000000</span></td><td><span style="font-size: 12pt;">369.46</span></td><td><span style="font-size: 12pt;">29.43</span></td></tr></tbody></table>
+
+<p><img src="/images/2018112701530413.png"></p>
+<p>看一下这个折线图更直观的感受下吧，平均来说executemany要比execute快上至少10倍。</p>
+<h3 id="其他不太好玩方式"><a href="#其他不太好玩方式" class="headerlink" title="其他不太好玩方式"></a>其他不太好玩方式</h3><p><strong>关于事务与commit</strong></p>
+<p>不要尝试花样commit，比如说一条一条插，每插入1000条commit一次；插一条commit一次。这比画蛇添足还过分，这就是自讨苦吃啊。一起commit就得了。（如果数据可能会插入失败，那么一定要用try…except…finally控制好异常确保无误）</p>
+<p><strong>并发INSERT</strong></p>
+<p>在使用InnoDB情况下，由于InnoDB有事务，插入时有排他锁，表的结构可能不同，可能有主键外键唯一约束，可能有自增非空限制，数据库版本&#x2F;配置可能不同，一些库的限制，GIL锁等等，这个变量就有点太大了有点难控制……这个我真的没办法拿数据说话。</p>
+<h3 id="其他小的代码因素"><a href="#其他小的代码因素" class="headerlink" title="其他小的代码因素"></a>其他小的代码因素</h3><p>除了execute&#x2F;executemany这个最大的性能因素之外，还有一些在某些情况下Python层面的对性能提升未必很明显的处理方式:</p>
+<ol>
+<li>拼接字符串：尽量选择f-string、%、format或join，+是最慢的，<a target="_blank" rel="noopener" href="https://realpython.com/python-f-strings/#speed">f-string是最快的</a>。</li>
+<li>Python 2需要特别注意一些方面，比如range和xrange，True和1等</li>
+</ol>
+<h1 id="其他因素"><a href="#其他因素" class="headerlink" title="其他因素"></a>其他因素</h1><h2 id="服务器性能"><a href="#服务器性能" class="headerlink" title="服务器性能"></a>服务器性能</h2><p>包含MySQL版本，编译优化，宿主机IO&#x2F;CPU&#x2F;RAM等。这一点就很难展开说了，说不定某个版本的MySQL在某个平台上通过某个编译优化参数性能就提升了20%呢。哦对了，Python开启<code>--enable-optimizations</code>时据说性能会提升10%-20%呢。</p>
+<h2 id="网络速度"><a href="#网络速度" class="headerlink" title="网络速度"></a>网络速度</h2><p>如果是远程连接到数据库的话，那么减少连接次数、减少数据量是更加的选择，此时就更应该选择批量的executemany而不是execute了。因为多次execute会嗷嗷的增加上传和下载的流量，而executemany不会增加下载的流量，就连上传流量的增加也不那么可怕哟。</p>
+<p>还好都是一个TCP连接里走的，要不就更惨不忍睹了。</p>
+<p>不信我抓包给你看~</p>
+<h3 id="单个execute"><a href="#单个execute" class="headerlink" title="单个execute"></a>单个execute</h3><p><img src="/images/20181127015305100.png"></p>
+<p>一共这么几个请求，一个autocommit&#x3D;0，一个commit，三个查询。</p>
+<p><img src="/images/2018112701530643.png"></p>
+<p>协议统计告诉我们，我发送了682字节，接受了628字节。</p>
+<p>下面我们来看下executemany</p>
+<h3 id="executemany"><a href="#executemany" class="headerlink" title="executemany"></a>executemany</h3><p><img src="/images/2018112701530642.png"></p>
+<p>从图中我们可以看到，一个autocommit&#x3D;0，一个commit，外加一次查询。</p>
+<p><img src="/images/2018112701530789.png"></p>
+<p>协议统计告诉我们，发送了514字节，接收了537字节。</p>
+<p>假如我把数据量从3改成1000，那么……</p>
+<p><img src="/images/2018112701530770.png"></p>
+<p>单次execute发送94K接受65K</p>
+<p><img src="/images/2018112701530850.png"></p>
+<p>Executemany发送10K接受542字节</p>
+<h3 id="网速影响总结"><a href="#网速影响总结" class="headerlink" title="网速影响总结"></a>网速影响总结</h3><p>综上，在数量级为1000的情况下，execute总流量是159K，executemany是10.53K，差了接近15倍。那么在低网速、大数据的情况下谁的优势更明显就不言而喻了。</p>
+<p>那么问题来了，假如单独executemany的时候差了十倍，流量又差了十倍，那是不是一共就差了100倍了？</p>
+<p>(　o&#x3D;^•ェ•)o　┏━┓（你看桌子都翻了，所以呢）不可以这么计算的，大部分情况下网速对性能的影响并不是那么明显，当网速足够慢、数据足够大时，这个影响就会被放大；反之这个影响可以忽略不计。所以正确计算是要加权重的，然而这个权重是几乎无法得到的ε&#x3D;ε&#x3D;ε&#x3D;┏(゜ロ゜;)┛</p>
+<p>所以，如果在远程连接数据库的情况下执行查询，那么数据量大的时候，因为单次execute导致了网络传输量的急剧上升，execute的负面效应会被一定程度的放大。</p>
+<h2 id="最终的总结"><a href="#最终的总结" class="headerlink" title="最终的总结"></a>最终的总结</h2><ol>
+<li>官方文档是第二好的参考来源，那么第一好的参考来源是什么？源代码啦；</li>
+<li>当遇到问题的时候，想当然是很正常的，但是更重要的是通过分析实验与数据了解并证实猜想；</li>
+<li>某些因素可能会互相影响。像本例execute的副作用之一就是会增加网络流量，所以execute才是根源，网速只是伴随的副作用而已，不可因果倒置；</li>
+<li>某些性能因素是很难控制的，比如服务器CPU&#x2F;RAM&#x2F;IO，Python解释器性能，MySQL版本&#x2F;编译选项&#x2F;配置&#x2F;集群，甚至是操作系统、内核的差距。这种因素的变量几乎很难控制，那么就不要考虑了，等某因素成为关键点的时候再去分析；</li>
+<li>我有代码洁癖；</li>
+<li>这可能是一个火苗</li>
+</ol>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/11/28/one-million-data/index/" data-id="clhp7rthw0069s2qr5c1z6h42" data-title="假如给我一百万（的数据）" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-confess-for-what/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/11/03/confess-for-what/index/" class="article-date">
@@ -935,121 +1111,6 @@ tornado.httputil.HTTPOutputError: Tried to write 8015 bytes less than Content-Le
 
 
   
-    <article id="post-python-longpoll-db/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/04/13/python-longpoll-db/index/" class="article-date">
-  <time class="dt-published" datetime="2018-04-13T00:00:00.000Z" itemprop="datePublished">2018-04-13</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/04/13/python-longpoll-db/index/">Python长期连接数据库的最不佳实践：Lost connection to MySQL server during query</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <h2 id="问题来源"><a href="#问题来源" class="headerlink" title="问题来源"></a>问题来源</h2><p>前几天用Tornado做Web服务器起了一个简单的以表格显示数据库中内容的网页，然后把它放到lab服务器上做demo。卧病几天之后打开邮箱，发现mentor邮件说表格中不显示数据。赶紧登上服务器screen回去看下，发现抛了个这么异常：Lost connection to MySQL server during query</p>
-<p><img src="/images/2018041314312651.png"></p>
-<p>当然也说不定会是MySQL server has gone away</p>
-<blockquote>
-<p>Python：我这么爱你，你为什么要离开我？</p>
-<p>MySQL：你丫八个小时都不跟俺说一句话，想起来了就冷不丁的冒一句，然后就消失，就这样还是俺真爱？哼！</p>
-<p>Python：……（好吧，被你发现了，我就是玩玩而已你还认真了，真是的?）</p>
-</blockquote>
-<p>以上内容纯属虚构，请勿对号入座（咋想也没办法对号入座啊）</p>
-<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>造成这个异常的原因其实非常简单，就是基本上没啥人访问我的demo link，导致连接对象超过了wait_timeout的默认28800秒（即8小时），然后MySQL就关闭了这个连接。由于TCP的特性，Python的驱动并不会知道被甩了，当有人访问demo link也就是进行一次查询的时候，就会触发异常，于是表格自然就是空白的啦。</p>
-<p>为了更进一步的说明这个问题并提供若干最不佳实践，咱先简单的说说这段代码……GitHub可以戳下面的触手猫（commit为959ce78f854894397a75bad0efef4ef0de06b7ca） [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Intern-Life/blob/959ce78f854894397a75bad0efef4ef0de06b7ca/mission%208/front-end-pagination.py'/]%E8%A7%A6%E6%89%8B%E7%8C%AB%E5%8D%81%E5%91%A8%E5%B9%B4%E5%95%A6/[/gt/]">https://github.com/BennyThink/Intern-Life/blob/959ce78f854894397a75bad0efef4ef0de06b7ca/mission%208/front-end-pagination.py&#39;\]触手猫十周年啦\[/gt\]</a></p>
-<h3 id="开头"><a href="#开头" class="headerlink" title="开头"></a>开头</h3><p>首先在开头引入几个库，然后新建两个全局的对象：一个是用于数据库连接的con，一个是查询游标cur</p>
-<p>con &#x3D; mysql.connector.connect(host&#x3D;’127.0.0.1’, user&#x3D;’root’, password&#x3D;’root’, database&#x3D;’san’)<br>cur &#x3D; con.cursor()</p>
-<h3 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h3><p>在make_app函数中我们可以看到定义了俩路由，&#x2F;对应Index类，&#x2F;list&#x2F;对应Retrive类。</p>
-<p>Retrive类重载了get方法，返回的是一个函数get_data，而get_data则是进行数据库相关操作的函数，代码如下：</p>
-<p>def get_data():<br>    cur.execute(‘SHOW COLUMNS from switch_device’)<br>    col_data &#x3D; cur.fetchall()<br>    col_field &#x3D; [i[0] for i in col_data]<br>    cur.execute(‘SELECT * FROM switch_device’)<br>    data &#x3D; cur.fetchall()</p>
-<pre><code>bulk\_dic = \[\]
-for i in range(len(data)):
-    es\_dic = dict(zip(col\_field, data\[i\]))
-    bulk\_dic.append(es\_dic)
-return json.dumps(bulk\_dic)
-</code></pre>
-<p><strong>我不由得想起了我最爱的列表推导</strong>……反正就是查询了两次，根据列名和数据把表中的内容组成了一个json。可惜啊我不知道<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">DictCursor</a></p>
-<h3 id="入口"><a href="#入口" class="headerlink" title="入口"></a>入口</h3><p>入口非常简单，就是启动tornado而已。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>通篇可以看到有这么几个特点：</p>
-<ol>
-<li><strong>cur和con是全局的</strong>，只要Python脚本在运行，那么这俩对象的id（内存地址）就不会改变，无论多少次的页面刷新（数据库查询操作）都是由cur这个全局对象执行的</li>
-<li>并没有对connection进行close。脚本在收到相应的信号量时会执行对应的行为，比如SIGINT也即Ctrl+C，自然就退出了，连接自然也就被释放了。</li>
-</ol>
-<h3 id="再一次说明问题原因"><a href="#再一次说明问题原因" class="headerlink" title="再一次说明问题原因"></a>再一次说明问题原因</h3><p>再一次总结出错原因：demo太冷门没人看，<strong>连接闲置时间超过wait_timeout，MySQL关闭连接</strong>，然后再次触发查询的时候，自然而然就会报错了。</p>
-<p>针对这个问题，我想了几种个人觉得不咋样的解决方法，所以被称之为“<strong>最不佳实践</strong>”。当然提前说一个比较好的办法，那就是用数据库框架啊，类似SQLAlchemy什么的，这类框架应该会处理这类问题的；还有就是，如果对应的驱动程序提供了类似<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/c-api-auto-reconnect.html">automatic reconnection</a>这种特性，那也好办多啦</p>
-<p>注意：为了方便叙述，下面的get_data()就是指代数据库操作啦！</p>
-<h2 id="方法1：增加wait-timeout时间"><a href="#方法1：增加wait-timeout时间" class="headerlink" title="方法1：增加wait_timeout时间"></a>方法1：增加wait_timeout时间</h2><p>既然数据库小姐默认的“生气时间”是28800秒，那咱简单的给它调大点不就好了。</p>
-<blockquote>
-<p>Python：亲爱的，你以后要多点耐心，小不忍则乱大谋啊~ MySQL：好吧好吧，那我就多点耐心。 <em>一年之后……</em> Python：亲爱的，干嘛呢？ MySQL：老娘不认识你，丨。 <em>Python吸取教训，不能冷落小姐姐太久，于是再次通过自己的阴谋诡计取得小姐姐的好感与信任。</em> Python：亲爱的，你以后要多点耐心，小不忍则乱大谋啊~ MySQL：好吧好吧，那我就多点耐心。 <em>十几天之后……</em> Python：亲爱的，干嘛呢？ MySQL：忙着呢，没空理你。 Python：…………（算了，干嘛一棵树上吊死）</p>
-</blockquote>
-<p>简单的在得到游标之后来这么一句：</p>
-<p>cur.execute(‘SET SESSION WAIT_TIMEOUT &#x3D; 2147483’)</p>
-<p>注：</p>
-<p>2147483（约24天）是Windows平台的MySQL的WAIT_TIMEOUT最大值，其他平台为31536000（一年）</p>
-<p>如果有必要的话咱还可以<code>SET GLOBAL WAIT_TIMEOUT = 2147483</code>，不过你真的确定要global么，说不好DoS了，查完日志就该回家种田了啊。</p>
-<p>但实际上这是一种想当然一拍脑门一跺脚的<strong>完全不现实</strong>的不经过仔细思考的解决方案。为啥捏，待我慢慢道来。</p>
-<h3 id="治标不治本"><a href="#治标不治本" class="headerlink" title="治标不治本"></a>治标不治本</h3><p>不，这个三级标题是错误的。这种解决方案<strong>不仅不治标，更不治本</strong>！甚至有损于数据库的性能。暂且不考虑平台兼容性（设置为31536000对Windows平台就是无效值了啊），如果真的就是连接限制了超过timeout的时间，然后突然有了一次访问，那还不是照样挂？</p>
-<h3 id="影响数据库性能"><a href="#影响数据库性能" class="headerlink" title="影响数据库性能"></a>影响数据库性能</h3><p>MySQL为什么要有这样一个参数？很简单啊，为了提高服务器性能啊。每维持一个连接都是需要耗费一定的内存和CPU资源的，关闭长期不使用的连接自然节约了资源，同时也避免了max_connections达到上限造成了DoS的结果。</p>
-<p>即使我们把max_connections的值调到很高尽可能避免DoS，这对于服务器的性能也是不利的，需要更多内存，更多文件描述符。这同样也是一个<strong>既不治标也不治本</strong>的解决“解决方案”的方案。堆硬件？有那钱还不如打赏辛苦写作本文的俺呐！</p>
-<p>注：max_connections默认值为151，上限为100000，同时还要受到文件描述符（用ulimit查看）的限制。</p>
-<h3 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h3><p>放弃吧，别用这种不太好的办法了。</p>
-<h2 id="方法2：每次刷新页面都新建连接-查询-关闭连接"><a href="#方法2：每次刷新页面都新建连接-查询-关闭连接" class="headerlink" title="方法2：每次刷新页面都新建连接-查询-关闭连接"></a>方法2：每次刷新页面都新建连接-查询-关闭连接</h2><p>既然问题在于连接限制，那咱就每次数据库相关的操作都新建连接-查询-关闭连接。代码也很简单，把全局的数据库连接移动到函数内：</p>
-<p>con &#x3D; mysql.connector.connect(host&#x3D;’127.0.0.1’, user&#x3D;’root’, password&#x3D;’root’, database&#x3D;’san’)<br>cur &#x3D; con.cursor()</p>
-<h1 id="执行操作"><a href="#执行操作" class="headerlink" title="执行操作"></a>执行操作</h1><p>con.close()<br>return some_value</p>
-<p>这确实是一个非常简单的处理方式，很强，没有bug，绝对管用，不仅治标也治本。只是有一个问题，新建连接会慢点，在某些场景可能会稍差一点点</p>
-<p>新建一次连接自然是比较费时、费资源的啦，说不定要0.1秒呢，那如果同时访问的人多了造成大并发的局面（tornado是多线程非阻塞的服务器，所以短时间内可能会创建很多个con对象），那可能速度就要稍微慢一点了。</p>
-<p>不过这种方法确实好用，因为抓住了问题的本质：<strong>闲置连接被关闭</strong>。绝大部分情况下用这个方案就可以啦</p>
-<h2 id="方法3：数据库的操作之前con-reconnect"><a href="#方法3：数据库的操作之前con-reconnect" class="headerlink" title="方法3：数据库的操作之前con.reconnect()"></a>方法3：数据库的操作之前con.reconnect()</h2><p>从方法3中我们发现了<code>con.reconnect()</code>这个神奇的小东西，那么我们在数据库操作之前执行这个，这样每次都会重新连接，那就可以啦。</p>
-<p>con.reconnect()<br>get_data()</p>
-<p>这个方法大概相当于方法2的改进版，每次操作没有重新新建con对象而是<strong>无论连接是否被MySQL关闭，都重新连接</strong>。没毛病，问题完美解决，只是也有一点点性能损失：</p>
-<p>连接关闭了reconnect倒好，但是没关闭却reconnect了那不就浪费了嘛？</p>
-<p>虽说如此，但是这个方法的性能会比方法2稍好一些。</p>
-<h2 id="方法4：数据库操作时try…except，异常重连"><a href="#方法4：数据库操作时try…except，异常重连" class="headerlink" title="方法4：数据库操作时try…except，异常重连"></a>方法4：数据库操作时try…except，异常重连</h2><p>针对方法4，很容易就可以进行一下改进，那咱先毫无顾虑的执行，出问题了捕获异常就好了。</p>
-<p>try:<br>    get_data()<br>except mysql.connector.errors.OperationalError:<br>    con.reconnect()<br>    get_data()</p>
-<p>两次<code>get_data()</code>有点不雅啊，唉灵机一动：</p>
-<p>try:<br>    cur.execute(‘select version()’)<br>except mysql.connector.errors.OperationalError:<br>    con.reconnect()<br>finally:<br>    get_data()</p>
-<p>或者不用finally直接开始写新的语句块，也是可以的！</p>
-<p>随便执行个查询操作来看看连接有没有被关闭，然后finally无论怎么都会被执行的，好办法好办法，拍案叫绝！</p>
-<p>只是也稍微有那么一丁点不好，白白的让数据库执行了一个没有用的查询，多多少少还是浪费了一丢丢资源啦。</p>
-<p>于是我又灵机一动，诞生了方法5.</p>
-<h2 id="方法5：数据库操作之前进行con-ping-，异常重连"><a href="#方法5：数据库操作之前进行con-ping-，异常重连" class="headerlink" title="方法5：数据库操作之前进行con.ping()，异常重连"></a>方法5：数据库操作之前进行con.ping()，异常重连</h2><p>用一次con.ping()检测连接是否还在，不在的话就重新连接，finally里执行查询，哇(o゜▽゜)o☆</p>
-<p>try:<br>    con.ping()<br>except mysql.connector.errors.InterfaceError:<br>    con.reconnect()<br>finally:<br>    get_data()</p>
-<p>同上，不用finally直接开始写新的语句块，也是可以的！<code>con.ping()</code>的性能开销应该比较理想的。</p>
-<p>需要注意的是，不同的库可能有一点不同，比如pymysql的<code>con.ping()</code>包含一个reconnect的参数，默认为True的时候就会自动重连。所以如果你使用pymysql，直接在数据库操作之前使用<code>con.ping()</code>就可以了。</p>
-<p>另外一个需要注意的点，多线程情况下使用全局的con可能会触发线程安全相关的问题。以及如果涉及事务，要注意提交、回滚的操作，免得发生幻读之类的状况</p>
-<h2 id="方法7：连接池"><a href="#方法7：连接池" class="headerlink" title="方法7：连接池"></a>方法7：连接池</h2><p>等有空再说吧~</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>需要注意一个问题，如果数据库开启了事务，你的应用程序涉及到了多线程等并发问题，那么在全局使用一个connection时一定要注意线程安全和事务相关的问题。一旦代码写的不完善，就很容易出现类似幻读、脏读这种事务相关的问题。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/04/13/python-longpoll-db/index/" data-id="clhp7rtie0071s2qr49ru776m" data-title="Python长期连接数据库的最不佳实践：Lost connection to MySQL server during query" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1094,7 +1155,7 @@ return json.dumps(bulk\_dic)
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1105,6 +1166,10 @@ return json.dumps(bulk\_dic)
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
+          </li>
         
           <li>
             <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
@@ -1120,10 +1185,6 @@ return json.dumps(bulk\_dic)
         
           <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
       </ul>

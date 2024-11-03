@@ -73,6 +73,121 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-python-longpoll-db/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/04/13/python-longpoll-db/index/" class="article-date">
+  <time class="dt-published" datetime="2018-04-13T00:00:00.000Z" itemprop="datePublished">2018-04-13</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/04/13/python-longpoll-db/index/">Python长期连接数据库的最不佳实践：Lost connection to MySQL server during query</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="问题来源"><a href="#问题来源" class="headerlink" title="问题来源"></a>问题来源</h2><p>前几天用Tornado做Web服务器起了一个简单的以表格显示数据库中内容的网页，然后把它放到lab服务器上做demo。卧病几天之后打开邮箱，发现mentor邮件说表格中不显示数据。赶紧登上服务器screen回去看下，发现抛了个这么异常：Lost connection to MySQL server during query</p>
+<p><img src="/images/2018041314312651.png"></p>
+<p>当然也说不定会是MySQL server has gone away</p>
+<blockquote>
+<p>Python：我这么爱你，你为什么要离开我？</p>
+<p>MySQL：你丫八个小时都不跟俺说一句话，想起来了就冷不丁的冒一句，然后就消失，就这样还是俺真爱？哼！</p>
+<p>Python：……（好吧，被你发现了，我就是玩玩而已你还认真了，真是的?）</p>
+</blockquote>
+<p>以上内容纯属虚构，请勿对号入座（咋想也没办法对号入座啊）</p>
+<h2 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h2><p>造成这个异常的原因其实非常简单，就是基本上没啥人访问我的demo link，导致连接对象超过了wait_timeout的默认28800秒（即8小时），然后MySQL就关闭了这个连接。由于TCP的特性，Python的驱动并不会知道被甩了，当有人访问demo link也就是进行一次查询的时候，就会触发异常，于是表格自然就是空白的啦。</p>
+<p>为了更进一步的说明这个问题并提供若干最不佳实践，咱先简单的说说这段代码……GitHub可以戳下面的触手猫（commit为959ce78f854894397a75bad0efef4ef0de06b7ca） [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Intern-Life/blob/959ce78f854894397a75bad0efef4ef0de06b7ca/mission%208/front-end-pagination.py'/]%E8%A7%A6%E6%89%8B%E7%8C%AB%E5%8D%81%E5%91%A8%E5%B9%B4%E5%95%A6/[/gt/]">https://github.com/BennyThink/Intern-Life/blob/959ce78f854894397a75bad0efef4ef0de06b7ca/mission%208/front-end-pagination.py&#39;\]触手猫十周年啦\[/gt\]</a></p>
+<h3 id="开头"><a href="#开头" class="headerlink" title="开头"></a>开头</h3><p>首先在开头引入几个库，然后新建两个全局的对象：一个是用于数据库连接的con，一个是查询游标cur</p>
+<p>con &#x3D; mysql.connector.connect(host&#x3D;’127.0.0.1’, user&#x3D;’root’, password&#x3D;’root’, database&#x3D;’san’)<br>cur &#x3D; con.cursor()</p>
+<h3 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h3><p>在make_app函数中我们可以看到定义了俩路由，&#x2F;对应Index类，&#x2F;list&#x2F;对应Retrive类。</p>
+<p>Retrive类重载了get方法，返回的是一个函数get_data，而get_data则是进行数据库相关操作的函数，代码如下：</p>
+<p>def get_data():<br>    cur.execute(‘SHOW COLUMNS from switch_device’)<br>    col_data &#x3D; cur.fetchall()<br>    col_field &#x3D; [i[0] for i in col_data]<br>    cur.execute(‘SELECT * FROM switch_device’)<br>    data &#x3D; cur.fetchall()</p>
+<pre><code>bulk\_dic = \[\]
+for i in range(len(data)):
+    es\_dic = dict(zip(col\_field, data\[i\]))
+    bulk\_dic.append(es\_dic)
+return json.dumps(bulk\_dic)
+</code></pre>
+<p><strong>我不由得想起了我最爱的列表推导</strong>……反正就是查询了两次，根据列名和数据把表中的内容组成了一个json。可惜啊我不知道<a target="_blank" rel="noopener" href="https://dmesg.app/mysql-es-mongo.html">DictCursor</a></p>
+<h3 id="入口"><a href="#入口" class="headerlink" title="入口"></a>入口</h3><p>入口非常简单，就是启动tornado而已。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>通篇可以看到有这么几个特点：</p>
+<ol>
+<li><strong>cur和con是全局的</strong>，只要Python脚本在运行，那么这俩对象的id（内存地址）就不会改变，无论多少次的页面刷新（数据库查询操作）都是由cur这个全局对象执行的</li>
+<li>并没有对connection进行close。脚本在收到相应的信号量时会执行对应的行为，比如SIGINT也即Ctrl+C，自然就退出了，连接自然也就被释放了。</li>
+</ol>
+<h3 id="再一次说明问题原因"><a href="#再一次说明问题原因" class="headerlink" title="再一次说明问题原因"></a>再一次说明问题原因</h3><p>再一次总结出错原因：demo太冷门没人看，<strong>连接闲置时间超过wait_timeout，MySQL关闭连接</strong>，然后再次触发查询的时候，自然而然就会报错了。</p>
+<p>针对这个问题，我想了几种个人觉得不咋样的解决方法，所以被称之为“<strong>最不佳实践</strong>”。当然提前说一个比较好的办法，那就是用数据库框架啊，类似SQLAlchemy什么的，这类框架应该会处理这类问题的；还有就是，如果对应的驱动程序提供了类似<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/5.7/en/c-api-auto-reconnect.html">automatic reconnection</a>这种特性，那也好办多啦</p>
+<p>注意：为了方便叙述，下面的get_data()就是指代数据库操作啦！</p>
+<h2 id="方法1：增加wait-timeout时间"><a href="#方法1：增加wait-timeout时间" class="headerlink" title="方法1：增加wait_timeout时间"></a>方法1：增加wait_timeout时间</h2><p>既然数据库小姐默认的“生气时间”是28800秒，那咱简单的给它调大点不就好了。</p>
+<blockquote>
+<p>Python：亲爱的，你以后要多点耐心，小不忍则乱大谋啊~ MySQL：好吧好吧，那我就多点耐心。 <em>一年之后……</em> Python：亲爱的，干嘛呢？ MySQL：老娘不认识你，丨。 <em>Python吸取教训，不能冷落小姐姐太久，于是再次通过自己的阴谋诡计取得小姐姐的好感与信任。</em> Python：亲爱的，你以后要多点耐心，小不忍则乱大谋啊~ MySQL：好吧好吧，那我就多点耐心。 <em>十几天之后……</em> Python：亲爱的，干嘛呢？ MySQL：忙着呢，没空理你。 Python：…………（算了，干嘛一棵树上吊死）</p>
+</blockquote>
+<p>简单的在得到游标之后来这么一句：</p>
+<p>cur.execute(‘SET SESSION WAIT_TIMEOUT &#x3D; 2147483’)</p>
+<p>注：</p>
+<p>2147483（约24天）是Windows平台的MySQL的WAIT_TIMEOUT最大值，其他平台为31536000（一年）</p>
+<p>如果有必要的话咱还可以<code>SET GLOBAL WAIT_TIMEOUT = 2147483</code>，不过你真的确定要global么，说不好DoS了，查完日志就该回家种田了啊。</p>
+<p>但实际上这是一种想当然一拍脑门一跺脚的<strong>完全不现实</strong>的不经过仔细思考的解决方案。为啥捏，待我慢慢道来。</p>
+<h3 id="治标不治本"><a href="#治标不治本" class="headerlink" title="治标不治本"></a>治标不治本</h3><p>不，这个三级标题是错误的。这种解决方案<strong>不仅不治标，更不治本</strong>！甚至有损于数据库的性能。暂且不考虑平台兼容性（设置为31536000对Windows平台就是无效值了啊），如果真的就是连接限制了超过timeout的时间，然后突然有了一次访问，那还不是照样挂？</p>
+<h3 id="影响数据库性能"><a href="#影响数据库性能" class="headerlink" title="影响数据库性能"></a>影响数据库性能</h3><p>MySQL为什么要有这样一个参数？很简单啊，为了提高服务器性能啊。每维持一个连接都是需要耗费一定的内存和CPU资源的，关闭长期不使用的连接自然节约了资源，同时也避免了max_connections达到上限造成了DoS的结果。</p>
+<p>即使我们把max_connections的值调到很高尽可能避免DoS，这对于服务器的性能也是不利的，需要更多内存，更多文件描述符。这同样也是一个<strong>既不治标也不治本</strong>的解决“解决方案”的方案。堆硬件？有那钱还不如打赏辛苦写作本文的俺呐！</p>
+<p>注：max_connections默认值为151，上限为100000，同时还要受到文件描述符（用ulimit查看）的限制。</p>
+<h3 id="一句话总结"><a href="#一句话总结" class="headerlink" title="一句话总结"></a>一句话总结</h3><p>放弃吧，别用这种不太好的办法了。</p>
+<h2 id="方法2：每次刷新页面都新建连接-查询-关闭连接"><a href="#方法2：每次刷新页面都新建连接-查询-关闭连接" class="headerlink" title="方法2：每次刷新页面都新建连接-查询-关闭连接"></a>方法2：每次刷新页面都新建连接-查询-关闭连接</h2><p>既然问题在于连接限制，那咱就每次数据库相关的操作都新建连接-查询-关闭连接。代码也很简单，把全局的数据库连接移动到函数内：</p>
+<p>con &#x3D; mysql.connector.connect(host&#x3D;’127.0.0.1’, user&#x3D;’root’, password&#x3D;’root’, database&#x3D;’san’)<br>cur &#x3D; con.cursor()</p>
+<h1 id="执行操作"><a href="#执行操作" class="headerlink" title="执行操作"></a>执行操作</h1><p>con.close()<br>return some_value</p>
+<p>这确实是一个非常简单的处理方式，很强，没有bug，绝对管用，不仅治标也治本。只是有一个问题，新建连接会慢点，在某些场景可能会稍差一点点</p>
+<p>新建一次连接自然是比较费时、费资源的啦，说不定要0.1秒呢，那如果同时访问的人多了造成大并发的局面（tornado是多线程非阻塞的服务器，所以短时间内可能会创建很多个con对象），那可能速度就要稍微慢一点了。</p>
+<p>不过这种方法确实好用，因为抓住了问题的本质：<strong>闲置连接被关闭</strong>。绝大部分情况下用这个方案就可以啦</p>
+<h2 id="方法3：数据库的操作之前con-reconnect"><a href="#方法3：数据库的操作之前con-reconnect" class="headerlink" title="方法3：数据库的操作之前con.reconnect()"></a>方法3：数据库的操作之前con.reconnect()</h2><p>从方法3中我们发现了<code>con.reconnect()</code>这个神奇的小东西，那么我们在数据库操作之前执行这个，这样每次都会重新连接，那就可以啦。</p>
+<p>con.reconnect()<br>get_data()</p>
+<p>这个方法大概相当于方法2的改进版，每次操作没有重新新建con对象而是<strong>无论连接是否被MySQL关闭，都重新连接</strong>。没毛病，问题完美解决，只是也有一点点性能损失：</p>
+<p>连接关闭了reconnect倒好，但是没关闭却reconnect了那不就浪费了嘛？</p>
+<p>虽说如此，但是这个方法的性能会比方法2稍好一些。</p>
+<h2 id="方法4：数据库操作时try…except，异常重连"><a href="#方法4：数据库操作时try…except，异常重连" class="headerlink" title="方法4：数据库操作时try…except，异常重连"></a>方法4：数据库操作时try…except，异常重连</h2><p>针对方法4，很容易就可以进行一下改进，那咱先毫无顾虑的执行，出问题了捕获异常就好了。</p>
+<p>try:<br>    get_data()<br>except mysql.connector.errors.OperationalError:<br>    con.reconnect()<br>    get_data()</p>
+<p>两次<code>get_data()</code>有点不雅啊，唉灵机一动：</p>
+<p>try:<br>    cur.execute(‘select version()’)<br>except mysql.connector.errors.OperationalError:<br>    con.reconnect()<br>finally:<br>    get_data()</p>
+<p>或者不用finally直接开始写新的语句块，也是可以的！</p>
+<p>随便执行个查询操作来看看连接有没有被关闭，然后finally无论怎么都会被执行的，好办法好办法，拍案叫绝！</p>
+<p>只是也稍微有那么一丁点不好，白白的让数据库执行了一个没有用的查询，多多少少还是浪费了一丢丢资源啦。</p>
+<p>于是我又灵机一动，诞生了方法5.</p>
+<h2 id="方法5：数据库操作之前进行con-ping-，异常重连"><a href="#方法5：数据库操作之前进行con-ping-，异常重连" class="headerlink" title="方法5：数据库操作之前进行con.ping()，异常重连"></a>方法5：数据库操作之前进行con.ping()，异常重连</h2><p>用一次con.ping()检测连接是否还在，不在的话就重新连接，finally里执行查询，哇(o゜▽゜)o☆</p>
+<p>try:<br>    con.ping()<br>except mysql.connector.errors.InterfaceError:<br>    con.reconnect()<br>finally:<br>    get_data()</p>
+<p>同上，不用finally直接开始写新的语句块，也是可以的！<code>con.ping()</code>的性能开销应该比较理想的。</p>
+<p>需要注意的是，不同的库可能有一点不同，比如pymysql的<code>con.ping()</code>包含一个reconnect的参数，默认为True的时候就会自动重连。所以如果你使用pymysql，直接在数据库操作之前使用<code>con.ping()</code>就可以了。</p>
+<p>另外一个需要注意的点，多线程情况下使用全局的con可能会触发线程安全相关的问题。以及如果涉及事务，要注意提交、回滚的操作，免得发生幻读之类的状况</p>
+<h2 id="方法7：连接池"><a href="#方法7：连接池" class="headerlink" title="方法7：连接池"></a>方法7：连接池</h2><p>等有空再说吧~</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>需要注意一个问题，如果数据库开启了事务，你的应用程序涉及到了多线程等并发问题，那么在全局使用一个connection时一定要注意线程安全和事务相关的问题。一旦代码写的不完善，就很容易出现类似幻读、脏读这种事务相关的问题。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/04/13/python-longpoll-db/index/" data-id="clhp7rtie0071s2qr49ru776m" data-title="Python长期连接数据库的最不佳实践：Lost connection to MySQL server during query" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-systemd-accounting/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/04/06/systemd-accounting/index/" class="article-date">
@@ -1169,173 +1284,6 @@ return e
 
 
   
-    <article id="post-mysql-es-mongo/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/11/03/mysql-es-mongo/index/" class="article-date">
-  <time class="dt-published" datetime="2017-11-03T00:00:00.000Z" itemprop="datePublished">2017-11-03</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/11/03/mysql-es-mongo/index/">使用Python将海量MySQL数据导入Elastic Search/MongoDB</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>[audio play&#x3D;’0’]话说啊，几天之前，我接到了这么一个任务，就是把<strong>大量</strong>MySQL的数据导入到Elastic Search中，再久之前我还有个把数据导入到MongoDB中。MongoDB和ES本身还是比较接近的，只不过这次导入到ES的<strong>数据量非常大</strong>，最大的表大概有<strong>4GiB</strong>左右，咱得必须想点方法优化一下这个导入过程。</p>
-<p>当然了，凡是涉及到对海量数据进行处理的，都可以用本篇提到的思路进行处理。</p>
-<p>咱先说说思路。咋办捏？最笨的办法哈，从MySQL中读取一行，根据列名转换成对应形式的字典，然后插入到MongoDB&#x2F;ES中，然后再读一行，转换，插入，直到读取完。这样吧，说实话，效率是有点低，但是也能完成任务对吧。包括俺的mentor、还有其他Python的专家们，都反对俺这种<strong>读一行写一行</strong>的处理方式。</p>
-<p>其实啊，我也知道<code>insert_many()</code>、<code>executemany()</code>和<code>writelines()</code>这种批量的方法，另一种思路呢，就是把数据存到一个列表里，然后迭代批量操作。但是怎奈我都是处理很大的数据的，如果一下子把这些东西塞到内存里，怕是没等运行完呢，就Memory Error或者发生大量的swap交换再Kernel Panic了吧。</p>
-<p>当然了，第二种思路其实是能够有办法完成的，要不我写这篇文章是干嘛的！</p>
-<p>当然了，咱要先从导入少量数据开始。</p>
-<h2 id="导入少量数据到MongoDB"><a href="#导入少量数据到MongoDB" class="headerlink" title="导入少量数据到MongoDB"></a>导入少量数据到MongoDB</h2><p>废话少说，直接贴以前的代码。太懒了，直接贴图了。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/110317_1444_PythonMySQ1.png"><img src="/images/110317_1444_PythonMySQ1.png"></a></p>
-<p>大概就是这么回事，逻辑非常简单明了。</p>
-<p><code>data = cur.fetchall()</code>将数据库表中的内容（结果集）<strong>一下子</strong>塞到内存里，其形式为列表内套元组，然后下面根据它的长度进行循环，以此进行构造字典、调用插入，直到不满足循环条件。</p>
-<p>当然了，大家看我注释能发现，pymongo还是有些坑的，比如说就关于<code>Duplicate Key Error</code>这个错误，如果把<code>mongo_dic</code>这个变量写到循环外面，那就要用<code>copy()</code>浅拷贝来让驱动生成不同的<code>_id</code>，如果放在循环里，那么每次每次循环驱动都会生成不同的<code>_id</code>啦。</p>
-<p>这种做法有何问题呢？有很多</p>
-<h3 id="一行一个操作效率太低"><a href="#一行一个操作效率太低" class="headerlink" title="一行一个操作效率太低"></a>一行一个操作效率太低</h3><p>这可能是这种做法最大的问题了，效率太低，对数据库压力也不小，唯一开心的是内存了。</p>
-<h3 id="无法快速重用代码"><a href="#无法快速重用代码" class="headerlink" title="无法快速重用代码"></a>无法快速重用代码</h3><p>假如某一天我想导入另一个数据表，列很有可能是不同的，那么构造字典这一块就要推倒重来，很难做到快速<strong>重用代码</strong>。况且，用<code>update()</code>方法来构造字典好像不是那么常见，咱都是<code>mongo_dic=dict(key1=value1,key2=value2)</code>的。</p>
-<h3 id="无法处理大量数据"><a href="#无法处理大量数据" class="headerlink" title="无法处理大量数据"></a>无法处理大量数据</h3><p>咦？咱开篇不是说到，一行一行的读是可以处理大量数据只不过效率偏低。</p>
-<p>没错啊，但是那是指的使用<code>fetchone()</code>，<code>fetchmany()</code>这种方法。在这个demo里我图省事用了<code>fetchall()</code>，如果表太大，内存就炸了。想要改进，那就得放到一个while循环里用<code>fetchone()</code>，这里就不用演示了，估计有点基础的人都能分分钟写出来。</p>
-<h3 id="其他小问题"><a href="#其他小问题" class="headerlink" title="其他小问题"></a>其他小问题</h3><p>什么docstring写的不对，不Pythonic，try…except不规范等等等就不用说了。我后来还写了一个OOP的版本。反正这玩意是，<strong>能用，但是性能太差</strong>，不好用；糊弄小盆友可以，工作上用就等着被开除吧（尽管我mentor说，嗯这次代码写得很干净，很不错，但是咱怎么能知足呢！）</p>
-<h2 id="痛定思痛"><a href="#痛定思痛" class="headerlink" title="痛定思痛"></a>痛定思痛</h2><p>于是乎，在国庆假期之前，我被Python的多线程彻底坑了一次（<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%85%A8%E5%B1%80%E8%A7%A3%E9%87%8A%E5%99%A8%E9%94%81">GIL，全局解释器锁</a>），然后顺带着开始了熟悉Elastic Search（然而现在依旧什么都不会）；</p>
-<p>然后在国庆假期之后，我的新任务就是熟悉ELK（Elastic Search+Logstash+Kibana），居然有一种大数据工程师的感觉。</p>
-<p>然而我并没有抽出时间来熟悉这玩意，因为我<strong>忙着难过</strong>、写Telegram Bot、翻译、维护博客、维护两款主题来着</p>
-<p>然后某一天，我就有了个小任务，要想办法把某个数据库里最大的4个表导入到另一台机器上的ES中。感受一下这13GiB的表……</p>
-<p><img src="/images/110317_1444_PythonMySQ2.png"></p>
-<h2 id="按着MongoDB的思路来"><a href="#按着MongoDB的思路来" class="headerlink" title="按着MongoDB的思路来"></a>按着MongoDB的思路来</h2><p>此路不太好走，内心深处的我纠结了很久才决定回头。</p>
-<h3 id="构造四个字典"><a href="#构造四个字典" class="headerlink" title="构造四个字典"></a>构造四个字典</h3><p>我：这算啥事，哥哥小时候很穷，新衣服都穿不起，没少吃苦，这点算啥，哪怕是曾经138列，我都敢再来一次。为什么我的眼里常含泪水，因为我对你爱的深沉啊</p>
-<p>某童鞋：你真无聊。</p>
-<h3 id="fetchone读一行写一行"><a href="#fetchone读一行写一行" class="headerlink" title="fetchone读一行写一行"></a>fetchone读一行写一行</h3><p>我：效率是有点低，但是任务还是能完成的。</p>
-<p>老板：你丫拿着工资不干正事，这效率太低了。</p>
-<p>CPU：我XXXX。算了，我忍。</p>
-<p>硬盘：你妹！你是测试我4K性能呢么？</p>
-<p>Python：哎内存大哥，把这个放进去，哎把那个拿出来，哎把这个放进去给原来的拿走，哎给这个拿走。</p>
-<p>内存：有完没完……(￣_￣|||)</p>
-<h3 id="读到一个列表里，一起插入"><a href="#读到一个列表里，一起插入" class="headerlink" title="读到一个列表里，一起插入"></a>读到一个列表里，一起插入</h3><p>我：效率是高了点，就是不知道能不能行。</p>
-<p>老板：嗯，看样子还是不错的哈……</p>
-<p>内存：Python大哥你悠着点，我这才8G，你这表4G就占了一半了啊。</p>
-<p>Python：内存大哥你放心，我保证<strong>把200MiB的表读入内存时就跟你要4G的地</strong>。</p>
-<p>硬盘：我了割草内核你干啥突然要来写入&#x2F;swap，我这老胳膊老腿了，你有啥事找隔壁内存啊，<strong>我就是个备胎啊</strong>找你真爱内存去。</p>
-<p>内核：我也很无奈啊，没办法了<strong>只有你能救我</strong>，我还是爱你的。哎，Python那家伙吃了太多内存，我等等看看要不要手起刀落施展生杀大权。</p>
-<p>其他程序：喂喂喂 内核，我要I&#x2F;O，阻塞好久了！！快，快！一会主人逼急了断电了你负责么？</p>
-<p>CPU：大家干啥呢那么热闹？</p>
-<p>内核：大家别急，让我为民除害，杀了Python这个……<strong>负  心  汉</strong></p>
-<p>Python：内核大哥，别别别，不是我的错，是我主人太太太…</p>
-<p>主人：哎Python你干啥啊读200MiB的数据库跟人要4G的内存，造反啊</p>
-<p>Kernel Panic了</p>
-<p>神说要有光，就有了光。坐在椅子上的我仰天长笑（并做出一种<strong>神经病</strong>一样的诡异表情）：Let there be light.</p>
-<h2 id="处理大量结果集、读取多行并写入ES的方法"><a href="#处理大量结果集、读取多行并写入ES的方法" class="headerlink" title="处理大量结果集、读取多行并写入ES的方法"></a>处理大量结果集、读取多行并写入ES的方法</h2><p>既然如此，那么咱只好采取读多行，写入ES，再读取多行，写入ES，直到全部完成为止。</p>
-<p>鉴于这样的需求，我们需要解决那些问题呢？</p>
-<h3 id="读取多行时的内存消耗"><a href="#读取多行时的内存消耗" class="headerlink" title="读取多行时的内存消耗"></a>读取多行时的内存消耗</h3><p>我使用的MySQL驱动是由<strong>MySQL官方维护的MySQL Connector&#x2F;Python</strong>，而不是大部分网上教程所用的MySQLdb（MySQL-Python）。不选择用MySQLdb的原因是它<strong>上次更新</strong>是2014年，这都2017年了，真是不敢用不更新的基础库啊</p>
-<p><img src="/images/110317_1444_PythonMySQ3.png"></p>
-<p>图片来源，<a target="_blank" rel="noopener" href="https://pypi.python.org/pypi/MySQL-python/1.2.5">pypi</a> </p>
-<p>根据<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html">MySQL Connector官方文档</a>的说明，Connector默认<strong>不会缓存结果集</strong>。换句话说，在执行<code>cur.execute()</code>之后，程序应该负责处理数据（大白话，你就是select了一个100TB的表，内存也是不会暴涨的）。假如结果集很小，能够一次性处理，那么可以选择<code>buffered=True</code>来缓存数据（或者是设置另一个游标），咱的经验嘛，<code>fetchall()</code>也行，就是得每次运行之后都来一遍。</p>
-<p>注意：貌似MySQLdb是默认缓存的。</p>
-<p>那如果结果集很大呢，自然不能<code>fetchall()</code>，也不能设置<code>buffered=True</code>了，而要用<code>fetchone()</code>或者<code>fetchmany()</code>。其中<code>fetchmany()</code>这个方法就神奇了，它的参数是指定本次读取多少行结果集（不写就是1行，和<code>fetchone()</code>一样），然后再次运行会<strong>继续读取对应行的结果集</strong>，一行都不对丢，全都读完了返回空列表。所以咱程序员们完全不用考虑offset和limit这类烦人的问题。</p>
-<p>PS，我觉得这就是库提供的处理大结果集的方式……没找到还有没有更好的方法了。</p>
-<p>哎，咱得说一句，网上的这群人啊，<strong>你抄我我抄你</strong>，你说有用吧还说得过去，都是没用的错误的，有意思嘛。</p>
-<p>啊呸，跑题太远了，咱得说说读取多行时怎么限制内存消耗。俺想到了魔术方法<code>__sizeof__</code>和<code>sys.getsizeof()</code>，这俩的区别嘛，<code>sys.getsizeof()</code>会调用对象的<code>__sizeof__</code>方法，如果对象有垃圾回收器的话，还会加上垃圾回收器的内存占用量。</p>
-<p>所以咱测试占用100MiB内存是这么写的：</p>
-<p><img src="/images/110317_1444_PythonMySQ4.png"></p>
-<p>别说，还挺准。</p>
-<p>所以咱测试结果集占用内存的时候也差不多是这么写的，然后发现，坑爹了。待我堆上一个Excel折线图：</p>
-<p><img src="/images/110317_1444_PythonMySQ5.png"></p>
-<p>横轴是getsizeof显示的结果集占用内存的数值（单位理应为字节），取得的数据量依次为1000、10000、10W、20W、30W。我也不知道为啥这个getsizeof显示的数值是不正确的，结果集是标准的内置对象啊，可能他只是显示了外层的列表的内存占用，我还得乘以内层的元组内存占用？（是的我算上了乘以内部元组的大小，结果还是错误的，但也是线性的，还望高人指教怎么做乘法才会得到正确的结果）</p>
-<p>我是不是该计算y&#x3D;kx一次函数了？反正就是，这玩意能用，非得计算，或者做参考，还是可以的。 [v_blue]后来经过一段时间的尝试，我终于用它拿到了正确的内存占用，代码可以<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Intern-Life/blob/master/mission%204/mem.py">看这里</a>。之前拿到的结果是呈线性的原因是<code>getsizeof</code>只会获得最外层数据类型的内存占用，所以如果想获得整个变量的内存占用，要递归到基础的不可变类型。当然这递归效率就不太高了，[&#x2F;v_blue] 反正管他怎么的，管他看不看这个折线图的，咱起码可以好好利用<code>fetchmany()</code>这个方法了，所以这块控制的代码大概就是下面这个样子：</p>
-<p>cur.execute(‘SELECT * FROM sometable’)<br>while True:<br>  data &#x3D; cur.fetchmany(SIZE)<br>  if data:<br>    pass<br>  else:<br>    break</p>
-<p>其中<code>SIZE</code>可以放到文件的最开始，或者写到配置文件中，甚至是另写一个函数、方法来控制计算内存占用。</p>
-<h3 id="批量插入ES"><a href="#批量插入ES" class="headerlink" title="批量插入ES"></a>批量插入ES</h3><p>这一点似乎没什么好说的，类似MongoDB，基本上他们需要的批量插入的数据类型就是<strong>列表里面包含着字典</strong>，也就是<code>[&#123;&#125;,&#123;&#125;...]</code>，我们只需要构造字典，在列表中不停的使用<code>append()</code>方法，就可以达到这个目的了。</p>
-<h3 id="手动构造字典？我拒绝"><a href="#手动构造字典？我拒绝" class="headerlink" title="手动构造字典？我拒绝"></a>手动构造字典？我拒绝</h3><p>咱在最上面的demo，是手动根据数据库的列名来构造字典的key的，但是这表说不定很复杂，俺以前穷，吃点苦手动也就算了；虽说我现在也很穷，但是，<strong>我傲娇啊，我高冷啊</strong>，就要这么不近人情，不想手动搞四个字典！（再加上这代码也没办法复用啊）</p>
-<h3 id="根据列名自动获得键"><a href="#根据列名自动获得键" class="headerlink" title="根据列名自动获得键"></a>根据列名自动获得键</h3><p>想起来了，咱可以通过查询语句得知表里有那些列，然后<strong>把列名取出来作为字典的key</strong>，再正常执行查询得到值，然后使用某种方法把这俩<strong>动态的捏到一起</strong>，再<code>append()</code>到SIZE的次数<del>(￣▽￣)</del>*</p>
-<p>没错，看起来这个思路是很好的。</p>
-<p>那么咋搞出来列名呢？</p>
-<p>cur.execute(‘SHOW COLUMNS from tb’)<br>col_data &#x3D; cur.fetchall()<br>col_field &#x3D; [i[0] for i in col_data]</p>
-<p>由于列名也不能多到哪去，直接<code>fetchall()</code>肯定是没问题的，顺便应用了一下列表推导，这样<code>col_field</code>这个列表里就会保存有整个表的列名啦。</p>
-<p> </p>
-<h3 id="根据键和表内容动态构造字典"><a href="#根据键和表内容动态构造字典" class="headerlink" title="根据键和表内容动态构造字典"></a>根据键和表内容动态构造字典</h3><p>下面可能就到了本篇中最不好搞的一部分了，反正我也不知道我是怎么搞出来的，大概是看了一眼《流畅的Python》吧，差点连字典推导都用上了(ﾉ*･ω･)ﾉ</p>
-<p>动态构造字典大概是这样的，其中<code>data</code>是<code>fetchmany()</code>的结果集（列表套元组），<code>bulk_dic</code>是一个列表（我这名字起的不太好）：</p>
-<p>for i in range(len(data)):<br>  es_dic &#x3D; dict(zip(col_field, data[i]))<br>  bulk_dic.append(es_dic)</p>
-<p>别问我这动态构造字典咋搞出来的，我也是<strong>吭吃瘪肚的胡编乱造</strong>了好久才弄出来的（哎这就是我和大牛的差距啊，人家一杯茶的功夫，我得搞一个小时）</p>
-<p>[v_blue]友情提示：</p>
-<p>为什么不尝试使用下pymysql.cursors.DictCursor呢？是吧是吧，DictCursor最方便了[&#x2F;v_blue]</p>
-<h2 id="齐活！拼凑代码"><a href="#齐活！拼凑代码" class="headerlink" title="齐活！拼凑代码"></a>齐活！拼凑代码</h2><p>所以，基本上思路都有了，各个模块的功能也都实现了，那么就剩下把代码组合在一起，然后测试了！</p>
-<p>大体思路就是，利用上面介绍的<code>fetchmany()</code><strong>限制内存占用</strong>，利用<code>col_field和</code>取得的结果集<strong>构造一个正确的字典</strong>，<code>append()</code>到一个列表里，执行插入，然后重新开始一轮循环。</p>
-<p>俺最终写出来的代码大概是这样子的（懒，贴图）：</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/110317_1444_PythonMySQ6.png"><img src="/images/110317_1444_PythonMySQ6.png"></a></p>
-<p><code>exe_time</code>是俺写的一个装饰器，用于测量一个函数的执行时间。只要调用这个函数，传递两个参数，就可以不管不顾了，这个函数会把<strong>表的名字</strong>当作<code>_index</code>插入到ES中。当然了，我这个<code>SIZE=100</code>有点小，应该根据机器配置进行<strong>适当的调整</strong>。</p>
-<p>其中还有几点我不是很理解的地方、以及我觉得有必要再多说几句的地方（我也是瞎猫碰死耗子啊）</p>
-<h3 id="paramStyle"><a href="#paramStyle" class="headerlink" title="paramStyle"></a>paramStyle</h3><p>看注释可以得知，</p>
-<p>cur.execute(‘SHOW COLUMNS from %s’ % tb)</p>
-<p>这一句实际上是<strong>存在注入风险</strong>的。</p>
-<p>按照mysql.connector的参数风格pyformat，正常应该是字典或者元组模式就可以的，</p>
-<p>字典示例代码如下：</p>
-<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; %(jack)s”, {‘jack’: lumberjack})</p>
-<p>元组示例代码如下：</p>
-<p>cursor.execute(“SELECT spam FROM eggs WHERE lumberjack &#x3D; %s”, (lumberjack,))</p>
-<p>然而在实际过程中却可耻的抛异常了，不晓得为什么，只好用%和格式化字符拼接下了。</p>
-<h3 id="index与-type"><a href="#index与-type" class="headerlink" title="_index与_type"></a>_index与_type</h3><p>对于<code>_index</code>，如果接触过ES的人大概知道，<code>_index</code>大概相当于关系数据库里面的数据库；<code>_type</code>就有点像表了；</p>
-<p>咱看个表格吧，对比下SQL、NoSQL和ES，只是个人的理解，未必准确：</p>
-<table border="0"><colgroup><col> <col> <col> <col> <col></colgroup><tbody valign="top"><tr><td><span style="font-size: 12pt;">SQL</span></td><td><span style="font-size: 12pt;">Database</span></td><td><span style="font-size: 12pt;">Table</span></td><td><span style="font-size: 12pt;">Row</span></td><td><span style="font-size: 12pt;">Column</span></td></tr><tr><td><span style="font-size: 12pt;">NoSQL</span></td><td><span style="font-size: 12pt;">Database</span></td><td><span style="font-size: 12pt;">Collection</span></td><td><span style="font-size: 12pt;">Document</span></td><td><span style="font-size: 12pt;">Field</span></td></tr><tr><td><span style="font-size: 12pt;">ES</span></td><td><span style="font-size: 12pt;">Index</span></td><td><span style="font-size: 12pt;">Type</span></td><td><span style="font-size: 12pt;">Document</span></td><td><span style="font-size: 12pt;">Field</span></td></tr></tbody></table>
-
-<p>当然了，由于mentor的要求是把每一个表名作为index（数据库），所以上面代码中我是这么写的：</p>
-<p>es_dic.update(_index&#x3D;tb, _type&#x3D;’hey’)</p>
-<p>这个<code>_type</code>就是随意起的了；</p>
-<p>可能你的要求是index叫test，type叫表名，那就 <code>es_dic.update(_index=&#39;test&#39;, _type=tb)</code>，很简单的。</p>
-<p>哦对了，我自然还是会写一个函数从<code>information_schema</code>中得出指定数据库中最大的四个表，然后自动处理的，我怎么会自己写四个调用呢！！！<strong>我这么傲娇这么高冷，要是你叫高晓松我叫韩寒我肯定天天把“高处不甚寒”挂在嘴边</strong></p>
-<h3 id="理论与实际总是存在差距的"><a href="#理论与实际总是存在差距的" class="headerlink" title="理论与实际总是存在差距的"></a>理论与实际总是存在差距的</h3><p>圈里有一句话，</p>
-<blockquote>
-<p>In theory, there is no difference between theory and practice. In practice there is.</p>
-</blockquote>
-<p>上面的这堆代码，在你处理非常非常大的表的时候，很有可能还会因为种种原因抛异常的（基本上是因为超时啊什么的），为了处理这个问题，我们需要在构造es的时候加几个参数，我也是开始导入了才发现还有这么多坑……</p>
-<p>es &#x3D; Elasticsearch(timeout&#x3D;30, max_retries&#x3D;10, retry_on_timeout&#x3D;True)</p>
-<p>在连接到数据库之后修改三个参数，以免超时提示<code>Lost connection to MySQL server</code></p>
-<p>cur.execute(“SET GLOBAL max_allowed_packet&#x3D;1073741824”)<br>cur.execute(‘SET GLOBAL CONNECT_TIMEOUT &#x3D; 60’)<br>cur.execute(‘SET SESSION NET_READ_TIMEOUT &#x3D; 600’)</p>
-<p>当然，具体数值需要大家自己掌握。</p>
-<p>完整的最新代码会在12月17日之前开源。</p>
-<h2 id="最后的总结"><a href="#最后的总结" class="headerlink" title="最后的总结"></a>最后的总结</h2><p>所以所以，这段函数能干啥？</p>
-<p>接受俩参数，一个数据库名，一个表名，将<strong>表名作为index</strong>把全部数据<strong>批量高效可靠</strong>导入到ES中，<strong>不用担心内存</strong>问题，你只需要关心硬盘和选择一个合适的SIZE。</p>
-<p>想要批量高效的导入数据到MongoDB也只不过是把<code>helpers.bulk()</code>换成pymongo的<code>insert_many()</code>而已。当然了，想要批量写入文件（比如说csv文件）……呃，还不更容易，都不用构造字典，用好控制内存那段代码就行了。</p>
-<p>最后，还希望能够有高手指出，还有没有更方便简洁的方法，比如说什么什么库本身就提供了这个功能等等……</p>
-<p>PS，把这个代码开源到GitHub，供大家学习使用，也欢迎PR…… [gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/Intern-Life/blob/master/mission%204/mysql2es.py'/]%E5%BC%80%E6%BA%90%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/Intern-Life/blob/master/mission%204/mysql2es.py&#39;\]开源地址\[/gt\]</a></p>
-<p>紧跟时代潮流，commit是要带签名的。搞得我现在基本上不想用图形化的客户端了，哎，<strong>装逼要紧啊</strong>，装完赶紧跑ε&#x3D;ε&#x3D;ε&#x3D;(<del>￣▽￣)</del></p>
-<p><img src="/images/110317_1444_PythonMySQ7.png"></p>
-<p>哦对了，秀一下我的kibana！！看起来就很高大上，是吧。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/110317_1444_PythonMySQ8.png"><img src="/images/110317_1444_PythonMySQ8.png"></a></p>
-<blockquote>
-<p>本地开发主题测试用WordPress的内心独白：</p>
-<p>终于也有哥出头露面的一天了！</p>
-</blockquote>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/11/03/mysql-es-mongo/index/" data-id="clhp7rthm005bs2qrfvkv7w0m" data-title="使用Python将海量MySQL数据导入Elastic Search/MongoDB" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1380,7 +1328,7 @@ return e
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1391,6 +1339,10 @@ return e
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
+          </li>
         
           <li>
             <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
@@ -1406,10 +1358,6 @@ return e
         
           <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
       </ul>

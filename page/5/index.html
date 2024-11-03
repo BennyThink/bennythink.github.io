@@ -73,6 +73,126 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-zph01-pm25-voc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2022/02/22/zph01-pm25-voc/index/" class="article-date">
+  <time class="dt-published" datetime="2022-02-22T00:00:00.000Z" itemprop="datePublished">2022-02-22</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2022/02/22/zph01-pm25-voc/index/">在树莓派上使用ZPH01监测PM2.5和VOC</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>前几天发现我的Xbox内置存储空间不足了，希捷的Xbox Expansion Card又太贵了，发现bilibili有人发了一篇文章可以DIY这个扩展卡<a target="_blank" rel="noopener" href="https://www.bilibili.com/read/cv13060807">《【全站首发？】自制次世代XBOX专用存储卡（扩容）》</a>。技术原理并不复杂，就是一个CFe到NVMe的转接器+微软定制CH SN530。</p>
+<p>但是这个转接器又太贵了，海鲜市场都要100元，在网上搜到了有开源的设计，<a target="_blank" rel="noopener" href="https://github.com/neg2led/cfxsx">https://github.com/neg2led/cfxsx</a>，恰巧国内的嘉立创可以免费给打样，于是我就去打了一个，顺便买了点电子元件回来玩。</p>
+<p><img src="/images/2022022221294250.png"></p>
+<p>这么好的东西，既能检测PM2.5还能检测VOC（可挥发性有机物），当然要留给树莓派啊</p>
+<h2 id="了解ZPH01"><a href="#了解ZPH01" class="headerlink" title="了解ZPH01"></a>了解ZPH01</h2><p>ZPH01有两种输出，PWM和UART，先不管这是什么……</p>
+<p>有5个针脚，如下表所示</p>
+<table><tbody><tr><td>PIN1</td><td>控制脚，悬空为PWM，接地为UART</td></tr><tr><td>PIN2</td><td>输出脚 OUT2/RXD/PM2.5</td></tr><tr><td>PIN3</td><td>电源正(VCC)</td></tr><tr><td>PIN4</td><td>输出脚 OUT1/TXD/VOC 等级</td></tr><tr><td>PIN5</td><td>电源地(GND)</td></tr></tbody></table>
+
+<h2 id="接线"><a href="#接线" class="headerlink" title="接线"></a>接线</h2><p>于是我就把用杜邦线接上了，两个输出分别接到了16号GPIO23和18号GPIO24</p>
+<p><img src="/images/2022022221294661.png"></p>
+<h2 id="获取数据"><a href="#获取数据" class="headerlink" title="获取数据"></a>获取数据</h2><p>import RPi.GPIO as GPIO</p>
+<h1 id="BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。"><a href="#BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。" class="headerlink" title="BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。"></a>BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。</h1><p>GPIO.setmode(GPIO.BOARD)</p>
+<p>GPIO.setup(16, GPIO.IN, pull_up_down&#x3D;GPIO.PUD_DOWN)<br>GPIO.input(16) # 获取输入，如果想要输出高电压，那就GPIO.OUTPUT(16,GPIO.HIGH)</p>
+<p>GPIO.setup(18, GPIO.IN, pull_up_down&#x3D;GPIO.PUD_DOWN)<br>GPIO.input(18)</p>
+<p>这样就能够获取到GPIO针脚的输入，要么是0，要么是1，在我看来这玩意就有点随机变化的感觉了。</p>
+<p>然后呢？で？</p>
+<p><img src="/images/2022022221294735.jpeg" alt="高手看不懂- 斗图发表情包- 斗图王"></p>
+<h2 id="PWM"><a href="#PWM" class="headerlink" title="PWM"></a>PWM</h2><p>脉冲宽度调制（英语：Pulse-width modulation，缩写：PWM），简称脉宽调制，是将模拟信号变换为脉冲的一种技术。</p>
+<p>emm咋说呢，举例来看，说明书里有这样一个波形，当我从GPIO中读到0度时候，那么就是低脉冲（低电压），读到1的时候，那么就是高脉冲（高电压）。</p>
+<p><img src="/images/2022022221294838.png"></p>
+<p>这个设备的脉冲周期是1秒，也就是说，如果我在1秒的时间范围内，读到了200ms读低脉冲，那么低脉冲率就是20%。那么这个低脉冲率有什么用？</p>
+<p>继续往下看手册，发现了这么一个图</p>
+<p><img src="/images/2022022221295069.png"></p>
+<p>哟呵，这不是初中学过的一次函数吗？低脉冲率为10%，差不多意味着平均有6000个PM2.5颗粒。</p>
+<p>同理，颗粒物浓度也是有一个一次函数图表，可以根据低脉冲率计算出颗粒物浓度。</p>
+<p>再次同理，VOC的输出也可以计算低脉冲率，根据说明书10%的低脉冲率就是VOC1级，20%就是2级，也就分别对应优和良。这个设备会输出四个等级，可惜的是无法辨别化合物的类别。</p>
+<p>那么也就是说，写一个算法，一秒钟取样，就能拿到环境中的数据了。</p>
+<p>emmm我不会写，我太菜了。</p>
+<p><img src="/images/2022022221295158.jpeg" alt="我太菜了表情包_表情包_图片_头像_易搜表情包网"></p>
+<h2 id="UART"><a href="#UART" class="headerlink" title="UART"></a>UART</h2><p>通用异步收发传输器（Universal Asynchronous Receiver&#x2F;Transmitter，通常称为UART）是一种异步收发传输器，是电脑硬件的一部分，将数据透过串列通信进行传输。</p>
+<p>emm就是一种串口啦，恰巧树莓派上的8和10就是UART的TX和RX。TX是发送数据，RX是接收数据。</p>
+<p>ZPH01在控制口接地的时候，输出模式会变成UART，1秒输出一次。连接参数是这样的</p>
+<table><tbody><tr><td>波特率</td><td>9600</td></tr><tr><td>数据位</td><td>8</td></tr><tr><td>停止位</td><td>1</td></tr><tr><td>校验位</td><td>无</td></tr></tbody></table>
+
+<p>数据格式是这样的</p>
+<table><tbody><tr><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr><tr><td>起始位</td><td>检测类型编码</td><td>单位（低脉冲率）</td><td>低脉冲率整数部分</td><td>低脉冲率小数部分</td><td>预留</td><td>模式</td><td>VOC登记</td><td>校验值</td></tr><tr><td>0xFF</td><td>0x18</td><td>0x00</td><td>0x00-0x63</td><td>0x00-0x63</td><td>0x00</td><td>0x01</td><td>0x00-0x03</td><td>0x00-0xFF</td></tr></tbody></table>
+
+<h2 id="树莓派使用串口"><a href="#树莓派使用串口" class="headerlink" title="树莓派使用串口"></a>树莓派使用串口</h2><p>树莓派有两个串口，一个是模拟的<code>ttyS0</code>，一个是硬件的<code>ttyAMA0</code>。硬件的那个更靠谱，波特率不会受到CPU频率的影响。</p>
+<p>我用的是Ubuntu，启用串口大概可以<a target="_blank" rel="noopener" href="https://askubuntu.com/a/1325939/1037895">参考这篇问答</a>，简单摘抄如下：</p>
+<p>sudo systemctl stop <a href="mailto:&#x73;&#101;&#x72;&#105;&#97;&#108;&#x2d;&#x67;&#101;&#116;&#116;&#121;&#64;&#116;&#x74;&#121;&#x53;&#48;&#46;&#115;&#101;&#x72;&#x76;&#105;&#99;&#x65;">&#x73;&#101;&#x72;&#105;&#97;&#108;&#x2d;&#x67;&#101;&#116;&#116;&#121;&#64;&#116;&#x74;&#121;&#x53;&#48;&#46;&#115;&#101;&#x72;&#x76;&#105;&#99;&#x65;</a><br>sudo systemctl disable <a href="mailto:&#x73;&#101;&#114;&#105;&#97;&#x6c;&#45;&#x67;&#101;&#116;&#x74;&#121;&#64;&#116;&#x74;&#x79;&#x53;&#x30;&#x2e;&#x73;&#x65;&#x72;&#118;&#105;&#x63;&#101;">&#x73;&#101;&#114;&#105;&#97;&#x6c;&#45;&#x67;&#101;&#116;&#x74;&#121;&#64;&#116;&#x74;&#x79;&#x53;&#x30;&#x2e;&#x73;&#x65;&#x72;&#118;&#105;&#x63;&#101;</a><br>sudo systemctl mask <a href="mailto:&#x73;&#101;&#114;&#105;&#x61;&#108;&#x2d;&#x67;&#x65;&#116;&#116;&#x79;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#x2e;&#115;&#101;&#x72;&#x76;&#x69;&#99;&#101;">&#x73;&#101;&#114;&#105;&#x61;&#108;&#x2d;&#x67;&#x65;&#116;&#116;&#x79;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#x2e;&#115;&#101;&#x72;&#x76;&#x69;&#99;&#101;</a></p>
+<h1 id="x2F-etc-x2F-udev-x2F-rules-d-x2F-10-local-rules"><a href="#x2F-etc-x2F-udev-x2F-rules-d-x2F-10-local-rules" class="headerlink" title="&#x2F;etc&#x2F;udev&#x2F;rules.d&#x2F;10-local.rules"></a>&#x2F;etc&#x2F;udev&#x2F;rules.d&#x2F;10-local.rules</h1><p>KERNEL&#x3D;&#x3D;”ttyS0”, SYMLINK+&#x3D;”serial0” GROUP&#x3D;”tty” MODE&#x3D;”0660”<br>KERNEL&#x3D;&#x3D;”ttyAMA0”, SYMLINK+&#x3D;”serial1” GROUP&#x3D;”tty” MODE&#x3D;”0660”</p>
+<p>sudo udevadm control –reload-rules &amp;&amp; sudo udevadm trigger<br>sudo adduser $USER tty</p>
+<h1 id="remove-console-x3D-serial0-115200-from-x2F-boot-x2F-firmware-x2F-cmdline-txt"><a href="#remove-console-x3D-serial0-115200-from-x2F-boot-x2F-firmware-x2F-cmdline-txt" class="headerlink" title="remove console&#x3D;serial0,115200 from &#x2F;boot&#x2F;firmware&#x2F;cmdline.txt"></a>remove console&#x3D;serial0,115200 from &#x2F;boot&#x2F;firmware&#x2F;cmdline.txt</h1><h1 id="add-newline-dtoverlay-x3D-disable-bt-to-x2F-boot-x2F-firmware-x2F-config-txt"><a href="#add-newline-dtoverlay-x3D-disable-bt-to-x2F-boot-x2F-firmware-x2F-config-txt" class="headerlink" title="add newline dtoverlay&#x3D;disable-bt to &#x2F;boot&#x2F;firmware&#x2F;config.txt"></a>add newline dtoverlay&#x3D;disable-bt to &#x2F;boot&#x2F;firmware&#x2F;config.txt</h1><p>重启之后就可以了，ls可以看到串口</p>
+<p>lrwxrwxrwx 1 root root 5 Jan 10 04:56 &#x2F;dev&#x2F;serial0 -&gt; ttyS0<br>lrwxrwxrwx 1 root root 7 Jan 10 04:56 &#x2F;dev&#x2F;serial1 -&gt; ttyAMA0</p>
+<p>此时我们可以把ZPH01的TXD也就是PIN4接到树莓派的10号口GPIO15</p>
+<p>然后打开minicom看下有没有数据：</p>
+<p>sudo minicom</p>
+<p>Ctrl+A+Z然后再按O可以设置串口</p>
+<p><img src="/images/2022022221295236.png"></p>
+<p>波特率9600，数据位校验位根据上面的图标设置，8N1就对了</p>
+<p>在screen and keyboard中按S可以显示hex（十六进制）</p>
+<p><img src="/images/2022022221295352.png"></p>
+<p>保存退出之后就会发现，屏幕上出现了神奇的16进制数字，每到一组ff意味着出现了新的一组数据，也就是说<code>ff 18 00 02 3a 00 01 00 ab</code>这便是一组数据了。</p>
+<p><img src="/images/2022022221295495.jpeg"></p>
+<p>同时用Python也可以读得到这些数据的</p>
+<p><img src="/images/2022022221295528.png"></p>
+<p>那么VOC等级是7，也就是00，那么就是优；撒点酒精到传感器旁边，</p>
+<p><img src="/images/2022022221295723.jpeg"></p>
+<p>诚不欺我！</p>
+<p>PM2.5的低脉冲率，根据数据格式，是3和4，<code>0x00+0x39/100</code>，也就是</p>
+<p>&gt;&gt;&gt; int(data[3], 16) + int(data[4], 16) &#x2F; 100<br>0.57</p>
+<p>0.57%，再根据图标计算出一次方程的……公式，就可以得出来值了。</p>
+<h2 id="库"><a href="#库" class="headerlink" title="库"></a>库</h2><p>为方便自己搞事情，我写了个<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ZPH01">简单的library</a>，可以用来处理这些数据，同时加上了PM2.5的欧盟标准</p>
+<p>具体使用方法如下，先安装 <code>pip install zph01</code></p>
+<p>&gt;&gt;&gt; from zph01 import ZPH01</p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>zph &#x3D; ZPH01()<br>zph.output()<br>{‘VOC status’: ‘Good’, ‘PM 2.5 percent’: 1.6, ‘PM 2.5 count’: 960.0, ‘PM 2.5 level’: 32.0, ‘PM 2.5 status’: ‘Poor’}</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>哈哈哈够用就好</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><ul>
+<li>放在角落里吃灰，先不弄InfluxDB+Grafana了。这玩意有啥用啊……真是的😂浪费钱浪费精力，熬了两个晚上哦。</li>
+<li>等我的CFe到了，我会再搞一波。不过CH SN530是奇葩的PCIe 4.0x2，竟然只有两个通道，并且国外有小哥测试过PCIe 4.0x4和3.0x4的都不行。CH SN530主控是PS5019-E19。也许等微软开放了限制就可以了？谁知道他们有没有签什么独家协议以及如果有，什么时候到期……</li>
+</ul>
+<p><img src="/images/2022022221300146.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2022/02/22/zph01-pm25-voc/index/" data-id="clhp7rto300c6s2qr6w478dew" data-title="在树莓派上使用ZPH01监测PM2.5和VOC" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-container-hot-patch/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/02/02/container-hot-patch/index/" class="article-date">
@@ -1142,108 +1262,6 @@ psutil.Process().kill()
 
 
   
-    <article id="post-telegram-sticker/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/10/26/telegram-sticker/index/" class="article-date">
-  <time class="dt-published" datetime="2021-10-26T00:00:00.000Z" itemprop="datePublished">2021-10-26</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/10/26/telegram-sticker/index/">使用Telegram 斗图</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <blockquote>
-<p>人类的本质就是斗图机。</p>
-</blockquote>
-<p>想要在Telegram上斗图，那么必然就要用到MTProto了。对于pyrogram来说，那是非常简单的！</p>
-<p>@app.on_message(filters.incoming)<br>def sticker_handler(client: “Client”, message: “types.Message”):<br>    chat_id &#x3D; message.chat.id<br>    sticker &#x3D; “CAACAgUAAxkBAAEHooZhc87afMQjB-c10tBfkdcH1VSAWwACjwEAAjMDHAiv-7CBCwXTrR4E”<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(sticker, quote&#x3D;True)</p>
-<p>sticker可以为表情包的文件路径、HTTP URL、或者是文件ID。</p>
-<p>如有需要可以对filters进行各种定制，比如说我要某个用户给我发某个特定表情包时才斗图，那么filter大概可以这样写</p>
-<p>@app.on_message(filters.sticker &amp; filters.incoming &amp; filters.user(user_id))</p>
-<p>然后判断一下</p>
-<p>if message.sticker.file_unique_id &#x3D;&#x3D; “abcd”:<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(sticker, quote&#x3D;True)</p>
-<p>[v_blue]</p>
-<p>小提示：如何获取user_id? 试试这个bot呢？ <a target="_blank" rel="noopener" href="https://t.me/blog_update_bot">https://t.me/blog_update_bot</a> [&#x2F;v_blue] 那么这个sticker的ID怎么获取呢？笨办法是，找个小号帮忙发个表情就好了。</p>
-<p>我的Telegram里明明添加了那么多表情包，如果能一键使用就好了。既然MTProto是公开的，那么也一定有办法。</p>
-<h2 id="Raw-Functions"><a href="#Raw-Functions" class="headerlink" title="Raw Functions"></a>Raw Functions</h2><p>pyrogram封装了许多易于使用的方法，比如上面的发sticker，最常用的回复消息等等。但是实际上这些都利用了Raw Function。很多功能并没有封装成高层的 Python方法，非常不幸的是，获取sticker set便是其中之一。</p>
-<p>想要使用raw functions也很简单啦</p>
-<p>from pyrogram.raw import functions<br>app.send(<br>    functions.account.UpdateProfile(<br>    first_name&#x3D;”Dan”, last_name&#x3D;”Tès”,<br>    about&#x3D;”Bio written from Pyrogram”)<br>)</p>
-<h2 id="获取全部已添加的sticker"><a href="#获取全部已添加的sticker" class="headerlink" title="获取全部已添加的sticker"></a>获取全部已添加的sticker</h2><p>获取全部sticker的函数是 <code>functions.messages.GetAllStickers</code></p>
-<p>于是你兴致勃勃写好了代码，并且猜测猜测send方法会有返回值</p>
-<p><img src="/images/2021102621070689.png"></p>
-<p>这是怎么回事？这个参数hash是什么？要怎么写？</p>
-<p><img src="/images/2021102621070739.jpeg"></p>
-<p>其实这个hash是为了节约双方的资源的，有点像etag。具体可以看这里 <a target="_blank" rel="noopener" href="https://core.telegram.org/api/offsets#hash-generation">https://core.telegram.org/api/offsets#hash-generation</a></p>
-<p>我们这随便传入一个数字就可以了，这个接口获取到的数据大概是这种结构：</p>
-<p><img src="/images/2021102621070847.png"> [v_error]看到上面的hash 50617….了吗，按道理应该传入这个的哦，就会有类似304 Not Modified的效果[&#x2F;v_error]</p>
-<h2 id="获取sticker-set"><a href="#获取sticker-set" class="headerlink" title="获取sticker set"></a>获取sticker set</h2><p>上面的<code>all_stickers</code>就包含了这个用户所收藏的所有sticker，每一个sticker set都是list的一个元素。</p>
-<p>然后我们看下获取sticker set的API</p>
-<p><code>functions.messages.GetStickerSet</code></p>
-<p>接受一个神奇的参数 <code>stickerset: &quot;raw.base.InputStickerSet&quot;</code></p>
-<p>很多人可能会问，这是啥参数类型啊，怎么构造？</p>
-<p>要从raw_types里去搞啦，type hint已经给了提示是 <code>raw.base.InputStickerSet</code></p>
-<p>from pyrogram.raw import types as raw_types<br>raw_types.InputStickerSetID</p>
-<p><code>InputStickerSetID</code>接受两个参数，一个是<code>id</code>，一个是<code>access_hash</code></p>
-<p>那这个就不用我多说了吧，每一个set都有这两个参数</p>
-<p><img src="/images/2021102621070967.png"></p>
-<p>这样我们就能拿到一个sticker的全部信息了！数据结构大致如下</p>
-<p>set字段，表示sticker set的基本信息，和上面的一样</p>
-<p>packs和documents，表示单个sticker的信息</p>
-<p>packs的结构比较简单，看起来像是个索引一样</p>
-<p><img src="/images/2021102621071087.png"></p>
-<p>documents的结构比较复杂，包含了缩略图等信息</p>
-<p><img src="/images/2021102621071241.png"></p>
-<p>那看起来这个document就是我们想要的了！那么继续用<code>functions.messages.send_xxx</code></p>
-<p>想想就痛苦，有没有办法利用pyrogram的send_stickersn呢？</p>
-<p>那一大长串<code>file_id</code>是什么啊？</p>
-<h2 id="转换为file-id"><a href="#转换为file-id" class="headerlink" title="转换为file_id"></a>转换为file_id</h2><p>要使用古娜拉黑暗之神——呼呼拉——黑仙魔光才能把sticker变到file_id！</p>
-<p>具体怎么做我教给你们就好了！不用探索其中原理……反正就是看pyrogram的<code>send_sticker</code>是怎么实现的，然后逆着来嘛😝</p>
-<p>from pyrogram.file_id import FileId, FileType</p>
-<p>file_id &#x3D; FileId(file_type&#x3D;FileType.STICKER,<br>    dc_id&#x3D;doc.dc_id,<br>    file_reference&#x3D;doc.file_reference,<br>    media_id&#x3D;doc.id,<br>    access_hash&#x3D;doc.access_hash,<br>    sticker_set_id&#x3D;set_id,<br>    sticker_set_access_hash&#x3D;set_hash).encode()</p>
-<p><code>set_id</code>是<code>set_access_hash</code>是sticker set的，<code>media_id</code>和<code>access_hash</code>是这个sticker的，不要搞错了哦。</p>
-<p>然后生成的一长串字符串，就可以喂给 <code>send_sticker</code>啦。</p>
-<p>建议事先把所有的sticker的file_id都跑出来，然后随机从里面选就好了～要不然容易触发rate limit导致Durov送你飞机票。</p>
-<h2 id="欢乐斗图"><a href="#欢乐斗图" class="headerlink" title="欢乐斗图"></a>欢乐斗图</h2><p>为了斗图更快乐，我们也要搞的更欢乐更随机！</p>
-<p>那么最简单的办法，其实就random一下就好了，先随机选sticker，然后再自定义回复概率，比如我想要一半概率回复，那就……</p>
-<p>if random.choice([1, 0]):<br>    client.send_chat_action(chat_id, “typing”)<br>    message.reply_sticker(“sticker file_id”, quote&#x3D;True)</p>
-<p>或者比如我想要79%的概率回复，那就……</p>
-<p>random.randint(1, 100) &lt;&#x3D; 79</p>
-<p>要想要每次都随机的回复概率，那其实也不难</p>
-<p>rand1 &#x3D; random.randint(1, 100)<br>rand2 &#x3D; random.randint(1, 100)<br>if rand1 &gt; rand2:<br>    pass</p>
-<p>当然啦，上述算法从整体上来讲，回复概率是50%的,样本数量越大就会越近于50%。毕竟嘛，要么发要么不发，这范围还是一样的……那肯定50%啦。</p>
-<h2 id="斗图结果"><a href="#斗图结果" class="headerlink" title="斗图结果"></a>斗图结果</h2><p>自然是非常开心了，24小时随时回复！小伙伴都惊呼我竟然大半夜不睡觉！</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/10/26/telegram-sticker/index/" data-id="clhp7rtlc009ks2qr64r6f6g7" data-title="使用Telegram 斗图" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1288,7 +1306,7 @@ psutil.Process().kill()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1299,6 +1317,10 @@ psutil.Process().kill()
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
+          </li>
         
           <li>
             <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
@@ -1314,10 +1336,6 @@ psutil.Process().kill()
         
           <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
       </ul>

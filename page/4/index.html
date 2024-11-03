@@ -73,6 +73,130 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-stripe-telegram/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/01/07/stripe-telegram/index/" class="article-date">
+  <time class="dt-published" datetime="2023-01-07T00:00:00.000Z" itemprop="datePublished">2023-01-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2023/01/07/stripe-telegram/index/">初探Stripe与Telegram Bot Payments API</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>4个月了，朕又出现了！刁民没能害得了武功高强的朕</p>
+<p>Stripe是一个用于全球收钱的在线服务，支持很多种货币，哪怕你人在美国，收人民币也行，Stripe会自动帮你转成账户对应的货币。Stripe支持的支付方式包括银行卡，Apple Pay，Google Pay甚至是国内非常流行的支付宝和微信。</p>
+<p>当你有了Stripe账户之后，无代码的情况下可以弄一个收款链接或者二维码，用户通过他们的本地支付方式就可以给你塞钱了。比如说下图这里，用户就可以用支付宝来给我打钱。</p>
+<p><img src="/images/2023010721475179.png" alt="手机屏幕截图 描述已自动生成"></p>
+<h2 id="集成Stripe"><a href="#集成Stripe" class="headerlink" title="集成Stripe"></a>集成Stripe</h2><p>无代码的方式显然是不够的。很多情况下我们出售服务，或者说是软件授权，都需要自动化进行的。此时我们就可以利用Stripe的API了。想要利用这个API，主要就是两步：</p>
+<ol>
+<li>创建<code>PaymentIntent</code>，主要就是定义了支持什么支付方式，想要收多少钱，想要什么币种</li>
+<li>用户付款之后处理回调，比如说给用户发KEY啦之类的</li>
+</ol>
+<p>我们以做一个用户任意捐款的页面为例（当然这个可以用Stripe的无代码，只是以此来作为例子），页面大概是这样子的</p>
+<p><img src="/images/2023010721475495.png" alt="图示, 文本 描述已自动生成"></p>
+<h3 id="创建PaymentIntent"><a href="#创建PaymentIntent" class="headerlink" title="创建PaymentIntent"></a>创建PaymentIntent</h3><p>很丑有没有。用户输入一个金额，提交表单之后，后端需要请求创建Payment Indent，大概是这样的：</p>
+<p> </p>
+<p>import stripe</p>
+<p>stripe.api_key &#x3D;xxx</p>
+<p>@app.route(‘&#x2F;checkout’, methods&#x3D;[‘POST’])<br>def checkout():<br>    method &#x3D; request.form[‘method’]<br>    # unit is 分<br>    amount &#x3D; int(float(request.form[‘amount’]) * 100)<br>    # create payment intent<br>    logging.info(“method: %s, amount: %s”, method, amount)<br>    intent &#x3D; stripe.PaymentIntent.create(payment_method_types&#x3D;[method], amount&#x3D;amount, currency&#x3D;”cny”)<br>    secret &#x3D; intent.client_secret<br>    return render_template(‘checkout.html’, pk&#x3D;pk, secret&#x3D;secret, method&#x3D;method)</p>
+<p>有几点需要注意的：</p>
+<ol>
+<li>method是付款方式，具体会受到国家地区和货币的限制</li>
+<li>amount是收多少钱，也就是用户在输入框里输入的，需要注意是会变成最小货币单位。对于人民币来说，最小的货币单位是分，也就是说收人民币12.34元，这个amount应该是1234；对于日元这种最小单位就是元的货币（[零位十进制货币](<a target="_blank" rel="noopener" href="https://stripe.com/docs/currencies">https://stripe.com/docs/currencies</a>“ \l “zero-decimal)），收500日元那么就写500即可。</li>
+<li>pk是Stripe的API的public key，其实是可以公开的。写在前端的代码里是没问题的</li>
+<li>client_secret 对于每一个付款请求都是唯一的</li>
+</ol>
+<h3 id="发起请求"><a href="#发起请求" class="headerlink" title="发起请求"></a>发起请求</h3><p>前端可以这么写，很简单，总之就是要让用户进入付款页面</p>
+<p>const stripe &#x3D; Stripe(pk);<br>error &#x3D; stripe.confirmAlipayPayment(clientSecret, {<br>    &#x2F;&#x2F; Return URL where the customer should be redirected after the authorization<br>    return_url: `${window.location.origin}&#x2F;callback`,<br>});</p>
+<p>测试模式下，用户会进入这样的页面</p>
+<p><img src="/images/2023010721475750.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>真实模式下是这样的</p>
+<p><img src="/images/2023010721475979.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<h3 id="处理回调"><a href="#处理回调" class="headerlink" title="处理回调"></a>处理回调</h3><p>用户付款，成功或者失败之后，会返回return url，我们通过URL就可以知道付款是否成功，当然通过API或者webhook也是可以的。</p>
+<p><img src="/images/2023010721480049.png" alt="表格 描述已自动生成"></p>
+<p>此时在Stripe的网页上就应该可以看到付款成功了</p>
+<p><img src="/images/2023010721480110.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>基本上简单来说就是这样的😂微信也差不多，只不过微信模式下<code>stripe.js</code> 会直接嵌入一个微信的二维码，然后需要用webhook或者API去验证用户是否已经付款，不能依赖callback url啦。完整代码可以看最后gist</p>
+<h3 id="Stripe-费率"><a href="#Stripe-费率" class="headerlink" title="Stripe 费率"></a>Stripe 费率</h3><p>在上面的那个Stripe的页面，能发现Stripe抽了不少钱，具体费率每个国家、每种支付方式都不一样。比如如果是加拿大，用支付宝支付，那么费率是2.9% + C$0.30，如果需要货币转换，有些国家也还要收钱的。具体信息可以看这里 <a target="_blank" rel="noopener" href="https://stripe.com/zh-cn-ca/pricing/local-payment-methods">https://stripe.com/zh-cn-ca/pricing/local-payment-methods</a>，把ca（加拿大）替换成你的国家代码就有啦。</p>
+<h2 id="Telegram-Bot-Payment"><a href="#Telegram-Bot-Payment" class="headerlink" title="Telegram Bot Payment"></a>Telegram Bot Payment</h2><p>Telegram很早之前也给bot提供了骗钱的功能，支持的收款服务商包括Stripe之类的。想要用Payment API，先要去和Bot Father申请，选择 Bot Settings-Payments，然后选择对应的付款提供商，比如Stripe，之后会被重定向到对应的bot，然后选择测试还是生产模式，做一下oauth就可以拿到一个token了</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/01/2023010721561074.jpeg"><img src="/images/2023010721561074.jpeg"></a></p>
+<p>测试付款的时候可以用stripe的测试模式，有很多卡号可以模拟各种情况，成功失败都有，比如4242 4242 4242 4242就是可以用的测试卡，完整列表[可以看这里](<a target="_blank" rel="noopener" href="https://stripe.com/docs/testing">https://stripe.com/docs/testing</a>“ \l “cards)。</p>
+<p>一些Bot API wrapper，比如pytelegrambotapi已经有了很<a target="_blank" rel="noopener" href="https://github.com/eternnoir/pyTelegramBotAPI/blob/master/examples/payments_example.py">简单易懂的例子</a>。这里我用的pyrogram（1.x）来做例子说明怎么生成、验证付款。</p>
+<h2 id="生成invoice"><a href="#生成invoice" class="headerlink" title="生成invoice"></a>生成invoice</h2><p>需要使用<code>raw_types</code></p>
+<p>from pyrogram.raw import types as raw_types<br>raw_types.invoice.Invoice(currency&#x3D;”USD”, prices&#x3D;[raw_types.LabeledPrice(label&#x3D;”price”, amount&#x3D;amount)])</p>
+<p>其中prices接受的参数是一个list，意味着这里可以有多项，比如说商品价格，税费，折扣，等等。amount同样遵循上面的最小货币单位原则，要收11.3美元，那么就要写1130</p>
+<p>这里Invoice支持很多额外参数，比如<code>email_requested</code>，<code>name_requested</code>，<code>suggested_tip_amounts</code>等等，自行发挥吧</p>
+<h2 id="生成InputMediaInvoice"><a href="#生成InputMediaInvoice" class="headerlink" title="生成InputMediaInvoice"></a>生成InputMediaInvoice</h2><p>raw_types.input_media_invoice.InputMediaInvoice(<br>    invoice&#x3D;(<br>        raw_types.invoice.Invoice(currency&#x3D;”USD”, prices&#x3D;[raw_types.LabeledPrice(label&#x3D;”price”, amount&#x3D;amount)])),<br>    title&#x3D;title,<br>    description&#x3D;description,<br>    provider&#x3D;PROVIDER_TOKEN,<br>    provider_data&#x3D;raw_types.DataJSON(data&#x3D;”{}”),<br>    payload&#x3D;payload,<br>)</p>
+<ul>
+<li><code>PROVIDER_TOKEN</code>是在Bot Father中申请的那个token，不是bot token。</li>
+<li><code>provider_data</code> 是收款商需要要求的信息，比如<a target="_blank" rel="noopener" href="https://stripe.com/docs/india-accept-international-payments">印度Stripe强制要求姓名地址</a>，那么就应该写在这里，否则Stripe会拒付。我这边没有要求，所以直接空json字符串就好</li>
+<li>Payload是我们自定义的信息，内部使用，比如用于区分是什么的付款</li>
+</ul>
+<p>如果要inline模式，那么就要用<code>InputBotInlineMessageMediaInvoice</code></p>
+<h2 id="选择Forwarding-Behavior"><a href="#选择Forwarding-Behavior" class="headerlink" title="选择Forwarding Behavior"></a>选择Forwarding Behavior</h2><p>当invoice被转发了之后，我们可以选择有什么样的行为，一种是会可以继续付款，另外一种是通过deep linking跳转到机器人。由<code>InputMediaInvoice</code>的参数<code>start_param</code>控制的。直接忽略这个参数，意味着转发的消息也可以付款，并且付款后按钮不会变成receipt</p>
+<p><img src="/images/2023010721480686.png" alt="图形用户界面, 文本, 应用程序, 聊天或短信 描述已自动生成"></p>
+<h2 id="发送invoice"><a href="#发送invoice" class="headerlink" title="发送invoice"></a>发送invoice</h2><p>用<code>SendMedia</code>就可以了</p>
+<p>peer &#x3D; raw_types.InputPeerUser(user_id&#x3D;chat_id, access_hash&#x3D;0)</p>
+<p>app.send(<br>    functions.messages.SendMedia(<br>        peer&#x3D;peer,<br>        media&#x3D;inputinvoice,<br>        random_id&#x3D;app.rnd_id(),<br>        message&#x3D;”pay for it!”,<br>    )<br>)</p>
+<h2 id="Pre-Checkout"><a href="#Pre-Checkout" class="headerlink" title="Pre-Checkout"></a>Pre-Checkout</h2><p>用户在付款之后，Telegram这边会给bot发一个<code>pre_checkout_query</code>的更新，要求bot做一个precheckout的检查，比如说检查是否还有货啦这种。Bot需要在10秒之内用<code>answerPreCheckoutQuery</code>应答，否则就会出错。</p>
+<p>Pyrogram这边我没找到合适的事件监听，可能是版本太老了，所以只能这样了：</p>
+<p>@app.on_raw_update()<br>def raw_update(client: “Client”, update, users, chats):<br>    if update.QUALNAME &#x3D;&#x3D; ‘types.UpdateBotPrecheckoutQuery’:<br>        client.send(<br>            functions.messages.SetBotPrecheckoutResults(<br>            query_id&#x3D;update.query_id,<br>            success&#x3D;True<br>            )<br>        )</p>
+<ul>
+<li>success表示pre checkout状态，如果是false，需要提供一个error</li>
+</ul>
+<h2 id="checkout"><a href="#checkout" class="headerlink" title="checkout"></a>checkout</h2><p>Bot确认之后，Telegram就会请求Stripe完成付款请求。之后telegram会发一个<code>successful_payment</code>的service message，bot看到之后确认就可以了。</p>
+<p>我们可以通过raw update的 <code>types.MessageActionPaymentSentMe</code> 来确认</p>
+<p>打开你的Stripe，切换到测试模式，可以看到已经有“进账”啦，甚至还可以提现到银行卡😂</p>
+<p><img src="/images/2023010721480796.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="值得思考的问题"><a href="#值得思考的问题" class="headerlink" title="值得思考的问题"></a>值得思考的问题</h2><p>既然Stripe能支持支付宝微信付款，并且可以提现到银行卡，那么相比较银行汇款，哪个更划算呢？</p>
+<p>已知条件如下：</p>
+<ol>
+<li>招商银行通信费150元&#x2F;笔，手续费为汇款金额的0.1%，最低100最高1000，不考虑境外银行的收费</li>
+<li>Stripe手续费 2.9%，无提现、货币转换费</li>
+<li>均不考虑不同平台银行的汇率差异</li>
+</ol>
+<h2 id="欢迎大家给我打钱！"><a href="#欢迎大家给我打钱！" class="headerlink" title="欢迎大家给我打钱！"></a>欢迎大家给我打钱！</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/donate">参考这里</a>或者直接Stripe吧！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2023/01/2023010623451377.png"><img src="/images/2023010623451377-250x300.png"></a></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://core.telegram.org/bots/payments#step-by-step-process">https://core.telegram.org/bots/payments#step-by-step-process</a></p>
+<p><a target="_blank" rel="noopener" href="https://stripe.com/docs/payments/alipay/accept-a-payment?locale=zh-CN">https://stripe.com/docs/payments/alipay/accept-a-payment?locale=zh-CN</a></p>
+<p><a target="_blank" rel="noopener" href="https://stripe.com/docs/payments/wechat-pay/accept-a-payment">https://stripe.com/docs/payments/wechat-pay/accept-a-payment</a></p>
+<p><a target="_blank" rel="noopener" href="https://stripe.com/zh-cn-ca/pricing/local-payment-methods">https://stripe.com/zh-cn-ca/pricing/local-payment-methods</a></p>
+<p><a target="_blank" rel="noopener" href="https://gist.github.com/BennyThink/d3a0de89d21ccb955636e0ffba0f9ea1">https://gist.github.com/BennyThink/d3a0de89d21ccb955636e0ffba0f9ea1</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/01/07/stripe-telegram/index/" data-id="clhp7rtke0096s2qrgma31es9" data-title="初探Stripe与Telegram Bot Payments API" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-wg0000/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2022/09/20/wg0000/index/" class="article-date">
@@ -793,126 +917,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
 
 
   
-    <article id="post-zph01-pm25-voc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2022/02/22/zph01-pm25-voc/index/" class="article-date">
-  <time class="dt-published" datetime="2022-02-22T00:00:00.000Z" itemprop="datePublished">2022-02-22</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/what/">what</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2022/02/22/zph01-pm25-voc/index/">在树莓派上使用ZPH01监测PM2.5和VOC</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前几天发现我的Xbox内置存储空间不足了，希捷的Xbox Expansion Card又太贵了，发现bilibili有人发了一篇文章可以DIY这个扩展卡<a target="_blank" rel="noopener" href="https://www.bilibili.com/read/cv13060807">《【全站首发？】自制次世代XBOX专用存储卡（扩容）》</a>。技术原理并不复杂，就是一个CFe到NVMe的转接器+微软定制CH SN530。</p>
-<p>但是这个转接器又太贵了，海鲜市场都要100元，在网上搜到了有开源的设计，<a target="_blank" rel="noopener" href="https://github.com/neg2led/cfxsx">https://github.com/neg2led/cfxsx</a>，恰巧国内的嘉立创可以免费给打样，于是我就去打了一个，顺便买了点电子元件回来玩。</p>
-<p><img src="/images/2022022221294250.png"></p>
-<p>这么好的东西，既能检测PM2.5还能检测VOC（可挥发性有机物），当然要留给树莓派啊</p>
-<h2 id="了解ZPH01"><a href="#了解ZPH01" class="headerlink" title="了解ZPH01"></a>了解ZPH01</h2><p>ZPH01有两种输出，PWM和UART，先不管这是什么……</p>
-<p>有5个针脚，如下表所示</p>
-<table><tbody><tr><td>PIN1</td><td>控制脚，悬空为PWM，接地为UART</td></tr><tr><td>PIN2</td><td>输出脚 OUT2/RXD/PM2.5</td></tr><tr><td>PIN3</td><td>电源正(VCC)</td></tr><tr><td>PIN4</td><td>输出脚 OUT1/TXD/VOC 等级</td></tr><tr><td>PIN5</td><td>电源地(GND)</td></tr></tbody></table>
-
-<h2 id="接线"><a href="#接线" class="headerlink" title="接线"></a>接线</h2><p>于是我就把用杜邦线接上了，两个输出分别接到了16号GPIO23和18号GPIO24</p>
-<p><img src="/images/2022022221294661.png"></p>
-<h2 id="获取数据"><a href="#获取数据" class="headerlink" title="获取数据"></a>获取数据</h2><p>import RPi.GPIO as GPIO</p>
-<h1 id="BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。"><a href="#BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。" class="headerlink" title="BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。"></a>BOARD是树莓派上的编号，比如我接的是GPIO23，编号是16。也可以用BCM，那么编号就是23了。</h1><p>GPIO.setmode(GPIO.BOARD)</p>
-<p>GPIO.setup(16, GPIO.IN, pull_up_down&#x3D;GPIO.PUD_DOWN)<br>GPIO.input(16) # 获取输入，如果想要输出高电压，那就GPIO.OUTPUT(16,GPIO.HIGH)</p>
-<p>GPIO.setup(18, GPIO.IN, pull_up_down&#x3D;GPIO.PUD_DOWN)<br>GPIO.input(18)</p>
-<p>这样就能够获取到GPIO针脚的输入，要么是0，要么是1，在我看来这玩意就有点随机变化的感觉了。</p>
-<p>然后呢？で？</p>
-<p><img src="/images/2022022221294735.jpeg" alt="高手看不懂- 斗图发表情包- 斗图王"></p>
-<h2 id="PWM"><a href="#PWM" class="headerlink" title="PWM"></a>PWM</h2><p>脉冲宽度调制（英语：Pulse-width modulation，缩写：PWM），简称脉宽调制，是将模拟信号变换为脉冲的一种技术。</p>
-<p>emm咋说呢，举例来看，说明书里有这样一个波形，当我从GPIO中读到0度时候，那么就是低脉冲（低电压），读到1的时候，那么就是高脉冲（高电压）。</p>
-<p><img src="/images/2022022221294838.png"></p>
-<p>这个设备的脉冲周期是1秒，也就是说，如果我在1秒的时间范围内，读到了200ms读低脉冲，那么低脉冲率就是20%。那么这个低脉冲率有什么用？</p>
-<p>继续往下看手册，发现了这么一个图</p>
-<p><img src="/images/2022022221295069.png"></p>
-<p>哟呵，这不是初中学过的一次函数吗？低脉冲率为10%，差不多意味着平均有6000个PM2.5颗粒。</p>
-<p>同理，颗粒物浓度也是有一个一次函数图表，可以根据低脉冲率计算出颗粒物浓度。</p>
-<p>再次同理，VOC的输出也可以计算低脉冲率，根据说明书10%的低脉冲率就是VOC1级，20%就是2级，也就分别对应优和良。这个设备会输出四个等级，可惜的是无法辨别化合物的类别。</p>
-<p>那么也就是说，写一个算法，一秒钟取样，就能拿到环境中的数据了。</p>
-<p>emmm我不会写，我太菜了。</p>
-<p><img src="/images/2022022221295158.jpeg" alt="我太菜了表情包_表情包_图片_头像_易搜表情包网"></p>
-<h2 id="UART"><a href="#UART" class="headerlink" title="UART"></a>UART</h2><p>通用异步收发传输器（Universal Asynchronous Receiver&#x2F;Transmitter，通常称为UART）是一种异步收发传输器，是电脑硬件的一部分，将数据透过串列通信进行传输。</p>
-<p>emm就是一种串口啦，恰巧树莓派上的8和10就是UART的TX和RX。TX是发送数据，RX是接收数据。</p>
-<p>ZPH01在控制口接地的时候，输出模式会变成UART，1秒输出一次。连接参数是这样的</p>
-<table><tbody><tr><td>波特率</td><td>9600</td></tr><tr><td>数据位</td><td>8</td></tr><tr><td>停止位</td><td>1</td></tr><tr><td>校验位</td><td>无</td></tr></tbody></table>
-
-<p>数据格式是这样的</p>
-<table><tbody><tr><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td></tr><tr><td>起始位</td><td>检测类型编码</td><td>单位（低脉冲率）</td><td>低脉冲率整数部分</td><td>低脉冲率小数部分</td><td>预留</td><td>模式</td><td>VOC登记</td><td>校验值</td></tr><tr><td>0xFF</td><td>0x18</td><td>0x00</td><td>0x00-0x63</td><td>0x00-0x63</td><td>0x00</td><td>0x01</td><td>0x00-0x03</td><td>0x00-0xFF</td></tr></tbody></table>
-
-<h2 id="树莓派使用串口"><a href="#树莓派使用串口" class="headerlink" title="树莓派使用串口"></a>树莓派使用串口</h2><p>树莓派有两个串口，一个是模拟的<code>ttyS0</code>，一个是硬件的<code>ttyAMA0</code>。硬件的那个更靠谱，波特率不会受到CPU频率的影响。</p>
-<p>我用的是Ubuntu，启用串口大概可以<a target="_blank" rel="noopener" href="https://askubuntu.com/a/1325939/1037895">参考这篇问答</a>，简单摘抄如下：</p>
-<p>sudo systemctl stop <a href="mailto:&#x73;&#101;&#x72;&#105;&#97;&#108;&#x2d;&#x67;&#101;&#116;&#116;&#121;&#64;&#116;&#x74;&#121;&#x53;&#48;&#46;&#115;&#101;&#x72;&#x76;&#105;&#99;&#x65;">&#x73;&#101;&#x72;&#105;&#97;&#108;&#x2d;&#x67;&#101;&#116;&#116;&#121;&#64;&#116;&#x74;&#121;&#x53;&#48;&#46;&#115;&#101;&#x72;&#x76;&#105;&#99;&#x65;</a><br>sudo systemctl disable <a href="mailto:&#x73;&#101;&#114;&#105;&#97;&#x6c;&#45;&#x67;&#101;&#116;&#x74;&#121;&#64;&#116;&#x74;&#x79;&#x53;&#x30;&#x2e;&#x73;&#x65;&#x72;&#118;&#105;&#x63;&#101;">&#x73;&#101;&#114;&#105;&#97;&#x6c;&#45;&#x67;&#101;&#116;&#x74;&#121;&#64;&#116;&#x74;&#x79;&#x53;&#x30;&#x2e;&#x73;&#x65;&#x72;&#118;&#105;&#x63;&#101;</a><br>sudo systemctl mask <a href="mailto:&#x73;&#101;&#114;&#105;&#x61;&#108;&#x2d;&#x67;&#x65;&#116;&#116;&#x79;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#x2e;&#115;&#101;&#x72;&#x76;&#x69;&#99;&#101;">&#x73;&#101;&#114;&#105;&#x61;&#108;&#x2d;&#x67;&#x65;&#116;&#116;&#x79;&#64;&#116;&#x74;&#121;&#x53;&#x30;&#x2e;&#115;&#101;&#x72;&#x76;&#x69;&#99;&#101;</a></p>
-<h1 id="x2F-etc-x2F-udev-x2F-rules-d-x2F-10-local-rules"><a href="#x2F-etc-x2F-udev-x2F-rules-d-x2F-10-local-rules" class="headerlink" title="&#x2F;etc&#x2F;udev&#x2F;rules.d&#x2F;10-local.rules"></a>&#x2F;etc&#x2F;udev&#x2F;rules.d&#x2F;10-local.rules</h1><p>KERNEL&#x3D;&#x3D;”ttyS0”, SYMLINK+&#x3D;”serial0” GROUP&#x3D;”tty” MODE&#x3D;”0660”<br>KERNEL&#x3D;&#x3D;”ttyAMA0”, SYMLINK+&#x3D;”serial1” GROUP&#x3D;”tty” MODE&#x3D;”0660”</p>
-<p>sudo udevadm control –reload-rules &amp;&amp; sudo udevadm trigger<br>sudo adduser $USER tty</p>
-<h1 id="remove-console-x3D-serial0-115200-from-x2F-boot-x2F-firmware-x2F-cmdline-txt"><a href="#remove-console-x3D-serial0-115200-from-x2F-boot-x2F-firmware-x2F-cmdline-txt" class="headerlink" title="remove console&#x3D;serial0,115200 from &#x2F;boot&#x2F;firmware&#x2F;cmdline.txt"></a>remove console&#x3D;serial0,115200 from &#x2F;boot&#x2F;firmware&#x2F;cmdline.txt</h1><h1 id="add-newline-dtoverlay-x3D-disable-bt-to-x2F-boot-x2F-firmware-x2F-config-txt"><a href="#add-newline-dtoverlay-x3D-disable-bt-to-x2F-boot-x2F-firmware-x2F-config-txt" class="headerlink" title="add newline dtoverlay&#x3D;disable-bt to &#x2F;boot&#x2F;firmware&#x2F;config.txt"></a>add newline dtoverlay&#x3D;disable-bt to &#x2F;boot&#x2F;firmware&#x2F;config.txt</h1><p>重启之后就可以了，ls可以看到串口</p>
-<p>lrwxrwxrwx 1 root root 5 Jan 10 04:56 &#x2F;dev&#x2F;serial0 -&gt; ttyS0<br>lrwxrwxrwx 1 root root 7 Jan 10 04:56 &#x2F;dev&#x2F;serial1 -&gt; ttyAMA0</p>
-<p>此时我们可以把ZPH01的TXD也就是PIN4接到树莓派的10号口GPIO15</p>
-<p>然后打开minicom看下有没有数据：</p>
-<p>sudo minicom</p>
-<p>Ctrl+A+Z然后再按O可以设置串口</p>
-<p><img src="/images/2022022221295236.png"></p>
-<p>波特率9600，数据位校验位根据上面的图标设置，8N1就对了</p>
-<p>在screen and keyboard中按S可以显示hex（十六进制）</p>
-<p><img src="/images/2022022221295352.png"></p>
-<p>保存退出之后就会发现，屏幕上出现了神奇的16进制数字，每到一组ff意味着出现了新的一组数据，也就是说<code>ff 18 00 02 3a 00 01 00 ab</code>这便是一组数据了。</p>
-<p><img src="/images/2022022221295495.jpeg"></p>
-<p>同时用Python也可以读得到这些数据的</p>
-<p><img src="/images/2022022221295528.png"></p>
-<p>那么VOC等级是7，也就是00，那么就是优；撒点酒精到传感器旁边，</p>
-<p><img src="/images/2022022221295723.jpeg"></p>
-<p>诚不欺我！</p>
-<p>PM2.5的低脉冲率，根据数据格式，是3和4，<code>0x00+0x39/100</code>，也就是</p>
-<p>&gt;&gt;&gt; int(data[3], 16) + int(data[4], 16) &#x2F; 100<br>0.57</p>
-<p>0.57%，再根据图标计算出一次方程的……公式，就可以得出来值了。</p>
-<h2 id="库"><a href="#库" class="headerlink" title="库"></a>库</h2><p>为方便自己搞事情，我写了个<a target="_blank" rel="noopener" href="https://github.com/BennyThink/ZPH01">简单的library</a>，可以用来处理这些数据，同时加上了PM2.5的欧盟标准</p>
-<p>具体使用方法如下，先安装 <code>pip install zph01</code></p>
-<p>&gt;&gt;&gt; from zph01 import ZPH01</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>zph &#x3D; ZPH01()<br>zph.output()<br>{‘VOC status’: ‘Good’, ‘PM 2.5 percent’: 1.6, ‘PM 2.5 count’: 960.0, ‘PM 2.5 level’: 32.0, ‘PM 2.5 status’: ‘Poor’}</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<p>哈哈哈够用就好</p>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><ul>
-<li>放在角落里吃灰，先不弄InfluxDB+Grafana了。这玩意有啥用啊……真是的😂浪费钱浪费精力，熬了两个晚上哦。</li>
-<li>等我的CFe到了，我会再搞一波。不过CH SN530是奇葩的PCIe 4.0x2，竟然只有两个通道，并且国外有小哥测试过PCIe 4.0x4和3.0x4的都不行。CH SN530主控是PS5019-E19。也许等微软开放了限制就可以了？谁知道他们有没有签什么独家协议以及如果有，什么时候到期……</li>
-</ul>
-<p><img src="/images/2022022221300146.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2022/02/22/zph01-pm25-voc/index/" data-id="clhp7rto300c6s2qr6w478dew" data-title="在树莓派上使用ZPH01监测PM2.5和VOC" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -957,7 +961,7 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -968,6 +972,10 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
+          </li>
         
           <li>
             <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
@@ -983,10 +991,6 @@ ioutil.WriteFile(&quot;screenshot.png&quot;, screenshot, 0644)
         
           <li>
             <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/21/one-api-clickhouse/index/">one-api/new-api性能优化：使用 ClickHouse 作为日志系统</a>
           </li>
         
       </ul>
