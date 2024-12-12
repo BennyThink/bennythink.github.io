@@ -73,6 +73,129 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-candlestick-llm/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/12/12/candlestick-llm/index/" class="article-date">
+  <time class="dt-published" datetime="2024-12-12T00:00:00.000Z" itemprop="datePublished">2024-12-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>经常混币圈、股票和外汇的朋友们都知道有一个东西叫 K线，大概长这样 <img src="/images/2024121202224065.png" alt="pasted-movie.png"></p>
+<p>同时你也可以选择添加更多的图表，如布林线、MACD、RSI等，用这些技术指标来辅助决策。</p>
+<p><img src="/images/2024121202224114.png" alt="pasted-movie.png"></p>
+<p>这些技术参数很有用，如果能把一段时间的结果交给LLM去分析，应该比凭着感觉瞎买更靠谱吧！</p>
+<p>那这些技术参数是怎么来的呢……？</p>
+<p>去花钱买！这个世界上还有什么是钞能力无法解决的事情吗？</p>
+<p><img src="/images/9974-kherpxx2653922.gif" alt="第一白富美丢250亿遗产，跑去当网红捞钱？"></p>
+<p><a target="_blank" rel="noopener" href="https://taapi.io/">https://taapi.io/</a> 已经有人做好了！有股票 也有加密货币的数据。就是……免费版频率限制有些严重，想要获取多点数据就等几个小时吧。一下子升级个 Pro 要花14.99欧元，在PoC阶段好像也不太值得……</p>
+<p>实际上，这些技术参数，全部都是使用K线数据，由客户端计算出来的。K线数据很容易获取，很多交易所都提供API，但是计算这些参数需要比较强的数学知识😅</p>
+<p>还好已经有人写好了相关的库，虽然是 C&#x2F;C++写的，但是不怕啦早就有人写好了 Python的wrapper</p>
+<h2 id="TA-Lib-Technical-Analysis-Library"><a href="#TA-Lib-Technical-Analysis-Library" class="headerlink" title="TA-Lib - Technical Analysis Library"></a>TA-Lib - Technical Analysis Library</h2><p>我们需要这个东西来计算数据，这个库支持200多个技术指标，包括RSI，MACD</p>
+<p>安装方式可以参考官方文档</p>
+<h2 id="获取K线数据"><a href="#获取K线数据" class="headerlink" title="获取K线数据"></a>获取K线数据</h2><p>以币安的合约数据为例，非常简单</p>
+<p>pip install binance-futures-connector<br>from binance.um_futures import UMFutures<br>um_client &#x3D; UMFutures()<br>candles&#x3D;um_client.klines(symbol&#x3D;‘BTCUSDT’, interval&#x3D;‘1m’)</p>
+<p>这样我们就获取到了 1分钟时间间隔的数据</p>
+<p>转换成 pandas的<code>DataFrame</code> 方便后续处理</p>
+<p>pd.DataFrame(candles)</p>
+<h2 id="计算布林线"><a href="#计算布林线" class="headerlink" title="计算布林线"></a>计算布林线</h2><p>布林线使用收盘价格进行计算，而且需要多组数据才可以计算出来</p>
+<p>upperband, middleband, lowerband &#x3D; talib.BBANDS(self.df[“close”], timeperiod&#x3D;20, nbdevup&#x3D;2, nbdevdn&#x3D;2, matype&#x3D;0)</p>
+<h2 id="计算-RSI"><a href="#计算-RSI" class="headerlink" title="计算 RSI"></a>计算 RSI</h2><p>同样也是收盘价</p>
+<p>rsi6 &#x3D; talib.RSI(self.df[“close”], timeperiod&#x3D;6)<br>rsi12 &#x3D; talib.RSI(self.df[“close”], timeperiod&#x3D;12)<br>rsi24 &#x3D; talib.RSI(self.df[“close”], timeperiod&#x3D;24)</p>
+<h2 id="MACD"><a href="#MACD" class="headerlink" title="MACD"></a>MACD</h2><p>收盘价</p>
+<p>dif, dea, macd &#x3D; talib.MACD(self.df[“close”], fastperiod&#x3D;12, slowperiod&#x3D;26, signalperiod&#x3D;9)</p>
+<h2 id="MA"><a href="#MA" class="headerlink" title="MA"></a>MA</h2><p>包括SMA和EMA</p>
+<p>sma7 &#x3D; talib.SMA(self.df[“close”], timeperiod&#x3D;7)<br>sma25 &#x3D; talib.SMA(self.df[“close”], timeperiod&#x3D;25)<br>sma99 &#x3D; talib.SMA(self.df[“close”], timeperiod&#x3D;99)</p>
+<p>ema7 &#x3D; talib.EMA(self.df[“close”], timeperiod&#x3D;7)<br>ema25 &#x3D; talib.EMA(self.df[“close”], timeperiod&#x3D;25)<br>ema99 &#x3D; talib.EMA(self.df[“close”], timeperiod&#x3D;99)</p>
+<h2 id="转换数据为json"><a href="#转换数据为json" class="headerlink" title="转换数据为json"></a>转换数据为json</h2><p>LLM更适合处理json数据，pandas就很方便啦</p>
+<p>self.df.to_json(orient&#x3D;”records”, date_format&#x3D;”epoch”, date_unit&#x3D;”s”)</p>
+<h2 id="调用-LLM-接口"><a href="#调用-LLM-接口" class="headerlink" title="调用 LLM 接口"></a>调用 LLM 接口</h2><p>有了数据之后就可以把他们导出成 json，然后调用LLM进行处理。</p>
+<p>这里需要找一个可用的LLM，比如 Mistral AI、OpenAI 、Gemini或者 Claude。由于国内注册比较麻烦，而且风控很严格，建议大家使用「头顶冒火」的API接口</p>
+<ul>
+<li>OpenAI专场：<a target="_blank" rel="noopener" href="https://burn.hair/">https://burn.hair/</a></li>
+<li>Claude、MistralAI和OpenAI：<a target="_blank" rel="noopener" href="https://api.burn.hair/">https://api.burn.hair/</a></li>
+</ul>
+<p>使用什么模型因人而异，一次数据量比较大，gpt-4o可能是比较好的选择，Claude Opus和o1-preview比较贵，但是也可以考虑，头顶冒火网站也都有的</p>
+<p>然后要做的事情就是写提示词，让AI分析结果了！🧐</p>
+<p>很麻烦是不是……不要怕，我已经写好并且开源了。使用方式详见下一页！⬇️⬇️⬇️ 部分RSS阅读器可能无法显示下一页的内容，请点击链接打开网站阅读</p>
+<p> </p>
+<p>[v_error]本项目仅供学习交流使用。交易有风险，入市需谨慎。若因本项目产生任何损失，概不负责。[&#x2F;v_error]</p>
+<p>下面即将以Windows为例手把手教学，至于 macOS和Linux，基本步骤也基本一致</p>
+<h2 id="安装编辑器"><a href="#安装编辑器" class="headerlink" title="安装编辑器"></a>安装编辑器</h2><p>需要一个比较好的编辑器来编辑配置文件，可以选择Sublime、Notepad++，也可以选择 VS Code</p>
+<p>以 VS Code为例，到这里下载 <a target="_blank" rel="noopener" href="https://code.visualstudio.com/%EF%BC%8C">https://code.visualstudio.com/，</a> 下载回来双击下一步就可以</p>
+<h2 id="安装-Python"><a href="#安装-Python" class="headerlink" title="安装 Python"></a>安装 Python</h2><p>到这里<a target="_blank" rel="noopener" href="https://www.python.org/downloads/">https://www.python.org/downloads/</a> 下载并安装 Python</p>
+<p><img src="/images/2024121202224340.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="准备代码"><a href="#准备代码" class="headerlink" title="准备代码"></a>准备代码</h2><p>打开网址 <a target="_blank" rel="noopener" href="https://github.com/BennyThink/AICryptoBot">https://github.com/BennyThink/AICryptoBot</a></p>
+<p>Code – Download Zip 或者选择 git clone等方式</p>
+<p><img src="/images/202412120222449.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>对于ZIP文件，请自行解压缩</p>
+<h2 id="打开项目"><a href="#打开项目" class="headerlink" title="打开项目"></a>打开项目</h2><p>双击打开VS Code，然后把目录拖进去即可打开，能看到这样的目录结构就说明正确了</p>
+<p><img src="/images/2024121202224549.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>VSCode 菜单栏 Terminal – New Terminal</p>
+<p>如果网络速度不理想，需要配置镜像</p>
+<p>pip config set global.index-url <a target="_blank" rel="noopener" href="https://mirrors.ustc.edu.cn/pypi/simple">https://mirrors.ustc.edu.cn/pypi/simple</a><br>pip install -r requirements.txt</p>
+<p>pip install <a target="_blank" rel="noopener" href="https://github.com/cgohlke/talib-build/releases/download/v0.5.1/ta/_lib-0.5.1-cp313-cp313-win/_amd64.whl">https://github.com/cgohlke/talib-build/releases/download/v0.5.1/ta\_lib-0.5.1-cp313-cp313-win\_amd64.whl</a></p>
+<p>如果你安装不是 Python 3.13 需要把上面的<code>cp313</code>换成<code>cp312</code>（3.12）<code>cp311</code>（3.11）以此类推</p>
+<h2 id="准备-LLM接口"><a href="#准备-LLM接口" class="headerlink" title="准备 LLM接口"></a>准备 LLM接口</h2><p>这里以 OpenAI + 头顶冒火为例，需要先去 <a target="_blank" rel="noopener" href="https://burn.hair/">https://burn.hair/</a> 或者 <a target="_blank" rel="noopener" href="https://api.burn.hair/">https://api.burn.hair/</a> 注册一个账号，然后确保有足够余额（0.5-1美元就足够了）。</p>
+<p>令牌-添加令牌</p>
+<p><img src="/images/2024121202224554.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>然后复制令牌</p>
+<h2 id="准备配置文件"><a href="#准备配置文件" class="headerlink" title="准备配置文件"></a>准备配置文件</h2><p>创建一个 <code>.env</code>文件放到 <code>src</code> 这个子目录下,内容如下</p>
+<p>OPENAI_BASE_URL&#x3D;<a target="_blank" rel="noopener" href="https://burn.hair/v1">https://burn.hair/v1</a><br>OPENAI_API_KEY&#x3D;sk-61234这里就是你复制的令牌<br>OPENAI_MODEL&#x3D;gpt-4o-2024-08-06</p>
+<p>BINANCE_INTERVAL&#x3D;1m&#x3D;30,5m&#x3D;40,15m&#x3D;30,1h&#x3D;25,2h&#x3D;15,4h&#x3D;10,8h&#x3D;8,12h&#x3D;6,1d&#x3D;5</p>
+<p>BINANCE_INTERVAL 详解：</p>
+<p>这里需要根据你的需求，来配置采集的时间间隔和数据量，<code>1m=30</code>表示1分间隔的数据采集最近30个；同理，<code>1d=5</code> 意味着1天的间隔，采集5个，换句话说也就是5天的日线数据。数据量越多，API消耗也就越多，按照默认配置大概1个交易对要用0.1-0.2美元。</p>
+<p>可以根据个人情况调整，如果拿不准可以用默认值，或者让AI给出个主意</p>
+<h2 id="运行测算"><a href="#运行测算" class="headerlink" title="运行测算"></a>运行测算</h2><p>同样在 Terminal里</p>
+<p>cd src</p>
+<h1 id="多个交易对可以用逗号分隔，如"><a href="#多个交易对可以用逗号分隔，如" class="headerlink" title="多个交易对可以用逗号分隔，如"></a>多个交易对可以用逗号分隔，如</h1><p>python main.py –symbol&#x3D;btcusdt,ethusdt</p>
+<h1 id="只想查询一个可以这样"><a href="#只想查询一个可以这样" class="headerlink" title="只想查询一个可以这样"></a>只想查询一个可以这样</h1><p>python main.py –symbol&#x3D;btcusdt</p>
+<p><img src="/images/2024121202224697.png" alt="图形用户界面 低可信度描述已自动生成"></p>
+<p>然后浏览器就会自动打开一个网页显示结果，也可以在output目录下找到html文件打开自行查看</p>
+<p><img src="/images/2024121202224868.png" alt="图形用户界面, 文本, 应用程序描述已自动生成"></p>
+<p>看起来是不是挺靠谱的样子，至少比自己凭着感觉瞎买要好多了。再次警告，<strong>交易有风险，入市需谨慎。若因本项目产生任何损失，概不负责。</strong></p>
+<p> </p>
+<p>要是赚到钱了，可以考虑<a target="_blank" rel="noopener" href="https://github.com/BennyThink/AICryptoBot?tab=readme-ov-file#%E8%B5%9E%E8%B5%8F">给我打个赏</a>😂</p>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><ul>
+<li>代码开源地址：<a target="_blank" rel="noopener" href="https://github.com/BennyThink/AICryptoBot">https://github.com/BennyThink/AICryptoBot</a></li>
+<li>头顶冒火 OpenAI 接口站：限时折扣优惠进行中，<a target="_blank" rel="noopener" href="https://burn.hair/">https://burn.hair/</a></li>
+<li>头顶冒火小分队，支持 Claude、MistralAI、Grok和 OpenAI，纯官方转发：<a target="_blank" rel="noopener" href="https://api.burn.hair/">https://api.burn.hair/</a></li>
+<li>TA-Lib：<a target="_blank" rel="noopener" href="https://ta-lib.org/">https://ta-lib.org/</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/12/12/candlestick-llm/index/" data-id="cm4lwgy6w0000tdjfcn828igf" data-title="使用Python 通过K线计算技术指标，并用 LLM 预测趋势" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-warp-http-proxy/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/11/03/warp-http-proxy/index/" class="article-date">
@@ -1065,98 +1188,6 @@ if (response.ok) &#123;
 
 
   
-    <article id="post-azure-fd/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/07/16/azure-fd/index/" class="article-date">
-  <time class="dt-published" datetime="2024-07-16T00:00:00.000Z" itemprop="datePublished">2024-07-16</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>一般来说，做个网站，并开放给全世界，有以下几种方式：</p>
-<ol>
-<li>直接使用公网IP+端口号</li>
-<li>买个域名，做解析，使用域名访问</li>
-<li>套上 Cloudflare，让 Cloudflare去反向代理源站</li>
-<li>用 Cloudflare Argo Tunnel，服务器有没有公网IP都无所谓了</li>
-<li>其他CDN方案</li>
-</ol>
-<p>最近在用 Azure，一直想利用一下他们的Front Door。简单的摸索了一下如何把Front Door、Load Balancer 和 vm三者结合起来使用。</p>
-<h2 id="创建一台-vm"><a href="#创建一台-vm" class="headerlink" title="创建一台 vm"></a>创建一台 vm</h2><p>不分配公网 IP 没关系，简单起见这里先只创建一个了</p>
-<h2 id="创建-LB"><a href="#创建-LB" class="headerlink" title="创建 LB"></a>创建 LB</h2><p><img src="/images/2024071603033180.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>给 LB的类型设置为 Public，创建一个IP，可以选Microsoft网络也可以选公网，具体区别可以看 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/azure/virtual-network/ip-services/routing-preference-overview">https://learn.microsoft.com/zh-cn/azure/virtual-network/ip-services/routing-preference-overview</a></p>
-<p><img src="/images/2024071603033238.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>添加 NIC，选择虚拟机的那个网卡</p>
-<p><img src="/images/2024071603033362.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>此负载均衡器会有一个公网IP地址，并且连接到了我们的vnet，只是我们还没有定义 NAT出入规则，所以还需要继续配置</p>
-<p>打开LB的Inbound NAT rules，由于我们的backend其实只有一台vm，因此类型选择 azure 虚拟机就可以了</p>
-<p><img src="/images/2024071603033459.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>这个时候 ssh 就会发现能够连到vm啦，但是vm还上不了网</p>
-<p><img src="/images/2024071603033588.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>要添加出网规则机器才能上网，outbound rules中添加一个</p>
-<p><img src="/images/2024071603033620.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>Port allocation 选择 default就行</p>
-<p>这个时候机器就可以上网了，体验了一把自己配置 SNAT的快感🤡</p>
-<p>那就先跑个nginx 方便我们后续测试 http</p>
-<p>sudo docker run -d -p 80:80 nginx:alpine<br>curl localhost</p>
-<p>之后时候你在这台机器外面 <code>curl</code> 还是不行的，因为还得继续加一条 inbound 80 规则和上面一样，这时在外面就可以访问啦！</p>
-<h2 id="创建-Front-Door"><a href="#创建-Front-Door" class="headerlink" title="创建 Front Door"></a>创建 Front Door</h2><p>Front door有三种，Classic、Standard、Premium</p>
-<p>Classic即将在2027年3月退役</p>
-<p>Classic 按照流量和路由规则、WAF等计费，Standard、Premium则是月费、流量和请求数量计费。</p>
-<p>按照提示来就行，之后 Front Door会让我们配置</p>
-<h3 id="Domain"><a href="#Domain" class="headerlink" title="Domain"></a>Domain</h3><p>Domain 那里就选创建 Front Door的时候的那个域名</p>
-<p><img src="/images/2024071603033773.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
-<h3 id="Backend-pools"><a href="#Backend-pools" class="headerlink" title="Backend pools"></a>Backend pools</h3><p>需要注意这里 https port也要写80</p>
-<p>因为在我们的vm上只跑了80端口，所以只能都80。如果我们的应用是跑在其他端口的话，也要跟着更改</p>
-<p><img src="/images/2024071603033839.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<h3 id="routing-rules"><a href="#routing-rules" class="headerlink" title="routing rules"></a>routing rules</h3><p>要注意 forwarding protocol 选择 http only，原因同上</p>
-<p><img src="/images/2024071603033860.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
-<p>然后部署，等几分钟，就有啦</p>
-<p><img src="/images/2024071603033997.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
-<li>Azure Front Door Premium 可以用 Private Link 连接到内部负载均衡器。但是 Premium 月费要330美元，我可能确实用不起……</li>
-<li>如果单机性能足够，那么给vm分配个公网IP，然后配置 Front Door写这个IP就行</li>
-<li>如果单机性能不够，那么可以再加多台vm，然后用LB做负载均衡；也可以直接 Front Door 加 backend pool</li>
-<li>走微软全球网络路由的性能应该不错</li>
-</ol>
-<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/azure/frontdoor/front-door-faq">https://learn.microsoft.com/en-us/azure/frontdoor/front-door-faq</a></li>
-<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/azure/frontdoor/standard-premium/how-to-enable-private-link-internal-load-balancer">https://learn.microsoft.com/zh-cn/azure/frontdoor/standard-premium/how-to-enable-private-link-internal-load-balancer</a></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2024/07/16/azure-fd/index/" data-id="clyujt89y00005yjf7dlbdiq6" data-title="使用Azure Front Door 和 Load Balancer" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1201,7 +1232,7 @@ if (response.ok) &#123;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1212,6 +1243,10 @@ if (response.ok) &#123;
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
         
           <li>
             <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
@@ -1227,10 +1262,6 @@ if (response.ok) &#123;
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
       </ul>

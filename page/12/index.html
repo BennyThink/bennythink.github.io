@@ -73,6 +73,180 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-python2-3-port/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2018/04/17/python2-3-port/index/" class="article-date">
+  <time class="dt-published" datetime="2018-04-17T00:00:00.000Z" itemprop="datePublished">2018-04-17</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2018/04/17/python2-3-port/index/">一次找不到错误的巨坑的http header的url编码的Python 3迁移问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="起源"><a href="#起源" class="headerlink" title="起源"></a>起源</h2><p>近期，我把一个Python 2 的项目迁移到了Python 3，今早在进行最后一次测试时，发现下载的一个按钮是失效的。当时立刻就想，完蛋了，难道是遇到了跨平台的问题？那就糟糕了啊，跨平台问题都不太好处理的。</p>
+<p>试了下原来的Python 2版本的还正常，那么就是这次迁移有点小问题了。</p>
+<p><img src="/images/201804170754535.png"></p>
+<h2 id="确定复现"><a href="#确定复现" class="headerlink" title="确定复现"></a>确定复现</h2><p>经过一系列绝望的瞎猫碰死耗子的尝试，发现了当要下载的文件是第三个，就会触发这个错误，抛的异常如下：</p>
+<p>[E 180417 11:03:48 web:1590] Uncaught exception GET &#x2F;apps&#x2F;scenario_change&#x2F;page&#x2F;download?_id&#x3D;5aab8287e138235c1c9fa9ea&amp;type&#x3D;task (127.0.0.1)<br>    HTTPServerRequest(protocol&#x3D;’http’, host&#x3D;’127.0.0.1:9118’, method&#x3D;’GET’, uri&#x3D;’&#x2F;apps&#x2F;scenario_change&#x2F;page&#x2F;download?_id&#x3D;5aab8287e138235c1c9fa9ea&amp;type&#x3D;task’, version&#x3D;’HTTP&#x2F;1.1’, remote_ip&#x3D;’127.0.0.1’, headers&#x3D;{‘Host’: ‘127.0.0.1:9118’, ‘Connection’: ‘keep-alive’, ‘Upgrade-Insecure-Requests’: ‘1’, ‘User-Agent’: ‘Mozilla&#x2F;5.0 (Macintosh; U; Intel Mac OS X 10.11; rv:54.0) Gecko&#x2F;20100101 Firefox&#x2F;54.0’, ‘Accept’: ‘text&#x2F;html,application&#x2F;xhtml+xml,application&#x2F;xml;q&#x3D;0.9,image&#x2F;webp,image&#x2F;apng,*&#x2F;*;q&#x3D;0.8’, ‘Dnt’: ‘1’, ‘Referer’: ‘<a target="_blank" rel="noopener" href="http://127.0.0.1:9118/apps/scenario/_change/task/_management.html">http://127.0.0.1:9118/apps/scenario\_change/task\_management.html</a>‘, ‘Accept-Encoding’: ‘gzip, deflate, br’, ‘Accept-Language’: ‘zh-CN,zh;q&#x3D;0.9,en-US;q&#x3D;0.8,en;q&#x3D;0.7’})<br>    Traceback (most recent call last):<br>      File “C:\Python36\lib\site-packages\tornado\web.py”, line 1513, in _execute<br>        self.finish()<br>      File “C:\Python36\lib\site-packages\tornado\web.py”, line 991, in finish<br>        self.flush(include_footers&#x3D;True)<br>      File “C:\Python36\lib\site-packages\tornado\web.py”, line 947, in flush<br>        start_line, self._headers, chunk, callback&#x3D;callback)<br>      File “C:\Python36\lib\site-packages\tornado\http1connection.py”, line 381, in write_headers<br>        lines.extend(l.encode(‘latin1’) for l in header_lines)<br>      File “C:\Python36\lib\site-packages\tornado\http1connection.py”, line 381, in<br>        lines.extend(l.encode(‘latin1’) for l in header_lines)<br>    UnicodeEncodeError: ‘latin-1’ codec can’t encode characters in position 45-46: ordinal not in range(256)<br>[E 180417 11:03:48 web:1015] Cannot send error response after headers written<br>[E 180417 11:03:48 web:1025] Failed to flush partial response<br>    Traceback (most recent call last):<br>      File “C:\Python36\lib\site-packages\tornado\web.py”, line 1513, in _execute<br>        self.finish()<br>      File “C:\Python36\lib\site-packages\tornado\web.py”, line 991, in finish<br>        self.flush(include_footers&#x3D;True)<br>      File “C:\Python36\lib\site-packages\tornado\web.py”, line 947, in flush<br>        start_line, self._headers, chunk, callback&#x3D;callback)<br>      File “C:\Python36\lib\site-packages\tornado\http1connection.py”, line 381, in write_headers<br>        lines.extend(l.encode(‘latin1’) for l in header_lines)<br>      File “C:\Python36\lib\site-packages\tornado\http1connection.py”, line 381, in<br>        lines.extend(l.encode(‘latin1’) for l in header_lines)<br>    UnicodeEncodeError: ‘latin-1’ codec can’t encode characters in position 45-46: ordinal not in range(256)</p>
+<pre><code>During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File &quot;C:\\Python36\\lib\\site-packages\\tornado\\web.py&quot;, line 1022, in send\_error
+    self.finish()
+  File &quot;C:\\Python36\\lib\\site-packages\\tornado\\web.py&quot;, line 992, in finish
+    self.request.finish()
+  File &quot;C:\\Python36\\lib\\site-packages\\tornado\\httputil.py&quot;, line 419, in finish
+    self.connection.finish()
+  File &quot;C:\\Python36\\lib\\site-packages\\tornado\\http1connection.py&quot;, line 448, in finish
+    self.\_expected\_content\_remaining)
+tornado.httputil.HTTPOutputError: Tried to write 8015 bytes less than Content-Length
+</code></pre>
+<h2 id="追踪异常1：白高兴"><a href="#追踪异常1：白高兴" class="headerlink" title="追踪异常1：白高兴"></a>追踪异常1：白高兴</h2><p>按照常理讲，咱代码出了异常，咱就定位到报错的最后一行（most recent call last嘛，最后一次调用），看下异常是什么知道个大概，然后跳过去，该回溯的回溯，管它是高级的打断点开debug还是低级的一顿print的，确定问题根源然后修改。</p>
+<p>看一眼这个异常，<strong>Tried to write 8015 bytes less than Content-Length</strong>，看样子好像是指定了一个Content-Length但是实际上发送的文件却比这个短8015字节。莫非是迁移到3的过程中对Unicode与bytes应用了错误的<code>len()</code>导致抛异常？</p>
+<p>那简单了，看一眼是不是设错了headers就好了啊，Edit - Find - Find in path，限定文件类型为py，开搜！</p>
+<p><img src="/images/201804170754546.png"></p>
+<p>啥？逗我呢？没有？ [v_tips] 小提示：为啥第一想法要怀疑Content-Length的长度设置错了呢？</p>
+<p>很简单啦，Python 2对Unicode的实现emmm这么说吧，在Python 2里，<code>&#39;hello&#39;</code>是二进制（字节流 bytes），<code>u&#39;hello&#39;</code>才是Unicode；但是在3里呢，<code>&#39;hello&#39;</code>是Unicode，<code>b&#39;hello&#39;</code>才是二进制。唉，谁叫Python 问世（第一版发布于1991.02）的时候Unicode标准（1991.10）还没出来呢。</p>
+<p>以防你们不晓得这么个大坑，看下图：</p>
+<p><img src="/images/2018041707545544.png"></p>
+<p>以后在有人跟你说一个汉字是两个字节，你就拿这个图怼死他：不说编码就说一个汉字是几个字节就是耍流氓，<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E4%B8%AD%E6%97%A5%E9%9F%93%E7%B5%B1%E4%B8%80%E8%A1%A8%E6%84%8F%E6%96%87%E5%AD%97">说了编码那也是耍流氓</a>。[&#x2F;v_tips]</p>
+<h2 id="追踪异常2：找到根源"><a href="#追踪异常2：找到根源" class="headerlink" title="追踪异常2：找到根源"></a>追踪异常2：找到根源</h2><p>有点扫兴，竟然没有Content-Length，那是因为啥呢？那就继续看着报错回溯呗。扫了一眼，啥，<strong>都是tornado的错</strong>，<strong>不是我的错</strong>？难道我要怀疑编译器解释器和久负盛名的tornado……？ [v_blue] 扩展阅读：</p>
+<p>《<a target="_blank" rel="noopener" href="https://v2mm.tech/topic/830/%E5%A4%A7%E5%AE%B6%E6%9C%89%E4%BB%80%E4%B9%88%E5%86%99%E4%BB%A3%E7%A0%81%E5%86%99%E5%88%B0%E6%80%80%E7%96%91%E4%BA%BA%E7%94%9F-%E6%80%80%E7%96%91%E7%BC%96%E8%AF%91%E5%99%A8%E8%A7%A3%E9%87%8A%E5%99%A8%E7%9A%84%E7%BB%8F%E5%8E%86%E5%90%97">大家有什么写代码写到怀疑人生、怀疑编译器解释器的经历吗</a>》</p>
+<p>cookies的时间戳，C语言标准for循环<code>for(int i=0;i++;i&lt;10)</code>，mian，ture，全角符号，以及<code>&lt;link href</code>……[&#x2F;v_blue]</p>
+<p>又仔细看了一眼，发现这么一段话：<strong>During handling of the above exception, another exception occurred</strong>:</p>
+<p>处理上面这个异常的时候，又来了个这么异常。</p>
+<p>啊原来我刚刚看的是后来的异常啊，那我得看第一个异常的尾巴：</p>
+<p><strong>UnicodeEncodeError: ‘latin-1’ codec can’t encode characters in position 45-46: ordinal not in range(256)</strong></p>
+<p>多少年了，无数的Python程序员都曾经被UnicodeEncodeError与UnicodeDecodeError坑的说不出话来。</p>
+<p>可是依旧没有我的代码啊。</p>
+<p>终于，通过搜索.txt（下载的文件的扩展名）我成功找到了这一行：</p>
+<p>file_name &#x3D; response[‘data’][0][‘task_name’] + ‘.txt’</p>
+<p>看来是这句话负责生成文件名的，找到这句的函数定义，继续找调用者，叮咚！</p>
+<p>一看函数名叫download，看样子下图这里就是该排错的地方</p>
+<p><img src="/images/2018041707545536.png"></p>
+<h2 id="解决异常1：瞎比划"><a href="#解决异常1：瞎比划" class="headerlink" title="解决异常1：瞎比划"></a>解决异常1：瞎比划</h2><h3 id="加个Content-Length"><a href="#加个Content-Length" class="headerlink" title="加个Content-Length"></a>加个Content-Length</h3><p>大致看了眼，好像没啥问题。要不在这里加上个Content-Length试试？</p>
+<p>self.set_header(“Content-Length”, len(file_content.encode(‘utf-8’)))</p>
+<p><img src="/images/2018041707545689.png"></p>
+<p>我的基础还是很牢固的，没算错，一点问题都没有，肯定没错啊。但是<strong>Tried to write 8015 bytes less than Content-Length</strong>这个异常还是抛了。</p>
+<h3 id="数据类型错了"><a href="#数据类型错了" class="headerlink" title="数据类型错了"></a>数据类型错了</h3><p>也许是数据类型错了？说不定<code>file_name</code>, <code>file_content</code>需要字节流而不是字符串呢？这好像有点接近Unicode错误了。简单的<code>encode(&#39;utf-8&#39;)</code>一下，当然还是继续错啦。</p>
+<h3 id="也许是因为header的事情"><a href="#也许是因为header的事情" class="headerlink" title="也许是因为header的事情"></a>也许是因为header的事情</h3><p>那就把header都注释了看看。于是在浏览器里打开了文件……</p>
+<p><img src="/images/2018041707545712.png"></p>
+<p>那我只留Content-Type</p>
+<p><img src="/images/2018041707545743.png"></p>
+<p>噗(&#x2F;≧▽≦)&#x2F;我的文件名呢，内容是正确的。</p>
+<p>啊，原来是靠的Content-Disposition这个响应头来强制浏览器下载文件，指定文件名什么的啊……</p>
+<h2 id="解决异常2：确定问题"><a href="#解决异常2：确定问题" class="headerlink" title="解决异常2：确定问题"></a>解决异常2：确定问题</h2><p>终于，我确定了出错的代码在这一行</p>
+<p>self.set_header(“Content-Disposition”, “attachment; filename&#x3D;%s” % file_name)</p>
+<p>看样子是文件名。那就把filename替换成硬编码的<code>test.txt</code>，正常下载；再换成<code>tes啊t.txt</code>，一模一样的报错。</p>
+<p>于是我果断的搜索了Content-Disposition encoding以及Content-Disposition 编码，看到<a target="_blank" rel="noopener" href="https://blog.robotshell.org/2012/deal-with-http-header-encoding-for-file-download/">这么一篇说得还挺有道理的文章</a>：</p>
+<p>Content-Disposition: attachment;filename&#x3D;”$encoded_fname”;<br>filename*&#x3D;utf-8’’$encoded_fname</p>
+<p>当然了我没看到下面那句话（<strong>读书要读全啊</strong>），直接套上了</p>
+<p>self.set_header(“Content-Disposition”, “attachment; filename*&#x3D;utf-8’’%s” % file_name)</p>
+<p>当然继续报错啦。还是<code>file_name</code>数据类型不对？encode成UTF-8？差点用上decode（字符串怎么可能再decode嘛？必然要报错的）</p>
+<p><img src="/images/201804170754585.png"></p>
+<p>噗，这倒真是<code>tes的t.txt</code>这个字符串的UTF-8编码。</p>
+<p>这就纠结了，难道我要把文件名搞成什么ASCII的？比如干脆是几个真伪随机数吧？</p>
+<h2 id="解决异常3：解决"><a href="#解决异常3：解决" class="headerlink" title="解决异常3：解决"></a>解决异常3：解决</h2><p>然后又找到了这么一篇<a target="_blank" rel="noopener" href="http://lgbolgger.iteye.com/blog/2108396">例子丰富的文章</a>，看到一半突然想起了，既然要给任意文字编码成ASCII字符集内的，那就用base64啊，但是浏览器又不懂base64没办法给还原回来啊……</p>
+<p>唉？？不是有个东西叫URL编码吗？迅速翻了翻例子丰富的文章，还真提了一句……</p>
+<p>from urllib.parse import quote<br>self.set_header(“Content-Disposition”, “attachment; filename&#x3D;%s” % quote(‘tes的t.txt’))</p>
+<p><img src="/images/2018041707545941.png"></p>
+<p>我爱emoji，emoji也爱我。???典型的傲娇受。</p>
+<p>??? ??? ??? ??? ??? ??? ???</p>
+<p>其实<a target="_blank" rel="noopener" href="https://blog.robotshell.org/2012/deal-with-http-header-encoding-for-file-download/">第一篇文章</a>提了一句的：其中， <code>$encoded_fname</code>指的是将 UTF-8 编码的原始文件名按照 RFC 3986 进行百分号编码（percent encoding）后得到的。</p>
+<p>百分号编码就是<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/%E7%99%BE%E5%88%86%E5%8F%B7%E7%BC%96%E7%A0%81">URL编码</a>啦……</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这个小问题其实隐藏的还是很深的，而且奇特的是在Python 2没有问题但是到了3就冒出来了。</p>
+<p>光看报错基本上没什么线索，只能靠对业务的熟悉摸索找到对应的代码，仔细排查最终确定导致出错的代码……然后解决之。</p>
+<p>就我这水平啊，还是别怀疑编译器解释器，也别怀疑久负盛名的库了，绝对是我错了。</p>
+<blockquote>
+<p>You tell me I’m wrong, then you’d better prove you’re right. ——M.J.</p>
+</blockquote>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>经过一小段时间的阅读源代码，在tornado源代码中发现了问题的根源。跟着我的节奏走！先看下抓包的结果吧：</p>
+<p>Python 2未编码 <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/04/2018041803535426.png"><img src="/images/2018041803535426.png"></a></p>
+<p>Python 2 URL编码 <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/04/2018041803535177.png"><img src="/images/2018041803535177.png"></a></p>
+<p>Python 3 URL编码 <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/04/2018041803535360.png"><img src="/images/2018041803535360.png"></a></p>
+<p>我们知道问题是由set_header引起的，所以看一下set_header的源代码：</p>
+<p>def set_header(self, name, value):<br>        # type: (str, _HeaderTypes) -&gt; None<br>        “””Sets the given response header name and value.</p>
+<pre><code>    If a datetime is given, we automatically format it according to the
+    HTTP specification. If the value is not a string, we convert it to
+    a string. All header values are then encoded as UTF-8.
+    &quot;&quot;&quot;
+    self.\_headers\[name\] = self.\_convert\_header\_value(value)
+</code></pre>
+<p>非常清楚的看到调用了一个<code>_convert_header_value()</code>，继续追溯</p>
+<pre><code>def \_convert\_header\_value(self, value):
+    # type: (\_HeaderTypes) -&gt; str
+
+    # Convert the input value to a str. This type check is a bit
+    # subtle: The bytes case only executes on python 3, and the
+    # unicode case only executes on python 2, because the other
+    # cases are covered by the first match for str.
+    if isinstance(value, str):
+        retval = value
+    elif isinstance(value, bytes):  # py3
+        # Non-ascii characters in headers are not well supported,
+        # but if you pass bytes, use latin1 so they pass through as-is.
+        retval = value.decode(&#39;latin1&#39;)
+    elif isinstance(value, unicode\_type):  # py2
+        # TODO: This is inconsistent with the use of latin1 above,
+        # but it&#39;s been that way for a long time. Should it change?
+        retval = escape.utf8(value)
+    elif isinstance(value, numbers.Integral):
+        # return immediately since we know the converted value will be safe
+        return str(value)
+    elif isinstance(value, datetime.datetime):
+        return httputil.format\_timestamp(value)
+    else:
+        raise TypeError(&quot;Unsupported header value %r&quot; % value)
+    # If \\n is allowed into the header, it is possible to inject
+    # additional headers or split the request.
+    if RequestHandler.\_INVALID\_HEADER\_CHAR\_RE.search(retval):
+        raise ValueError(&quot;Unsafe header value %r&quot;, retval)
+    return retval
+</code></pre>
+<p>这段代码有点冗长，但实际上只做了一件事情，将传递过来的value转换为字符串，更进一步，在Python 2中，如果传过来的是<code>&#39;hello&#39;</code>，那么直接返回；如果类型是<code>u&#39;hello&#39;</code>, 那么<code>escape.utf8(value)</code>。在Python 3中如果是<code>&#39;hello&#39;</code>那么直接返回，如果是<code>&#39;hello你&#39;.encode(&#39;utf-8&#39;)</code>，那么用latin1解码。</p>
+<p>最终这段代码会保证返回的类型是对应Python 2&#x2F;3的str类型。</p>
+<p>但其实这段代码并没有什么错，不过确实写的有点难懂。 之后继续追溯到<code>write_headers()</code>，在http1connection.py的第380行左右：</p>
+<p>if PY3:<br>            lines.extend(l.encode(‘latin1’) for l in header_lines)<br>        else:<br>            lines.extend(header_lines)</p>
+<p>其中header_lines是一个生成器对象，包含了所有的headers，其类型为str（对应2&#x2F;3的类型） 那么错误就显然易见了，在Python 3中对<code>&#39;hello&#39;.encode(&#39;latin1&#39;)</code>是没有任何问题的，但是<code>&#39;hello和&#39;.encode(&#39;latin1&#39;)</code>肯定会报UnicodeEncodeError啊，这也印证了我最开始发现的编码错误。</p>
+<p>但是在Python 2，直接就走了下面extend进去了，自然也没问题了。 但是如果我们调用set_header时传递的参数是<code>&#39;hell你&#39;.encode(&#39;utf-8&#39;)</code>，那么在<code>_convert_header_value</code>中会被用latin1解码，在这里又使用latin1编码，又回到了utf-8编码之后的形态，所以自然会出现对应文件名的UTF-8编码，也印证了上面下载出来的乱码文件。</p>
+<p>所以，如果要修复这个问题，要么我们保证只传递过来ASCII的文件名（进行URL编码），这样用latin1编码就不会错了。要么直接把这俩latin1改成utf-8。</p>
+<p>不过根据<a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc7230#section-3.2.4">RFC7230 section 3.2.4</a>:</p>
+<blockquote>
+<p>Historically, HTTP has allowed field content with text in the ISO-8859-1 charset [ISO-8859-1], supporting other charsets only through use of [RFC2047] encoding. In practice, most HTTP header field values use only a subset of the US-ASCII charset [USASCII]. Newly defined header fields SHOULD limit their field values to US-ASCII octets. A recipient SHOULD treat other octets in field content (obs-text) as opaque data.</p>
+</blockquote>
+<p>这么做其实是有悖标准的，但是Python 2的版本直接不管不顾发出去了啊，实际上Python 2版本的应该拒绝这种headers的。我也很纠结，我也觉得没办法啊。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2018/04/17/python2-3-port/index/" data-id="clhp7rtie0073s2qrhi226brl" data-title="一次找不到错误的巨坑的http header的url编码的Python 3迁移问题" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-python-longpoll-db/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2018/04/13/python-longpoll-db/index/" class="article-date">
@@ -1208,82 +1382,6 @@ return e
 
 
   
-    <article id="post-hiramasa-mikuri/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/11/20/hiramasa-mikuri/index/" class="article-date">
-  <time class="dt-published" datetime="2017-11-20T00:00:00.000Z" itemprop="datePublished">2017-11-20</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/11/20/hiramasa-mikuri/index/">平匡与实栗</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>本来我是最不擅长写剧评影评的，但是看到这么让我这么有认同感的一部剧，感觉哪怕说不出点什么，也要留个脚印吧。好吧，先丢个人人影视的链接：<a target="_blank" rel="noopener" href="http://www.zimuzu.tv/resource/34812">戳我</a>、<a target="_blank" rel="noopener" href="http://xiazai003.com/ZqCA2">戳我</a>、<a target="_blank" rel="noopener" href="https://pastebin.com/Zg0mPhy3">戳我</a></p>
-<p>[netmusic play&#x3D;’0’]448917334[&#x2F;netmusic]</p>
-<h2 id="莫名其妙"><a href="#莫名其妙" class="headerlink" title="莫名其妙"></a>莫名其妙</h2><p>差不多一年前，在人人影视公众号上看到了这么一条推送<a target="_blank" rel="noopener" href="http://mp.weixin.qq.com/s/BYjujIyjKEb-AQCrvgsUvg">《让新垣结衣说出“如果是和你做那件事，我可以”的男人是个什么样子》</a>，然后我就给收藏起来了。</p>
-<p>差不多一年之后的今天，偶然在推上看到了一个妹子的十年长图，又因为一些莫名其妙的可笑的原因看了<a target="_blank" rel="noopener" href="http://www.zimuzu.tv/resource/34596">《心有所属》</a>，然后想起了好像曾经收藏过什么，然后就……<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012494597.jpg"><img src="/images/2017112012494597.jpg"></a></p>
-<h2 id="津崎平匡与森山实栗"><a href="#津崎平匡与森山实栗" class="headerlink" title="津崎平匡与森山实栗"></a>津崎平匡与森山实栗</h2><p>津崎平匡，（PHP）程序员，技术水平一流，逻辑分明、条理清晰的单身达人。</p>
-<p>森山实栗，研究生毕业，失业，每天都在“不被任何人需要” 的痛苦中备受煎熬。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012502119.jpg"><img src="/images/2017112012502119.jpg"></a></p>
-<h2 id="被需要"><a href="#被需要" class="headerlink" title="被需要"></a>被需要</h2><p>人们都希望被别人需要  却往往事与愿违  一点一点放弃自己的想法  想哭的时候一笑了之  或许  人们都是这样生活下去的</p>
-<p><a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/897651719785545728">其实我觉得，自己对别人来说是重要的，被别人需要的，是一种很美好的感觉的……</a></p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012515042.jpg"><img src="/images/2017112012515042.jpg"></a></p>
-<p> </p>
-<h2 id="认同感"><a href="#认同感" class="headerlink" title="认同感"></a>认同感</h2><p>在《影响力》中有段话大概是这样的：</p>
-<p>我们喜欢与自己相似的人，不管相似之处是在观点、个性、背景还是生活方式上，我们总会有这样的倾向。</p>
-<p>所以这可能是过去的差不多一年里我又开心又难过还很纠结的原因。</p>
-<p>这也是我喜欢这部剧的原因之一，我也是一名程序员，与平匡<strong>有一些</strong>比较相似的地方。原因之二当然是因为ガッキー的盛世美颜啦，其实ガッキー演技也很不错，尤其是EP06电车上那段，飙泪&#x2F;(ㄒoㄒ)&#x2F;~</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012521745.jpg"><img src="/images/2017112012521745-1024x577.jpg"></a></p>
-<p>电车上的你，一点点的表情都在说着难过。你说你放弃了，累了，什么也不做，什么也不求。一边的眼睛湿润了，流泪了，车到站了，笑着说，我们走吧。</p>
-<p>平匡：这次旅行结束后，我们就要回到一周拥抱一次的雇主与雇员关系了,一如往常</p>
-<p>实栗：一如往常就好，我放弃了。我累了，什么也不做，什么也不求。这次旅行结束，就回归平稳的日常生活，还有一站</p>
-<p>平匡：还有一站</p>
-<p>实栗：还有…一站</p>
-<p>如果永远都不会到……就好了</p>
-<h2 id="我喜欢你"><a href="#我喜欢你" class="headerlink" title="我喜欢你"></a>我喜欢你</h2><p>因为是平匡，所以我才可以。</p>
-<p>你为什么要说这样的话，这样会让我越来越喜欢你啊。所以我才讨厌这样，只有我在单相思。要是你也喜欢我就好了。<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012525020.jpg"><img src="/images/2017112012525020-1024x576.jpg"></a></p>
-<p>这可不行，对我来说你已经不是轻易地可以去放弃的人。</p>
-<h2 id="周二是拥抱日"><a href="#周二是拥抱日" class="headerlink" title="周二是拥抱日"></a>周二是拥抱日</h2><p>从那天之后，拥抱日就不存在了。因为每天都随心而抱。一旦冷淡下来，手也不会碰，什么都没有。</p>
-<p>平匡深爱着的是一个可以把家务做到完美总能以笑容相待的理想妻子，而不是一个仅仅因为米饭就翻脸的女人。</p>
-<p>希望被选中，希望得到认可，然而我却与理想中的自己渐行渐远了。<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012532877.jpg"><img src="/images/2017112012532877-1024x576.jpg"></a> 这就是我想要的生活……可是也只能是幻想了?</p>
-<h2 id="几个小问题"><a href="#几个小问题" class="headerlink" title="几个小问题"></a>几个小问题</h2><h3 id="PHP程序员"><a href="#PHP程序员" class="headerlink" title="PHP程序员"></a>PHP程序员</h3><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012543067.jpg"><img src="/images/2017112012543067-1024x768.jpg"></a>平匡，你这样改掉超全局变量，真的好吗？不是不可以，但是咱一般都把$_POST放到表达式右面的。</p>
-<h3 id="左手写字"><a href="#左手写字" class="headerlink" title="左手写字"></a>左手写字</h3><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012543117.jpg"><img src="/images/2017112012543117-1024x576.jpg"></a>左手写字！！</p>
-<h3 id="开源"><a href="#开源" class="headerlink" title="开源"></a>开源</h3><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012543299.jpg"><img src="/images/2017112012543299.jpg"></a>OpenOffice嗯……还有书架上的书……绝对是个大大大大牛！！</p>
-<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>一直在逃避……从不敢面对。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/11/2017112012543356.jpg"><img src="/images/2017112012543356-1024x576.jpg"></a></p>
-<p>???</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/11/20/hiramasa-mikuri/index/" data-id="clhp7rtgo003ps2qr2hjddxx7" data-title="平匡与实栗" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1328,7 +1426,7 @@ return e
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1339,6 +1437,10 @@ return e
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
         
           <li>
             <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
@@ -1354,10 +1456,6 @@ return e
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
       </ul>

@@ -73,6 +73,116 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-dev-deploy-bot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/10/30/dev-deploy-bot/index/" class="article-date">
+  <time class="dt-published" datetime="2020-10-30T00:00:00.000Z" itemprop="datePublished">2020-10-30</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/10/30/dev-deploy-bot/index/">我是如何优雅的开发、部署并管理多个Telegram Bot的？</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><strong>并不优雅</strong></p>
+<p>大家都知道，最近我一直痴迷于开发各种并无卵用的Telegram Bot。那么这一过程，就包含了开发、部署和管理这三个过程，本文就简单的说下这段时间的经验之谈吧</p>
+<h2 id="开发-Telegram-Bot"><a href="#开发-Telegram-Bot" class="headerlink" title="开发 Telegram Bot"></a>开发 Telegram Bot</h2><blockquote>
+<p>神说：要有这个bot，于是就有了这个bot</p>
+</blockquote>
+<p>开发bot，最重要的一点就是进行技术选型。“技术选型”看起来很玄乎，其实就是为了实现这个bot，我们要选用什么语言，使用什么库等等。</p>
+<p>当然一切都要从需求出发，从我的角度而言，首选语言是Go——因为静态类型，静态编译之后很适合放到Docker Image里，并且只要凭借想象力编程就基本没问题了；如果Go无法达到我的预期，那就只好选Python了；如果连Python也做不好，那这个bot就可以丢掉了。</p>
+<p>当然，在最终选定时，需要根据需求进行一些基础的调研，拿<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet">TeleTweet</a>为例，基础阶段它的需求有这些：</p>
+<ul>
+<li>能够把Telegram消息发送到Twitter</li>
+<li>支持图片tweet</li>
+</ul>
+<p>对于Go&#x2F;Python与其生态的对比</p>
+<p>Go：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/tucnak/telebot">Telebot</a> 纯Go实现的支持Bot API的库，维护很积极，文档也比较丰富</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Arman92/go-tdlib">go-tdlib</a> Telegram官方tdlib的json bindings，文档几乎为0，同时需要先编译tdlib</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/dghubble/go-twitter">go-twitter</a> 功能尚可，文档缺失，并且不支持UploadMedia</li>
+</ul>
+<p>Python：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/eternnoir/pyTelegramBotAPI">pytelegrambotapi</a> 非常知名的Bot API wrapper，文档丰富，维护积极</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/LonamiWebs/Telethon">Telethon</a> 使用纯Python实现的MTProto，注释即文档，维护积极，支持bot和client</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/bear/python-twitter">python-twitter</a> 还能凑合用的一个Twitter API wrapper，该有的功能都有，支持UploadMedia</li>
+</ul>
+<p>那么对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet">TeleTweet</a>而言，选择Python就是更明智的选择；对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">NCMBot</a>，由于需要使用Client API，因此选用Python+Telethon也是比较优雅的选择；对于<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/archiver">Archiver</a>，没有太多特殊的地方，用Go就可以了。</p>
+<h2 id="部署Telegram-Bot"><a href="#部署Telegram-Bot" class="headerlink" title="部署Telegram Bot"></a>部署Telegram Bot</h2><p>开发完成之后，bot是总要部署到某台服务器上的。由于我自己有很多bot，因此根据情况不同我把他们划分成了两类：</p>
+<h3 id="Legacy-Bot"><a href="#Legacy-Bot" class="headerlink" title="Legacy Bot"></a>Legacy Bot</h3><p>一些历史遗留下来的bot，基本没有继续的开发计划，处于即将被Archive的状态，有些甚至连说明都没有，完全是拿来自用?所以就丢着呗！</p>
+<h3 id="Modern-Bot"><a href="#Modern-Bot" class="headerlink" title="Modern Bot"></a>Modern Bot</h3><p>最近一段时间开发的bot，有持续的维护计划，运行稳定，表现良好。</p>
+<p>对于第一类bot，我选择让它们留在一台新加坡的机器上，原来是怎么跑的就怎么跑，一点都不动；</p>
+<p>对于第二类bot，我把它们全部放到了一台日本的机器上。</p>
+<p>对于第二类bot，如何运行它们又成为了一个问题。</p>
+<p>好吧，现在这些bot，只要还能说话的，我都给丢到一台英国的大鸡鸡上了。</p>
+<h3 id="systemd-service"><a href="#systemd-service" class="headerlink" title="systemd service"></a>systemd service</h3><p>使用Python开发的bot，那么就是老生常谈的_virtualenv+systemd_，实际操作下来有些繁琐，尤其是配置systemd总是有一些蜜汁情况，比如说环境变量啦，比如说用户啦；使用Go开发的bot，那么也就不外乎是clone下来源代码，然后<code>go build .</code> ，然后继续配置systemd。这样的话当bot一旦多起来，甚至以后要换服务器，那么就会更麻烦，所有上述操作都要全部重新再来一遍，非常痛苦?</p>
+<h3 id="docker-docker-compose"><a href="#docker-docker-compose" class="headerlink" title="docker + docker-compose"></a>docker + docker-compose</h3><p>那么如果用docker去分发部署是不是就很方便了？毕竟第二类bot都是有<code>Dockerfile</code>的。</p>
+<p>没错的，就是这样——使用<code>Dockerfile</code>构建出docker image，直接docker run就可以了。</p>
+<p>更进一步，我可以把这堆bot都丢到<code>docker-compose</code>中，一个<code>docker-compose up -d</code>就可以了。</p>
+<p>当然，构建docker image时，是有很多技巧的，这个就以后再说了。</p>
+<h2 id="管理、维护bot"><a href="#管理、维护bot" class="headerlink" title="管理、维护bot"></a>管理、维护bot</h2><h3 id="使用Makefile"><a href="#使用Makefile" class="headerlink" title="使用Makefile"></a>使用Makefile</h3><p>开发工作总是要不断迭代的，那么如果添加了新功能，，我该如何更新服务器上bot呢？</p>
+<p>有些bot，我创建了一个<code>Makefile</code>，里面是这么写的：</p>
+<p>default:<br>    @echo “Updating codes…”<br>    git pull<br>    @echo “Restarting service…”<br>    systemctl daemon-reload<br>    systemctl restart TeleTweet<br>    @echo “You’re good to go.”<br>    systemctl status TeleTweet</p>
+<p>很简单，很黄很暴力是不是，只要ssh到服务上，跳到对应的目录，一个<code>make</code>然后就可以关窗放狗咬人走人了。</p>
+<p>对于使用Go的bot，也不过是<code>go build .</code> 之类的，比如<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/DailyGakki">DailyGakki</a>是这样写的：</p>
+<p>default:<br>    git pull<br>    @echo “Installing dependencies…”<br>    @go get -u github.com&#x2F;go-bindata&#x2F;go-bindata&#x2F;…<br>    @echo “Build static files…”<br>    make asset<br>    @echo “Build current platform executable…”<br>    go build -o DailyGakki .</p>
+<p>asset:<br>    @~&#x2F;go&#x2F;bin&#x2F;go-bindata -o assets.go images&#x2F;…</p>
+<p>反正也是本机使用，没必要用<code>CGO_ENABLED=0</code>以及额外配置<code>ldflags</code></p>
+<p>如果想要查看Bot的运行状态呢？那么只能<code>systemctl status daily-gakki</code>这样啦！</p>
+<p><img src="/images/2020102917340981.png"></p>
+<h3 id="使用docker-docker-compose"><a href="#使用docker-docker-compose" class="headerlink" title="使用docker+docker-compose"></a>使用docker+docker-compose</h3><p>如果使用docker的话，那么一切问题就简单了。push完代码之后，等待docker hub build成功之后，ssh到服务器上：</p>
+<p>docker pull xxx<br>docker restart container_name</p>
+<p>使用docker-compose也就不过pull了之后</p>
+<p>docker-compose up -d service_name</p>
+<p>查看状态？</p>
+<p>docker-compose ps</p>
+<p><img src="/images/2020102917341023.png"></p>
+<p>或者</p>
+<p>docker stats</p>
+<p><img src="/images/2020102917341268.png"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>由此可见，在整个bot瞎搞的过程中，使用docker来进行分发部署管理还是非常方便的。当数量多起来，要比传统的systemd、supervisor之类的方便得多。</p>
+<p>当然docker也有缺点，比如磁盘空间比较宝贵的盆友们，有些时候docker image就可能没那么理想，毕竟有些image只能包含rootfs。提到这点，如果是Python开发的bot，做一个通用的image，包含了这些bot所有需要使用的library也不是不可以的。</p>
+<p>另外一个难点，docker容易新手劝退，比如说volumes有时比较有趣，一个不小心就很容易写错，然后就gg啦😂</p>
+<p>不过，如果能够用Go开发，那么docker image甚至可以使用<a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/multistage-build/">multi-stage build</a>的手段。像下面这样：</p>
+<p><img src="/images/2020102917341448.png"></p>
+<p>一眼就能看出来哪些是用Go写的了吧！非常exciting。</p>
+<p>更进一步，我甚至准备了一个<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/BotsRunner">Repository</a>，专门用来存放这些bot的<code>docker-compose.yml</code>。</p>
+<p>哪怕哪天换机器了，我也只需要把这个目录拷贝走，然后一个<code>docker-compose up -d</code>就可以继续装死了。</p>
+<hr>
+<p>好的，以上就是我要说的全部内容，有关于我究竟开发了哪些bot，可以看这篇文章<a target="_blank" rel="noopener" href="https://dmesg.app/telegram-bot-collections.html">《有趣的 Telegram Bot》</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/10/30/dev-deploy-bot/index/" data-id="clhp7rtf9001vs2qr2byb78o9" data-title="我是如何优雅的开发、部署并管理多个Telegram Bot的？" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-telegram-bot-collections/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2020/10/25/telegram-bot-collections/index/" class="article-date">
@@ -1293,89 +1403,6 @@
 
 
   
-    <article id="post-ballon/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/01/30/ballon/index/" class="article-date">
-  <time class="dt-published" datetime="2020-01-30T00:00:00.000Z" itemprop="datePublished">2020-01-30</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/justsay/">justsay</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/01/30/ballon/index/">自由的气球</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p> </p>
-<p>1945年，二战结束。根据《波茨坦协定》，德国在战败之后由英、美、法、苏四国占领。由于与苏联理念上的差异，英美法三国所占领土最终合并为一个占领区，组建新政权西德。</p>
-<p>随着冷战的加剧，1961年柏林墙修建。至此，德国人开始了十八番武艺穿越柏林墙的故事。</p>
-<p>2018年的德国电影《气球》便讲述了穿越柏林墙中的一个真实故事。</p>
-<p><img src="/images/2020013013350445.jpeg"></p>
-<p>以下内容可能涉及剧透，请谨慎阅读。</p>
-<p>影片时长125分钟，情节十分紧张，听我的， 专心看，别玩手机了。</p>
-<p>[collapse title&#x3D;”剧情概要”]</p>
-<ul>
-<li>第一次热气球</li>
-</ul>
-<p>影片刚开始，皮特一家人就升起了热气球。可惜由于没有考虑到高空温度低等问题，导致失败。</p>
-<p>坠落的热气球等被东德当局发现。</p>
-<ul>
-<li>美国人</li>
-</ul>
-<p>为了准备热气球，两家人准备了两年。意识到气球可能不行之后，皮特一家人打算去美国大使馆附近寻求美国人的帮助。一家人把写有求救信的烟盒塞到了一个女人的背包里，然而却只是徒劳，美国人以为他想要烟。无奈之下，他们只能再次选择热气球</p>
-<ul>
-<li>第二次热气球</li>
-</ul>
-<p>德国当局已经开始进行进一步的调查与抓捕，皮特和冈特两家人只能分秒必争努力打造新的热气球。最终，他们的热气球成功降在了西德。 [&#x2F;collapse]</p>
-<h2 id="小人物"><a href="#小人物" class="headerlink" title="小人物"></a>小人物</h2><p>在影片中，冈特的儿子不小心对幼儿园老师说出自己爸爸在没日没夜的缝纫。秘密警察过来调查，问到幼儿园老师大家有没有什么搞什么大件、或者说缝纫什么的打算</p>
-<p>女老师思考片刻，回答：有，大家都在努力的缝国旗，庆祝东德建国30年。</p>
-<p><img src="/images/2020013013350521.png"></p>
-<p>这个情节让我想起了韩国电影《出租车司机》里的一个类似的情节：士兵发现了德国记者的汉城车牌，他似乎明白了什么，然后放他们走了。</p>
-<p><img src="/images/2020013013350640.jpeg"></p>
-<p>1989年，东欧巨变，苏联也摇摇欲坠。柏林墙拆毁，两德统一。</p>
-<p>30年过去了，柏林墙已经不在了，另一堵墙却越来越高。共同点是，两堵“墙”都是用来阻止本国人民对自由的追求。不同点是，德国人用一系列可歌可泣的行动歌颂了有史以来最伟大的逃亡，为了追求自由而进行的前仆后继的逃离——向往自由，是人类与生俱来的本能。柏林墙最终被拆毁了。</p>
-<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><p>有的时候，可能我们别无选择，甚至连反抗都不敢。可是，如果敢于反抗的人都离开了，那他们就赢了。</p>
-<p>环境也许很恶劣，恶劣到连说一句不是赞美的话都会被千夫所指。也许我们不敢坚持自己的立场，不敢说出真话。但是我们至少可以选择沉默，至少要有conscious。就像两部影片中的小人物一样。</p>
-<p>想想看，你就是多买了点布，有人就要向上汇报；走在大使馆附近，看到有无数只眼睛在偷瞄着你，酒店中也有人在监视着你；说不准因为看到了什么就会被带走讯问，警察可以随意进你家搜查；对面邻居就是秘密警察，阶级斗争从娃娃抓起，甚至人们以举报为荣。即使是军人，可能也会因为没有抓到人而遭受严厉的讯问。这一切的一切，就仿佛是奥威尔的《1984》中所描述的大洋国一样。你想要这样的生活吗？想要吗？嗯？？摸着自己的良心问下，现在，此时此刻，你应该怎么做？问问自己，谎言的代价是什么？</p>
-<p><img src="/images/2020013013350735.jpeg"></p>
-<blockquote>
-<p>Freedom has many difficulties and democracy is not perfect, but we have never had to put a wall up to keep our people in, to prevent them from leaving us.</p>
-<p>自由有许多困难，民主亦非完美，然而我们从未建造一堵墙把我们的人民关在里面，不准他们离开。</p>
-<p> </p>
-<p>约翰·肯尼迪 <a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%88%91%E6%98%AF%E6%9F%8F%E6%9E%97%E4%BA%BA">《我是柏林人》</a></p>
-</blockquote>
-<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2009/07/break-through-berlin-wall.html">《学习一下德国人民的翻墙精神》</a></p>
-<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9F%8F%E6%9E%97%E5%9C%8D%E7%89%86">柏林墙 – 维基百科</a></p>
-<p><a target="_blank" rel="noopener" href="https://blog.502.li/archives/thinking-2019.html">《【旧文重写】毕业后的一些思考》</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/01/30/ballon/index/" data-id="clhp7rteh000ms2qrcanq6wjy" data-title="自由的气球" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1420,7 +1447,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1431,6 +1458,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
         
           <li>
             <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
@@ -1446,10 +1477,6 @@
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
       </ul>

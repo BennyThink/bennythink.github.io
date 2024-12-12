@@ -73,6 +73,168 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-school-6/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/06/10/school-6/index/" class="article-date">
+  <time class="dt-published" datetime="2017-06-10T00:00:00.000Z" itemprop="datePublished">2017-06-10</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>►<a class="article-category-link" href="/categories/security/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/06/10/school-6/index/">[学校上网系列]6.从下载软件中想到的：哎妈呀防不胜防啊</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_tips]站务通告：几天之前的6月3日，我发了一篇<a target="_blank" rel="noopener" href="https://dmesg.app/remember.html">很奇怪的博文</a>，之后关闭了首页，把页面改成了黑白。我的情绪并没有出现什么问题，我只是想用自己的方式去纪念不被承认的历史、去缅怀逝去的生命。希望能够有更多人去思考、了解、反思、奋斗。[&#x2F;v_tips]</p>
+<p>在<a target="_blank" rel="noopener" href="https://dmesg.app/school-0.html">本系列</a>开了九个月之后，我终于找到机会把这个坑填了，真是不容易啊，想要养肥再看的小伙伴们可以来看了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/school-5.html">上一篇</a>中，咱讲了一些密码的问题，咱得说这一篇算得上是开博以来耗时最久、行文最长的博文了。好吧，作为结尾的博文，一定是有大大的坑的，再加上这话题也没啥可以说的，所以就当是我出来刷刷存在感好，别有啥期待！</p>
+<h2 id="怎样安全的下载软件"><a href="#怎样安全的下载软件" class="headerlink" title="怎样安全的下载软件"></a>怎样安全的下载软件</h2><p>大多数Windows用户在想要使用某款软件的时候，可能会经历这样的步骤：打开百度啊什么的搜索引擎，搜索该软件的名称，从广告中找到真正的网站，再从广告中找到真正的下载链接，然后等待下载完成、双击安装或者是运行。</p>
+<p>那么在这一个过程中 存在哪些安全问题呢？咱就不说下载到XXX下载器、戳到假的网站这种低级问题了。</p>
+<p>通常来说，一般稍有安全意识的人都会意识到去官网下载软件，有些人可能还会知道校验数字签名、校验散列值，但是这些就一定天衣无缝了吗？当然不是了，<strong>防御需要天衣无缝</strong>，攻击只需要攻破一点。</p>
+<h2 id="在官网下载就一定安全吗"><a href="#在官网下载就一定安全吗" class="headerlink" title="在官网下载就一定安全吗"></a>在官网下载就一定安全吗</h2><p>来说一说刚刚发生的事情吧！前天，我给室友下载Foxit阅读器的时候（很明显我是去官网下载的啦），顺手按了下Ctrl + J，发现下载链接竟然变成这个样子（为了防止个人信息泄漏，我把那个IP涂掉了）：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_1.png"><img src="/images/061017_0014_1.png"></a></p>
+<p>瞬间觉得有点不对劲。于是按F12打开开发者模式，重新刷新看看是怎么响应的，真是懒得抓包，哈哈：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_2.png"><img src="/images/061017_0014_2.png"></a></p>
+<p>很明显，当我在官网点击”下载”按钮时，我的浏览器所收到的请求中<strong>意外的</strong>包含了Headers，Headers的内容是<strong>302重定向到222这个IP</strong>，之后我的浏览器就去下载新的location中的文件了。</p>
+<p>我可真是预言家。这不，<a target="_blank" rel="noopener" href="https://twitter.com/hackerfantastic/status/882203343287980032">vlc和几个信息安全研究者因为这事怼起来了</a></p>
+<h3 id="那这个IP是个啥呢？"><a href="#那这个IP是个啥呢？" class="headerlink" title="那这个IP是个啥呢？"></a>那这个IP是个啥呢？</h3><p>据我推断，此IP应该是我学校（或者说是教育网吧）的一个缓存服务器，它把一部分资源缓存到自己的服务器上，这样我们访问速度就比较快，不用从原始链接下载了，有一点点像”透明代理”的味道。</p>
+<h3 id="那么这样做有何问题呢？"><a href="#那么这样做有何问题呢？" class="headerlink" title="那么这样做有何问题呢？"></a>那么这样做有何问题呢？</h3><p>问题其实还是有一些的，假如有人黑了这台服务器（或者管理员想赚外快），把缓存的资源加上了后门木马或者是替换成其他的东西，那么透过这个缓存下载并使用的用户不就遭殃了吗？别忘了咱可是从官网下载的呀，但风险等级还是提高了啊。</p>
+<p>几年前我有一次下载什么玩意，就被劫持成了瑞星的在线安装程序，幸亏我发现图标有点不对劲，右键看了下签名，哈哈哈。</p>
+<h3 id="为啥原始地址的下载会被替换成这个链接呀？"><a href="#为啥原始地址的下载会被替换成这个链接呀？" class="headerlink" title="为啥原始地址的下载会被替换成这个链接呀？"></a>为啥原始地址的下载会被替换成这个链接呀？</h3><p>请大家戳一下上面的开发者工具的图，我们可以看到，Foxit返回给我们的是一个HTTP的响应，既然是HTTP的，那就是<strong>可以被劫持被篡改被阻断的</strong>，所以自然是被加了个<code>header location</code>到缓存服务器了。</p>
+<h3 id="等等，foxit官网是https的呀？"><a href="#等等，foxit官网是https的呀？" class="headerlink" title="等等，foxit官网是https的呀？"></a>等等，foxit官网是https的呀？</h3><p>观察真仔细，没错，foxit官网是https的，但是给出的这个链接却是http的，这能有什么办法？假如某个软件的官网是http的，那更是网页都可能被劫持成<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/">人见人爱花见花开的某网站</a>。</p>
+<h3 id="等等，我这个官网全都是https的，没有http"><a href="#等等，我这个官网全都是https的，没有http" class="headerlink" title="等等，我这个官网全都是https的，没有http"></a>等等，我这个官网全都是https的，没有http</h3><p>忘记了<a target="_blank" rel="noopener" href="http://www.sohu.com/a/59899735_257305">Linux Mint官网被黑</a>，<a target="_blank" rel="noopener" href="http://blog.linuxmint.com/?p=2994">ISO被加入后门</a>的事情了？还有……</p>
+<h3 id="下载工具被投毒"><a href="#下载工具被投毒" class="headerlink" title="下载工具被投毒"></a>下载工具被投毒</h3><p>噢，大家搜索下”迅雷 投毒”就知道了，顺便看看<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/XcodeGhost%E9%A3%8E%E6%B3%A2">xcodeGhost</a></p>
+<p>所以，总结：在官网下载软件就一定安全吗？不一定，在官网不是https的情况下，<strong>你看到的官网未必是真正的官网，下载到的软件未必是原始的软件</strong>；在官网是https的情况下，也不排除出站链接为http、被黑、黑心下载工具搞了的情况。</p>
+<h2 id="校验证书"><a href="#校验证书" class="headerlink" title="校验证书"></a>校验证书</h2><p>在windows中，一些比较知名的开发者（组织）开发的软件，都会给自己的程序加入一个数字证书，这样当软件被篡改的时候，操作系统就会给警告，比如说下面这个就是大名鼎鼎的小狐狸的证书，这就能说明这软件是<strong>纯正的、原汁原味的</strong>！</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_3.png"><img src="/images/061017_0014_3.png"></a></p>
+<p>（图片盗自<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2013/02/file-integrity-check.html">编程随想</a>）</p>
+<p>数字证书的原理是啥呐？非常简单的理解，就是把RSA反过来用。反过来用是啥呢？咱正常用RSA，都是用公钥加密、私钥解密，反过来就是用私钥加密、公钥解密，这样乍一看虽说是失去了”加密”这一保密性需求，但是鉴于私钥只有开发者持有，这也就能够在某种程度上证明这是从开发者手中释出的软件。当然啦，现实生活中的数字签名还要涉及到散列函数、PKI等复杂的方法体系，咱这里就不说了。</p>
+<p>可但是，但可是，校验数字签名就一定安全了吗？不一定。</p>
+<h3 id="原因之一：有一些软件本身就不带有数字签名，这就没办法了；"><a href="#原因之一：有一些软件本身就不带有数字签名，这就没办法了；" class="headerlink" title="原因之一：有一些软件本身就不带有数字签名，这就没办法了；"></a>原因之一：有一些软件本身就不带有数字签名，这就没办法了；</h3><p>可能是因为开发者比较穷，实施比较麻烦，代码签名证书一般来说要一笔钱呢，这可和SSL证书不一样噢。</p>
+<h3 id="原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。"><a href="#原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。" class="headerlink" title="原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。"></a>原因之二：并不是所有文件都带有数字签名、程序未必会校验所有的文件。</h3><p>此话怎讲？</p>
+<p>大家可能用过一款由台湾人开发的非常有名的Windows下的编辑器：Notepad++，简直是神器啊，当初我看着那群人用着记事本写着Java而我享受着代码高亮和自动补全，哇塞！在今年3月维基解密爆光的<a target="_blank" rel="noopener" href="https://wikileaks.org/ciav7p1/">CIA Vault 7</a>中， Notepad++就中招了。是咋中招的呢？是这样的，Notepad++需要加载一个名为<code>scilexer.dll</code>的库文件，而Notepad++没有对这个dll进行校验，所以如果这个dll被替换成恶意的dll，那这不就完蛋了嘛。</p>
+<p>大家想知道<a target="_blank" rel="noopener" href="https://notepad-plus-plus.org/news/notepad-7.3.3-fix-cia-hacking-issue.html">Notepad++官网是怎么说</a>的吗？感觉他们要被气炸了，官方能说出来f-word，真的是很气。</p>
+<blockquote>
+<p>Just like knowing the lock is useless for people who are willing to go into my house, I still shut the door and lock it every morning when I leave home. We are in a f**king corrupted world, unfortunately. 对在那些想进我房子的人来说，我家的锁显得毫无作用。虽然如此，但我每天早上离开家时，还是会锁上门。然不幸的是，我们生活在一个操蛋的堕落世界！</p>
+</blockquote>
+<h3 id="原因之三：你咋就那么相信你下载到的签名是正确的呢？"><a href="#原因之三：你咋就那么相信你下载到的签名是正确的呢？" class="headerlink" title="原因之三：你咋就那么相信你下载到的签名是正确的呢？"></a>原因之三：你咋就那么相信你下载到的签名是正确的呢？</h3><p>唉，其实还是第一个问题啊，假如你是从http网站上下载到的签名文件，那毫无疑问这个签名未必是原汁原味的……</p>
+<h3 id="Android的apk签名"><a href="#Android的apk签名" class="headerlink" title="Android的apk签名"></a>Android的apk签名</h3><p>Android的apk也是带有签名的，签名的目的就是保证每个应用程序开发商合法ID，防止部分开放商可能通过使用相同的包名来混淆替换已经安装的程序。简单的说，就是你把某个APP改了改，自己签名，再安装，你若不卸载原来的APP，你是安装不上你自己的版本的（用幸运破解器等破解了签名保护机制的不算）</p>
+<h3 id="Linux下校验签名"><a href="#Linux下校验签名" class="headerlink" title="Linux下校验签名"></a>Linux下校验签名</h3><p>Linux下也是可以校验签名的，比如我们经常会在某些软件下载链接旁边看到一个sig按钮，下载之后是一个asc文件，这个asc文件就是用来校验签名的。nautilus直接双击，当同名文件（不包括扩展名）存在时，就会自动校验，否则会弹窗让你选择目标文件进行校验，或者选择用<code>gpg2 –verify test.asc test.zip</code>也可以校验。</p>
+<p>使用nautilus与gpg2校验数字签名成功与失败的截图（失败是我给压缩包中的一个readme略作修改啦）</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_5.png"><img src="/images/061017_0014_5.png"></a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_4.png"><img src="/images/061017_0014_4.png"></a></p>
+<p>注意：咱可能得先用命令从<code>keyserver</code>导入公钥才可以，命令大致如下：</p>
+<p>gpg2 –keyserver pool.sks-keyservers.net –search-keys AA65421D</p>
+<p>其中 <code>pool.sks-keyservers.net</code>可替换成<code>pgp.mit.edu</code>等，<code>AA65421D</code>是ID</p>
+<h2 id="校验散列值"><a href="#校验散列值" class="headerlink" title="校验散列值"></a>校验散列值</h2><p>在某些网站上 ，我们可能还会看到下载地址旁边给了个md5、sha1的散列值，这是方便我们校验的。假如我们的散列值和网站上给出的一样，那么这里的散列值就应该是完全一致的；如果不同，那么就意味着出问题啦。</p>
+<p>那么这个过程中存在哪些漏洞呢？</p>
+<h3 id="单项散列函数可被碰撞"><a href="#单项散列函数可被碰撞" class="headerlink" title="单项散列函数可被碰撞"></a>单项散列函数可被碰撞</h3><p>咱有人可能知道，几个月前的大新闻，<a target="_blank" rel="noopener" href="http://www.infoq.com/cn/news/2017/02/google-first-sha1-collision">Google成功碰撞SHA1</a>，再就之前md5的碰撞。呐，我猜你懂了吧。</p>
+<h3 id="不安全呈现散列值的方法"><a href="#不安全呈现散列值的方法" class="headerlink" title="不安全呈现散列值的方法"></a>不安全呈现散列值的方法</h3><p>某些网站呐，它在下载页面显示的散列值（尽管它的下载链接可能是https的或者是其他的能够保证文件完整性的下载方式），但是它的那个页面是http的，那就是说这个页面可能被篡改，那这散列值还有啥用嘛……</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_6.png"><img src="/images/061017_0014_6.png"></a></p>
+<p>（<a target="_blank" rel="noopener" href="http://msdn.itellyou.cn/">msdn我告诉你</a>中枪了。不过，咱可以去微软官网比对散列值，https的页面噢！）</p>
+<p>上面说了这么多本来我们可能觉得天衣无缝的校验方式，其实都是存在<strong>一定程度</strong>的缺陷的。那可能有人想问了，这么罕见的、高级的攻击方式，可能不是经常存在的吧。没错，这种方式咱称之为<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%AB%98%E7%BA%A7%E9%95%BF%E6%9C%9F%E5%A8%81%E8%83%81">APT</a>（不是三磷酸腺苷，也不是Debian系的apt），遇到政府级别的攻击（由政府支持的攻击者，比如说NSA啦，嘿嘿嘿啦），那这是可能的。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_7.png"><img src="/images/061017_0014_7.png"></a></p>
+<p>（图片来自<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2017/05/my-blog-under-government-backed-attack.html">编程随想</a>）</p>
+<h2 id="那么说了这么多，咱究竟该如何安全的下载软件啊？"><a href="#那么说了这么多，咱究竟该如何安全的下载软件啊？" class="headerlink" title="那么说了这么多，咱究竟该如何安全的下载软件啊？"></a>那么说了这么多，咱究竟该如何安全的下载软件啊？</h2><p>好吧，咱们都是一般人，那么<strong>时刻记得去官网下载、记得检查下载链接是否正常，尽可能的校验散列值、数字签名</strong>。尤其是对于（中国大陆）开发者来说，IDE什么的不去官网下载，不校验散列值和签名，那不就是在拿用户的隐私与安全开玩笑吗？<strong>不会翻墙，好意思说自己是程序员？</strong></p>
+<p>啥？你想去某某管家什么的下载软件？求别逗啊，看我<a target="_blank" rel="noopener" href="http://www.huorong.cn/info/148826116759.html">藏恶意代码</a>，看我捆绑</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_8.png"><img src="/images/061017_0014_8.png"></a></p>
+<p>（百度：我们已经收购腾讯 叫你不取消勾选，<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/24472672">图片来源知乎</a>）</p>
+<h2 id="除了下载，更新也是个问题……"><a href="#除了下载，更新也是个问题……" class="headerlink" title="除了下载，更新也是个问题……"></a>除了下载，更新也是个问题……</h2><p>有很多软件啊，它更新的时候是通过http的，然后还不校验，那么就很容易被篡改。别说，真有个木马就是干这事了，比如说大名鼎鼎的<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2016/08/Trojan-Horse-DCM.html">黑暗幽灵木马</a>（据推测，这家伙也应该是政府背景）。什么你还不信？这几天大火的NotPetya不就是利用了M.E Doc 更新不带数字签名么！</p>
+<h2 id="热更新"><a href="#热更新" class="headerlink" title="热更新"></a>热更新</h2><p>提到更新，我突然想起近期Apple全面封杀热更新，真的是可喜可贺的大好事啊！</p>
+<h3 id="热更新是个啥"><a href="#热更新是个啥" class="headerlink" title="热更新是个啥"></a>热更新是个啥</h3><p>App由两种更新方式，一种是在App Store内进行更新，更新时重新下载全部安装包；另一种就是热更新，用户只有在打开App时才会发现热更新包，更新时只需下载安装更新部分的代码，再次打开时即可，这样可以直接绕过苹果App Store的审核。简单的讲就是绕过App store的审核，打开App才会进行”应用内更新”。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/2017061000590178.jpg"><img src="/images/2017061000590178-1024x576.jpg"></a></p>
+<p>（阴阳师的热更新）</p>
+<h3 id="这样有啥不好呢"><a href="#这样有啥不好呢" class="headerlink" title="这样有啥不好呢"></a>这样有啥不好呢</h3><p>咱举个例子，好好的一个应用，可以瞬间变成看小黄图的应用；好好的一个应用，可以瞬间加上后门监控用户隐私；更可怕的是，万一有黑客作祟呢？咱知道，写代码未必都有很强的安全意识啊。</p>
+<p>现在，<strong>手机中包含的隐私已经超越了人们的想象</strong>，只要给我一个人的手机，那么我就可以了解他的一切。</p>
+<p>从库克叫板FBI、要求App内必须使用https、再到封杀热更新，<strong>肆意扩张的权力，是对自由最大的威胁</strong>。</p>
+<p>其实Google的Play Store<strong>也是禁止热更新</strong>的，没看支付宝啥的没少被下架嘛。（你敢相信，你平时用的好多应用根本没在Play Store上架？）可是大陆这种地方，三不管，毕竟Android和安卓是不一样的……（是，就连推送系统都要自己搞了？你这轮子是方的五边形的啊，反正不会是<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E5%8B%92%E6%B4%9B%E4%B8%89%E8%A7%92%E5%BD%A2">莱洛三角形</a>就对了）Google啊……Google啊，你咋就这么不管不顾我们这群处在<strong>水深火热</strong>的人呢啊，开始讨厌你了哦。</p>
+<p><strong>对，我必须要黑阿里，支付宝隐私事件、抢月饼、截图中加数字盲水印还有一大堆放屁的话，阿里的节操在银河系外，我一天不黑阿里我就不舒服。</strong></p>
+<p>说到这，似乎文章标题里的事情就说完了，似乎本文可以画上句号，但是……</p>
+<h2 id="程序员们的安全素质"><a href="#程序员们的安全素质" class="headerlink" title="程序员们的安全素质"></a>程序员们的安全素质</h2><p>其实我不是一名合格的程序员，我写这一段只是为了装逼的，逃</p>
+<h3 id="开发工具的获取"><a href="#开发工具的获取" class="headerlink" title="开发工具的获取"></a>开发工具的获取</h3><p>假如你是一名活在天朝的程序员，那么一定要记得<strong>去官网下载开发工具，然后校验证书或散列值</strong>。那个golang的开发者们……<strong>不会翻墙、不热爱翻墙、不想推墙，好意思说自己是搞IT的</strong>？反正我是不好意思。</p>
+<h2 id="如何存储用户的密码"><a href="#如何存储用户的密码" class="headerlink" title="如何存储用户的密码"></a>如何存储用户的密码</h2><h3 id="明文存密码"><a href="#明文存密码" class="headerlink" title="明文存密码"></a>明文存密码</h3><p>在几年前，我做某个课程设计的时候，无数的人在实现登录的时候都将用户名和密码<strong>明文存入数据库中</strong>（包括我，我当时的安全意识很差）；咱学生，可能没太大安全意识，这一点可以理解，但是对于一个商业产品来说， 明文存密码？啥，不信，这就在我身边，看图。<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/2011%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%AB%99%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%BA%8B%E4%BB%B6">还有CSDN呢</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_9.png"><img src="/images/061017_0014_9.png"></a></p>
+<p>（遇到一个明文存密码的家伙，你还想怎么办？）</p>
+<p>假如你是一名学生，需要做个狗屎一样的课设，还恰巧需要有类似登录的功能，请一定要注意，<strong>千万不可以明文存密码</strong>。我猜可能有人会反驳，这就是个课设，为啥要这么注意？嗯，那是因为啊，咱程序员就是要从细节做起，千里之堤毁于蚁穴啊。</p>
+<h3 id="自己实现加密（散列）算法"><a href="#自己实现加密（散列）算法" class="headerlink" title="自己实现加密（散列）算法"></a>自己实现加密（散列）算法</h3><p>哎唷我说，你真是把自己当成天才能干翻全世界的密码学家吗？你就是密码学博博博博博博士也不行啊。无论何时请一定要记得，<strong>别想着自己造加密算法，别想着算法保密就能够保证机密性，隐蔽式安全是不可取的</strong>。想想DVD的加密算法是怎么被破解的就知道了。</p>
+<h3 id="hash一下存进去？"><a href="#hash一下存进去？" class="headerlink" title="hash一下存进去？"></a>hash一下存进去？</h3><p>稍微有点安全意识的程序员可能会将用户的密码hash一次，或者n次，或者自作聪明的<code>md5(sha1(&#39;test&#39;))</code>，然后放入数据库中，<strong>这都没啥太大的区别</strong>。很明显，散列一下要比明文存密码好一些，但是却依旧存在<strong>非常严重的安全隐患</strong>。为啥？哎呀，大部分散列函数算的都很快的，用户都是喜欢123456的，用户都是喜欢一个密码走天下的，彩虹表很方便的，撞库很容易的。</p>
+<p>注意，之所以不推荐hash很多次以及混合hash，是因为密码学中有一个理论叫做”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9F%AF%E5%85%8B%E9%9C%8D%E5%A4%AB%E5%8E%9F%E5%89%87">柯克霍夫原则</a>“，拿到了你数据库，也基本上意味着会拿到源代码。</p>
+<h3 id="试试HMAC？"><a href="#试试HMAC？" class="headerlink" title="试试HMAC？"></a>试试HMAC？</h3><p>HMAC是个啥？其实挺复杂的，一句话可能说不完，但是简单说就是把AES和Hash结合起来，就是比如说用某个AES密钥加密了用户的密码，然后再hash一次再存入数据库中（当然这个说法太不准确了，实际上要比这复杂得多）。这样想要暴力破解是不太容易了，但是还是有问题呢，问题就是，假如某两个用户密码恰巧都是123456，那他们<strong>存的内容不就一样了吗</strong>？咱知道，用户都是喜欢123456的，黑客可以通过批量注册或者是根据算法批量生成大量弱口令的值，这样密码还是被破解出来啦。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_10.png"><img src="/images/061017_0014_10.png"></a></p>
+<p>（HMAC在某个商业产品中的实现，从class文件反编译出来的。我受到了程序员的嘲讽）</p>
+<p>我就知道你们还不信，那么请看图，此HMAC的散列值<code>37e0c8f50a64a454</code>对应的密码是<code>000000</code>，来看看多少用户的密码都是<code>000000</code>——2817人，此系统的总用户数接近3万。  <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/201706100135267.png"><img src="/images/201706100135267.png"></a></p>
+<h3 id="加个随机盐？"><a href="#加个随机盐？" class="headerlink" title="加个随机盐？"></a>加个随机盐？</h3><p>加盐是个啥？咱知道，用户都是喜欢12345的，但是假如我们在密码中加入一段随机的盐值，比如说<code>ZVhWbENnPT0K</code>然后再hash一下存入数据库中，那么这密码强度不就显著提高了嘛~对噢，<strong>盐别短，别重复</strong>。</p>
+<p>请注意，<code>test1</code>和<code>test2</code>的密码都是弱口令<code>123456</code>，但是咱可以看到这存的东西完全不同嘛。  <a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_12.png"><img src="/images/061017_0014_12.png"></a></p>
+<h3 id="随机盐就够了吗……？不够"><a href="#随机盐就够了吗……？不够" class="headerlink" title="随机盐就够了吗……？不够"></a>随机盐就够了吗……？不够</h3><p>实现随机盐就够了吗？当然那不够了。我们考虑下如下的用来判断密码的伪代码(这里的这俩字符串，是散列值哦，不应该是明文密码哦～)</p>
+<p>if(‘123456’&#x3D;&#x3D;’111111’)<br>    do something;<br>else<br>    warning;</p>
+<p>我们重点看那两个字符串（把&#x3D;&#x3D;写成&#x3D;的就不要说啦嘻嘻）。大部分语言是怎么比较这字符串的呢？它们会从第一位开始比较，发现都是1，那么好，继续比，第二位一个是2一个是1，那就是不等了，那就是false吧。这其中有啥问题呢？</p>
+<p>咱说，这其中，”第一位就不同”与”第二位才不同”是<strong>存在运算的时间差</strong>的。假如平均比较一位需要10ns，那么要进行攻击，我们先猜测第一位是1，如果返回false时间基本上小于10ns，那么意味着我们<strong>第一位猜测是错误的</strong>；如果返回false时间明显长于10ns，那么意味着<strong>至少我们第一位的猜测是正确的</strong>；以此类推，我们可以通过这个微妙的时间差来一位一位的猜解密码。听着很不可思议、觉得很变态是不？这可是大名鼎鼎的”<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh-hans/%E6%97%81%E8%B7%AF%E6%94%BB%E5%87%BB">边信道攻击（旁路攻击）</a>“，更准确的说是时序攻击，<a target="_blank" rel="noopener" href="https://crypto.stanford.edu/~dabo/papers/ssl-timing.pdf">已经有人实现了</a></p>
+<p>那这可咋办啊！麻蛋啊，变态啊，简直了啊。好办，管他啥样的，应用慢比较算法都给固定时间返回就可以了。</p>
+<h3 id="再进一步……"><a href="#再进一步……" class="headerlink" title="再进一步……"></a>再进一步……</h3><p>咱知道大部分散列函数都很快，但是假如咱使用比较慢的散列函数呢？哎嘿嘿这是个好主意，比如说Dropbox用的bcrypt，嗯很好很棒。</p>
+<h3 id="哎呀，你快说这些技术都咋实现吧，我不会写啊！"><a href="#哎呀，你快说这些技术都咋实现吧，我不会写啊！" class="headerlink" title="哎呀，你快说这些技术都咋实现吧，我不会写啊！"></a>哎呀，你快说这些技术都咋实现吧，我不会写啊！</h3><p><a target="_blank" rel="noopener" href="https://crackstation.net/hashing-security.htm">你戳我，这里有完整的介绍</a>……</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/defuse/password-hashing">你戳我，这里有源代码</a>……</p>
+<p>PS，PHP7自带个<code>password_hash</code>，也很不错。但是好像很多人用Python啊，那咋办呢，没事，有一个很成熟的库叫做<a target="_blank" rel="noopener" href="https://passlib.readthedocs.io/en/stable/index.html">passlib</a>，很完美。其他语言欢迎补充。</p>
+<p>噢对，对于web应用来说，要记得在服务端hash，要记得HTTPS，要记得防范XSS和注入，要记得有一个清晰的逻辑思维别注册的时候就告诉用户你这个密码和某某某用户重复了……</p>
+<h2 id="如何验证输入：永远把你的用户当成坏人"><a href="#如何验证输入：永远把你的用户当成坏人" class="headerlink" title="如何验证输入：永远把你的用户当成坏人"></a>如何验证输入：永远把你的用户当成坏人</h2><p>也许产品经理会打死我？</p>
+<p>好吧，假如我们设计一个登录界面，这样就需要构造一个SQL语句了，那么可能有些人是这样写的：</p>
+<p>str&#x3D;”select * from admin where aUser&#x3D;’”+username+”‘“ and aPassword&#x3D;’”+password+”‘“;</p>
+<p>其中<code>username</code>和<code>passowrd</code>的用户需要输入的内容（变量），假如我们在<code>username</code>中填入<code>&#39; or &#39;1&#39;=&#39;1&#39;--</code>，SQL查询语句会变成下面这个样子</p>
+<p>select * from admin where aUser&#x3D;’’ or ‘1’&#x3D;’1’– and aPassword&#x3D;’’</p>
+<p>实际上是这段（后面是注释）</p>
+<p>select * from admin where aUser&#x3D;’’ or ‘1’&#x3D;’1’</p>
+<p>这是一条<strong>恒等式</strong>，一定会查询出结果（结果集返回为真）并<strong>绕过验证</strong>。麻蛋，被注入了吧，还好是被注入了，不是被<code>drop table</code>了。要是jdbc这还好，毕竟分号没用……</p>
+<p>那咋办呢？笨办法，把用户输入的<code>or, –,&#39;;</code>等关键字和特殊字符都过滤了，大不了抛出异常而已呗……或者用语言内建的安全机制（比如说JDBC的<code>PreparedStatement</code>就可以很大程度的防止SQL注入）</p>
+<p>PS，在Web开发中，对于用户提交的表单也要过滤啊，要不被XSS的就不好玩了啊哈哈！（微信又中枪了）</p>
+<h2 id="客户端哈希还是服务端哈希"><a href="#客户端哈希还是服务端哈希" class="headerlink" title="客户端哈希还是服务端哈希"></a>客户端哈希还是服务端哈希</h2><p>今晚（8月12日）看到一篇很搞笑的文章，就是说一个明文登录被ISP搞了。部分摘录如下：<a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/201708121348194.jpg"><img src="/images/201708121348194-300x178.jpg"></a></p>
+<p>这个程序员可以炒了，链接<a target="_blank" rel="noopener" href="https://twitter.com/BennyThinks/status/896355175472013313">戳我</a></p>
+<p>无论何时，一定要记得<strong>凡是涉及到登录的界面就要使用HTTPS</strong>，甚至毫不过分的说应该全站HTTPS。因为如果不是全站HTTPS，有些情况下登录那个按钮的A标签就是可以被篡改进而钓鱼或者降级的。</p>
+<p>除了登录，也应该<strong>至少</strong>使用服务器哈希。也就是说服务端哈希、服务端+客户端哈希都是可以的，但是<strong>只有客户端哈希是不可以的</strong>，因为这样就会造成重放攻击。更详细的说，就是这样的：</p>
+<h3 id="只使用客户端哈希，非SSL"><a href="#只使用客户端哈希，非SSL" class="headerlink" title="只使用客户端哈希，非SSL"></a>只使用客户端哈希，非SSL</h3><p>那么骇客就可以直接截获到这个哈希，那么他只要把这个哈希值发送给服务器，他就能够被授权登录，可实际上他并不知道用户的密码，这就是所谓的重放攻击；</p>
+<h3 id="只使用客户端哈希，SSL"><a href="#只使用客户端哈希，SSL" class="headerlink" title="只使用客户端哈希，SSL"></a>只使用客户端哈希，SSL</h3><p>很显然骇客拿到哈希的机率就很低了；但是假如服务器的数据库被脱下来了，那么还是一样的道理，只要发送哈希给服务器，就能够被授权登录，照样被重放攻击。</p>
+<p>想要加个序号、时间戳、随机数什么的防止重放攻击？只要明文就是扯淡……被脱库照样完蛋。</p>
+<p>在这种情况下被重放攻击的根本原因是，<strong>服务器太过于相信客户端</strong>，服务器认为客户端发出的请求都是经过正常的应用逻辑的，服务器把客户端发过来的哈希值直接存入数据库。</p>
+<h3 id="至少使用服务端哈希、非SSL"><a href="#至少使用服务端哈希、非SSL" class="headerlink" title="至少使用服务端哈希、非SSL"></a>至少使用服务端哈希、非SSL</h3><p>不说啥了，MITM即可。</p>
+<h3 id="至少使用服务端哈希，SSL"><a href="#至少使用服务端哈希，SSL" class="headerlink" title="至少使用服务端哈希，SSL"></a>至少使用服务端哈希，SSL</h3><p>这种情况下，哪怕黑客拿到数据库，也只能玩彩虹表了；如果程序员安全意识比较强，用了随机盐，那就更不好破解了。</p>
+<p>总结一句话就是，<strong>不带SSL就是耍流氓，至少要使用服务端哈希</strong>。（客户端用JS搞个RSA，大哥，你是来搞笑的吗？这和客户端哈希没有任何本质上的区别，照样重放）</p>
+<p>好吧，关于程序员的安全素质，我目前就能想到这几点。</p>
+<h2 id="1984与双重思想"><a href="#1984与双重思想" class="headerlink" title="1984与双重思想"></a>1984与双重思想</h2><p>请先看一遍下面这个图（凤凰网在911十周年的街头采访视频），图片偷自<a target="_blank" rel="noopener" href="https://program-think.blogspot.com/2014/01/doublethink.html">编程随想</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/06/061017_0014_13.png"><img src="/images/061017_0014_13-214x1024.png"></a></p>
+<p>如果你不觉得这个人脑袋有问题、不觉得有矛盾，那么恭喜，你多半已经被朝廷改造成双重思想了。</p>
+<p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E9%9B%99%E6%83%B3">双重思想</a>（doublethink）来自于乔治·奥威尔的1984，简单说就是<strong>同时接受两种互相矛盾的、抵触的思想信念却不觉得矛盾</strong>。</p>
+<p>对真理部记录司的雇员们来说，双想意味着可以歪曲史实，然后对他们刚写下的新历史坚信不移。双重思想不仅仅可以用来洗脑民众，还可以用来洗脑体制的维护者，而且效果贼好！</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>好吧，历时九个月，我终于把<a target="_blank" rel="noopener" href="https://dmesg.app/school-0.html">这一系列</a>的坑填完了，感谢当时鼓励我开这一系列的某同学，感谢鼓励我的某学长，当然更要感谢给了我无数灵感的某童鞋！我们下个系列再见???</p>
+<p>最后，请允许我用著名文学家小罗伯特·土而奇·豆斯基的一句话来结束本文吧：</p>
+<p>黄色的道路上分出了两条路，我选择了绕远的那条路，是因为我知道哪怕有万分之一遇见你的机会也是值得的。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/06/10/school-6/index/" data-id="clhp7rtjd0089s2qr8o4vcjo4" data-title="[学校上网系列]6.从下载软件中想到的：哎妈呀防不胜防啊" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-remember/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/06/03/remember/index/" class="article-date">
@@ -921,83 +1083,6 @@
 
 
   
-    <article id="post-greengrapes2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/04/01/greengrapes2/index/" class="article-date">
-  <time class="dt-published" datetime="2017-04-01T00:00:00.000Z" itemprop="datePublished">2017-04-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>►<a class="article-category-link" href="/categories/program/share/">share</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/04/01/greengrapes2/index/">一款功能丰富的、好看的、性能优秀的typecho绿色主题：GreenGrapes2</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>喵！虽说本站是WordPress，但是这仍无法阻碍我搞Typecho的心~今天俺就来推荐一款Typecho主题，这个主题是在<a target="_blank" rel="noopener" href="https://github.com/hongweipeng/GreenGrapes">这个</a>的基础上进一步优化改善的，不需要任何插件就能运行，并且完美支持https。先来看一张首页截图吧！ [v_blue]注意，此主题的更新说明请到GitHub上查看，我太懒了可能不会更新这里……[&#x2F;v_blue]</p>
-<h2 id="首页截图"><a href="#首页截图" class="headerlink" title="首页截图"></a>首页截图</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/2017040105133678.png"><img src="/images/2017040105133678.png"></a></p>
-<h2 id="文章标签"><a href="#文章标签" class="headerlink" title="文章标签"></a>文章标签</h2><p>默认会显示作者、分类、发布时间、浏览量、字数统计、最后更新日期。登录之后还会有编辑按钮。新文发布会在标题前面有个new</p>
-<p><img src="/images/040117_0502_1.png"></p>
-<h2 id="分享功能"><a href="#分享功能" class="headerlink" title="分享功能"></a>分享功能</h2><p>插件来自<a target="_blank" rel="noopener" href="https://github.com/revir/need-more-share2">Revir</a>，默认已开启分享到QQ空间、微博、微信、Twitter、Facebook等，修改主题文件可以获得更多支持。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/2017040105163525.png"><img src="/images/2017040105163525.png"></a></p>
-<h2 id="实用的侧边"><a href="#实用的侧边" class="headerlink" title="实用的侧边"></a>实用的侧边</h2><p>侧边栏新加了分类和管理</p>
-<p><img src="/images/040117_0502_3.png"></p>
-<h2 id="有趣的页脚"><a href="#有趣的页脚" class="headerlink" title="有趣的页脚"></a>有趣的页脚</h2><p>页脚包含建站时间、加载耗时。</p>
-<p><img src="/images/040117_0502_4.png"></p>
-<h2 id="优秀的头像缓存策略"><a href="#优秀的头像缓存策略" class="headerlink" title="优秀的头像缓存策略"></a>优秀的头像缓存策略</h2><p>如果访客填写了QQ邮箱，那么将会显示QQ头像；否则将会根据邮箱去Gravatar获取头像。如果连Gravatar也没有，那么就会显示默认的头像。启用了缓存策略，妈妈再也不怕加载好几秒钟了~默认超时时间为14天，可在主题中自行设定。</p>
-<p><img src="/images/040117_0502_5.png"></p>
-<h2 id="支持Android版Chrome通知栏变色"><a href="#支持Android版Chrome通知栏变色" class="headerlink" title="支持Android版Chrome通知栏变色"></a>支持Android版Chrome通知栏变色</h2><p>也就是<code>meta theme color</code></p>
-<p><img src="/images/040117_0502_6.png"></p>
-<h2 id="评论框输入特效"><a href="#评论框输入特效" class="headerlink" title="评论框输入特效"></a>评论框输入特效</h2><p><img src="/images/040117_0502_7.png"></p>
-<h2 id="主题设置"><a href="#主题设置" class="headerlink" title="主题设置"></a>主题设置</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/2017040500242379.png"><img src="/images/2017040500242379.png"></a></p>
-<h2 id="评论区显示UA"><a href="#评论区显示UA" class="headerlink" title="评论区显示UA"></a>评论区显示UA</h2><p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/201704050029415.png"><img src="/images/201704050029415.png"></a></p>
-<p>[v_error]注意： 对于我这种对隐私要求比较高的人，我是不想把评论者的UA、更别提是地理位置信息暴露给大众的了，所以这个选项默认是关闭的。的确，我可以通过日志、通过访问统计工具来获得访客的UA等信息，但是这只有我才能做到，这也就意味着我需要对访客的隐私负责——尽管访客可能毫不在意这点。好吧，其实我是装有Random User-Agent的……[&#x2F;v_error]</p>
-<p> </p>
-<h2 id="演示站"><a href="#演示站" class="headerlink" title="演示站"></a>演示站</h2><p><a target="_blank" rel="noopener" href="https://www.tougetu.com/">奔跑的蜗牛壳</a>（此站点同时也启用了其他的插件，在外观上，包括Snow、Kiana）</p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>下载Typecho主题</p>
-<p>重命名整个文件夹为<code>GreenGrapes2</code>并上传至<code>usr/themes/</code>目录下</p>
-<p>登陆自己的博客后台，在”控制台”的下拉菜单中选择”外观”选项进入已安装主题列表</p>
-<p>在相应的主题点击”启用”即可使用</p>
-<h2 id="Troubleshooting"><a href="#Troubleshooting" class="headerlink" title="Troubleshooting"></a>Troubleshooting</h2><h3 id="页脚加载耗时很长"><a href="#页脚加载耗时很长" class="headerlink" title="页脚加载耗时很长"></a>页脚加载耗时很长</h3><p>请首先确认是不是第一次使用本主题并且打开了一个含有大量评论的页面？如果是的话，那么第一次获取QQ头像&#x2F;Gravatar会比较耗时（尤其是当服务器在墙国的时候），耐心等待直到缓存成功即可。</p>
-<p>[v_tips]PS：如果在已有一些评论的博客上换上此主题，建议手动用touch命令修改下<code>avatarCache</code>中头像的时间戳为不同的时间日期，免得一次性加载太多导致延迟。示例命令：<code>touch -cmt 201703291216 xxx.jpg</code>[&#x2F;v_tips]</p>
-<h3 id="头像加载失败"><a href="#头像加载失败" class="headerlink" title="头像加载失败"></a>头像加载失败</h3><p>确认下主题目录下存在<code>avatarCache</code>这个目录。是否有足够的权限写入？通常来说www:www&#x2F;755或者干脆777就可以了。</p>
-<h3 id="更换首页头像、默认头像等"><a href="#更换首页头像、默认头像等" class="headerlink" title="更换首页头像、默认头像等"></a>更换首页头像、默认头像等</h3><p>主题设置中设置个url或者替换img目录下的图片文件</p>
-<h3 id="增加、修改分享选项"><a href="#增加、修改分享选项" class="headerlink" title="增加、修改分享选项"></a>增加、修改分享选项</h3><p><code>post.php</code>中的第164行<code>data-share-networks</code>中的字符串就是控制显示内容的。目前支持的选项有Weibo,Wechat,Douban,QQZone,Twitter,Pinterest,Facebook,GooglePlus,Reddit,Linkedin,Tumblr,Evernote,RenRen。更多详细设置请参考<a target="_blank" rel="noopener" href="https://github.com/revir/need-more-share2">Revir</a></p>
-<p>[v_error]注意：移动设备上请注意分享的栏目不要太多，否则破坏自适应布局可能会使浏览不方便。[&#x2F;v_error]</p>
-<h3 id="修改打字特效"><a href="#修改打字特效" class="headerlink" title="修改打字特效"></a>修改打字特效</h3><p><code>footer.php</code>中第29、30行是控制打字特效的。可以根据自己情况选择true或者是false</p>
-<h2 id="下载地址"><a href="#下载地址" class="headerlink" title="下载地址"></a>下载地址</h2><p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/GreenGrapes2'/]GreenGrapes2/[/gt/]">https://github.com/BennyThink/GreenGrapes2&#39;\]GreenGrapes2\[/gt\]</a> 突然发现GitHub字体变大、变粗了。</p>
-<h2 id="建议"><a href="#建议" class="headerlink" title="建议"></a>建议</h2><p>俺不是搞Web开发的，但是如果有任何建议，欢迎<a href="mailto:benny@bennythink.com">发邮件</a>、本文评论、<a target="_blank" rel="noopener" href="https://www.tougetu.com/">奔跑的蜗牛壳</a>评论、发issue。</p>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>Some of us get dipped in flat, some in satin, some in gloss. But every once in a while you find someone who’s iridescent, and when you do, nothing will ever compare.</p>
-<h2 id="致谢"><a href="#致谢" class="headerlink" title="致谢"></a>致谢</h2><p>感谢<a target="_blank" rel="noopener" href="https://github.com/hongweipeng/GreenGrapes">hongweipeng</a>的设计，这是我开发的基础；感谢<a target="_blank" rel="noopener" href="https://www.tougetu.com/">小蜗牛童鞋</a>的选择与信任，这是我开发的动力，嘻嘻嘻。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/04/01/greengrapes2/index/" data-id="clhp7rtgi003gs2qrdg0od7vt" data-title="一款功能丰富的、好看的、性能优秀的typecho绿色主题：GreenGrapes2" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1042,7 +1127,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1053,6 +1138,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
         
           <li>
             <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
@@ -1068,10 +1157,6 @@
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
       </ul>

@@ -73,6 +73,127 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-grafana-influxdb-telegraf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2019/07/07/grafana-influxdb-telegraf/index/" class="article-date">
+  <time class="dt-published" datetime="2019-07-07T00:00:00.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/linux/">linux</a>►<a class="article-category-link" href="/categories/linux/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2019/07/07/grafana-influxdb-telegraf/index/">使用grafana+influxdb+telegraf安全的搭建一个监控平台</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>作为一只有很多服务器的萌新，实时掌握服务器的状态是非常必须的。</p>
+<p>前段时间，由于<a target="_blank" rel="noopener" href="https://nodequery.com/">NodeQuery</a>出问题了，于是就想着换一个监控平台。当然在移除nq-agent的时候<a target="_blank" rel="noopener" href="https://dmesg.app/rm-etc.html">就手抖给&#x2F;etc删除了</a>。</p>
+<p>那么今天就来记录一下如何搭建一个中心化的监控平台。</p>
+<h2 id="一些概念的明确"><a href="#一些概念的明确" class="headerlink" title="一些概念的明确"></a>一些概念的明确</h2><p>既然要监控服务器，那么必然要有一个程序运行在服务器上，这个我们一般称作agent，在我们这里就是telegraf；另外一个负责解析，存储，展示数据的，在我们这里就是InfluxDB存储，grafana展示解析数据。</p>
+<p>如果使用zabbix的话，那么zabbix-agent就充当了采集器，zabbix-server和zabbix-frontend就充当了解析展示数据的。（zabbix太丑了，模板不会配……）</p>
+<h2 id="架构的设计"><a href="#架构的设计" class="headerlink" title="架构的设计"></a>架构的设计</h2><p>由于需要监控多台服务器，那么架构的设计也是一个问题，对于需要跨公网而不是全内网的情况来说，有这样两种思路：</p>
+<ul>
+<li>被动模式：采集器收集数据，发送给server，这种架构要求server必须有公网IP</li>
+<li>主动模式：采集器只是运行，由server主动访问采集器获得数据，这就需要所有的agent必须有公网IP</li>
+</ul>
+<p>对于被动模式，使用Telegraf+InfluxDB+Grafana是比较好的选择，只需要将InfluxDB部署在具有公网IP的服务器上就可以了，其他服务器是否具有公网IP并不重要。</p>
+<p>对于主动模式，使用node exporter+Prometheus+Grafana是比较合适的。</p>
+<p>对于两种都想要的呢！zabbix啊，主动被动都支持，就是有点丑(′д｀ )…彡…彡</p>
+<p>所以总体的架构就是：</p>
+<p>Telegraf –&gt; InfluxDB &lt;–&gt; Grafana</p>
+<h2 id="安全性的考虑"><a href="#安全性的考虑" class="headerlink" title="安全性的考虑"></a>安全性的考虑</h2><p>由于数据需要跨公网传输，那么安全性上的考虑就是必不可少的了。那么这个问题怎么解决呢？</p>
+<h3 id="加密，认证，授权"><a href="#加密，认证，授权" class="headerlink" title="加密，认证，授权"></a>加密，认证，授权</h3><p>在我们这种情景下，与InfluxDB之间的通信至少也要实现加密、认证的。</p>
+<p>加密意味着与InfluxDB之间的通信是安全的，其他人无法解密，<strong>这一点在跨公网传输的时候是必不可少的</strong>；</p>
+<p>认证意味着只有特定身份的用户才可以访问数据，比如输入了正确的用户名和密码才可以访问；</p>
+<p>授权意味着，你这个用户可以干什么事情，是只能查询还是什么都能干。</p>
+<p>为了实现加密，我们可以使用TLS那一套，这一点就很好理解了，TLS就是天生干这事的嘛。</p>
+<p>为了实现认证与授权，我们可以使用HTTP Basic Auth，创建一套用户名密码。</p>
+<h3 id="防火墙的保护"><a href="#防火墙的保护" class="headerlink" title="防火墙的保护"></a>防火墙的保护</h3><p>除了以上操作之外，使用防火墙限制访问数据库的源IP也是一种补充方法。当然了加密是必不可少的。除此之外，还有一些方法，比如TLS客户端证书等等。</p>
+<h3 id="大内网"><a href="#大内网" class="headerlink" title="大内网"></a>大内网</h3><p>有些时候配置上面这些太麻烦了，那么还有一个思路就是组建大内网！可以考虑用WireGuard、OpenVPN甚至是SSH隧道试试看。</p>
+<p>不过也有缺点，一是如果服务器是海外的，那么由于GFW的存在，可能有点不太友好；二是可能不太好配，尤其是OpenVPN，一不小心就全局了。</p>
+<h2 id="部署与配置"><a href="#部署与配置" class="headerlink" title="部署与配置"></a>部署与配置</h2><p>下面就简单说说如何安全的配置这么一套平台</p>
+<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
+<p>从页面上选择适合你的操作系统的版本，对于我使用的Ubuntu来说，使用这个就可以了</p>
+<p>wget <a target="_blank" rel="noopener" href="https://dl.influxdata.com/influxdb/releases/influxdb/_1.7.7/_amd64.deb">https://dl.influxdata.com/influxdb/releases/influxdb\_1.7.7\_amd64.deb</a><br>sudo dpkg -i influxdb_1.7.7_amd64.deb</p>
+<h3 id="配置SSL"><a href="#配置SSL" class="headerlink" title="配置SSL"></a>配置SSL</h3><p>这一步我们可以使用openssl自签名的证书，也可以使用Let’s Encrypt申请一个真正的证书（这就需要弄个域名啦）</p>
+<p>以自签名证书来说</p>
+<p>sudo openssl req -x509 -nodes -newkey rsa:2048 -keyout &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key -out &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt -days 3650<br>chown influxdb:influxdb &#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.*</p>
+<p>修改配置文件 <code>/etc/influxdb/influxdb.conf</code>，需要更改三处</p>
+<p>https-enabled &#x3D; true</p>
+<p>https-certificate &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.crt”<br>https-private-key &#x3D; “&#x2F;etc&#x2F;ssl&#x2F;influxdb-selfsigned.key”</p>
+<p>如果使用Let’s Encrypt的话，<code>https-certificate</code>改为<code>fullchain.pem</code>的路径，<code>https-private-key</code>改为<code>privkey.key</code>的路径，注意下权限就可以了。</p>
+<p>然后重启</p>
+<p>sudo systemctl restart influxdb</p>
+<p>验证</p>
+<p>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</p>
+<h3 id="配置认证与授权"><a href="#配置认证与授权" class="headerlink" title="配置认证与授权"></a>配置认证与授权</h3><p>创建一个管理员用户</p>
+<p>使用上述<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器</p>
+<p>CREATE USER paul WITH PASSWORD ‘timeseries4days’ WITH ALL PRIVILEGES</p>
+<p>开启认证</p>
+<p>修改配置文件<code>/etc/influxdb/influxdb.conf</code></p>
+<p>auth-enabled &#x3D; true</p>
+<p>重启进程</p>
+<p>sudo systemctl restart influxdb</p>
+<p>此时再使用<code>influx -ssl -unsafeSsl -host &lt;domain_name&gt;.com</code>登录到服务器，<code>show databases</code>就会报错，只有auth之后才可以</p>
+<h2 id="Telegraf"><a href="#Telegraf" class="headerlink" title="Telegraf"></a>Telegraf</h2><p><a target="_blank" rel="noopener" href="https://github.com/influxdata/telegraf/releases">https://github.com/influxdata/telegraf/releases</a></p>
+<p><a target="_blank" rel="noopener" href="https://portal.influxdata.com/downloads/">https://portal.influxdata.com/downloads/</a></p>
+<p>从以上网址下载对应你的操作系统版本的Telegraf，然后安装（armhf对应树莓派）</p>
+<h3 id="配置数据库服务器"><a href="#配置数据库服务器" class="headerlink" title="配置数据库服务器"></a>配置数据库服务器</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code>，找到urls&#x3D;…，改成https就好了</p>
+<p>urls &#x3D; [“https:&#x2F;&#x2F;&lt;domain_name&gt;.com:8086”]<br>database &#x3D; “telegraf”</p>
+<p>需要注意的是，如果使用的是自签名证书，那么<code>insecure_skip_verify = true</code>也要配置</p>
+<h3 id="配置认证"><a href="#配置认证" class="headerlink" title="配置认证"></a>配置认证</h3><p>编辑<code>/etc/telegraf/telegraf.conf</code></p>
+<p>根据上面配置的进行适当更改</p>
+<p>timeout &#x3D; “5s”</p>
+<p>username &#x3D; “telegraf” #?<br>password &#x3D; “metricsmetricsmetricsmetrics” #?</p>
+<h3 id="配置采集内容"><a href="#配置采集内容" class="headerlink" title="配置采集内容"></a>配置采集内容</h3><p>把这些追加到telegraf.conf末尾就可以了</p>
+<p>[[inputs.cpu]]<br>percpu &#x3D; true<br>totalcpu &#x3D; true<br>collect_cpu_time &#x3D; false<br>report_active &#x3D; false<br>[[inputs.disk]]<br>ignore_fs &#x3D; [“tmpfs”, “devtmpfs”, “devfs”]<br>[[inputs.io]]<br>[[inputs.mem]]<br>[[inputs.net]]<br>[[inputs.system]]<br>[[inputs.swap]]<br>[[inputs.netstat]]<br>[[inputs.processes]]<br>[[inputs.kernel]]</p>
+<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><p><a target="_blank" rel="noopener" href="https://grafana.com/grafana/download">https://grafana.com/grafana/download</a></p>
+<p>同样下载安装适合自己平台的程序</p>
+<p>然后<a target="_blank" rel="noopener" href="http://ip:3000/">http://ip:3000</a></p>
+<p>默认的用户名密码是admin、admin</p>
+<p>Add datasource选择influxdb，按照如下图所示配置</p>
+<p><img src="/images/2019070704385117.png"></p>
+<h3 id="导入dashboard"><a href="#导入dashboard" class="headerlink" title="导入dashboard"></a>导入dashboard</h3><p>导入这个dashboard</p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
+<p><img src="/images/2019070704385269.png"></p>
+<p>之后保存就可以看到结果啦！</p>
+<p><img src="/images/2019070704385387.png"></p>
+<h2 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h2><h3 id="配置防火墙"><a href="#配置防火墙" class="headerlink" title="配置防火墙"></a>配置防火墙</h3><p>只允许某个IP访问8086</p>
+<p>ufw allow from xx.xx.xx.xx to any port 8086</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/https_setup/">https://docs.influxdata.com/influxdb/v1.7/administration/https_setup&#x2F;</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization/">https://docs.influxdata.com/influxdb/v1.7/administration/authentication_and_authorization&#x2F;</a></p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/dashboards/5955">https://grafana.com/dashboards/5955</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dfd329d30891">https://www.jianshu.com/p/dfd329d30891</a></p>
+<p><a target="_blank" rel="noopener" href="https://grafana.com/docs/installation/behind_proxy/">https://grafana.com/docs/installation/behind_proxy&#x2F;</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2019/07/07/grafana-influxdb-telegraf/index/" data-id="clhp7rtgg003bs2qrelrad0no" data-title="使用grafana+influxdb+telegraf安全的搭建一个监控平台" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-rm-etc/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2019/06/27/rm-etc/index/" class="article-date">
@@ -930,92 +1051,6 @@
 
 
   
-    <article id="post-tls1_3/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2018/12/07/tls1_3/index/" class="article-date">
-  <time class="dt-published" datetime="2018-12-07T00:00:00.000Z" itemprop="datePublished">2018-12-07</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2018/12/07/tls1_3/index/">为Nginx开启tls 1.3支持，顺便编译openssl1.1.1a</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>8月份的时候，TLS1.3正式发布了（<a target="_blank" rel="noopener" href="https://tools.ietf.org/html/rfc8446">RFC 8446</a>），9月份的时候，支持TLS 1.3的Openssl 1.1.1正式发布了。对于我这种喜欢追新的人来说，终于可以升级了……（噢现在是12月哦……）其实……这就是个备忘录。</p>
-<h2 id="启用TLS-1-3的要求"><a href="#启用TLS-1-3的要求" class="headerlink" title="启用TLS 1.3的要求"></a>启用TLS 1.3的要求</h2><p>需要重新编译Nginx，加入<code>enable-tls1_3</code>参数，需要浏览器也支持TLS 1.3，如果你使用最新版本的Chrome&amp;Firefox，那么就可以。哦对了，<strong>不需要重新编译openssl哦</strong>。</p>
-<p>下表是目前的几个发行版对openssl版本的支持，虽说和本文内容干毫无关系，仅供观赏。</p>
-<table><tbody><tr><td><span style="font-size: 12pt;">Ubuntu 18.04</span></td><td><span style="font-size: 12pt;">Openssl 1.1.0g</span></td></tr><tr><td><span style="font-size: 12pt;">Ubuntu 18.10</span></td><td><span style="font-size: 12pt;">Openssl 1.1.1</span></td></tr><tr><td><span style="font-size: 12pt;">Debian sid</span></td><td><span style="font-size: 12pt;">Openssl 1.1.1a</span></td></tr><tr><td><span style="font-size: 12pt;">Debian 9 Stretch</span></td><td><span style="font-size: 12pt;">Openssl 1.1.0j</span></td></tr><tr><td><span style="font-size: 12pt;">CentOS 7</span></td><td><span style="font-size: 12pt;">Openssl 1.0.2k</span></td></tr></tbody></table>
-
-<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>sudo apt-get install build-essential libpcre3 libpcre3-dev zlib1g-dev unzip git</p>
-<h2 id="获取必要组件"><a href="#获取必要组件" class="headerlink" title="获取必要组件"></a>获取必要组件</h2><h3 id="openssl-1-1-1a"><a href="#openssl-1-1-1a" class="headerlink" title="openssl 1.1.1a"></a>openssl 1.1.1a</h3><p>wget <a target="_blank" rel="noopener" href="https://www.openssl.org/source/openssl-1.1.1a.tar.gz">https://www.openssl.org/source/openssl-1.1.1a.tar.gz</a><br>tar xf openssl-1.1.1a.tar.gz &amp;&amp; rm openssl-1.1.1a.tar.gz</p>
-<h3 id="Nginx-1-15-7"><a href="#Nginx-1-15-7" class="headerlink" title="Nginx 1.15.7"></a>Nginx 1.15.7</h3><p>wget <a target="_blank" rel="noopener" href="https://nginx.org/download/nginx-1.15.7.tar.gz">https://nginx.org/download/nginx-1.15.7.tar.gz</a><br>tar xf nginx-1.15.7.tar.gz &amp;&amp; rm nginx-1.15.7.tar.gz<br>cd nginx-1.15.7</p>
-<h2 id="编译Nginx"><a href="#编译Nginx" class="headerlink" title="编译Nginx"></a>编译Nginx</h2><p>.&#x2F;configure –user&#x3D;www –group&#x3D;www –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx –with-openssl&#x3D;..&#x2F;openssl-1.1.1a –with-openssl-opt&#x3D;’enable-tls1_3’ –with-http_v2_module –with-http_ssl_module –with-http_gzip_static_module –with-http_stub_status_module –with-http_sub_module –with-stream –with-stream_ssl_module</p>
-<p>配置完成之后</p>
-<p>make<br>make install</p>
-<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>在你的站点的配置文件中，如下配置即可：</p>
-<p>ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;</p>
-<p>ssl_ciphers ‘TLS13-AES-256-GCM-SHA384:TLS13-CHACHA20-POLY1305-SHA256:TLS13-AES-128-GCM-SHA256:TLS13-AES-128-CCM-8-SHA256:TLS13-AES-128-CCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA’;</p>
-<h2 id="检测与验证"><a href="#检测与验证" class="headerlink" title="检测与验证"></a>检测与验证</h2><h3 id="浏览器"><a href="#浏览器" class="headerlink" title="浏览器"></a>浏览器</h3><p>升级Chrome吧，默认就应该支持了。直接浏览器访问，开F12在security中即可看到。</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2018/12/2018120701580146.jpg"><img src="/images/2018120701580146.jpg"></a></p>
-<h3 id="ssllabs"><a href="#ssllabs" class="headerlink" title="ssllabs"></a>ssllabs</h3><p><a target="_blank" rel="noopener" href="https://www.ssllabs.com/ssltest/">https://www.ssllabs.com/ssltest/</a></p>
-<h3 id="testssl"><a href="#testssl" class="headerlink" title="testssl"></a>testssl</h3><p>需要1.1.1或更高版本的openssl</p>
-<p>.&#x2F;testssl –p –P <a target="_blank" rel="noopener" href="http://www.example.com/">www.example.com</a></p>
-<h3 id="Openssl"><a href="#Openssl" class="headerlink" title="Openssl"></a>Openssl</h3><p>注意，同样需要openssl版本为1.1.1或更高</p>
-<p>openssl s_client -connect <a target="_blank" rel="noopener" href="http://www.example.com:443/">www.example.com:443</a> -tls1_3</p>
-<h2 id="编译openssl-1-1-1"><a href="#编译openssl-1-1-1" class="headerlink" title="编译openssl 1.1.1"></a>编译openssl 1.1.1</h2><h3 id="安装依赖-1"><a href="#安装依赖-1" class="headerlink" title="安装依赖"></a>安装依赖</h3><p>sudo apt update<br>sudo apt install build-essential checkinstall zlib1g-dev -y</p>
-<h3 id="下载并解压缩源代码"><a href="#下载并解压缩源代码" class="headerlink" title="下载并解压缩源代码"></a>下载并解压缩源代码</h3><p>wget <a target="_blank" rel="noopener" href="https://www.openssl.org/source/openssl-1.1.1a.tar.gz">https://www.openssl.org/source/openssl-1.1.1a.tar.gz</a><br>tar xf openssl-1.1.1a.tar.gz &amp;&amp; rm openssl-1.1.1a.tar.gz<br>cd openssl-1.1.1a</p>
-<h3 id="配置、编译与安装"><a href="#配置、编译与安装" class="headerlink" title="配置、编译与安装"></a>配置、编译与安装</h3><p>.&#x2F;config –prefix&#x3D;&#x2F;usr&#x2F;local&#x2F;ssl –openssldir&#x3D;&#x2F;usr&#x2F;local&#x2F;ssl shared zlib<br>make &amp;&amp; make test<br>make install</p>
-<p>关于prefix和openssldir这俩参数</p>
-<p><code>prefix</code>和<code>openssldir</code>用于控制openssl安装路径。</p>
-<p><strong>1.0.2及之前的版本</strong></p>
-<p>一般来说不用指定<code>prefix</code>，如果<code>prefix</code>没指定，那么就会使用<code>openssldir</code></p>
-<p>如果未指定<code>openssldir</code>，那么<code>openssldir</code>的默认路径为<code>/usr/local/ssl</code></p>
-<p><strong>1.1.0 及之后版本</strong></p>
-<p>我们改啦！应该同时指定<code>prefix</code> 和 <code>openssldir</code></p>
-<p>简单的办法就是同时指定为<code>/usr/local/ssl</code></p>
-<h3 id="更新动态库"><a href="#更新动态库" class="headerlink" title="更新动态库"></a>更新动态库</h3><p>cd &#x2F;etc&#x2F;ld.so.conf.d&#x2F;</p>
-<h1 id="创建新文件"><a href="#创建新文件" class="headerlink" title="创建新文件"></a>创建新文件</h1><p>vim openssl-1.1.1a.conf</p>
-<h1 id="粘贴如下内容并保存退出"><a href="#粘贴如下内容并保存退出" class="headerlink" title="粘贴如下内容并保存退出"></a>粘贴如下内容并保存退出</h1><p>&#x2F;usr&#x2F;local&#x2F;ssl&#x2F;lib</p>
-<h1 id="重新加载动态库"><a href="#重新加载动态库" class="headerlink" title="重新加载动态库"></a>重新加载动态库</h1><p>ldconfig –v</p>
-<h3 id="删除（备份）旧的openssl"><a href="#删除（备份）旧的openssl" class="headerlink" title="删除（备份）旧的openssl"></a>删除（备份）旧的openssl</h3><p>mv &#x2F;usr&#x2F;bin&#x2F;c_rehash &#x2F;usr&#x2F;bin&#x2F;c_rehash.BEKUP<br>mv &#x2F;usr&#x2F;bin&#x2F;openssl &#x2F;usr&#x2F;bin&#x2F;openssl.BEKUP</p>
-<h3 id="把新的加入PATH"><a href="#把新的加入PATH" class="headerlink" title="把新的加入PATH"></a>把新的加入PATH</h3><p>类似如下语句，或者做软链接</p>
-<p>PATH&#x3D;”&#x2F;usr&#x2F;local&#x2F;sbin:&#x2F;usr&#x2F;local&#x2F;bin:&#x2F;usr&#x2F;sbin:&#x2F;usr&#x2F;bin:&#x2F;sbin:&#x2F;bin:&#x2F;usr&#x2F;games:&#x2F;usr&#x2F;local&#x2F;games:&#x2F;usr&#x2F;local&#x2F;ssl&#x2F;bin”</p>
-<p>参考</p>
-<p><a target="_blank" rel="noopener" href="https://www.howtoforge.com/tutorial/how-to-install-openssl-from-source-on-linux/">https://www.howtoforge.com/tutorial/how-to-install-openssl-from-source-on-linux/</a></p>
-<p><a target="_blank" rel="noopener" href="https://wiki.openssl.org/index.php/Compilation_and_Installation#PREFIX_and_OPENSSLDIR">https://wiki.openssl.org/index.php/Compilation_and_Installation#PREFIX_and_OPENSSLDIR</a></p>
-<p><a target="_blank" rel="noopener" href="https://imququ.com/post/enable-tls-1-3.html">https://imququ.com/post/enable-tls-1-3.html</a></p>
-<p><a target="_blank" rel="noopener" href="https://halfrost.com/tls1-3_start/">https://halfrost.com/tls1-3_start&#x2F;</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2018/12/07/tls1_3/index/" data-id="clhp7rtmc00a2s2qr9bju6zj3" data-title="为Nginx开启tls 1.3支持，顺便编译openssl1.1.1a" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1060,7 +1095,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1071,6 +1106,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
         
           <li>
             <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
@@ -1086,10 +1125,6 @@
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
       </ul>

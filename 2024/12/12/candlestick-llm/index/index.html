@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>使用Python 通过K线计算技术指标，并用 LLM 预测趋势 | 土豆不好吃</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="经常混币圈、股票和外汇的朋友们都知道有一个东西叫 K线，大概长这样  同时你也可以选择添加更多的图表，如布林线、MACD、RSI等，用这些技术指标来辅助决策。  这些技术参数很有用，如果能把一段时间的结果交给LLM去分析，应该比凭着感觉瞎买更靠谱吧！ 那这些技术参数是怎么来的呢……？ 去花钱买！这个世界上还有什么是钞能力无法解决的事情吗？  https:&#x2F;&#x2F;taapi.io&#x2F; 已经有人做好了！有股">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Python 通过K线计算技术指标，并用 LLM 预测趋势">
+<meta property="og:url" content="http://example.com/2024/12/12/candlestick-llm/index/index.html">
+<meta property="og:site_name" content="土豆不好吃">
+<meta property="og:description" content="经常混币圈、股票和外汇的朋友们都知道有一个东西叫 K线，大概长这样  同时你也可以选择添加更多的图表，如布林线、MACD、RSI等，用这些技术指标来辅助决策。  这些技术参数很有用，如果能把一段时间的结果交给LLM去分析，应该比凭着感觉瞎买更靠谱吧！ 那这些技术参数是怎么来的呢……？ 去花钱买！这个世界上还有什么是钞能力无法解决的事情吗？  https:&#x2F;&#x2F;taapi.io&#x2F; 已经有人做好了！有股">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/2024121202224065.png">
+<meta property="og:image" content="http://example.com/images/2024121202224114.png">
+<meta property="og:image" content="http://example.com/images/9974-kherpxx2653922.gif">
+<meta property="og:image" content="http://example.com/images/2024121202224340.png">
+<meta property="og:image" content="http://example.com/images/202412120222449.png">
+<meta property="og:image" content="http://example.com/images/2024121202224549.png">
+<meta property="og:image" content="http://example.com/images/2024121202224554.png">
+<meta property="og:image" content="http://example.com/images/2024121202224697.png">
+<meta property="og:image" content="http://example.com/images/2024121202224868.png">
+<meta property="article:published_time" content="2024-12-12T00:00:00.000Z">
+<meta property="article:modified_time" content="2024-12-12T22:37:10.367Z">
+<meta property="article:author" content="Benny小土豆">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/2024121202224065.png">
+  
+    <link rel="alternate" href="/atom.xml" title="土豆不好吃" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">土豆不好吃</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-candlestick-llm/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/12/12/candlestick-llm/index/" class="article-date">
+  <time class="dt-published" datetime="2024-12-12T00:00:00.000Z" itemprop="datePublished">2024-12-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/what/">what</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      使用Python 通过K线计算技术指标，并用 LLM 预测趋势
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>经常混币圈、股票和外汇的朋友们都知道有一个东西叫 K线，大概长这样 <img src="/images/2024121202224065.png" alt="pasted-movie.png"></p>
+<p>同时你也可以选择添加更多的图表，如布林线、MACD、RSI等，用这些技术指标来辅助决策。</p>
+<p><img src="/images/2024121202224114.png" alt="pasted-movie.png"></p>
+<p>这些技术参数很有用，如果能把一段时间的结果交给LLM去分析，应该比凭着感觉瞎买更靠谱吧！</p>
+<p>那这些技术参数是怎么来的呢……？</p>
+<p>去花钱买！这个世界上还有什么是钞能力无法解决的事情吗？</p>
+<p><img src="/images/9974-kherpxx2653922.gif" alt="第一白富美丢250亿遗产，跑去当网红捞钱？"></p>
+<p><a target="_blank" rel="noopener" href="https://taapi.io/">https://taapi.io/</a> 已经有人做好了！有股票 也有加密货币的数据。就是……免费版频率限制有些严重，想要获取多点数据就等几个小时吧。一下子升级个 Pro 要花14.99欧元，在PoC阶段好像也不太值得……</p>
+<p>实际上，这些技术参数，全部都是使用K线数据，由客户端计算出来的。K线数据很容易获取，很多交易所都提供API，但是计算这些参数需要比较强的数学知识😅</p>
+<p>还好已经有人写好了相关的库，虽然是 C&#x2F;C++写的，但是不怕啦早就有人写好了 Python的wrapper</p>
+<h2 id="TA-Lib-Technical-Analysis-Library"><a href="#TA-Lib-Technical-Analysis-Library" class="headerlink" title="TA-Lib - Technical Analysis Library"></a>TA-Lib - Technical Analysis Library</h2><p>我们需要这个东西来计算数据，这个库支持200多个技术指标，包括RSI，MACD</p>
+<p>安装方式可以参考官方文档</p>
+<h2 id="获取K线数据"><a href="#获取K线数据" class="headerlink" title="获取K线数据"></a>获取K线数据</h2><p>以币安的合约数据为例，非常简单</p>
+<p>pip install binance-futures-connector<br>from binance.um_futures import UMFutures<br>um_client &#x3D; UMFutures()<br>candles&#x3D;um_client.klines(symbol&#x3D;‘BTCUSDT’, interval&#x3D;‘1m’)</p>
+<p>这样我们就获取到了 1分钟时间间隔的数据</p>
+<p>转换成 pandas的<code>DataFrame</code> 方便后续处理</p>
+<p>pd.DataFrame(candles)</p>
+<h2 id="计算布林线"><a href="#计算布林线" class="headerlink" title="计算布林线"></a>计算布林线</h2><p>布林线使用收盘价格进行计算，而且需要多组数据才可以计算出来</p>
+<p>upperband, middleband, lowerband &#x3D; talib.BBANDS(self.df[“close”], timeperiod&#x3D;20, nbdevup&#x3D;2, nbdevdn&#x3D;2, matype&#x3D;0)</p>
+<h2 id="计算-RSI"><a href="#计算-RSI" class="headerlink" title="计算 RSI"></a>计算 RSI</h2><p>同样也是收盘价</p>
+<p>rsi6 &#x3D; talib.RSI(self.df[“close”], timeperiod&#x3D;6)<br>rsi12 &#x3D; talib.RSI(self.df[“close”], timeperiod&#x3D;12)<br>rsi24 &#x3D; talib.RSI(self.df[“close”], timeperiod&#x3D;24)</p>
+<h2 id="MACD"><a href="#MACD" class="headerlink" title="MACD"></a>MACD</h2><p>收盘价</p>
+<p>dif, dea, macd &#x3D; talib.MACD(self.df[“close”], fastperiod&#x3D;12, slowperiod&#x3D;26, signalperiod&#x3D;9)</p>
+<h2 id="MA"><a href="#MA" class="headerlink" title="MA"></a>MA</h2><p>包括SMA和EMA</p>
+<p>sma7 &#x3D; talib.SMA(self.df[“close”], timeperiod&#x3D;7)<br>sma25 &#x3D; talib.SMA(self.df[“close”], timeperiod&#x3D;25)<br>sma99 &#x3D; talib.SMA(self.df[“close”], timeperiod&#x3D;99)</p>
+<p>ema7 &#x3D; talib.EMA(self.df[“close”], timeperiod&#x3D;7)<br>ema25 &#x3D; talib.EMA(self.df[“close”], timeperiod&#x3D;25)<br>ema99 &#x3D; talib.EMA(self.df[“close”], timeperiod&#x3D;99)</p>
+<h2 id="转换数据为json"><a href="#转换数据为json" class="headerlink" title="转换数据为json"></a>转换数据为json</h2><p>LLM更适合处理json数据，pandas就很方便啦</p>
+<p>self.df.to_json(orient&#x3D;”records”, date_format&#x3D;”epoch”, date_unit&#x3D;”s”)</p>
+<h2 id="调用-LLM-接口"><a href="#调用-LLM-接口" class="headerlink" title="调用 LLM 接口"></a>调用 LLM 接口</h2><p>有了数据之后就可以把他们导出成 json，然后调用LLM进行处理。</p>
+<p>这里需要找一个可用的LLM，比如 Mistral AI、OpenAI 、Gemini或者 Claude。由于国内注册比较麻烦，而且风控很严格，建议大家使用「头顶冒火」的API接口</p>
+<ul>
+<li>OpenAI专场：<a target="_blank" rel="noopener" href="https://burn.hair/">https://burn.hair/</a></li>
+<li>Claude、MistralAI和OpenAI：<a target="_blank" rel="noopener" href="https://api.burn.hair/">https://api.burn.hair/</a></li>
+</ul>
+<p>使用什么模型因人而异，一次数据量比较大，gpt-4o可能是比较好的选择，Claude Opus和o1-preview比较贵，但是也可以考虑，头顶冒火网站也都有的</p>
+<p>然后要做的事情就是写提示词，让AI分析结果了！🧐</p>
+<p>很麻烦是不是……不要怕，我已经写好并且开源了。使用方式详见下一页！⬇️⬇️⬇️ 部分RSS阅读器可能无法显示下一页的内容，请点击链接打开网站阅读</p>
+<p> </p>
+<p>[v_error]本项目仅供学习交流使用。交易有风险，入市需谨慎。若因本项目产生任何损失，概不负责。[&#x2F;v_error]</p>
+<p>下面即将以Windows为例手把手教学，至于 macOS和Linux，基本步骤也基本一致</p>
+<h2 id="安装编辑器"><a href="#安装编辑器" class="headerlink" title="安装编辑器"></a>安装编辑器</h2><p>需要一个比较好的编辑器来编辑配置文件，可以选择Sublime、Notepad++，也可以选择 VS Code</p>
+<p>以 VS Code为例，到这里下载 <a target="_blank" rel="noopener" href="https://code.visualstudio.com/%EF%BC%8C">https://code.visualstudio.com/，</a> 下载回来双击下一步就可以</p>
+<h2 id="安装-Python"><a href="#安装-Python" class="headerlink" title="安装 Python"></a>安装 Python</h2><p>到这里<a target="_blank" rel="noopener" href="https://www.python.org/downloads/">https://www.python.org/downloads/</a> 下载并安装 Python</p>
+<p><img src="/images/2024121202224340.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="准备代码"><a href="#准备代码" class="headerlink" title="准备代码"></a>准备代码</h2><p>打开网址 <a target="_blank" rel="noopener" href="https://github.com/BennyThink/AICryptoBot">https://github.com/BennyThink/AICryptoBot</a></p>
+<p>Code – Download Zip 或者选择 git clone等方式</p>
+<p><img src="/images/202412120222449.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>对于ZIP文件，请自行解压缩</p>
+<h2 id="打开项目"><a href="#打开项目" class="headerlink" title="打开项目"></a>打开项目</h2><p>双击打开VS Code，然后把目录拖进去即可打开，能看到这样的目录结构就说明正确了</p>
+<p><img src="/images/2024121202224549.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h2 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h2><p>VSCode 菜单栏 Terminal – New Terminal</p>
+<p>如果网络速度不理想，需要配置镜像</p>
+<p>pip config set global.index-url <a target="_blank" rel="noopener" href="https://mirrors.ustc.edu.cn/pypi/simple">https://mirrors.ustc.edu.cn/pypi/simple</a><br>pip install -r requirements.txt</p>
+<p>pip install <a target="_blank" rel="noopener" href="https://github.com/cgohlke/talib-build/releases/download/v0.5.1/ta/_lib-0.5.1-cp313-cp313-win/_amd64.whl">https://github.com/cgohlke/talib-build/releases/download/v0.5.1/ta\_lib-0.5.1-cp313-cp313-win\_amd64.whl</a></p>
+<p>如果你安装不是 Python 3.13 需要把上面的<code>cp313</code>换成<code>cp312</code>（3.12）<code>cp311</code>（3.11）以此类推</p>
+<h2 id="准备-LLM接口"><a href="#准备-LLM接口" class="headerlink" title="准备 LLM接口"></a>准备 LLM接口</h2><p>这里以 OpenAI + 头顶冒火为例，需要先去 <a target="_blank" rel="noopener" href="https://burn.hair/">https://burn.hair/</a> 或者 <a target="_blank" rel="noopener" href="https://api.burn.hair/">https://api.burn.hair/</a> 注册一个账号，然后确保有足够余额（0.5-1美元就足够了）。</p>
+<p>令牌-添加令牌</p>
+<p><img src="/images/2024121202224554.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>然后复制令牌</p>
+<h2 id="准备配置文件"><a href="#准备配置文件" class="headerlink" title="准备配置文件"></a>准备配置文件</h2><p>创建一个 <code>.env</code>文件放到 <code>src</code> 这个子目录下,内容如下</p>
+<p>OPENAI_BASE_URL&#x3D;<a target="_blank" rel="noopener" href="https://burn.hair/v1">https://burn.hair/v1</a><br>OPENAI_API_KEY&#x3D;sk-61234这里就是你复制的令牌<br>OPENAI_MODEL&#x3D;gpt-4o-2024-08-06</p>
+<p>BINANCE_INTERVAL&#x3D;1m&#x3D;30,5m&#x3D;40,15m&#x3D;30,1h&#x3D;25,2h&#x3D;15,4h&#x3D;10,8h&#x3D;8,12h&#x3D;6,1d&#x3D;5</p>
+<p>BINANCE_INTERVAL 详解：</p>
+<p>这里需要根据你的需求，来配置采集的时间间隔和数据量，<code>1m=30</code>表示1分间隔的数据采集最近30个；同理，<code>1d=5</code> 意味着1天的间隔，采集5个，换句话说也就是5天的日线数据。数据量越多，API消耗也就越多，按照默认配置大概1个交易对要用0.1-0.2美元。</p>
+<p>可以根据个人情况调整，如果拿不准可以用默认值，或者让AI给出个主意</p>
+<h2 id="运行测算"><a href="#运行测算" class="headerlink" title="运行测算"></a>运行测算</h2><p>同样在 Terminal里</p>
+<p>cd src</p>
+<h1 id="多个交易对可以用逗号分隔，如"><a href="#多个交易对可以用逗号分隔，如" class="headerlink" title="多个交易对可以用逗号分隔，如"></a>多个交易对可以用逗号分隔，如</h1><p>python main.py –symbol&#x3D;btcusdt,ethusdt</p>
+<h1 id="只想查询一个可以这样"><a href="#只想查询一个可以这样" class="headerlink" title="只想查询一个可以这样"></a>只想查询一个可以这样</h1><p>python main.py –symbol&#x3D;btcusdt</p>
+<p><img src="/images/2024121202224697.png" alt="图形用户界面 低可信度描述已自动生成"></p>
+<p>然后浏览器就会自动打开一个网页显示结果，也可以在output目录下找到html文件打开自行查看</p>
+<p><img src="/images/2024121202224868.png" alt="图形用户界面, 文本, 应用程序描述已自动生成"></p>
+<p>看起来是不是挺靠谱的样子，至少比自己凭着感觉瞎买要好多了。再次警告，<strong>交易有风险，入市需谨慎。若因本项目产生任何损失，概不负责。</strong></p>
+<p> </p>
+<p>要是赚到钱了，可以考虑<a target="_blank" rel="noopener" href="https://github.com/BennyThink/AICryptoBot?tab=readme-ov-file#%E8%B5%9E%E8%B5%8F">给我打个赏</a>😂</p>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><ul>
+<li>代码开源地址：<a target="_blank" rel="noopener" href="https://github.com/BennyThink/AICryptoBot">https://github.com/BennyThink/AICryptoBot</a></li>
+<li>头顶冒火 OpenAI 接口站：限时折扣优惠进行中，<a target="_blank" rel="noopener" href="https://burn.hair/">https://burn.hair/</a></li>
+<li>头顶冒火小分队，支持 Claude、MistralAI、Grok和 OpenAI，纯官方转发：<a target="_blank" rel="noopener" href="https://api.burn.hair/">https://api.burn.hair/</a></li>
+<li>TA-Lib：<a target="_blank" rel="noopener" href="https://ta-lib.org/">https://ta-lib.org/</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/12/12/candlestick-llm/index/" data-id="cm4lwgy6w0000tdjfcn828igf" data-title="使用Python 通过K线计算技术指标，并用 LLM 预测趋势" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2024/11/03/warp-http-proxy/index/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">把 Cloudflare WARP 转换为 http 代理</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/linux/" rel="tag">linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/linux/" style="font-size: 10px;">linux</a> <a href="/tags/ubuntu/" style="font-size: 10px;">ubuntu</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
+        
+          <li>
+            <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
+          </li>
+        
+          <li>
+            <a href="/2024/10/12/aca-php/index/">用 Azure Container Apps 运行PHP网站</a>
+          </li>
+        
+          <li>
+            <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
+          </li>
+        
+          <li>
+            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2024 Benny小土豆<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

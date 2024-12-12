@@ -73,6 +73,146 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-fix-ax3600/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/11/01/fix-ax3600/index/" class="article-date">
+  <time class="dt-published" datetime="2021-11-01T00:00:00.000Z" itemprop="datePublished">2021-11-01</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>►<a class="article-category-link" href="/categories/it/linux/">linux</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/11/01/fix-ax3600/index/">小米AX3600救砖</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>天下苦秦久矣！我也因为AX56U痛苦不已。不知道是固件的原因还是什么原因，内网延迟几千毫秒。</p>
+<p><img src="/images/2021110120064369.jpeg"></p>
+<p>二话不说便出资上闲鱼上淘了一个AX3600。没买AX6000因为6000有些缩水，CPU、闪存都缩水了，背板带宽只有1Gbps。酸奶倒是对这个大家伙有些好奇。</p>
+<p><img src="/images/2021110120064461.jpeg"></p>
+<p>刷机过程就按照教程来，先降级小米的固件，开SSH，然后刷qdsk，再刷qdsk，然后刷openwrt。看着openwrt没什么问题，我就想着刷自己编译的固件，毕竟自己的固件功能最精简！</p>
+<h2 id="编译环境"><a href="#编译环境" class="headerlink" title="编译环境"></a>编译环境</h2><p>我用的是这个repo <a target="_blank" rel="noopener" href="https://github.com/coolsnowwolf/lede">https://github.com/coolsnowwolf/lede</a></p>
+<p>编译这种事，当然要找个多CPU多内存的设备啦。而且当然要用docker啦，毕竟我们只要build artifacts！写一个Dockerfile装好所有工具链，需要的时候commit 一下就好。</p>
+<p>这个Dockerfile比较简单，我就不贴出来了。分享一个已经build好的base image，有需要的小伙伴可以自行下载，已经加好了科学上网的源，适合在海外VPS上跑起：</p>
+<p>docker pull bennythink&#x2F;lede</p>
+<h1 id="或者"><a href="#或者" class="headerlink" title="或者"></a>或者</h1><p>docker pull ghcr.io&#x2F;bennythink&#x2F;lede</p>
+<p>如何使用？直接</p>
+<p>docker run –rm -it bennythink&#x2F;lede bash</p>
+<p>然后看steps.txt就好了，构建结束docker cp，或者直接 -v到&#x2F;lede&#x2F;bin也可以。</p>
+<p>另外我还有一个已经build好了的image，大小是22G，如果你也是AX3600，那么可以拉下来试试，应该编译很快，毕竟不用下载各种依赖</p>
+<p>docker pull ghcr.io&#x2F;bennythink&#x2F;lede:eff9437-20211101</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/users/BennyThink/packages/container/package/lede">https://github.com/users/BennyThink/packages/container/package/lede</a></p>
+<h2 id="拆机救砖"><a href="#拆机救砖" class="headerlink" title="拆机救砖"></a>拆机救砖</h2><p>刷完自己编译的固件就变砖了，小米救砖工具也没修好……</p>
+<p>于是只能买了TTL工具。</p>
+<p>先要拆机，AX3600非常不好拆，并且拆机前没有人告诉你底部四角防滑贴纸和说明贴纸下面有螺丝。</p>
+<p>准备好TTL工具，我用的是FT232，AX3600左侧有四个口，根据说明分别是VCC，GND，RX，TX。FT232的TX要接路由器的RX，RX要接TX，GND接GND，VCC不接，调到1.8v</p>
+<p><img src="/images/2021110120064522.jpeg"></p>
+<p>用杜邦线连接就可以</p>
+<p>然后电脑这里，如果是macOS&#x2F;Linux的话，直接用screen就好，通过lsusb&#x2F;lspci或者系统信息-USB可以看到设备名称，之后将路由器通电开机，执行如下命令就可以了</p>
+<p>screen -L &#x2F;dev&#x2F;cu.usbserial-A50285BI 115200 –L</p>
+<p>Windows 需要用Putty，在设备管理器中确认COM口</p>
+<h2 id="进入uboot"><a href="#进入uboot" class="headerlink" title="进入uboot"></a>进入uboot</h2><p>正常来说路由器启动后就会进入uboot，默认有5秒延迟，按回车键就可以中断引导，然后就可以进入一个命令行界面救砖啦。</p>
+<p>如果screen提示no tty、device busy什么的，可能是杜邦线没插进，再检查看看</p>
+<h2 id="准备tftp"><a href="#准备tftp" class="headerlink" title="准备tftp"></a>准备tftp</h2><p>macOS自带一个tftp，使用如下命令启动</p>
+<p>sudo launchctl load -w &#x2F;System&#x2F;Library&#x2F;LaunchDaemons&#x2F;tftp.plist</p>
+<p>把后缀是ubi的nand factory复制到<code>/private/tftpboot</code>中（需要sudo）</p>
+<p>停止可以用这个命令</p>
+<p>sudo launchctl unload -w &#x2F;System&#x2F;Library&#x2F;LaunchDaemons&#x2F;tftp.plist</p>
+<h2 id="uboot刷分区"><a href="#uboot刷分区" class="headerlink" title="uboot刷分区"></a>uboot刷分区</h2><h3 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h3><p>网线连接电脑和路由器LAN，电脑设置IP 192.168.31.100，然后在uboot中执行如下命令</p>
+<p>setenv serverip 192.168.31.100<br>setenv ipaddr 192.168.31.1</p>
+<h3 id="加载固件"><a href="#加载固件" class="headerlink" title="加载固件"></a>加载固件</h3><p>然后加载固件到内存中</p>
+<p>tftpboot 1.ubi</p>
+<p>此时能看到屏幕上在走进度条，如果你没走，提示tftp server died或者卡住了，那多半是tftp服务器没配置好。</p>
+<p>大概能看到这样的输出：</p>
+<blockquote>
+<p><strong>Load address: 0x44000000</strong></p>
+<p>done</p>
+<p>Bytes transferred &#x3D; 31457280 (<strong>1e00000 hex</strong>)</p>
+<p>ipq807x_eth_halt: done</p>
+</blockquote>
+<p>进度条走完之后，会留下一个数字，byte transferred 31457280（<strong>1e00000 hex</strong>）也就是固件的大小，同时最开始load address还会告诉你固件的起始地址，我这里是<code>0x44000000</code>。这两个数值很重要，要记下来</p>
+<h3 id="获取分区信息"><a href="#获取分区信息" class="headerlink" title="获取分区信息"></a>获取分区信息</h3><p>用<code>smeminfo</code>可以获取分区信息</p>
+<blockquote>
+<p>IPQ807x# smeminfo</p>
+<p>flash_type: 0x2</p>
+<p>flash_index: 0x0</p>
+<p>flash_chip_select: 0x0</p>
+<p>flash_block_size: 0x20000</p>
+<p>flash_density: 0x100000</p>
+<p>partition table offset 0x0</p>
+<p>No.: Name Attributes Start Size</p>
+<p>0: 0:SBL1 0x0000ffff 0x0 0x100000</p>
+<p>1: 0:MIBIB 0x0000ffff 0x100000 0x100000</p>
+<p>2: 0:QSEE 0x0000ffff 0x200000 0x300000</p>
+<p>3: 0:DEVCFG 0x0000ffff 0x500000 0x80000</p>
+<p>4: 0:RPM 0x0000ffff 0x580000 0x80000</p>
+<p>5: 0:CDT 0x0000ffff 0x600000 0x80000</p>
+<p>6: 0:APPSBLENV 0x0000ffff 0x680000 0x80000</p>
+<p>7: 0:APPSBL 0x0000ffff 0x700000 0x100000</p>
+<p>8: 0:ART 0x0000ffff 0x800000 0x80000</p>
+<p>9: bdata 0x0000ffff 0x880000 0x80000</p>
+<p>10: crash 0x0000ffff 0x900000 0x80000</p>
+<p>11: crash_syslog 0x0000ffff 0x980000 0x80000</p>
+<p>12: rootfs 0x0000ffff <strong>0xa00000 0x23c0000</strong></p>
+<p>13: rootfs_1 0x0000ffff <strong>0x2dc0000 0x8000000</strong></p>
+<p>14: overlay 0x0000ffff 0xadc0000 0x1ec0000</p>
+<p>15: rsvd0 0x0000ffff 0xcc80000 0x80000</p>
+<p>16: 0:WIFIFW 0x0000ffff 0xcd00000 0x900000</p>
+<p>IPQ807x#</p>
+</blockquote>
+<p>我们需要关注12和13分区的起始和结束地址，这两个非常重要，每个人都可能不同。</p>
+<p>由于我搞了双系统（类似Android的A&#x2F;B分区），因此能看到rootfs和rootfs_1。当前我要刷的分区是13分区。</p>
+<h3 id="清除分区内容"><a href="#清除分区内容" class="headerlink" title="清除分区内容"></a>清除分区内容</h3><p>保险起见，先给rootfs抹掉，自己对应起始结束地址</p>
+<p>nand erase 0xa00000 0x23c0000<br>nand erase 0x2dc0000 0x8000000</p>
+<h3 id="写入固件"><a href="#写入固件" class="headerlink" title="写入固件"></a>写入固件</h3><p>写到rootfs_1中，使用<code>nand write</code>命令，这个命令接受三个参数，分别是固件内存地址，分区起始地址，固件大小。对我来说，写到rootfs_1也就是</p>
+<p>nand write 0x44000000 0x2dc0000 0x1e00000</p>
+<p>写到rootfs就是</p>
+<p>nand write 0x44000000 0xa00000 0x1e00000</p>
+<p>然后断电开机，就会发现神奇的救回来啦！</p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>之后我想用<code>ubiformat</code>给小米的固件刷到rootfs</p>
+<p>ubiformat &#x2F;dev&#x2F;mtd12 -y -f &#x2F;tmp&#x2F;xiaomi1.1.12.ubi</p>
+<p>但是发现刷完无法切换</p>
+<p>fw_setenv flag_last_success 0<br>fw_setenv flag_boot_rootfs 0</p>
+<p>使用这个命令切不过去，即使在uboot中<code>nand write</code>似乎也不行。无所谓啦，反正都用openwrt的，并且这个时候在openwrt中刷自己编译的sysupgrade就没问题，可能是我第一次选的是nand-factory所以变砖了吧……</p>
+<h2 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h2><h3 id="Wi-Fi断流"><a href="#Wi-Fi断流" class="headerlink" title="Wi-Fi断流"></a>Wi-Fi断流</h3><p>在我的MBP16上，存在Wi-Fi断流问题，具体表现是Wi-Fi连接信号满格，但是却无法ping通任何地址，关闭Wi-Fi再开才可以。</p>
+<p>其他设备没问题，怀疑是MBP16有什么特殊的兼容性问题？</p>
+<h3 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h3><p>感觉似乎openwrt存在内存泄漏的问题，什么也没干就剩这么点了。当然我懂，内存这东西用起来了才好，要不然闲置就是浪费，只要尽量少用swap就好，毕竟路由器上的swap那可是闪存，不仅慢还会磨损。</p>
+<p>感谢群友指教，openwrt默认开了zram，也就是把内存的一部分拿来压缩用，默认是系统管理大小，于是这里我看到虚拟内存202M，其实就是从RAM中拿出来的。在系统-系统中如果手动指定一个值并重启，上面的内存数值就正常了。</p>
+<p><img src="/images/2021110120064567.png"></p>
+<p>至少内网几千毫秒的延迟修好了！</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://www.right.com.cn/FORUM/thread-6119565-1-1.html">https://www.right.com.cn/FORUM/thread-6119565-1-1.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.right.com.cn/forum/thread-5044604-1-1.html">https://www.right.com.cn/forum/thread-5044604-1-1.html</a></p>
+<p>警告：似乎由于什么奇怪的原因，小米设备的支持被删除了，可以看这个commit <a target="_blank" rel="noopener" href="https://github.com/coolsnowwolf/lede/commit/edbd8d2e9839357f3a4f0a06174d243f362b1544">https://github.com/coolsnowwolf/lede/commit/edbd8d2e9839357f3a4f0a06174d243f362b1544</a></p>
+<p>git reset –hard 20a437026ae6fb7834063dbc56685b11023f06c9 可解决</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/11/01/fix-ax3600/index/" data-id="clhp7rtgb002us2qr6rqlgnt1" data-title="小米AX3600救砖" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-telegram-sticker/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2021/10/26/telegram-sticker/index/" class="article-date">
@@ -871,115 +1011,6 @@ server.quit()
 
 
   
-    <article id="post-pyinstaller-static-files/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2021/06/17/pyinstaller-static-files/index/" class="article-date">
-  <time class="dt-published" datetime="2021-06-17T00:00:00.000Z" itemprop="datePublished">2021-06-17</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2021/06/17/pyinstaller-static-files/index/">使用pyinstaller嵌入静态资源</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>在使用Go时，我经常会羡慕Go的出色的静态编译能力，更具体的说，纯Go写的程序会编译成一个零依赖的二进制文件，同时也可以非常轻松的做到交叉编译。甚至是，我可以把一些资源文件也编译到这个文件中。比如在 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/DailyGakki">DailyGakki</a> 中，我便通过go-bindata把图片塞到了二进制文件中。暂且不提这样对文件大小、对性能有什么影响，只有一个文件就能过实现全部功能，是不是听起来很棒。</p>
-<p>那么python能做到这点吗？当然也是能的啦，只是不是原生支持的啦。Python有一个东西叫做 pyinstaller，它会把python运行时的东西都打包起来，比如我们有这样一个程序<code>test.py</code>：</p>
-<p>import time</p>
-<p>def main():<br>    print(“Hello world at “, time.asctime())</p>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    main()</p>
-<p>要打包成一个文件，就会用到<code>-F</code>参数：</p>
-<p>pyinstaller -F test.py</p>
-<p>pyinstaller 会生成一个<code>spec</code>文件，然后会在<code>dist</code>目录下生成一个<code>test</code>（对应windows就是<code>test.exe</code>），直接运行这个exe就好了。把这个exe拷贝到同平台其他电脑上，也是可以运行的。</p>
-<p>当然，需要注意的是，别看这里也直接生成了二进制文件，但是这个二进制文件并不是加密的哦，用一些工具可以很容易的找到源代码的。</p>
-<h2 id="ModuleNotFoundError"><a href="#ModuleNotFoundError" class="headerlink" title="ModuleNotFoundError"></a>ModuleNotFoundError</h2><p>由于Python是动态语言，我们可能会在运行时使用<code>importlib</code>或者<code>__import__</code>来import一些模块，花式操作。比如有如下代码：</p>
-<p># test_lib.py<br>def even():<br>    print(0, 2, 4, 6, 8)</p>
-<p>def odd():<br>    print(1, 3, 5, 7, 9)</p>
-<h1 id="test-py"><a href="#test-py" class="headerlink" title="test.py"></a>test.py</h1><p>import time<br>import importlib</p>
-<p>def main():<br>    module &#x3D; importlib.import_module(“test_lib”)<br>    if time.localtime().tm_sec % 2 &#x3D;&#x3D; 0:<br>        func_name &#x3D; “even”<br>    else:<br>        func_name &#x3D; “odd”</p>
-<pre><code>fun = getattr(module, func\_name)
-fun()
-</code></pre>
-<p>if __name__ &#x3D;&#x3D; ‘__main__‘:<br>    main()</p>
-<p>没问题吧，动态导入module嘛，常规操作</p>
-<p>❯ python3 test.py ⏎<br>1 3 5 7 9</p>
-<p>当我们使用pyinstaller时是会无报错完成的，但是当我们运行时：</p>
-<p>❯ dist&#x2F;test<br>Traceback (most recent call last):<br>File “test.py”, line 26, in <module><br>main()<br>File “test.py”, line 15, in main<br>module &#x3D; importlib.import_module(“test_lib”)<br>File “importlib&#x2F;__init__.py”, line 127, in import_module<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1030, in _gcd_import<br>File “&lt;frozen importlib._bootstrap&gt;”, line 1007, in _find_and_load<br>File “&lt;frozen importlib._bootstrap&gt;”, line 984, in _find_and_load_unlocked<br>ModuleNotFoundError: No module named ‘test_lib’<br>[91513] Failed to execute script test</module></p>
-<p>我们会发现无法执行</p>
-<p>其实原因很简单啦。pyinstaller在build binary时，会有一个analysis的步骤去分析都有哪些module，使用<code>__import__</code>和<code>importlib</code>，甚至是<code>exec</code>、<code>eval</code>的都是无法被检测到的，所以在运行时就会报错啦。想要解决也很简单，<code>hidden-imports</code> 即可：</p>
-<p>pyinstaller -F –hidden-import&#x3D;test_lib test.py</p>
-<p>❯ dist&#x2F;test<br>1 3 5 7 9</p>
-<p>这时就会发现没问题啦。</p>
-<p>当然啦，这个参数也可以写在那个spec中的，后面会介绍的哦。</p>
-<h2 id="嵌入资源文件"><a href="#嵌入资源文件" class="headerlink" title="嵌入资源文件"></a>嵌入资源文件</h2><p>如果我想把一些资源文件，比如html、css，甚至是sqlite嵌入到这个binary中，该怎么做呢？</p>
-<p>pyinstaller提供了一个叫做 data 的东西，可以用于嵌入任何东西哦。当然了你要是把一段电影放进去，那咱也没什么意见，就运行时慢呗，毕竟还是要解压缩的。</p>
-<p>考虑如下代码，<code>text.txt</code>是同级目录的一个普通文本文件</p>
-<p>with open(“text.txt”) as f:<br>    text &#x3D; f.read()</p>
-<p>print(text)</p>
-<p>❯ .&#x2F;test_bin<br>Traceback (most recent call last):<br>File “test_bin.py”, line 10, in <module><br>FileNotFoundError: [Errno 2] No such file or directory: ‘text.txt’<br>[98107] Failed to execute script test_bin</module></p>
-<p>我们会发现，哎呀，文件不在，找不到～</p>
-<p>那么一种方法是，binary同级目录塞一个<code>text.txt</code>，这个方法就很简单了。另外一种做法是我们把这个txt塞进binary里！</p>
-<p>命令行参数使用 <code>--add-data</code>，同时我们需要小改一下代码来使用绝对路径</p>
-<p>import os</p>
-<p>root_path &#x3D; os.path.dirname(__file__)<br>file_path &#x3D; os.path.join(root_path, “text.txt”)<br>with open(file_path) as f:<br>    text &#x3D; f.read()</p>
-<p>print(text)</p>
-<h1 id="然后这样哦"><a href="#然后这样哦" class="headerlink" title="然后这样哦"></a>然后这样哦</h1><p>pyinstaller -F –add-data “text.txt:.” test_bin.py</p>
-<p><code>--add-data</code>的参数格式是 <code>src:dst</code>，<code>.</code>的含义是与py文件同级，如果你的脚本是打开的<code>test/test.txt</code>，那么就要 <code>test/test.txt:test/</code>哦。</p>
-<p>benny@BennyのMBP:~&#x2F;PycharmProjects&#x2F;untitled&#x2F;dist $ .&#x2F;test_bin<br>this is a text file 1234</p>
-<p>没问题哦。当然啦，只要你想玩，可以用<code>*</code>做通配符的哦。</p>
-<h2 id="spec文件"><a href="#spec文件" class="headerlink" title="spec文件"></a>spec文件</h2><p>虽然说，在命令行中加参数总是能够解决我们的问题，但是这样每次输入长长的命令也真的是太累啦。有没有更简单的方法呢？当然有啦。比如你看是不是有一个test.spec?每次在你运行 <code>pyinstaller xxx.py</code> 时都会生成一个这样的文件。在这个spec中会有datas和hidenimport的选项，那就简单啦！</p>
-<p>a &#x3D; Analysis([‘test.py’],<br>pathex&#x3D;[‘&#x2F;Users&#x2F;benny&#x2F;PycharmProjects&#x2F;untitled’],<br>binaries&#x3D;[],<br>datas&#x3D;[<br>(‘text.txt’, ‘.’),<br>],<br>hiddenimports&#x3D;[“test_lib”],<br>hookspath&#x3D;[],<br>runtime_hooks&#x3D;[],<br>excludes&#x3D;[],<br>win_no_prefer_redirects&#x3D;False,<br>win_private_assemblies&#x3D;False,<br>cipher&#x3D;block_cipher,<br>noarchive&#x3D;False)</p>
-<p>[v_blue]吐槽一下，data不是datum的复数形式嘛，这个datas是什么鬼哟哈哈哈[&#x2F;v_blue] 没问题，让我们重新运行一次！请记得要用这个spec文件而不是py文件哦。</p>
-<p>pyinstaller -F test.spec</p>
-<p>❯ .&#x2F;test<br>0 2 4 6 8<br>this is a text file 1234</p>
-<p>[benny@BennyのMBP] ~&#x2F;PycharmProjects&#x2F;untitled&#x2F;dist<br>❯ .&#x2F;test<br>1 3 5 7 9<br>this is a text file 1234</p>
-<p>一点问题都没有呐！这个data我们也可以弄得很复杂，比如这样的</p>
-<p>[<br>  ( ‘src&#x2F;README.txt’, ‘.’ ),<br>  ( ‘&#x2F;mygame&#x2F;data’, ‘data’ ),<br>  ( ‘&#x2F;mygame&#x2F;sfx&#x2F;*.mp3’, ‘sfx’ )<br>]</p>
-<h2 id="一些后话"><a href="#一些后话" class="headerlink" title="一些后话"></a>一些后话</h2><p>我们可以用datas选项嵌入文件，我们其实也可以用binaries选项嵌入一些dll&#x2F;so&#x2F;dylib文件。比如说，我可以用msf那一套生成一个反弹的dll，然后……</p>
-<p>binaries&#x3D;[ ( ‘reverse_shell.dll’, ‘.’ ) ]</p>
-<p>🤣🤣🤣🤣</p>
-<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>我的YYeTsWeb就使用这种方式嵌入了很多html&#x2F;css&#x2F;js，以及SQLite数据库。也就是只要下载回来这个文件，双击一下，你的本地就可以有一个能够运行的yyets啦！别怪我没说，运行陌生的exe文件是很危险的，说不准就有人丢了一个奇怪的dll文件进去。不过我没有这么做啦，信不信由你好了。</p>
-<p>yyetsweb依赖一些环境变量，所以直接双击<code>start_windows.bat</code>就好了；macOS用户可以用<code>start_unix.sh</code>。至于Linux用户，你都用Linux了，还用得着我弄的小白一键启动？自己搞去。</p>
-<p><img src="/images/2021061722350131.jpeg"></p>
-<p>这个exe可能启动会比较慢，boostrap过程解压缩比较耗时，毕竟是会冒出来一个几百兆的SQLite文件呢。macOS上由于<a target="_blank" rel="noopener" href="https://support.apple.com/en-us/HT202491">GateKeeper</a>机制的存在，估计就更慢了吧🙄️</p>
-<p>运行效果，偷懒，我就直接用了旧版页面，没有把新版也搞过来。</p>
-<p><img src="/images/2021061722350312.jpeg"></p>
-<p>资源页面也是旧版的</p>
-<p><img src="/images/2021061722350345.jpeg"></p>
-<p>反正怎么说，可以离线使用了，哪天万一网站挂了，手里有这个文件也不慌呀～</p>
-<p>下载地址可以看 <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/YYeTsBot/releases/tag/2021-06-17">GitHub Release</a></p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>Using Spec Files <a target="_blank" rel="noopener" href="https://pyinstaller.readthedocs.io/en/stable/spec-files.html">https://pyinstaller.readthedocs.io/en/stable/spec-files.html</a></p>
-<p>When Things Go Wrong <a target="_blank" rel="noopener" href="https://pyinstaller.readthedocs.io/en/stable/when-things-go-wrong.html">https://pyinstaller.readthedocs.io/en/stable/when-things-go-wrong.html</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2021/06/17/pyinstaller-static-files/index/" data-id="clhp7rti8006vs2qrcp3678bk" data-title="使用pyinstaller嵌入静态资源" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1024,7 +1055,7 @@ fun()
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1035,6 +1066,10 @@ fun()
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
         
           <li>
             <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
@@ -1050,10 +1085,6 @@ fun()
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
       </ul>

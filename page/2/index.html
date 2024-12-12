@@ -73,6 +73,98 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-azure-fd/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/07/16/azure-fd/index/" class="article-date">
+  <time class="dt-published" datetime="2024-07-16T00:00:00.000Z" itemprop="datePublished">2024-07-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/website/">website</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2024/07/16/azure-fd/index/">使用Azure Front Door 和 Load Balancer</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>一般来说，做个网站，并开放给全世界，有以下几种方式：</p>
+<ol>
+<li>直接使用公网IP+端口号</li>
+<li>买个域名，做解析，使用域名访问</li>
+<li>套上 Cloudflare，让 Cloudflare去反向代理源站</li>
+<li>用 Cloudflare Argo Tunnel，服务器有没有公网IP都无所谓了</li>
+<li>其他CDN方案</li>
+</ol>
+<p>最近在用 Azure，一直想利用一下他们的Front Door。简单的摸索了一下如何把Front Door、Load Balancer 和 vm三者结合起来使用。</p>
+<h2 id="创建一台-vm"><a href="#创建一台-vm" class="headerlink" title="创建一台 vm"></a>创建一台 vm</h2><p>不分配公网 IP 没关系，简单起见这里先只创建一个了</p>
+<h2 id="创建-LB"><a href="#创建-LB" class="headerlink" title="创建 LB"></a>创建 LB</h2><p><img src="/images/2024071603033180.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>给 LB的类型设置为 Public，创建一个IP，可以选Microsoft网络也可以选公网，具体区别可以看 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/azure/virtual-network/ip-services/routing-preference-overview">https://learn.microsoft.com/zh-cn/azure/virtual-network/ip-services/routing-preference-overview</a></p>
+<p><img src="/images/2024071603033238.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>添加 NIC，选择虚拟机的那个网卡</p>
+<p><img src="/images/2024071603033362.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>此负载均衡器会有一个公网IP地址，并且连接到了我们的vnet，只是我们还没有定义 NAT出入规则，所以还需要继续配置</p>
+<p>打开LB的Inbound NAT rules，由于我们的backend其实只有一台vm，因此类型选择 azure 虚拟机就可以了</p>
+<p><img src="/images/2024071603033459.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
+<p>这个时候 ssh 就会发现能够连到vm啦，但是vm还上不了网</p>
+<p><img src="/images/2024071603033588.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>要添加出网规则机器才能上网，outbound rules中添加一个</p>
+<p><img src="/images/2024071603033620.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<p>Port allocation 选择 default就行</p>
+<p>这个时候机器就可以上网了，体验了一把自己配置 SNAT的快感🤡</p>
+<p>那就先跑个nginx 方便我们后续测试 http</p>
+<p>sudo docker run -d -p 80:80 nginx:alpine<br>curl localhost</p>
+<p>之后时候你在这台机器外面 <code>curl</code> 还是不行的，因为还得继续加一条 inbound 80 规则和上面一样，这时在外面就可以访问啦！</p>
+<h2 id="创建-Front-Door"><a href="#创建-Front-Door" class="headerlink" title="创建 Front Door"></a>创建 Front Door</h2><p>Front door有三种，Classic、Standard、Premium</p>
+<p>Classic即将在2027年3月退役</p>
+<p>Classic 按照流量和路由规则、WAF等计费，Standard、Premium则是月费、流量和请求数量计费。</p>
+<p>按照提示来就行，之后 Front Door会让我们配置</p>
+<h3 id="Domain"><a href="#Domain" class="headerlink" title="Domain"></a>Domain</h3><p>Domain 那里就选创建 Front Door的时候的那个域名</p>
+<p><img src="/images/2024071603033773.png" alt="图形用户界面, 文本, 应用程序, Teams 描述已自动生成"></p>
+<h3 id="Backend-pools"><a href="#Backend-pools" class="headerlink" title="Backend pools"></a>Backend pools</h3><p>需要注意这里 https port也要写80</p>
+<p>因为在我们的vm上只跑了80端口，所以只能都80。如果我们的应用是跑在其他端口的话，也要跟着更改</p>
+<p><img src="/images/2024071603033839.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
+<h3 id="routing-rules"><a href="#routing-rules" class="headerlink" title="routing rules"></a>routing rules</h3><p>要注意 forwarding protocol 选择 http only，原因同上</p>
+<p><img src="/images/2024071603033860.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<p>然后部署，等几分钟，就有啦</p>
+<p><img src="/images/2024071603033997.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>Azure Front Door Premium 可以用 Private Link 连接到内部负载均衡器。但是 Premium 月费要330美元，我可能确实用不起……</li>
+<li>如果单机性能足够，那么给vm分配个公网IP，然后配置 Front Door写这个IP就行</li>
+<li>如果单机性能不够，那么可以再加多台vm，然后用LB做负载均衡；也可以直接 Front Door 加 backend pool</li>
+<li>走微软全球网络路由的性能应该不错</li>
+</ol>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/azure/frontdoor/front-door-faq">https://learn.microsoft.com/en-us/azure/frontdoor/front-door-faq</a></li>
+<li><a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/azure/frontdoor/standard-premium/how-to-enable-private-link-internal-load-balancer">https://learn.microsoft.com/zh-cn/azure/frontdoor/standard-premium/how-to-enable-private-link-internal-load-balancer</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/07/16/azure-fd/index/" data-id="clyujt89y00005yjf7dlbdiq6" data-title="使用Azure Front Door 和 Load Balancer" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-usdt-trc20-scam/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/04/30/usdt-trc20-scam/index/" class="article-date">
@@ -983,73 +1075,6 @@ def verify\_payment(self):
 
 
   
-    <article id="post-lede-shadowtls/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2023/05/25/lede-shadowtls/index/" class="article-date">
-  <time class="dt-published" datetime="2023-05-25T00:00:00.000Z" itemprop="datePublished">2023-05-25</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2023/05/25/lede-shadowtls/index/">在LEDE/OpenWRT上使用ShadowTLS</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>前几天我的Trojan连续被墙了两次。尽管Trojan装作自己是正常且普通的https流量，但还是中枪了。可能是因为最近日子比较难过，或者热门机房不明大量流量引起了怀疑</p>
-<p>有一个比较类似的东西，叫ShadowTLS，也是用来伪装流量的，体验了一下感觉也不错。</p>
-<p>ShadowTLS本身并不提供加密代理，所以我们往往还要配合一个Shadowsocks、vmess或者trojan之类的东西。也就是说，服务端要跑 ShadowTLS Server和Shadowsocks Server，客户端要跑ShadowTLS Client和Shadowsocks Client。当然，艺高人胆大的你也可以把shadowsocks替换成<code>nc</code>，なんでもないよ！</p>
-<h2 id="服务端配置"><a href="#服务端配置" class="headerlink" title="服务端配置"></a>服务端配置</h2><p>以docker为例，直接参考<a target="_blank" rel="noopener" href="https://github.com/ihciah/shadow-tls/wiki/Run-with-Docker-Compose">官方wiki</a>改改就行了，需要注意的是这里必须要用host网络模式，因为要配置<code>ss-server</code>绑定到 ShadowTLS的地址（通常我们是监听到<code>0.0.0.0</code>），因此host模式最简单</p>
-<p>version: ‘2.4’<br>services:<br>  shadowsocks:<br>    image: shadowsocks&#x2F;shadowsocks-libev<br>    restart: always<br>    network_mode: “host”<br>    environment:<br>      - SERVER_PORT&#x3D;24000<br>      - SERVER_ADDR&#x3D;127.0.0.1<br>      - METHOD&#x3D;aes-256-gcm<br>      - PASSWORD&#x3D;test-ss-password</p>
-<p>  shadow-tls:<br>    image: ghcr.io&#x2F;ihciah&#x2F;shadow-tls:latest<br>    restart: always<br>    network_mode: “host”<br>    environment:<br>      - MODE&#x3D;server<br>      - LISTEN&#x3D;0.0.0.0:443<br>      - SERVER&#x3D;127.0.0.1:24000<br>      - TLS&#x3D;<a target="_blank" rel="noopener" href="http://www.microsoft.com:443/">www.microsoft.com:443</a><br>      - PASSWORD&#x3D;test-shadow-tls-password</p>
-<ul>
-<li><code>test-ss-password</code> ss客户端使用的密码，客户端使用ShadowTLS的监听端口443来连接</li>
-<li><code>test-shadow-tls-password</code> ShadowTLS客户端使用的密码</li>
-</ul>
-<h2 id="Shadowrocket客户端配置"><a href="#Shadowrocket客户端配置" class="headerlink" title="Shadowrocket客户端配置"></a>Shadowrocket客户端配置</h2><p>如果你使用shadowrocket，那么就很简单了，正常配置，端口写ShadowTLS的443，插件-ShadowTLS，版本2，填入密码和host（本例<code>www.microsoft.com</code> ）</p>
-<p><img src="/images/2023052503080949.jpeg" alt="图形用户界面, 文本, 应用程序, 电子邮件 描述已自动生成"></p>
-<h2 id="手动配置客户端"><a href="#手动配置客户端" class="headerlink" title="手动配置客户端"></a>手动配置客户端</h2><p>shadow-tls-aarch64-apple-darwin client –server IP:443 –sni <a target="_blank" rel="noopener" href="http://www.microsoft.com/">www.microsoft.com</a> –password test-shadow-tls-password –listen 127.0.0.1:3443</p>
-<p>sslocal -s localhost:3443 -m aes-256-gcm -k test-ss-password -b 127.0.0.1:17765</p>
-<p>这样一波操作之后，你的 17765就是socks5了，ProxySwitchyOmega之类的配置一下就可以用了。</p>
-<h2 id="docker-compose配置客户端"><a href="#docker-compose配置客户端" class="headerlink" title="docker-compose配置客户端"></a>docker-compose配置客户端</h2><p>这里没有必要host网络，<code>ss-local</code>连接到ShadowTLS的监听端口就可以，由于都在一个网络里，所以直接指定容器名tls就可以了。</p>
-<p>version: ‘2.4’<br>services:<br>  shadow-tls:<br>    image: ghcr.io&#x2F;ihciah&#x2F;shadow-tls:latest<br>    restart: always<br>    environment:<br>      - MODE&#x3D;client<br>      - LISTEN&#x3D;0.0.0.0:3443<br>      - SERVER&#x3D;64.176.34.43:443<br>      - TLS&#x3D;<a target="_blank" rel="noopener" href="http://www.microsoft.com/">www.microsoft.com</a><br>      - PASSWORD&#x3D;test-shadow-tls-password</p>
-<p>  shadowsocks:<br>    image: shadowsocks&#x2F;shadowsocks-libev<br>    restart: always<br>    command: ss-local -s shadow-tls -p 3443 -l 17765 -b 0.0.0.0 -k test-ss-password -m aes-256-gcm<br>    ports:<br>      - “127.0.0.1:17765:17765”</p>
-<h2 id="LEDE-x2F-OpenWRT配置"><a href="#LEDE-x2F-OpenWRT配置" class="headerlink" title="LEDE&#x2F;OpenWRT配置"></a>LEDE&#x2F;OpenWRT配置</h2><p>基本和上面一样，也许已经有人做过插件了？反正也要先运行ShadowTLS</p>
-<p><img src="/images/2023052503080929.png" alt="图形用户界面, 文本, 聊天或短信 描述已自动生成"></p>
-<p>然后去LUCI中添加配置，ss服务器地址写<code>127.0.0.1</code>，端口写<code>3443</code>（ShadowTLS的端口）启动服务。这里有一个需要注意的点，如果你的运行模式是GFWlist，那么没问题；如果是全局或者chnroute（绕过大陆IP），那么就会打环。我一般喜欢用chnroute，两边的好处都占🙃️</p>
-<p><img src="/images/2023052503081094.png" alt="图形用户界面, 应用程序 描述已自动生成"></p>
-<p>此时要做的事情是添加一个例外，在我的这个插件里，是访问控制- WAN IP访问控制 -不走代理的WAN IP</p>
-<p><img src="/images/2023052503081193.png" alt="图形用户界面, 应用程序, Teams 描述已自动生成"></p>
-<p>其他的插件，比如passwall，也应该有类似的设置🫠</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2023/05/25/lede-shadowtls/index/" data-id="cli8jlcy00000g9qr9go2b3xa" data-title="在LEDE/OpenWRT上使用ShadowTLS" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1094,7 +1119,7 @@ def verify\_payment(self):
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1105,6 +1130,10 @@ def verify\_payment(self):
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
+          </li>
         
           <li>
             <a href="/2024/11/03/warp-http-proxy/index/">把 Cloudflare WARP 转换为 http 代理</a>
@@ -1120,10 +1149,6 @@ def verify\_payment(self):
         
           <li>
             <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/27/workers-function/index/">将 Cloudflare Workers 迁移到 Azure Function</a>
           </li>
         
       </ul>
