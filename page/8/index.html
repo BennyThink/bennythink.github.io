@@ -73,6 +73,155 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-tgbot2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/25/tgbot2/index/" class="article-date">
+  <time class="dt-published" datetime="2020-12-25T00:00:00.000Z" itemprop="datePublished">2020-12-25</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/25/tgbot2/index/">[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>三年前，我开始了写这一系列，没想到过了3年，竟然也没几个人去看！连个捧场的都没有</p>
+<p>这三年，Telegram也迎来了一些更新，这篇文章当然不会挨个介绍每一个新特性以及相关的用法了，我只会把自己开发过程中提到的地方记录一下。官方文档写的挺清楚了，基本上每一点都介绍的很详细😂</p>
+<p>前两篇</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot0.html">[Telegram bot 系列]0：用 Python 写一个 Telegram Bot 简单的回话 bot</a></p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/tgbot1.html">[Telegram bot 系列]1：requests 库、Inline Keyboard、Reply Keyboard 与其他细节</a></p>
+<h2 id="回顾：如何开发一个Telegram-Bot"><a href="#回顾：如何开发一个Telegram-Bot" class="headerlink" title="回顾：如何开发一个Telegram Bot"></a>回顾：如何开发一个Telegram Bot</h2><h3 id="开发语言"><a href="#开发语言" class="headerlink" title="开发语言"></a>开发语言</h3><p>爱用啥用啥，Python、Go等都没问题的，甚至直接curl都是可以的。毕竟Restful，怎么都可以。</p>
+<h3 id="开发方式"><a href="#开发方式" class="headerlink" title="开发方式"></a>开发方式</h3><p>想要开发Telegram Bot，从途径上来说有两种方法。</p>
+<p>第一种方法是使用Bot API，REST接口，入口在荷兰，使用起来比较容易。</p>
+<p>第二种方法是使用MTProto协议，这个会比较困难，需要有一定的异步编程基础。著名的<a target="_blank" rel="noopener" href="https://github.com/LonamiWebs/Telethon">telethon</a>就是干这个的。</p>
+<p>大部分情况下使用第一种就足够满足需求了，本系列也会一直以第一种方法为主。</p>
+<h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><p>对于Bot而言，最重要的事情就是“事件”，比如说当用户发送一个纯文本的消息，那么对于Bot来说就是一种类型的事件；当用户发送了一个图片，这又是另外一种事件；用户编辑了消息，删除了消息，也同样对应不同的事件。甚至，当用户点击InlineKeyBoardButton，这也是一种特殊事件。</p>
+<p>因此，开发一个bot，也就是根据传入的事件不同来进行各种操作，然后给用户反括，比如回复消息，发送文件，整体的流程差不多就是这样的。</p>
+<p>Telegram Bot事件类型挺多的，大概一共有这些类型：</p>
+<p>&#x2F;&#x2F; Handler: func(*Message)<br>OnText &#x3D; “\atext”<br>OnPhoto &#x3D; “\aphoto”<br>OnAudio &#x3D; “\aaudio”<br>OnAnimation &#x3D; “\aanimation”<br>OnDocument &#x3D; “\adocument”<br>OnSticker &#x3D; “\asticker”<br>OnVideo &#x3D; “\avideo”<br>OnVoice &#x3D; “\avoice”<br>OnVideoNote &#x3D; “\avideo_note”<br>OnContact &#x3D; “\acontact”<br>OnLocation &#x3D; “\alocation”<br>OnVenue &#x3D; “\avenue”<br>OnEdited &#x3D; “\aedited”<br>OnPinned &#x3D; “\apinned”<br>OnChannelPost &#x3D; “\achan_post”<br>OnEditedChannelPost &#x3D; “\achan_edited_post”<br>OnDice &#x3D; “\adice”<br>OnInvoice &#x3D; “\ainvoice”<br>OnPayment &#x3D; “\apayment”</p>
+<p>&#x2F;&#x2F; Will fire when bot is added to a group.<br>OnAddedToGroup &#x3D; “\aadded_to_group”</p>
+<p>&#x2F;&#x2F; Group events:<br>OnUserJoined &#x3D; “\auser_joined”<br>OnUserLeft &#x3D; “\auser_left”<br>OnNewGroupTitle &#x3D; “\anew_chat_title”<br>OnNewGroupPhoto &#x3D; “\anew_chat_photo”<br>OnGroupPhotoDeleted &#x3D; “\achat_photo_del”</p>
+<p>&#x2F;&#x2F; Migration happens when group switches to<br>&#x2F;&#x2F; a supergroup. You might want to update<br>&#x2F;&#x2F; your internal references to this chat<br>&#x2F;&#x2F; upon switching as its ID will change.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(from, to int64)<br>OnMigration &#x3D; “\amigration”</p>
+<p>&#x2F;&#x2F; Will fire on callback requests.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Callback)<br>OnCallback &#x3D; “\acallback”</p>
+<p>&#x2F;&#x2F; Will fire on incoming inline queries.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Query)<br>OnQuery &#x3D; “\aquery”</p>
+<p>&#x2F;&#x2F; Will fire on chosen inline results.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ChosenInlineResult)<br>OnChosenInlineResult &#x3D; “\achosen_inline_result”</p>
+<p>&#x2F;&#x2F; Will fire on ShippingQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*ShippingQuery)<br>OnShipping &#x3D; “\ashipping_query”</p>
+<p>&#x2F;&#x2F; Will fire on PreCheckoutQuery.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PreCheckoutQuery)<br>OnCheckout &#x3D; “\apre_checkout_query”</p>
+<p>&#x2F;&#x2F; Will fire on Poll.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*Poll)<br>OnPoll &#x3D; “\apoll”</p>
+<p>&#x2F;&#x2F; Will fire on PollAnswer.<br>&#x2F;&#x2F;<br>&#x2F;&#x2F; Handler: func(*PollAnswer)<br>OnPollAnswer &#x3D; “\apoll_answer”</p>
+<p>看到名字就知道是什么意思，就不说了。</p>
+<h3 id="运行方式"><a href="#运行方式" class="headerlink" title="运行方式"></a>运行方式</h3><p>要么使用polling方式，定期轮询API Server，要么设置webhook，发生事件时Telegram会向设置的地址发送POST请求，请求的BODY里会有对应的数据结构。</p>
+<h2 id="Media-Group"><a href="#Media-Group" class="headerlink" title="Media Group"></a>Media Group</h2><p>Telegram目前已经支持将图片、文件、视频等作为一组发送，比如说我发送了3张照片为一组，在这种情况下，Bot 所收到的事件就是三个onPhoto，然后这三个事件有一个共同的字段<code>media_group_id</code>，至于<code>caption</code>落在第几个事件里？不知道，遍历完就知道了。</p>
+<p>划重点：这三个事件几乎是同时到达的。所以有些需求，比如说提取出这组照片里的file_id和caption，最简单的办法就是共享一个全局的字典，以<code>user_id</code>和<code>media_group_id</code>作为key，那么这个时候就要考虑用锁的机制来让这三个事件变成串行的。一个例子<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/TeleTweet/blob/master/teletweet/bot.py#L125">可以看这里</a></p>
+<h2 id="下载媒体文件"><a href="#下载媒体文件" class="headerlink" title="下载媒体文件"></a>下载媒体文件</h2><p>对于Telegram而言，无论是文件，还是图片、视频，都有一个<code>file_id</code>用于唯一代表这个文件。当然，每个类型会有一些细微的不同，比如视频文件会包含分辨率，图片会有预览图，文件会有mime-type。</p>
+<p>想要下载文件，可以分为三步</p>
+<ol>
+<li>拿到对应的对象，比如说想要下载图片，那么就是<code>message.photo</code>，想要下载视频，那么就是<code>message.video</code></li>
+<li>拿到file_id，参考下对应的数据结构，拿到对应的<code>file_id</code>，比如说<code>message.video.file_id</code></li>
+<li>进行下载，保存到本地</li>
+</ol>
+<p>具体可以参考如下代码，用其他语言也差不多，套路都是一样的：</p>
+<p>def download_file_from_id(file_id):<br>    file_info &#x3D; bot.get_file(file_id)<br>    content &#x3D; bot.download_file(file_info.file_path)</p>
+<pre><code>temp = tempfile.NamedTemporaryFile(delete=False)
+temp.write(content)
+return temp
+</code></pre>
+<p>def get_file_id(message) -&gt; str:<br>    if message.photo:<br>        object_type &#x3D; “photo”<br>    elif message.video:<br>        object_type &#x3D; “video”<br>    elif message.document:<br>        object_type &#x3D; “document”<br>    else:<br>        object_type &#x3D; “”</p>
+<pre><code>try:
+    file\_id = getattr(message, object\_type)\[-1\].file\_id
+except Exception:
+    file\_id = getattr(message, object\_type).file\_id
+return file\_id
+</code></pre>
+<p>需要注意一点，<code>message.photo</code>的结果是一个list，第一个元素是预览图，最后一个元素是正常大小（720P）的图片</p>
+<p>另外更需要注意的一点：Telegram对于Bot可以上传、下载的文件、图片等大小有限制，具体可以查文档找找，所以如果用户发送了一个2G的文件，bot这边很有可能是无法下载的……但是Bot可以转发啊！要处理这种情况，只能用client api了，bot收到这种类型的文件，转发给一个正常用户，正常用户处理完，将结果发给bot，bot再转发给初始用户。</p>
+<p>这种曲线救国的方式，如果确保整个链条是完整的，可以<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/NCMBot">参考NCMBot的代码</a>。一定要引起注意的是，有些用户的隐私设置中不允许任何人查看转发信息，因此不可以依赖forwarded_message这个字段！bot一定要想办法自己记录下来某条消息（文件）的对应的初始用户是谁。</p>
+<h2 id="Next-Step"><a href="#Next-Step" class="headerlink" title="Next Step"></a>Next Step</h2><p>有些时候，我们可能需要一个wizard性质的一步一步的向导，简单的话，类似下图这种效果：</p>
+<p><img src="/images/2020122516061518.png"></p>
+<p><img src="/images/2020122516061860.png"></p>
+<p>BotFather也是这样设计的。</p>
+<p>这个时候就需要一种“Next Step”的概念，要一步一步来才可以。如果使用pytelegrambotapi的话，那么就很简单了，直接使用<code>bot.register_next_step_handler</code>就可以了。示例代码如下：</p>
+<p>@bot.message_handler(commands&#x3D;[‘sign_in’])<br>def sign_in_handler(message):<br>    bot.send_message(message.chat.id, “next step”, parse_mode&#x3D;’markdown’)<br>    bot.register_next_step_handler(message, next_step_add_auth)</p>
+<p>def next_step_add_auth(message):<br>    bot.send_chat_action(message.chat.id, ‘typing’)<br>    bot.send_message(message.chat.id, “this step”, parse_mode&#x3D;’markdown’)</p>
+<p>如果wrapper不支持next step，那就只能自己设计一个状态机了。需要设计一个临时的数据结构，至少要表明用户的下一步操作应该是什么，然后拦截对应的事件，做dispatch。</p>
+<p>具体<a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/KeepMeBot/blob/93244cdae53a77a3232ece9e4e5e053418d386ac/handler.go#L63">可以看这里</a>，太长了就不贴了</p>
+<h2 id="部署维护"><a href="#部署维护" class="headerlink" title="部署维护"></a>部署维护</h2><p>之前开发的bot，每次上线都要写一个systemd service文件，然后<code>systemctl daemon-reload</code>，很麻烦，迁移到其他机器也很麻烦。后来渐渐开始用docker，就很方便了。直接把一堆bot都丢到一个<code>docker-compose.yml</code>中，一个<code>up</code>就可以了。迁移服务器时只要rsync走，重新up就可以。具体可以看<a target="_blank" rel="noopener" href="https://dmesg.app/dev-deploy-bot.html">《我是如何优雅的开发、部署并管理多个 Telegram Bot 的》</a></p>
+<h3 id="Dockerfile与docker-image"><a href="#Dockerfile与docker-image" class="headerlink" title="Dockerfile与docker image"></a>Dockerfile与docker image</h3><p>之前，不知道在哪看到的文章，说docker image的layer有限制，不能超过127层(还是多少层的)，层越少越好。因此很多人可能都有一个疯狂一行式的习惯，把所有操作全都一个RUN解决了，不停的用&amp;&amp;和\。</p>
+<p>一个非常典型的例子大概如下：</p>
+<p>FROM python:alpine</p>
+<p>RUN apk update \<br>&amp;&amp; apk add git ffmpeg flac –no-cache \<br>&amp;&amp; git clone <a target="_blank" rel="noopener" href="https://github.com/tgbot-collection/ExpressBot">https://github.com/tgbot-collection/ExpressBot</a> \<br>&amp;&amp; pip3 install –no-cache-dir -r &#x2F;ExpressBot&#x2F;requirements.txt</p>
+<p>WORKDIR &#x2F;ExpressBot</p>
+<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
+<p>现在想想，这™️的是谁说的，出来让我暴打一顿，可真是害人不浅呐！</p>
+<p>现在docker engine的layer是否有层数限制我不了解，但是层越少越好，这点要怎么理解？</p>
+<p>比如说，有人看到官网文档<a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices">Best practices for writing Dockerfiles</a>里这么说的：</p>
+<blockquote>
+<p><strong>Minimize</strong> the number of layers</p>
+<p>In older versions of Docker, it was <strong>important</strong> that you minimized the number卧槽这™️什么玩意这也太长了吧看不下去了啊，能不能来个中文，啊好困。行吧，反正有一个minimize，还说 important，那直接无条件一层达人不就得了。</p>
+</blockquote>
+<p>愚以为，宫中之事 技术学习中是非常忌讳这种囫囵吞枣的阅读方式的。</p>
+<h3 id="如何正确的使用RUN"><a href="#如何正确的使用RUN" class="headerlink" title="如何正确的使用RUN"></a>如何正确的使用RUN</h3><p>为什么要存在layer，一个最直观的原因就是，大家可以共用同样的layer，这样pull起来也快很多啊。另外还有一个原因就是，如果某一个layer已经有了，那么在build image的时候，直接拿来用不就好了？毕竟安装东西很慢啊，有些可能还是要去编译的，就更慢了。</p>
+<p>写Dockerfile不要怕多创建layer，不要总是一层达人（这里使用了夸张的修辞手法，<code>FROM</code>也是要一层的，这里指的是一个<code>RUN</code>指令）</p>
+<p>怎么来了解这个事情呢？</p>
+<p>首先要知道，docker只有<code>RUN</code>、<code>COPY</code>、<code>ADD</code>这三个命令会创建新的layer。</p>
+<p>其次，以Python为例，一个Python程序的运行环境大概可以这样划分：</p>
+<ol>
+<li>基础的操作系统</li>
+<li>某版本的Python解释器及对应的一些系统级使用apt安装的库，比如gcc，git，各种lib比如说libssl</li>
+<li>对应的Python第三方库，比如说flask，requests</li>
+<li>代码</li>
+</ol>
+<p>那么具体分析一下，就可以发现，1和2是基本不会变的，3变的概率比较大，但是不会很频繁，4是经常变化的。那么我们的Dockerfile就应该同样保证1和2作为一层，3作为1层，4作为一层。</p>
+<p>其次要知道，docker在build的时候，默认会使用缓存的，但是需要注意的是，如果低层的缓存失效了，那么后面的全部都要重新跑。</p>
+<p>也就是说，在上面的例子中，如果我只改代码，那么对应的是4，那么123都会使用缓存，4重新跑一次。但是如果我修改了2，那么234都要重新跑，即使我没有修改3和4。哦对了，2020年了，没有人会傻到用文件的访问时间、修改时间来判断你有没有改这个文件。docker使用的是checksum(SHA256)啦。</p>
+<p>总结一下，应该把<strong>同样变化频率的命令放在一起作为一条RUN</strong>，然后把<strong>不常变化的放在上面，经常变化的放在下面</strong>，这样才是最优解。</p>
+<p>那么对应如上Dockerfile，就可以这样优化一下：</p>
+<p>FROM python:alpine</p>
+<h1 id="安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"><a href="#安装个啥git，docker-build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo" class="headerlink" title="安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo"></a>安装个啥git，docker build的时候context是干啥的？dockerhub在build的时候第一件事情就是clone你的repo</h1><p>RUN apk update &amp;&amp; apk add –no-cache ffmpeg flac # 加上–no-cache</p>
+<h1 id="拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod"><a href="#拷贝我们的requirements-txt到临时目录，如果是go，可以拷贝go-mod" class="headerlink" title="拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod"></a>拷贝我们的requirements.txt到临时目录，如果是go，可以拷贝go.mod</h1><p>COPY requirements.txt &#x2F;tmp&#x2F;requirements.txt</p>
+<h1 id="安装-Python的库，然后删掉它，如果是go，可以用go-mod-download"><a href="#安装-Python的库，然后删掉它，如果是go，可以用go-mod-download" class="headerlink" title="安装 Python的库，然后删掉它，如果是go，可以用go mod download"></a>安装 Python的库，然后删掉它，如果是go，可以用go mod download</h1><h1 id="如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以"><a href="#如果要安装的东西很少，连requirements-txt也没有，那么直接pip-install-a-b-c-d也可以" class="headerlink" title="如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以"></a>如果要安装的东西很少，连requirements.txt也没有，那么直接pip install a b c d也可以</h1><p>RUN pip install –no-cache-dir -r &#x2F;tmp&#x2F;requirements.txt &amp;&amp; rm &#x2F;tmp&#x2F;requirements.txt</p>
+<h1 id="把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝"><a href="#把当前目录拷贝到容器里的-x2F-ExpressBot-隐藏目录如-git-也会被拷贝" class="headerlink" title="把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝"></a>把当前目录拷贝到容器里的&#x2F;ExpressBot 隐藏目录如.git 也会被拷贝</h1><p>COPY . &#x2F;ExpressBot</p>
+<p>WORKDIR &#x2F;ExpressBot</p>
+<p>CMD [“python3”, “expressbot&#x2F;main.py”]</p>
+<p>这样就可以用到cache啦</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2020/12/2020122516243648.jpeg"><img src="/images/2020122516243648.jpeg"></a></p>
+<p>具体改进都写到了注释里了。需要注意的是，<code>.git</code>也会被拷贝，对于一个有很多commit的项目来说……还是整个<code>.dockerignore</code>吧！</p>
+<p>这样一波操作下来，确实是多了几层，但是下次我改代码，docker hub就不用全部重新跑了，一个简单的COPY就完事。</p>
+<p>呃，当然，build rule也要开启build caching哦</p>
+<p><img src="/images/2020122516062048.png"></p>
+<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><p><a target="_blank" rel="noopener" href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#minimize-the-number-of-layers">Best practices for writing Dockerfiles</a></p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>祝大家圣诞快乐🎅希望你的圣诞老人没有在打电动</p>
+<p><a target="_blank" rel="noopener" href="https://twitter.com/xbox/status/1342213462521380864?s=21">https://twitter.com/xbox/status/1342213462521380864?s=21</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/25/tgbot2/index/" data-id="clhp7rtm5009qs2qrbn1ydxkk" data-title="[Telegram bot系列]2: 回顾与Media Group、媒体文件、Next Step、部署维护" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-dev-deploy-bot/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2020/10/30/dev-deploy-bot/index/" class="article-date">
@@ -1302,107 +1451,6 @@
 
 
   
-    <article id="post-flying-webp/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2020/03/01/flying-webp/index/" class="article-date">
-  <time class="dt-published" datetime="2020-03-01T00:00:00.000Z" itemprop="datePublished">2020-03-01</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>►<a class="article-category-link" href="/categories/website/program/">program</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2020/03/01/flying-webp/index/">个人网站无缝切换图片到webp</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>咱都知道，webp是一种非常优秀的图片格式，相比较png&#x2F;jpg，webp的图片体积要小，图像质量却基本没有什么下降。网站如果使用webp，那么自然也会减少图片文件的加载时间。</p>
-<p>大部分发行版里都应该有个工具叫做cwebp，咱可以用cwebp转换下看下具体效果</p>
-<p>~&#x2F;Downloads&#x2F;test cwebp yui.png -q 80 -o result.webp</p>
-<h1 id="省略若干提示信息"><a href="#省略若干提示信息" class="headerlink" title="省略若干提示信息"></a>省略若干提示信息</h1><p>~&#x2F;Downloads&#x2F;test ls -lh<br>total 8160<br>-rw-r–r– 1 benny staff 335K Mar 1 20:06 result.webp<br>-rw-r--r--@ 1 benny staff 3.7M May 2 2019 yui.png</p>
-<p>新文件大概是原来的8%左右，是不是很优秀！</p>
-<p>但是如果一个一个转……聪明的你可能想要写个脚本递归转换，然后还要相应的修改数据库什么的，这样可是有点麻烦呢。那么有没有什么直接的方式呢？这就好像是，开飞机没油了，只能找个机场落地加油，然后再起飞。能不能像下面这张图这样子?？</p>
-<p><img src="/images/2020030120431833.jpeg"></p>
-<p>这种技术呢，叫做空中加油。你看，咱都不用落地就能加油。On-the-fly哦</p>
-<p>那么我们的……答案当然是有的啦??那就是本文的重点，这个工具就是由<a target="_blank" rel="noopener" href="https://nova.moe/">Nova童鞋</a>、<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>、<a target="_blank" rel="noopener" href="https://blog.0xbbc.com/">cocoa</a>以及Benny小盆友一起鼓捣的webp_server_go啦！</p>
-<p>不如先看看这里吧??</p>
-<p><a target="_blank" rel="noopener" href="https://webp.sh/#/">https://webp.sh/#/</a> </p>
-<p>放心，从[caniuse](<a target="_blank" rel="noopener" href="https://caniuse.com/">https://caniuse.com/</a>“ \l “search&#x3D;webp)的统计来看，主流浏览器都支持webp了，如果遇到Safari这样的奇葩，咱直接返回了原图</p>
-<p><img src="/images/2020030120431998.png"></p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>使用方法很简单哦，<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go/releases">从这里下载binary</a>（或者自己build也行，deb和rpm也会稍后提供），创建如下json配置文件</p>
-<p>{<br>“HOST”: “127.0.0.1”,<br>“PORT”: “3333”,<br>“QUALITY”: “80”,<br>“IMG_PATH”: “&#x2F;path&#x2F;to&#x2F;pics”,<br>“ALLOWED_TYPES”: [“jpg”,”png”,”jpeg”]<br>}</p>
-<p>每一个配置项都很容易懂懂吧！如果不需要监听公网，那<code>HOST</code>就写127，藏在nginx后面。<code>ALLOWED_TYPES</code>是转换的图片类型，实际上目前最多用的也就是jpg和png了，暂时还未添加对bmp对支持。</p>
-<p>我用WordPress，那么IMG_PATH就可以写<code>/var/www/html</code>这种，不用写到<code>wp-content/uploads</code>哦。</p>
-<p>然后</p>
-<p>.&#x2F;webp-server -config &#x2F;path&#x2F;to&#x2F;config.json</p>
-<p>Ok! 你的3333端口已经被我接管了。接下来配置下nginx什么的，比如WordPress可以这么配置，在server段中哦</p>
-<p>location ^~ &#x2F;wp-content&#x2F;uploads&#x2F; {<br>    proxy_pass <a target="_blank" rel="noopener" href="http://127.0.0.1:3333/">http://127.0.0.1:3333</a>;<br>}</p>
-<p>然后就可以起飞啦！</p>
-<p>哦对了，不用担心，一张图片只会被转换一次，除非原图片变了，才会重新转换。</p>
-<p>[v_blue]?呃……就是个转换图片的东西……？ ?‍♀️No, it’s more than that.[&#x2F;v_blue]</p>
-<h2 id="持久运行"><a href="#持久运行" class="headerlink" title="持久运行"></a>持久运行</h2><p>都知道，session和shell是绑定的，所以总不能一直开着终端吧？那么简单的话，我们可以用screen来解决这个问题</p>
-<p>screen -S webp<br>.&#x2F;webp-server –config &#x2F;path&#x2F;to&#x2F;config.json</p>
-<p>甚至我们可以使用systemd</p>
-<p>cp init&#x2F;webps.service &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;<br>systemctl daemon-reload<br>systemctl enable webps.service<br>systemctl start webps.service</p>
-<h2 id="预缓存功能"><a href="#预缓存功能" class="headerlink" title="预缓存功能"></a>预缓存功能</h2><p>咱可能是有很多图片的，如果收到请求的时候去转换，那么其实会慢的，那怎么办！</p>
-<p><code>./webp-server --prefetch</code>，这样就会帮你预先转换图片哦！到时候请求来了直接返回，经济方便又实惠。</p>
-<p>批量转换进行中</p>
-<p><img src="/images/202003012043237.png"></p>
-<p>臣妾无法转换php文件为webp呀?️</p>
-<p>转换时，你的CPU处于被支配的痛苦中……</p>
-<p><img src="/images/2020030120432442.png"></p>
-<h2 id="使用效果图"><a href="#使用效果图" class="headerlink" title="使用效果图"></a>使用效果图</h2><p><img src="/images/2020030120432636.png"></p>
-<h2 id="benchmark"><a href="#benchmark" class="headerlink" title="benchmark"></a>benchmark</h2><h3 id="用老婆照片做benchmark"><a href="#用老婆照片做benchmark" class="headerlink" title="用老婆照片做benchmark"></a>用老婆照片做benchmark</h3><p>179张，各式各样的壁纸</p>
-<p>这个是原图</p>
-<p><img src="/images/2020030120432648.png"></p>
-<p>这个是转换之后的大小，大概只有原来的13%</p>
-<p><img src="/images/2020030120432797.png"></p>
-<h3 id="1-4M"><a href="#1-4M" class="headerlink" title="1-4M"></a>1-4M</h3><p>（感谢<a target="_blank" rel="noopener" href="https://blog.502.li/">muzi</a>提供的图片）</p>
-<p>压缩比为9.3%</p>
-<p><img src="/images/2020030120432897.png"></p>
-<h3 id="4-32M"><a href="#4-32M" class="headerlink" title="4-32M"></a>4-32M</h3><p>压缩比为6.7%</p>
-<p><img src="/images/2020030120433042.png"></p>
-<h3 id="500K-1M"><a href="#500K-1M" class="headerlink" title="500K-1M"></a>500K-1M</h3><p>14.68%</p>
-<p><img src="/images/2020030120433161.png"></p>
-<h3 id="500K"><a href="#500K" class="headerlink" title="500K"></a>500K</h3><p>23.3%</p>
-<p><img src="/images/2020030120433299.png"></p>
-<h3 id="手机拍摄的人像"><a href="#手机拍摄的人像" class="headerlink" title="手机拍摄的人像"></a>手机拍摄的人像</h3><p>小部分是Pixel 3拍摄的，剩下是其他手机&#x2F;相机拍摄的人像。</p>
-<p>16%</p>
-<p><img src="/images/202003012043334.png"></p>
-<p>所以基本上，大概图片大小会变为原来的20%左右。</p>
-<h2 id="嗯哼？"><a href="#嗯哼？" class="headerlink" title="嗯哼？"></a>嗯哼？</h2><p>欢迎star、fork！欢迎提出建议，功能优化等等，不过建议使用英文哦！</p>
-<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p>开源地址： <a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp_server_go">https://github.com/webp-sh/webp_server_go</a> 官方网站：<a target="_blank" rel="noopener" href="https://webp.sh/">https://webp.sh/</a></p>
-<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/webp-sh/webp/_server/_go'/]%E5%BF%AB%E6%9D%A5%E6%88%B3%E7%AB%A0%E9%B1%BC%E7%8C%AB/[/gt/]">https://github.com/webp-sh/webp\_server\_go&#39;\]快来戳章鱼猫\[/gt\]</a></p>
-<h2 id="参考阅读"><a href="#参考阅读" class="headerlink" title="参考阅读"></a>参考阅读</h2><p><a target="_blank" rel="noopener" href="https://nova.moe/re-introduce-webp-server/">让站点图片加载速度更快——引入 WebP Server 无缝转换图片为 WebP</a> ??‍♂️</p>
-<p><a target="_blank" rel="noopener" href="https://await.moe/2020/02/webp-server-in-rust/">WebP Server in Rust、</a><a target="_blank" rel="noopener" href="https://await.moe/2020/02/note-about-encountered-memory-changes-for-no-reason-in-golang/">记 Golang 下遇到的一回「毫无由头」的内存更改</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2020/03/01/flying-webp/index/" data-id="clhp7rtgb002ws2qr19dt6gr9" data-title="个人网站无缝切换图片到webp" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1418,7 +1466,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1447,7 +1495,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1458,6 +1506,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2025/03/16/py-azure-oai-proxy/index/">使用50行Python代码实现一个Azure OpenAI Proxy</a>
+          </li>
         
           <li>
             <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
@@ -1473,10 +1525,6 @@
         
           <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
           </li>
         
       </ul>

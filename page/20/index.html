@@ -73,6 +73,150 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-timeline-subtitles/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2016/03/12/timeline-subtitles/index/" class="article-date">
+  <time class="dt-published" datetime="2016-03-12T00:00:00.000Z" itemprop="datePublished">2016-03-12</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/it/">it</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2016/03/12/timeline-subtitles/index/">[新手向]如何制作时间轴、字幕和压制影片</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>作为一名字幕组的小小翻译，其实我老早就想写写制作字幕的方法了，结果一直拖到今天。</p>
+<p>今天就以最简单的方式来教教大家如何制作双语字幕，还有卡轴、压制等~</p>
+<p> </p>
+<h2 id="一-扫个盲，编码格式、封装格式"><a href="#一-扫个盲，编码格式、封装格式" class="headerlink" title="一.扫个盲，编码格式、封装格式"></a>一.扫个盲，编码格式、封装格式</h2><p>先来搞清楚一个概念，视频&#x2F;音频编码格式、封装格式。我不是这个领域的绝对专家，但是解释下概念还是可以做到的。</p>
+<h3 id="视频编码格式"><a href="#视频编码格式" class="headerlink" title="视频编码格式"></a>视频编码格式</h3><p>就是一种编码视频的标准（这不是废话吗），目前最流行的莫过于AVC（通常我们叫它H.264）了，还有DivX等等。</p>
+<h3 id="音频编码格式"><a href="#音频编码格式" class="headerlink" title="音频编码格式"></a>音频编码格式</h3><p>就是编码音频的标准，又是一句废话，目前很流行的有AC3，DTS，AAC——很不幸的是前两者是杜比公司的专利，所以很多软件为了避免版权问题，都不会【直接提供】这两者的解码器，所以就会造成”只有图像没有声音”的假象，在iOS上这个现象会更明显。</p>
+<h3 id="封装格式"><a href="#封装格式" class="headerlink" title="封装格式"></a>封装格式</h3><p>我们常见的mp4、mkv、avi等结尾的视频，其实这个”mp4”是封装格式。封装格式是什么意思呢？我们知道一部视频里最起码要有视频流、音频流，可能还会有字幕等其他的”流”。如果把所有的”流”比作水，那么封装格式就是装水的杯子——有的”杯子”设计的很好，就可以装很多种不同的”水”并且利于饮用；而有些杯子设计的不好，可能会像滴管一样，很糟心的。</p>
+<p>现在除非专业人士，否则大部分人都是不太懂这三个”格式”的区别的，但是时刻铭记在心，一个视频文件的扩展名并不代表他的编码格式，AVC可以封装到mkv里，DivX也可以。当然，绝大部分有良心的制作者们都喜欢mkv搭配AVC这种。</p>
+<p>播放器能否流畅完整的播放一个视频也是由这三者共同制约的。</p>
+<p><img src="/images/031216_0537_1.png"></p>
+<p>可以看到这个视频的封装格式是MPEG-4，也就是扩展名是mp4，视频和音频编码分别是AVC、AAC</p>
+<p>其实这个扫盲根本就是废话，不喜欢看就略过嘛……</p>
+<p> </p>
+<h2 id="二-制作字幕的简介"><a href="#二-制作字幕的简介" class="headerlink" title="二.制作字幕的简介"></a>二.制作字幕的简介</h2><p>以我的经历来说，通常会有轴组的人先处理时间轴使字幕和说话配上，然后由翻译进行翻译，然后校对、特效、压制。自己的话只能一人包揽，说着很难但其实很简单。</p>
+<p>先祭上我们组都在使用的字幕处理工具：<strong>TimeMachine</strong>，此工具是使用了Windows Media Player作为播放界面的，所以只要WMP能播放的视频都可以的。加上外挂字幕插件之后会直接在播放窗口上显示字幕，就不用来回切换播放器了。</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2016/03/201603120605578.jpg"><img src="/images/201603120605578-1024x552.jpg" alt="主界面"></a></p>
+<p>界面还是很简洁实用的！</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z'/]TimeM%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/TimeM.7z&#39;\]TimeM下载地址\[/dl\]</a></p>
+<p>PS，此工具是由VS2008编译而来，所以在最新的Windows 10上可能不是那么好用，而且有时会抽风不显示字幕，此时需要重装VodSub……</p>
+<p>为此，我将此工具的代码上传到GitHub以GPLv2开源，希望有能力的人能够继续开发此工具（不用试了，我从05试到了15全都编译出错），希望组织不会找到我哈哈哈</p>
+<p>[gt href&#x3D;’<a target="_blank" rel="noopener" href="https://github.com/BennyThink/TimeM'/]%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80/[/gt/]">https://github.com/BennyThink/TimeM&#39;\]开源项目地址\[/gt\]</a></p>
+<p> </p>
+<h2 id="三-卡轴"><a href="#三-卡轴" class="headerlink" title="三.卡轴"></a>三.卡轴</h2><p>做时间轴是一个比较苦的活。我假设你的TM已经能够播放视频了，这是最起码的条件！</p>
+<p>我们用TM打开一个范例视频，好像没什么反应哎！对，你只能看到一个准备就绪。</p>
+<p><img src="/images/031216_0537_3.png"></p>
+<p>此时在左侧选择新字幕，我们就插入个50行吧！</p>
+<p><img src="/images/031216_0537_4.png"></p>
+<p>之后要注意保存的文件名，假如视频文件叫做1.mp4，字幕就要叫1.srt，这样播放器就会默认加载字幕。因为srt结构比较简单，方便查错校正什么的嘛。</p>
+<p><img src="/images/031216_0537_5.png"></p>
+<p>下面的编辑窗口就出现了50个空行。</p>
+<p>记住两个快捷键，F8和F9。F8对应轴开始的时间，F9对应轴结束的时间。</p>
+<p><img src="/images/031216_0537_6.png"></p>
+<p>现在开始播放视频，并且使字幕定位在第一行，类似下图这样。</p>
+<p><img src="/images/031216_0537_7.png"></p>
+<p>人物开始说话，就按F8，觉得这一行差不多够字数了，就按F9，然后什么都不用管，人物再说，就F8记录下一个轴的开始，F9记录结束。TM会自动往下选择下一个空轴的。</p>
+<p><img src="/images/031216_0537_8.png"></p>
+<p>粉色的圈起来的是每次按F9都会往下跳。</p>
+<p>可能有的人反应比较慢，导致开始说话过了0.x秒字幕才出现，那怎么办呢？很简单，设计个延迟就可以啦！</p>
+<p>设置-软件选项-字幕选项。根据自身情况设置吧！</p>
+<p><img src="/images/031216_0537_9.png"></p>
+<p>这样一直卡轴，直到最后，就算做完了时间轴的工作</p>
+<p>[v_blue]Tips： 通常来说，美剧&#x2F;电影等都是提供CC字幕的，也就是说英文字幕绝大部分都不是听译出来的。当然CC字幕的格式惨不忍睹，是需要进行大量修改的。[&#x2F;v_blue]</p>
+<p> </p>
+<h2 id="四-翻译"><a href="#四-翻译" class="headerlink" title="四.翻译"></a>四.翻译</h2><p>翻译这一步嘛，不只是翻译那么简单。翻译的信达雅是一方面，格式的统一也是一方面。</p>
+<p>上面提到了对CC的处理，这点基本各大字幕组的处理都差不多：</p>
+<p>删掉冗余字幕、标点符号初步统一、语气词感叹词等。</p>
+<p>字幕格式，不同组的要求就不同了。大致说下我们组的规则以便参考：</p>
+<blockquote>
+<p>**1.**不论何时， 严禁出现中文标点！ **2.**中文行断句无需标点句号逗号等，只需两段话之间空两格即可。 **3.**中文行出现书籍、杂志、影视作品名称等。 必须加书名号《》 **4.**特殊引用加英文引号””，比如说讽刺啊反语等。 **5.**外国人名之间加· **6.**对话格式如果一个时间轴里面有两个人的对话，字幕中对话一般没有对话的标记，所以，翻译需要自行加符号-来区分，英文对话之间-后面需要空一格，中文对话的-后面则不用空格， 如： 00:01:25,241 –&gt; 00:01:27,527 -你摸什么呢 -动脉 - What are you looking for? - A pulse. 一个时间轴里面有两个人对话前面要使用横断线-号分开，以区别是两人说的话，并且两人对白中间要用空格隔开。中文空两格，英文空一格。 **7.**大小写，这个嘛就是英语功底的事情了…… **8.**字幕长度，我们推荐的是英文不超过65字幕，中文不超过18字符，免得字幕变成两行影响效果。如果太长，那么就要根据意群进行分割。 **9.**硬字幕，一些说明头衔、学校等字幕，需要再翻一下方便观众理解，插入新轴用{\an8}置顶内容即可。插入按钮在倒数第四个。</p>
+</blockquote>
+<p>拆分字幕方法：</p>
+<p>在要拆分的字母上右键，自定义拆分</p>
+<p><img src="/images/031216_0537_10.png"></p>
+<p>选择好分割的位置，然后点击确定，之后点击新增，把中文的也分割了，确定就好。</p>
+<p><img src="/images/031216_0537_11.png"></p>
+<p>需要注意的是分割之后这两个轴可能会对不上，所以建议重新看看。</p>
+<p> </p>
+<h2 id="五-后期"><a href="#五-后期" class="headerlink" title="五.后期"></a>五.后期</h2><p>我呐，不是做后期的，但是一点特效都没有的字幕我是忍受不了的！简单的设置下字幕的字体、字形，我一般都使用SrtEdit，aegisub这种东西太高级用不来……</p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z'/]SrtEdit%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/SrtEdit.7z&#39;\]SrtEdit下载地址\[/dl\]</a></p>
+<p>由于srt对字幕特效的支持有限，所以我通常先将其转换为ass格式，用SrtEdit打开字幕，另存为，选择ass即可。</p>
+<p>之后Ctrl+A全选字幕，格式-文本特效编辑</p>
+<p><img src="/images/031216_0537_12.png"></p>
+<p>大家伙就看着办吧！其他特效也看着办吧</p>
+<p><img src="/images/031216_0537_13.png"></p>
+<p>要注意，如果你使用的字体文件在别的电脑上不存在，那么就会变成默认的字体——这也是为什么我们要压制的原因。</p>
+<p>这是我选择的英文字体Ubuntu Mono，中文字体幼圆。</p>
+<p><img src="/images/031216_0537_14.png"></p>
+<p>要注意的是，KMPlayer需要选项-字幕处理-多重字幕&#x2F;其他，选择“高级”选项卡，第一栏里选中开启、实时渲染、保持三项才可以显示字幕的字体。</p>
+<p> </p>
+<h2 id="六-压制"><a href="#六-压制" class="headerlink" title="六.压制"></a>六.压制</h2><p>前面预备知识里提过，一个封装格式里面可以带有很多信息，其中也自然而然的包括字幕。个人比较喜欢mkv这种封装格式。</p>
+<p>有一个工具叫做mkvtoolnix，可以看到一个mkv文件里有哪些东西。双击mmg.exe，将视频文件拖入，可以看到这个视频有两个流。</p>
+<p><img src="/images/031216_0537_15.png"></p>
+<p>有些电影是”国英粤”三个音频轨，如果只想要英语，就取消对应的勾选，然后开始混流即可。</p>
+<p>所以在这里，压制就有了两种办法：</p>
+<p>一种是简单的把字幕放到这个”容器”里，仍旧<strong>无法避免</strong>在没有对应字体的电脑上无法显示特效；</p>
+<p>另一种则是重新编码，把字幕作为视频流的一部分，这样字体特效无论放到哪都不会丢了。那些喜欢纯净的不要字幕的就会挑剔了。</p>
+<h3 id="第一种办法"><a href="#第一种办法" class="headerlink" title="第一种办法"></a>第一种办法</h3><p>直接用mkvtoolnix混流就可以了，把字幕添加进去，混流，基本上几分钟就可以完成；</p>
+<h3 id="第二种办法"><a href="#第二种办法" class="headerlink" title="第二种办法"></a>第二种办法</h3><p>就要用到俺组开发的傻瓜压制工具，通常来说会花费很长时间——当初我压制《阿凡达》花费了差不多三四个小时。</p>
+<p>首先需要安装AviSynthPlus-r1576和VC，在setup里有。</p>
+<p>然后打开压制工具，左上角选择新建任务，选择对应的视频和字幕，确定。</p>
+<p><img src="/images/031216_0537_16.png"></p>
+<p>右上角选择压制之后的分辨率即可。至于码率什么的，都是不用管的！</p>
+<p>64位操作系统选择x64会更好~</p>
+<p>PS，如果某位喜欢1080P的压制，可是这里又没有1080P的，那怎么办呢？</p>
+<p>其实很简单，打开encode文件夹，会发现有很多批处理文件。我已经为你们准备好了压制1080P的批处理了。</p>
+<p>该怎么办还用说吗~~修改完直接把视频拖上去就可以了。</p>
+<p>[v_error]警告 视频文件名最好不要带空格哦，毕竟windows这家伙不会拿\转义嘛……[&#x2F;v_error]</p>
+<p><img src="/images/031216_0537_17.png"></p>
+<p>压制过程是非常耗费CPU的，那个喜欢浮点运算的GPU呢？</p>
+<p><img src="/images/031216_0537_18.png"></p>
+<p>真的是1080P</p>
+<p><img src="/images/031216_0537_19.png"></p>
+<p>mmg分析表示，字幕已经成了视频的一部分。</p>
+<p>如果想要裁剪视频，简单的可以拿格式工厂来做到……另外，格式工厂转换格式的时候加字幕貌似有些bug…… [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z'/]mkvtoolnix/[/dl/]">http://7xljcn.com1.z0.glb.clouddn.com/mkvtoolnix.7z&#39;\]mkvtoolnix\[/dl\]</a></p>
+<p>[dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176%27%5C%5D%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%8E%8B%E7%89%87%E5%B7%A5%E5%85%B7.7z?t=1484276984176&#39;\]压片工具\[/dl\]</a></p>
+<h3 id="第三种方法：高手必备的ffmpeg"><a href="#第三种方法：高手必备的ffmpeg" class="headerlink" title="第三种方法：高手必备的ffmpeg"></a>第三种方法：高手必备的ffmpeg</h3><p>好吧，<a target="_blank" rel="noopener" href="https://dmesg.app/ffmpeg.html/2">看这里就好了</a>。</p>
+<h2 id="七-后话"><a href="#七-后话" class="headerlink" title="七.后话"></a>七.后话</h2><p>本文提到的所有工具打包下载，多贴心啊！ [dl href&#x3D;’<a target="_blank" rel="noopener" href="http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506%27%5C%5D%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E6%89%93%E5%8C%85%E4%B8%8B%E8%BD%BD%5C%5B/dl%5C%5D">http://download2.file.alimmdn.com/%E5%AD%97%E5%B9%95%E5%A4%84%E7%90%86%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88.7z?t=1484277347506&#39;\]字幕处理工具打包下载\[/dl\]</a></p>
+<p>附：特别喜欢的一段演讲，尽管是游戏里的而且我还没玩过……Assassins Creed 2 - Ezio’s Speech </p>
+<p>[v_act]There are those who will take that freedom from us, and too many of you gladly give it. But it is our ability to choose whatever you think is true that makes us human. Choose your own way![&#x2F;v_act]</p>
+<p> </p>
+<h2 id="八-晒壁纸"><a href="#八-晒壁纸" class="headerlink" title="八.晒壁纸"></a>八.晒壁纸</h2><p>又到了晒壁纸的时候……</p>
+<p>然而并没有壁纸可以，哈哈哈。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2016/03/12/timeline-subtitles/index/" data-id="clhp7rtma00a0s2qr55nv4j1f" data-title="[新手向]如何制作时间轴、字幕和压制影片" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-prevent-from-network-audit/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2016/03/03/prevent-from-network-audit/index/" class="article-date">
@@ -873,65 +1017,6 @@
 
 
   
-    <article id="post-softether-443-conflicts-with-web-server/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2016/02/02/softether-443-conflicts-with-web-server/index/" class="article-date">
-  <time class="dt-published" datetime="2016-02-02T00:00:00.000Z" itemprop="datePublished">2016-02-02</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/gfw/">gfw</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2016/02/02/softether-443-conflicts-with-web-server/index/">SoftEther 443端口与web服务器冲突解决方案</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>先前写了一篇利用SoftEther VPN Server搭建PPTP、L2TP、OpenVPN的文章（<a target="_blank" rel="noopener" href="https://dmesg.app/softether-vpnserver.html">https://dmesg.app/softether-vpnserver.html</a></p>
-<p>），原谅我那时候不会用代码高亮。后来发现，在开启了https的web服务器上是无法进行管理的。在设置密码的那一步报错退出了。如下图：</p>
-<p><img src="/images/020216_0812_SoftEther441.png"></p>
-<p>为什么呢？因为<strong>命令行模式下</strong>SoftEther默认使用443端口与连接到管理端，而443已经被我的web服务器占用了，所以自然会fail了。那怎么办呢……有三种办法：</p>
-<h2 id="第一种办法"><a href="#第一种办法" class="headerlink" title="第一种办法"></a>第一种办法</h2><p>暂时停掉web server，在命令行里设置密码，然后客户端管理工具连接，再ServerPasswordSet设置个服务器管理密码。然后更改端口，重开web server。比较繁琐。</p>
-<h2 id="第二种办法"><a href="#第二种办法" class="headerlink" title="第二种办法"></a>第二种办法</h2><p>Hostname of IP Address of destination时直接输入</p>
-<p>localhost:5555</p>
-<p>之后回车就可以成功了，然后就一样了。</p>
-<h2 id="第三种办法"><a href="#第三种办法" class="headerlink" title="第三种办法"></a>第三种办法</h2><p>更简单，而且同样很管用！</p>
-<p>.&#x2F;vpnserver start</p>
-<p>启动VPN服务，之后在工具里直接留空密码连接：</p>
-<p><img src="/images/020216_0812_SoftEther442.png"></p>
-<p>之后连接会要求输入密码。</p>
-<p>你们看连接上了。这一步如果连接失败请尝试992、1194、5555端口。</p>
-<p>之后服务器里会看到443端口错误。修改成其他端口或者不用理会都可以。</p>
-<p><img src="/images/020216_0812_SoftEther444.png"></p>
-<p>之后就和前文一样了。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2016/02/02/softether-443-conflicts-with-web-server/index/" data-id="clhp7rtk0008ss2qrbcjq9341" data-title="SoftEther 443端口与web服务器冲突解决方案" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -947,7 +1032,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -976,7 +1061,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -987,6 +1072,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2025/03/16/py-azure-oai-proxy/index/">使用50行Python代码实现一个Azure OpenAI Proxy</a>
+          </li>
         
           <li>
             <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
@@ -1002,10 +1091,6 @@
         
           <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
           </li>
         
       </ul>

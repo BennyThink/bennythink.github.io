@@ -73,6 +73,134 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-py-azure-oai-proxy/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/03/16/py-azure-oai-proxy/index/" class="article-date">
+  <time class="dt-published" datetime="2025-03-16T00:00:00.000Z" itemprop="datePublished">2025-03-16</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/azure/">azure</a>►<a class="article-category-link" href="/categories/azure/program/">program</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2025/03/16/py-azure-oai-proxy/index/">使用50行Python代码实现一个Azure OpenAI Proxy</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>[v_error]不要使用 blacksheep，否则你的人生会变得不幸[&#x2F;v_error]</p>
+<p>Azure OpenAI和OpenAI提供的服务基本一致的，除了了Azure 更新会慢一点之外，最大的区别是请求路径不同。</p>
+<p>对于Azure而言，需要去Azure AI Foundry 里创建部署</p>
+<p><img src="/images/202503161933463.png" alt="图形用户界面, 应用程序, Teams AI 生成的内容可能不正确。"></p>
+<p>部署名称就是请求时的URL参数的一部分，举例如下</p>
+<p><a target="_blank" rel="noopener" href="https://xxx.openai.azure.com/openai/deployments/%7Byour/_deployment/_name%7D/chat/completions?api-version=2024-12-01-preview">https://xxx.openai.azure.com/openai/deployments/{your\_deployment\_name}/chat/completions?api-version=2024-12-01-preview</a></p>
+<p><code>api-version</code> 需要根据个人情况选择，新版本的包含更多的功能。</p>
+<p>那么问题就简单了，如果要做代理转发，需要做的事情就是创建一个模型名称（如gpt-4-mini）和部署名称的映射表，写一个简单的程序读取body，然后动态拼接为正确的URL，然后请求返回即可。</p>
+<p>如果你会写lua，那么直接搭配下openresty就可以了。然而……</p>
+<h2 id="选择Web框架"><a href="#选择Web框架" class="headerlink" title="选择Web框架"></a>选择Web框架</h2><p>为了图简单，语言就选Python吧。在网上找到了一个 <a target="_blank" rel="noopener" href="https://klen.github.io/py-frameworks-bench/">Python Web framework的性能对比图</a>，还有一个[比较新的对比图](<a target="_blank" rel="noopener" href="https://www.techempower.com/benchmarks/">https://www.techempower.com/benchmarks/</a>“ \l “hw&#x3D;ph&amp;test&#x3D;composite&amp;section&#x3D;data-r23&amp;l&#x3D;zijzen-cn3)</p>
+<p><img src="/images/2025031619334840.png" alt="图片包含 图标 AI 生成的内容可能不正确。"></p>
+<p>[v_blue]可惜tornado已经廉颇老矣了，在没有asyncio的那个时代，tornado是王者🥲[&#x2F;v_blue]</p>
+<p>信我的，不要选择blacksheep（后面会讲）。这次我们就选择第二名的sanic，文档很好，语法很像flask，原生支持asyncio，星标也很多</p>
+<h2 id="非流实现"><a href="#非流实现" class="headerlink" title="非流实现"></a>非流实现</h2><p>非流式响应直接用httpx发请求，然后返回就行了，非常简单，记得跟着把状态码也设置了</p>
+<p>代码如下，非常简单，应该不用解释就能看懂</p>
+<p>import os</p>
+<p>import httpx<br>from sanic import Sanic<br>from sanic import json as json_response<br>from sanic.request import Request</p>
+<p>client &#x3D; httpx.AsyncClient(<br>    http2&#x3D;True,<br>    timeout&#x3D;httpx.Timeout(<br>        connect&#x3D;15.0,<br>        read&#x3D;300.0,<br>        write&#x3D;300.0,<br>        pool&#x3D;10.0,<br>    ),<br>)</p>
+<p>app &#x3D; Sanic(__name__)</p>
+<p>url &#x3D; os.getenv(“URL”)<br>api_key &#x3D; os.getenv(“API_KEY”)</p>
+<p>@app.route(“&#x2F;v1&#x2F;chat&#x2F;completions”, methods&#x3D;[“POST”])<br>async def chat_completions(request: Request):<br>    body &#x3D; request.json<br>    if body.get(“stream”):<br>        pass<br>    else:<br>        return await non_stream(body)</p>
+<p>async def non_stream(body):<br>    response &#x3D; await client.post(url, json&#x3D;body, headers&#x3D;{“api-key”: api_key})<br>    return json_response(response.json(), status&#x3D;response.status_code)</p>
+<p>if __name__ &#x3D;&#x3D; “__main__“:<br>    app.run(host&#x3D;”127.0.0.1”, port&#x3D;8000, debug&#x3D;True, dev&#x3D;True, auto_reload&#x3D;True)</p>
+<h2 id="流式实现"><a href="#流式实现" class="headerlink" title="流式实现"></a>流式实现</h2><p>Sanic的流式也很简单，我们直接使用 httpx的<code>stream</code>就可以。</p>
+<p>需要注意的是，如果请求参数错误，那么Azure会给返回400类错误，此时不能返回SSE，而且普通的json。这里可以通过<code>response.aread()</code> 来读取响应体。</p>
+<p>也就是说代码大概长这样</p>
+<p>async with client.stream(“POST”, url, json&#x3D;body, headers&#x3D;{“api-key”: api_key}) as response:<br>    if response.status_code !&#x3D; 200:<br>        error &#x3D; await response.aread()<br>        # 由于 aread() 直接返回了bytes，所以就用raw方法返回，设置content-type为application json，没必要在反序列化一次用json返回<br>        return raw(error, content_type&#x3D;”application&#x2F;json”, status&#x3D;response.status_code)</p>
+<p>如果请求正常开始返回，那么就先设置设置<code>content-type</code></p>
+<p>server &#x3D; await request.respond(content_type&#x3D;”text&#x2F;event-stream”)</p>
+<p>然后去迭代</p>
+<p>async for chunk in response.aiter_text():<br>    await server.send(chunk)</p>
+<p><img src="/images/2025031619334875.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 AI 生成的内容可能不正确。"></p>
+<p>恭喜你，用50行代码实现了代理服务！至于 text-embedding 这种根本不支持流式的模型，甚至可以写一个通用的函数，反正就是原样发送、原样返回</p>
+<h2 id="进一步……"><a href="#进一步……" class="headerlink" title="进一步……"></a>进一步……</h2><p>当然， 你可以根据自己的需求进一步扩展。比如说……</p>
+<ul>
+<li>创建一个yaml配置文件，配置Azure OpenAI区域</li>
+<li>配置好deployment和OpenAI model名字的映射表</li>
+<li>加上权重</li>
+<li>根据一定的算法，如轮询，加权轮询，最少使用等选择最佳区域</li>
+<li>过滤响应内容中的字段（比如<code>content_filter_results</code> 之类的）</li>
+<li>内容审查</li>
+</ul>
+<p>用Python操作json可比用Go方便多了！不用两眼一发黑的写type真的是太幸福了！</p>
+<p>具体操作空间，那留给自己想象啦！</p>
+<h2 id="为什么不要使用-blacksheep"><a href="#为什么不要使用-blacksheep" class="headerlink" title="为什么不要使用 blacksheep"></a>为什么不要使用 blacksheep</h2><p>最开始我选择了blacksheep，因为这个最快嘛，文档看起来也不错。</p>
+<p>后来发现踩了很多坑，直接整个一天时间没了🫠……</p>
+<h3 id="SSE的序列化"><a href="#SSE的序列化" class="headerlink" title="SSE的序列化"></a>SSE的序列化</h3><p>Blacksheep用SSE是这样子滴：</p>
+<p>import asyncio<br>from collections.abc import AsyncIterable</p>
+<p>from blacksheep import Application, get<br>from blacksheep.server.sse import ServerSentEvent, ServerSentEventsResponse</p>
+<p>app &#x3D; Application()</p>
+<h1 id="An-AsyncGenerator-yielding-ServerSentEvent…"><a href="#An-AsyncGenerator-yielding-ServerSentEvent…" class="headerlink" title="An AsyncGenerator yielding ServerSentEvent…"></a>An AsyncGenerator yielding ServerSentEvent…</h1><p>async def events_provider() -&gt; AsyncIterable[ServerSentEvent]:<br>    for i in range(3):<br>        yield ServerSentEvent({“message”: f”Hello World {i}”})<br>        await asyncio.sleep(1)</p>
+<h1 id="A-request-handler-returning-a-streaming-response-bound-to-the-generator…"><a href="#A-request-handler-returning-a-streaming-response-bound-to-the-generator…" class="headerlink" title="A request handler returning a streaming response bound to the generator…"></a>A request handler returning a streaming response bound to the generator…</h1><p>@get(“&#x2F;events”)<br>def events_handler():<br>    return ServerSentEventsResponse(events_provider)</p>
+<p><code>ServerSentEvent</code> 会自动json序列化你的传入的参数，正常OpenAI最后一个响应是<code>[DONE]</code></p>
+<p><img src="/images/2025031619334993.png" alt="图形用户界面, 应用程序 AI 生成的内容可能不正确。"></p>
+<p>然而用它你发现……你永远无法正确返回 <code>[DONE]</code>，比如</p>
+<p>yield ServerSentEvent(“[DONE]“)<br>yield ServerSentEvent([“DONE”])</p>
+<p>你会发现这引号是怎么回事🤡</p>
+<p><img src="/images/202503161933491.png" alt="图形用户界面, 文本, 应用程序, 电子邮件 AI 生成的内容可能不正确。"></p>
+<p>解决方案是<a target="_blank" rel="noopener" href="https://github.com/Neoteroi/BlackSheep/issues/484">自定义他的json dumps</a>，硬编码一下，如果是<code>[DONE]</code>的时候直接返回</p>
+<p>from blacksheep.settings.json import default_json_dumps, json_settings</p>
+<p>def custom_dumps(value):<br>    if value &#x3D;&#x3D; “[DONE]“:<br>        return value<br>    else:<br>        return default_json_dumps(value)</p>
+<p>json_settings.use(dumps&#x3D;custom_dumps)</p>
+<h3 id="异步生成器锁死"><a href="#异步生成器锁死" class="headerlink" title="异步生成器锁死"></a>异步生成器锁死</h3><p>Blacksheep是使用的异步生成器，看<code>yield</code>和<code>async</code>就知道。但是在流式请求的时候，如果azure返回了错误json，我们也要返回错误json给客户端，而不是返回SSE。</p>
+<p>然而……一旦你用了yield+async，这个函数就是异步生成器函数了，你可以使用<code>return</code>结束生成器，但是却不能使用 <code>return 123</code>这样的表达式。</p>
+<p>所以试图在 <code>as response</code>后判断状态码，然后试图返回一个json的操作，比如</p>
+<p>return json({“message”: “Hello, World!”})</p>
+<p>都是不行滴！</p>
+<p><img src="/images/2025031619335077.png" alt="图形用户界面, 文本 AI 生成的内容可能不正确。"></p>
+<h3 id="SSE锁死"><a href="#SSE锁死" class="headerlink" title="SSE锁死"></a>SSE锁死</h3><p>实际上，当你路由中调用<code>return ServerSentEventsResponse(events_provider)</code>后，整个请求只可能以SSE的格式返回了🫠</p>
+<p>聪明的你可能会想着既然不能<code>return</code>，那我<code>yield</code>一下</p>
+<p>if response.status_code !&#x3D; HTTPStatus.OK:<br>    content &#x3D; await response.aread()<br>    yield content<br>    return</p>
+<p>IDE没报错，但是运行时……</p>
+<p>TypeError: Argument ‘event’ has incorrect type (expected blacksheep.contents.ServerSentEvent, got bytes)</p>
+<p>别想着改type annotation了，不管用的🤣</p>
+<h3 id="提升-httpx-Client-也没用"><a href="#提升-httpx-Client-也没用" class="headerlink" title="提升 httpx.Client 也没用"></a>提升 httpx.Client 也没用</h3><p>我也想到了这个办法，先在路由后调用 <code>client.stream()</code> 然后看status code是不是200，如果是，那么走 <code>return ServerSentEventsResponse</code> 否则就是 return json</p>
+<p>恭喜你！发现了新的坑！你会发现……</p>
+<p>raise StreamClosed() httpx.StreamClosed: Attempted to read or stream content, but the stream has been closed.</p>
+<p>那尝试手动进入，不用<code>async with</code>了</p>
+<p>stream_ctx &#x3D; client.stream(   )<br>stream_response &#x3D; await stream_ctx.__aenter__()<br>….<br>return ServerSentEventsResponse(partial(stream_provider, stream_ctx, stream_response))</p>
+<p>很好</p>
+<p>line 155, in stream_provider<br>async for c in stream_response.aiter_text():<br>httpx.ReadTimeout</p>
+<p>那就闭包，用前朝的剑指挥今朝的兵！这样的话，其实上面错误差不多😂</p>
+<h3 id="唯一可能的解决方案……"><a href="#唯一可能的解决方案……" class="headerlink" title="唯一可能的解决方案……"></a>唯一可能的解决方案……</h3><p>给Azure返回的<code>chunks</code>都缓存起来，等都返回完了，把全部<code>chunks</code>交<code>stream_provider</code>，流式直接变非流👍真有你的</p>
+<p>抛出一个自定义异常的办法也许管用，但是我一直没接住……</p>
+<p>所以，不要使用 blacksheep，否则你的人生会变得不幸</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>完整代码可见 <a target="_blank" rel="noopener" href="https://gist.github.com/BennyThink/94ac6e088feb1cec829cf7c280c56783">https://gist.github.com/BennyThink/94ac6e088feb1cec829cf7c280c56783</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/03/16/py-azure-oai-proxy/index/" data-id="cm8c7uxyn00003zjf7syn157r" data-title="使用50行Python代码实现一个Azure OpenAI Proxy" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-candlestick-llm/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2024/12/12/candlestick-llm/index/" class="article-date">
@@ -1117,77 +1245,6 @@ if (response.ok) &#123;
 
 
   
-    <article id="post-azure-waf/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2024/07/17/azure-waf/index/" class="article-date">
-  <time class="dt-published" datetime="2024-07-17T00:00:00.000Z" itemprop="datePublished">2024-07-17</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/website/">website</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2024/07/17/azure-waf/index/">救命！我的 Azure Front Door WAF 规则不生效怎么办！</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>最近在用 Front Door加速网站访问，想添加一个这样的规则：只允许 <code>/v1</code>下的路径和特定国家的IP，其他全部禁止。</p>
-<p>这其实很简单的！只要创建两条 WAF规则，一个禁止全部优先级低，一个允许特定路径，优先级高。</p>
-<h2 id="100优先级的允许规则"><a href="#100优先级的允许规则" class="headerlink" title="100优先级的允许规则"></a>100优先级的允许规则</h2><p><img src="/images/2024071623480019.png"></p>
-<p>看起来一点问题都没有吧，非常简单容易理解</p>
-<h2 id="500-优先级阻止规则"><a href="#500-优先级阻止规则" class="headerlink" title="500 优先级阻止规则"></a>500 优先级阻止规则</h2><p><img src="/images/2024071623480112.png"></p>
-<p>也很好理解，阻止全部</p>
-<h2 id="没用！"><a href="#没用！" class="headerlink" title="没用！"></a>没用！</h2><p>配置下来就是不生效，所有的请求都被阻止了。给阻止规则停用，就全部能访问。</p>
-<p>从<code>azure-cli</code>里看下WAF的配置，避免他们前端有bug</p>
-<p>{<br>    “rules”: [<br>        {<br>            “action”: “Allow”,<br>            “enabledState”: “Enabled”,<br>            “groupBy”: [],<br>            “matchConditions”: [<br>                {<br>                    “matchValue”: [<br>                        “&#x2F;v1”<br>                    ],<br>                    “matchVariable”: “RequestUri”,<br>                    “negateCondition”: false,<br>                    “operator”: “BeginsWith”,<br>                    “transforms”: []<br>                },<br>                {<br>                    “matchValue”: [<br>                        “CN”<br>                    ],<br>                    “matchVariable”: “SocketAddr”,<br>                    “negateCondition”: false,<br>                    “operator”: “GeoMatch”,<br>                    “transforms”: []<br>                }<br>            ],<br>            “name”: “Allow”,<br>            “priority”: 100,<br>            “rateLimitDurationInMinutes”: 1,<br>            “rateLimitThreshold”: 100,<br>            “ruleType”: “MatchRule”<br>        },<br>        {<br>            “action”: “Block”,<br>            “enabledState”: “Enabled”,<br>            “groupBy”: [],<br>            “matchConditions”: [<br>                {<br>                    “matchValue”: [],<br>                    “matchVariable”: “RequestUri”,<br>                    “negateCondition”: false,<br>                    “operator”: “Any”,<br>                    “transforms”: []<br>                }<br>            ],<br>            “name”: “Deny”,<br>            “priority”: 500,<br>            “rateLimitDurationInMinutes”: 1,<br>            “rateLimitThreshold”: 100,<br>            “ruleType”: “MatchRule”<br>        }<br>    ]<br>}</p>
-<p>从结果来看，完全没问题。给规则从 begins with 改成 contains又可以，但是那也意味着<code>https://cn-test.burn.hair/login?id=v1</code>也会允许，而这不太行</p>
-<p><img src="/images/2024071623480151.png"></p>
-<h2 id="看看-log"><a href="#看看-log" class="headerlink" title="看看 log"></a>看看 log</h2><p>没办法了，开 log 试试看吧，不行就联系 Azure Support</p>
-<p>先要去 Log Analytics workspaces 里开一个记录日志的奇怪的东西</p>
-<p><img src="/images/202407162348023.png"></p>
-<p>然后去 Diagnostic settings 里 把这个东西和 Front Door、Workspaces关联起来</p>
-<p><img src="/images/2024071623480237.png"></p>
-<p>然后去log页面运行这样的一个查询，绝了连看日志都得学习查询语法😓</p>
-<p>AzureDiagnostics<br>| where ResourceProvider &#x3D;&#x3D; “MICROSOFT.NETWORK” and Category &#x3D;&#x3D; “FrontdoorWebApplicationFirewallLog”</p>
-<p>然后就能看到 WAF的日志了</p>
-<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2024/07/2024071623525456.png"><img src="/images/2024071623525456.png"></a></p>
-<h2 id="什么？？"><a href="#什么？？" class="headerlink" title="什么？？"></a>什么？？</h2><p>WTF？谁家 <code>requestUri</code>这么写啊 还带端口的，怪不得我配置的 begins with &#x2F;v1 不好用，但是contains就行……</p>
-<p><img src="/images/202407162348049.png" alt="图片包含 徽标 描述已自动生成"></p>
-<p>火速去 WAF 里，改一下规则，给matches value改成完整的路径就好了</p>
-<p><a target="_blank" rel="noopener" href="https://cn-test.burn.hair/v1">https://cn-test.burn.hair:443/v1</a></p>
-<p><img src="/images/2024071623480516.png" alt="图形用户界面, 文本, 应用程序 描述已自动生成"></p>
-<p>😢 问题解决了，开的各种东西可以去 Resource Group 里删除了</p>
-<hr>
-<p>「不愧是 Azure，从定价，到文档，到使用，没一个符合直觉」</p>
-<p>—— Nova Kowk</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2024/07/17/azure-waf/index/" data-id="clyujt8ar00015yjf53hmhquz" data-title="救命！我的 Azure Front Door WAF 规则不生效怎么办！" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -1203,7 +1260,7 @@ if (response.ok) &#123;
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -1232,7 +1289,7 @@ if (response.ok) &#123;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1243,6 +1300,10 @@ if (response.ok) &#123;
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2025/03/16/py-azure-oai-proxy/index/">使用50行Python代码实现一个Azure OpenAI Proxy</a>
+          </li>
         
           <li>
             <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
@@ -1258,10 +1319,6 @@ if (response.ok) &#123;
         
           <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
           </li>
         
       </ul>

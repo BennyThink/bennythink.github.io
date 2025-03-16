@@ -73,6 +73,108 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-no-more-maxiang/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2017/04/05/no-more-maxiang/index/" class="article-date">
+  <time class="dt-published" datetime="2017-04-05T00:00:00.000Z" itemprop="datePublished">2017-04-05</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/security/">security</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2017/04/05/no-more-maxiang/index/">为了你的隐私考虑，别用马克飞象了</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>评论中某读者和作者求证之后，马克飞象已经不存在这个隐私问题了。请注意。</p>
+<p>是的，你没看错，我标题写的是”别用马克飞象”了。似乎我的博客里从来没有出现过说不要用某个产品的说辞，但是这一次，我觉得必须要说一下了。<strong>如果你在意你的隐私，那就别用马克飞象了</strong>。</p>
+<p>那么为啥不要用呢？</p>
+<h2 id="太长不看版"><a href="#太长不看版" class="headerlink" title="太长不看版"></a>太长不看版</h2><p>HTTP传输。<strong>全站HTTPS的行动刻不容缓</strong>，<a target="_blank" rel="noopener" href="https://fiveyellowmice.com/posts/2015/10/fight-a-peoples-war-for-https.html">为 HTTPS 打一场人民战争</a>！</p>
+<h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>今天白天勤快给<a target="_blank" rel="noopener" href="https://www.tougetu.com/">小蜗牛童鞋</a>的服务器部署了防盗链，用Nginx大概是下面这样的语法：</p>
+<p>valid_referers none blocked <a target="_blank" rel="noopener" href="http://www.mingyueli.com/">www.mingyueli.com</a> *.google.com *.baidu.com *.so.com;<br>if ($invalid_referer) {<br>rewrite ^&#x2F; <a target="_blank" rel="noopener" href="https://okwbu9s8e.qnssl.com/moon-hotlink2.png">https://okwbu9s8e.qnssl.com/moon-hotlink2.png</a>;<br>}</p>
+<p>大家可以看到，如果referer不是<code>www.mingyueli.com *.google.com *.baidu.com *.so.com</code>这几个，那么就会被302重定向到一个图片上，实际上这个图片也就是盗链提示的图。</p>
+<p>晚上的时候，小蜗牛突然给我发图，问我这个防盗链的图是怎么回事。其实我是没想到这么快发现的好吧。想着新站大概也不会有多少流量、有多少盗链，深感此中必有蹊跷，我就分析了下Nginx的日志打算寻找下原因。</p>
+<p>首先过滤下302，大概就是这样的命令吧</p>
+<p>cat <a href="http://www.mingyueli.com.log|grep">www.mingyueli.com.log|grep</a> –a ‘302’</p>
+<p>然后我就发现了这么奇怪的一行日志</p>
+<p><img src="/images/040517_1357_1.png"></p>
+<p>（出于隐私保护，我把小蜗牛童鞋的IP、UA给打上马赛克了）</p>
+<p>果真是有个referer，被Nginx撵走了。但是这个referer这么奇葩，竟然是个IP，是哪的呢？</p>
+<p>ip.cn查了下，青岛阿里云，本着好奇的想法就贴到了地址栏，我这么一回车啊……</p>
+<p><img src="/images/040517_1357_2.png"></p>
+<p>哎我去？我就想，难道这是小蜗牛童鞋自己搭建了一个markdown服务器？不可能啊超级麻烦的，而且闲的没事干啊？</p>
+<p>于是我就<code>nslookup</code>一下马克飞象的官网</p>
+<p>当当当！</p>
+<p><img src="/images/040517_1357_3.png"></p>
+<p>然而这丫的官网却是带https的，敢情这IP是<code>default_server</code>啊……</p>
+<h2 id="进一步调查"><a href="#进一步调查" class="headerlink" title="进一步调查"></a>进一步调查</h2><p>我开始觉得马克飞象这玩意不太靠谱，于是果断去官网，下个客户端，安装-wireshark抓包。当然啦，俺平时是开着VPN的，如果这个时候抓包，直接被路由表搞走了，肯定是没啥效果的，所以我暂时关了VPN</p>
+<p>反正抓包的过程也简单的，既然咱都知道要过滤的目标IP是115.29.201.173，所以咱就选择网卡，抓，打开马克飞象，随意做点操作，上传个图啊什么的。</p>
+<p>之后停止抓包，过滤条件里输入这么个条件一回车：</p>
+<p>ip.dst&#x3D;&#x3D;115.29.201.173</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/2017040514004141.jpg"><img src="/images/2017040514004141.jpg"></a></p>
+<p>好多TCP，有点干扰，为了过滤掉多余的TCP，再这么一弄过滤条件</p>
+<p>ip.dst&#x3D;&#x3D;115.29.201.173 and http</p>
+<p><img src="/images/2017040514011622.jpg"></p>
+<p>我擦别逗我，全都是HTTP的，擦，那我写的东西传输过程中指不定变成啥样、指不定被谁看个遍啊……</p>
+<p>太没良心了吧我说！<code>default server</code>（也就是<a target="_blank" rel="noopener" href="http://115.29.201.173/client/_zh.html%EF%BC%89%E5%AD%98%E5%9C%A8%E7%9A%84cookies%E6%B3%84%E9%9C%B2%E3%80%81%E4%B8%AD%E9%97%B4%E4%BA%BA%E5%95%A5%E7%9A%84%E6%88%91%E5%B0%B1%E4%B8%8D%E8%AF%B4%E4%BA%86%EF%BC%8C%E8%BF%99%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9B%B4%E6%8E%A5%E6%98%8E%E6%96%87%E4%BC%A0%EF%BC%8C%E6%98%AF%E5%87%A0%E4%B8%AA%E6%84%8F%E6%80%9D%E5%95%8A%EF%BC%9F%E6%98%8E%E6%96%87%E4%BC%A0%E4%B9%9F%E5%B0%B1%E7%BD%A2%E4%BA%86%EF%BC%8Chost%E8%BF%98%E6%98%AF%60default">http://115.29.201.173/client\_zh.html）存在的cookies泄露、中间人啥的我就不说了，这客户端直接明文传，是几个意思啊？明文传也就罢了，host还是`default</a> server&#96;</p>
+<h2 id="HTTPS的通信抓包之后应该是咋样的"><a href="#HTTPS的通信抓包之后应该是咋样的" class="headerlink" title="HTTPS的通信抓包之后应该是咋样的"></a>HTTPS的通信抓包之后应该是咋样的</h2><p>拿本博做例子，是酱紫的：</p>
+<p><a target="_blank" rel="noopener" href="https://dmesg.app/wp-content/uploads/2017/04/2017040514021066.jpg"><img src="/images/2017040514021066.jpg"></a></p>
+<p>咱能明显的看到有Client Hello、密钥交换过程，在这个交换过程中、交换之后，到底做了啥、主机名是啥，咱是真不知道。只有DNS查询过程中能看见我请求了一个解析。这第三者（包括抓包，本质上也算是”窃听者”）想要解密，就没那么容易了。</p>
+<p>[v_blue]隐隐约约想起了avast以前会装个自己的根证书，声称是用来解密HTTPS通信、防止一些网页挂马什么的。至于安全性，我是不咋看好。[&#x2F;v_blue]</p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>后来手欠看了下马克飞象的安装包，图标大概是这样的</p>
+<p><img src="/images/040517_1357_4.png"></p>
+<p>哎我这不是WinRAR的自解压文件吗？那你要个毛管理员权限啊！在一个<code>test.bat</code>中我发现了这么一句话</p>
+<p>为了关联Evernote中的笔记，马克飞象需要向注册表写入配置……</p>
+<p>莫非是临时工做的？</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>所以啊，这玩意快扔垃圾桶吧，http是最不能忍的，一丝一毫都不能忍……<a target="_blank" rel="noopener" href="https://fiveyellowmice.com/posts/2015/10/fight-a-peoples-war-for-https.html">全站HTTPS是必须的</a>！全世界最大的黄网<a target="_blank" rel="noopener" href="https://thenextweb.com/insider/2017/03/31/pornhub-youporn-https-isp/">pornhub都上https了</a>，咱还有啥理由不拥抱全站https啊？</p>
+<p>当然了，有些人大可以说，我不在乎我的隐私，嗯这就好似有些人说”政治与我无关”一样。</p>
+<p>然而我个人是非常在乎我的、以及我的访客的隐私，这也是我没有开启评论UA、更别提把地理位置信息啥的暴露给大众的原因。</p>
+<p>所以在我<a target="_blank" rel="noopener" href="https://dmesg.app/greengrapes2.html">为小蜗牛童鞋二次开发的主题</a>中，UA选项选项默认是关闭的（那俺为啥要开发这个功能呢？没事闲的、写点程序练练手、满足一下内心那可怕的心理需求、刷刷存在感呗）的确，我可以通过日志、通过访问统计工具来获得访客的UA等信息，如果我想，我可以分析出来一个人都看了什么（很显然我啥时候闲的有这个功夫了）。但是这只有我才能做到，这也就意味着我需要对访客的隐私负责—— 我需要做好服务器的安全工作，保护日志不外泄，尽管访客可能毫不在意这点。</p>
+<p>好吧，说实话，其实我是装有Random User-Agent的……</p>
+<h2 id="其他markdown替代品"><a href="#其他markdown替代品" class="headerlink" title="其他markdown替代品"></a>其他markdown替代品</h2><p>有人可能会问了，有没有啥markdown替代品啊？嗯，在Windows下我使用markdown pad2，在Linux下我使用Remarkable（这家伙也要出Windows版本的，只是一直是Under development）。</p>
+<p>[v_blue]The view has crashed? 如果你使用的是Windows 8及更新版本，markdown pad2可能会有这么一条警告导致无法预览。解决方案很简单，<a target="_blank" rel="noopener" href="http://markdownpad.com/download/awesomium_v1.6.6_sdk_win.exe">下载awesomium</a>并安装就好啦[&#x2F;v_blue]</p>
+<h2 id="更狠一步的解决方案"><a href="#更狠一步的解决方案" class="headerlink" title="更狠一步的解决方案"></a>更狠一步的解决方案</h2><p>对于这么嚣张的玩意，我一直是深恶痛绝的，那怎么再以身作则玩一玩呢？</p>
+<h3 id="屏蔽马克飞象UA"><a href="#屏蔽马克飞象UA" class="headerlink" title="屏蔽马克飞象UA"></a>屏蔽马克飞象UA</h3><p>咦，是不是日志中记录了这么一串UA</p>
+<p>Mozilla&#x2F;5.0 (Windows NT 6.2; WOW64) AppleWebKit&#x2F;537.36 (KHTML, like Gecko) Marxico&#x2F;1.0.0 Chrome&#x2F;47.0.2526.110 Electron&#x2F;0.36.10 Safari&#x2F;537.36</p>
+<p>那好办了，找到自己的nginx配置文件，server段里加这么一句</p>
+<p>if ($http_user_agent ~* (Marxico)) {<br>return 403;<br>}</p>
+<p>然后重启Nginx</p>
+<p>&#x2F;etc&#x2F;init.d&#x2F;nginx reload</p>
+<p>就好了，假如要禁止掉多个UA，那就用管道隔开，形如<code>python-requests|Python-urllib|Marxico</code>就可以了。</p>
+<h3 id="Nginx屏蔽马克飞象IP"><a href="#Nginx屏蔽马克飞象IP" class="headerlink" title="Nginx屏蔽马克飞象IP"></a>Nginx屏蔽马克飞象IP</h3><p>呐，这个很简单，直接来一句<code>deny 115.29.201.173;</code>然后重启Nginx即可。 当然了我这人超级爱黑名单，所以都是新建一个名为<code>blackip.conf</code>，里面写满了那些我讨厌的IP，然后<code>nginx.conf</code>里直接<code>include blackip.conf</code></p>
+<h3 id="UFW-x2F-iptables屏蔽马克飞象IP"><a href="#UFW-x2F-iptables屏蔽马克飞象IP" class="headerlink" title="UFW&#x2F;iptables屏蔽马克飞象IP"></a>UFW&#x2F;iptables屏蔽马克飞象IP</h3><p>这个就更暴力了，直接来一句</p>
+<p>ufw insert 1 deny from 115.29.201.173 to any</p>
+<p>世界清净了</p>
+<h2 id="最后的致歉"><a href="#最后的致歉" class="headerlink" title="最后的致歉"></a>最后的致歉</h2><p>如果原先的防盗链的图给小蜗牛童鞋造成了困扰，那么深表歉意……我是故意的，有一些事情，大概就是它原本的样子，也许只是内心深处最后的挣扎与冲突吧——如果，没有如果。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2017/04/05/no-more-maxiang/index/" data-id="clhp7rthu0061s2qraiwl0xtj" data-title="为了你的隐私考虑，别用马克飞象了" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-greengrapes2/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
   <div class="article-meta">
     <a href="/2017/04/01/greengrapes2/index/" class="article-date">
@@ -867,93 +969,6 @@
 
 
   
-    <article id="post-ufw-iptables/index" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/2017/02/10/ufw-iptables/index/" class="article-date">
-  <time class="dt-published" datetime="2017-02-10T00:00:00.000Z" itemprop="datePublished">2017-02-10</time>
-</a>
-    
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/linux/">linux</a>
-  </div>
-
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="p-name article-title" href="/2017/02/10/ufw-iptables/index/">开启ufw导致断网不能ping? ufw和iptables的那些坑</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="e-content article-entry" itemprop="articleBody">
-      
-        <p>昨晚不小心踩了一个坑，当开启ufw之后，电脑与外网的连接断开，明明ufw设置中incoming是allow、outgoing是deny，按理说应该能ping的…结果却全面断网，当然SSH也连不进来了…当把ufw禁用、或者把outgoing设置成allow，网络通信就恢复了，如动图所示。这是为啥捏？ 不好意思，动图被我删了，只能自己想象了? [v_blue]友情提示： 别说我”没加ping的allow规则”，我家ping是ICMP协议的，我家的ICMP协议是网络层的要比传输层的TCP、UDP低，所以我家ping是没有端口这一说法的。[&#x2F;v_blue]</p>
-<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="我尝试的无效方案"><a href="#我尝试的无效方案" class="headerlink" title="我尝试的无效方案"></a>我尝试的无效方案</h3><p>我先尝试了<code>iptables -F</code>来”清空全部规则”，无效； 重启无效； 之后我尝试了<code>apt remove –-purge iptables ufw gufw</code>然后再安装，依旧无效。</p>
-<p>天呐purge都无效了？</p>
-<h3 id="真正的解决方案"><a href="#真正的解决方案" class="headerlink" title="真正的解决方案"></a>真正的解决方案</h3><p>我从DigitalOcean找到了解决方案</p>
-<p>首先，我们先把INPUT、FORWARD、OUTPUT这三个链的规则设置成ACCEPT免得把自己锁在门外：</p>
-<p>sudo iptables -P INPUT ACCEPT<br>sudo iptables -P FORWARD ACCEPT<br>sudo iptables -P OUTPUT ACCEPT</p>
-<p>然后，我们清除NAT、Mangle表，清除链，删除所有的非默认链</p>
-<p>sudo iptables -t nat -F        #清除NAT表<br>sudo iptables -t mangle -F    #清除mangle表<br>sudo iptables -F    #清除所有链的规则<br>sudo iptables -X    #删除非默认链</p>
-<p>此时如果我们<code>iptables -L</code>列出链和规则，会发现只剩下INPUT、FORWARD、OUTPUT这三个链了，如图：</p>
-<p><img src="/images/021017_0252_ufwping1.png"></p>
-<p>此时我们再<code>ufw enable</code>启用ufw，如果SSH请先<code>ufw allow 22</code>，就会发现没断网。</p>
-<p>如果这个时候<code>iptables -L</code>，会看到多出来很多链和规则</p>
-<p><img src="/images/021017_0252_ufwping2.png"></p>
-<p>童鞋们是不是觉得很奇怪，为啥这次就行了？我是咋重现的这个问题？</p>
-<p>在回答这个问题之前，我们首先要了解下ufw、iptables是什么，之后以及这二者之间的关系，简单的了解iptables的基本概念和基本运作原理。</p>
-<h2 id="ufw"><a href="#ufw" class="headerlink" title="ufw"></a>ufw</h2><p>Uncomplicated FireWall，不是Ubuntu FireWall哦，是debian系发行版中为了轻量化配置 iptables 而开发的一款工具。</p>
-<p>UFW和iptables一样都是<a target="_blank" rel="noopener" href="https://dmesg.app/semi-auto-blacklist.html">匹配原则</a>，匹配到了则忽略剩下的规则，这点就不废话了。</p>
-<h2 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h2><p>我们习惯性的会把iptables认为是Linux上的防火墙，自从Linux内核2.4之后就集成进主线内核。实际上准确是说，iptables是一个通过控制Linux内核的netfilter模块来<strong>管理网络数据包的流动与转送</strong>的应用软件，其功能包括不仅仅包括防火墙的控制出入流量，还有端口转发等等。</p>
-<p>iptables内部有<strong>表tables、链chains、规则rules</strong>这三种概念。</p>
-<p>iptables的每一个”表”都和不同的数据包处理有关、决定数据包是否可以穿越的是”链”、而一条”规则”在链里面则可以决定是否送往下一条链（或其它的动作）</p>
-<p>那一个包到达网卡的时候，Linux的如何处理的呢？</p>
-<p>我们提到了iptables是可以控制netfilter模块的，netfilter内部（主要、常用的）分为三个表，分别是 <strong>filter, nat, mangle</strong>，每个表又有不同的链（Chains），每个链下可以有不同的规则（rules）。</p>
-<h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><p>在filter（过滤）表中，也就是防火墙功能的表，定义了三个链。分别是<strong>INPUT, FORWARD, OUTPUT</strong>。也就是对包的<strong>入、转发、出</strong>进行定义的三个过滤链。对于这个filter表的操作和控制也是我们实现防火墙功能的一个重要手段；</p>
-<h3 id="nat"><a href="#nat" class="headerlink" title="nat"></a>nat</h3><p>在nat(网络地址转换)表中，也就是我们用以实现地址转换和端口转发功能的这个表，定义了PREROUTING, POSTROUTING,OUTPUT三个链；</p>
-<h3 id="mangle"><a href="#mangle" class="headerlink" title="mangle"></a>mangle</h3><p>netfilter的mangle表则是一个自定义表，里面包括上面 的filter以及nat表中的各种chains，它可以让我们进行一些自定义的操作，同时这个mangle表中的chains在netfilter对包 的处理流程中比较优先。</p>
-<h2 id="包在Linux中的前世今生"><a href="#包在Linux中的前世今生" class="headerlink" title="包在Linux中的前世今生"></a>包在Linux中的前世今生</h2><p><a target="_blank" rel="noopener" href="https://o51bfbumd.qnssl.com/Netfilter-packet-flow.png"><img src="/images/Netfilter-packet-flow.png"></a></p>
-<p>图片来自维基百科（太大了，戳大图吧）</p>
-<p>我们大致可以看出：包首先要由bridge check来判断属于链路层还是网络层，之后包都会遇到NAT或者mangle表的PREROUTING链，从这pre前缀咱能才出来，这是要在路由之前要过的链。</p>
-<p>接着当包通过了PREROUTING之后，便到了 decision这个分支点，这里有一个对目的地址的判断，如果包的目的地是本地,那么包向上走，走入INPUT链处理，然后进入LOCAL PROCESS，之后再进入对应的OUTPUT、POSTROUTING；</p>
-<p>如果非本地，那么就进入FORWARD链进行转发，之后再走POSTROUTING，我们在这里就不说FORWARD链的事了。</p>
-<p>我们可以看到，filter表在包的处理流程中，处于中间的位置，这部分也就是防火墙的主要功能所在。</p>
-<h2 id="ufw怎么和iptables一起合作的"><a href="#ufw怎么和iptables一起合作的" class="headerlink" title="ufw怎么和iptables一起合作的"></a>ufw怎么和iptables一起合作的</h2><p>在稍微理解了包是怎么走的之后，回到我们<code>iptables -L</code>的时候，我们看filter表，可以看到，ufw在<strong>INPUT、FORWARD、OUTPUT</strong>添加了好些自定义规则，并且添加了好些自己的链和链的规则，还把把INPUT、FORWARD默认策略设置成DROP <img src="/images/021017_0252_ufwping3.png"> 如图，当你有这些ufw定义的链的时候，是能够匹配到ufw链和规则，也就是正常入网的。</p>
-<p>当我们执行<code>iptables -F</code>的时候，会发生什么呢？</p>
-<p><strong>所有链的规则都被清空了</strong>！包括ufw的链！并且INPUT、FORWARD依旧是DROP</p>
-<p>再想想包的前世今生，OUTPUT我们发出了ping，但是却因为<strong>INPUT的DROP而永远无法收到ICMP echo</strong>，只能往出发包而不能接收任何类型的包，毫无疑问自然就断网了。</p>
-<p>此时<code>ufw status</code>还会告诉你在运行，但是当你使用<code>ufw disable</code>关闭ufw时，INPUT会被设置成ACCEPT，自然就恢复网络通信了；</p>
-<p>当你使用<code>ufw default allow</code>把默认出网规则设置成allow时，INPUT也会被设置成ACCEPT，当然网络通信恢复了。</p>
-<p>所以童鞋们自此应该理解了刚开始理解动图能够ping通和不通的原因吧！</p>
-<h2 id="使用ufw和iptables的警告"><a href="#使用ufw和iptables的警告" class="headerlink" title="使用ufw和iptables的警告"></a>使用ufw和iptables的警告</h2><p>最后给大家一个警告，当你使用了ufw这类前端时，就最好不要再碰iptables了，尤其要**慎重使用iptables -**来清空所有链的规则。在不了解iptables的表、链、规则之前，盲目的清空iptables”规则”就是耍流氓！</p>
-<p>试想，假如你在服务器上<code>ufw enable</code>，那么INPUT和FORWARD就是DROP，那么当你<code>iptables -F</code>时，不仅仅是SSH的例外规则没了，所有出网的包也都出不去了！此时唯一能做的事情就是去VNC、或者去机房插鼠标键盘显示器。</p>
-<p>假如你是买的服务器，为了安全考虑使用密钥认证，并且把用户名设置成了从openssl生成的随机密码，并且你是由Windows重装成的Linux，那么控制台也是没有用的……重装或者快照吧。</p>
-<p> </p>
-<p>参考资料：</p>
-<p><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules">https://www.digitalocean.com/community/tutorials/how-to-list-and-delete-iptables-firewall-rules</a></p>
-<p><a target="_blank" rel="noopener" href="http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html">http://xstarcd.github.io/wiki/Linux/iptables_FORWARD_internetshare.html</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://example.com/2017/02/10/ufw-iptables/index/" data-id="clhp7rtms00ans2qr8jj02jsy" data-title="开启ufw导致断网不能ping? ufw和iptables的那些坑" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-
-  
 
 
   <nav id="page-nav">
@@ -969,7 +984,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Categories</h3>
     <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/">azure</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/azure/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/china/">china</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/china/justsay/">justsay</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/cloudflare/">cloudflare</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/">it</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/it/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/linux/">linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/it/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/">justsay</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/gfw/">gfw</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/justsay/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/">linux</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/linux/security/">security</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/linux/website/">website</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/program/">program</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/program/share/">share</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/">security</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/security/justsay/">justsay</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/security/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/share/">share</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/website/">website</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/website/program/">program</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/what/">what</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/what/gfw/">gfw</a></li></ul></li></ul>
     </div>
   </div>
 
@@ -998,7 +1013,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/12/">December 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">November 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/09/">September 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">August 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/07/">July 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/04/">April 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/03/">March 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">February 2024</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/12/">December 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/05/">May 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/04/">April 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/02/">February 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/01/">January 2023</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">September 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/06/">June 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">May 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/04/">April 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/02/">February 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/01/">January 2022</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/12/">December 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/11/">November 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/10/">October 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/08/">August 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/07/">July 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/09/">September 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">July 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/04/">April 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">January 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/12/">December 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/06/">June 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">April 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">March 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">February 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/12/">December 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/02/">February 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">October 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/08/">August 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/07/">July 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/06/">June 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">May 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">April 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/02/">February 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/12/">December 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/11/">November 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/10/">October 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/09/">September 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/08/">August 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/07/">July 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">June 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/05/">May 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">April 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">March 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/02/">February 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">January 2016</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/12/">December 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/11/">November 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/10/">October 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/09/">September 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/08/">August 2015</a></li></ul>
     </div>
   </div>
 
@@ -1009,6 +1024,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2025/03/16/py-azure-oai-proxy/index/">使用50行Python代码实现一个Azure OpenAI Proxy</a>
+          </li>
         
           <li>
             <a href="/2024/12/12/candlestick-llm/index/">使用Python 通过K线计算技术指标，并用 LLM 预测趋势</a>
@@ -1024,10 +1043,6 @@
         
           <li>
             <a href="/2024/10/06/aca-vm-scale/index/">Azure Container Apps 连接到虚拟机并配置CPU自动缩放</a>
-          </li>
-        
-          <li>
-            <a href="/2024/09/28/worker-image-metadata/index/">使用 Cloudflare Worker获取图片元数据</a>
           </li>
         
       </ul>
